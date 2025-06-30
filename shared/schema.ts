@@ -1,4 +1,5 @@
 import { pgTable, text, serial, integer, decimal, timestamp, boolean } from "drizzle-orm/pg-core";
+import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -48,6 +49,34 @@ export const users = pgTable("users", {
   name: text("name").notNull(),
   role: text("role").notNull().default("manager"),
 });
+
+// Relations
+export const customersRelations = relations(customers, ({ many }) => ({
+  orders: many(orders),
+}));
+
+export const ordersRelations = relations(orders, ({ one, many }) => ({
+  customer: one(customers, {
+    fields: [orders.customerId],
+    references: [customers.id],
+  }),
+  orderItems: many(orderItems),
+}));
+
+export const orderItemsRelations = relations(orderItems, ({ one }) => ({
+  order: one(orders, {
+    fields: [orderItems.orderId],
+    references: [orders.id],
+  }),
+  product: one(products, {
+    fields: [orderItems.productId],
+    references: [products.id],
+  }),
+}));
+
+export const productsRelations = relations(products, ({ many }) => ({
+  orderItems: many(orderItems),
+}));
 
 // Insert schemas
 export const insertProductSchema = createInsertSchema(products).omit({

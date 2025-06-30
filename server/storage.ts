@@ -9,8 +9,15 @@ import {
   InsertOrderItem,
   User, 
   InsertUser,
-  DashboardMetrics 
+  DashboardMetrics,
+  products,
+  customers,
+  orders,
+  orderItems,
+  users
 } from "@shared/schema";
+import { db } from "./db";
+import { eq, ilike, or, desc } from "drizzle-orm";
 
 export interface IStorage {
   // Users
@@ -333,4 +340,172 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+export class DatabaseStorage implements IStorage {
+  async getUser(id: number): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user || undefined;
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user || undefined;
+  }
+
+  async createUser(insertUser: InsertUser): Promise<User> {
+    const [user] = await db
+      .insert(users)
+      .values(insertUser)
+      .returning();
+    return user;
+  }
+
+  async getProducts(): Promise<Product[]> {
+    return await db.select().from(products);
+  }
+
+  async getProduct(id: number): Promise<Product | undefined> {
+    const [product] = await db.select().from(products).where(eq(products.id, id));
+    return product || undefined;
+  }
+
+  async createProduct(insertProduct: InsertProduct): Promise<Product> {
+    const [product] = await db
+      .insert(products)
+      .values(insertProduct)
+      .returning();
+    return product;
+  }
+
+  async updateProduct(id: number, productUpdate: Partial<InsertProduct>): Promise<Product | undefined> {
+    const [product] = await db
+      .update(products)
+      .set(productUpdate)
+      .where(eq(products.id, id))
+      .returning();
+    return product || undefined;
+  }
+
+  async deleteProduct(id: number): Promise<boolean> {
+    const result = await db.delete(products).where(eq(products.id, id));
+    return (result.rowCount ?? 0) > 0;
+  }
+
+  async searchProducts(query: string): Promise<Product[]> {
+    return await db
+      .select()
+      .from(products)
+      .where(
+        or(
+          ilike(products.name, `%${query}%`),
+          ilike(products.sku, `%${query}%`),
+          ilike(products.category, `%${query}%`)
+        )
+      );
+  }
+
+  async getCustomers(): Promise<Customer[]> {
+    return await db.select().from(customers);
+  }
+
+  async getCustomer(id: number): Promise<Customer | undefined> {
+    const [customer] = await db.select().from(customers).where(eq(customers.id, id));
+    return customer || undefined;
+  }
+
+  async createCustomer(insertCustomer: InsertCustomer): Promise<Customer> {
+    const [customer] = await db
+      .insert(customers)
+      .values(insertCustomer)
+      .returning();
+    return customer;
+  }
+
+  async updateCustomer(id: number, customerUpdate: Partial<InsertCustomer>): Promise<Customer | undefined> {
+    const [customer] = await db
+      .update(customers)
+      .set(customerUpdate)
+      .where(eq(customers.id, id))
+      .returning();
+    return customer || undefined;
+  }
+
+  async deleteCustomer(id: number): Promise<boolean> {
+    const result = await db.delete(customers).where(eq(customers.id, id));
+    return (result.rowCount ?? 0) > 0;
+  }
+
+  async getOrders(): Promise<Order[]> {
+    return await db.select().from(orders).orderBy(desc(orders.createdAt));
+  }
+
+  async getOrder(id: number): Promise<Order | undefined> {
+    const [order] = await db.select().from(orders).where(eq(orders.id, id));
+    return order || undefined;
+  }
+
+  async createOrder(insertOrder: InsertOrder): Promise<Order> {
+    const [order] = await db
+      .insert(orders)
+      .values(insertOrder)
+      .returning();
+    return order;
+  }
+
+  async updateOrder(id: number, orderUpdate: Partial<InsertOrder>): Promise<Order | undefined> {
+    const [order] = await db
+      .update(orders)
+      .set(orderUpdate)
+      .where(eq(orders.id, id))
+      .returning();
+    return order || undefined;
+  }
+
+  async deleteOrder(id: number): Promise<boolean> {
+    const result = await db.delete(orders).where(eq(orders.id, id));
+    return (result.rowCount ?? 0) > 0;
+  }
+
+  async getRecentOrders(limit = 10): Promise<Order[]> {
+    return await db
+      .select()
+      .from(orders)
+      .orderBy(desc(orders.createdAt))
+      .limit(limit);
+  }
+
+  async getOrderItems(orderId: number): Promise<OrderItem[]> {
+    return await db.select().from(orderItems).where(eq(orderItems.orderId, orderId));
+  }
+
+  async createOrderItem(insertOrderItem: InsertOrderItem): Promise<OrderItem> {
+    const [orderItem] = await db
+      .insert(orderItems)
+      .values(insertOrderItem)
+      .returning();
+    return orderItem;
+  }
+
+  async getDashboardMetrics(): Promise<DashboardMetrics> {
+    const allProducts = await this.getProducts();
+    const allOrders = await this.getOrders();
+    const allCustomers = await this.getCustomers();
+
+    const completedOrders = allOrders.filter(order => order.status === 'completed');
+    const totalRevenue = completedOrders.reduce((sum, order) => sum + parseFloat(order.total), 0);
+
+    const lowStockProducts = allProducts.filter(product => product.stock <= product.lowStockThreshold);
+
+    return {
+      totalRevenue: totalRevenue.toFixed(2),
+      totalOrders: allOrders.length,
+      totalProducts: allProducts.length,
+      totalCustomers: allCustomers.length,
+      revenueGrowth: "+12.5%", // This would be calculated from historical data
+      ordersGrowth: "+8.2%", // This would be calculated from historical data
+      lowStockCount: lowStockProducts.length,
+      activeCustomersCount: allCustomers.length
+    };
+  }
+}
+
+export const storage = new DatabaseStorage();
