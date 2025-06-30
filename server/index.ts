@@ -3,6 +3,13 @@ import session from "express-session";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 
+// Extend session type to include user
+declare module 'express-session' {
+  interface SessionData {
+    user?: { phone: string };
+  }
+}
+
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));

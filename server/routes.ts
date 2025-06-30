@@ -5,6 +5,13 @@ import { insertProductSchema, insertCustomerSchema, insertOrderSchema, insertUse
 import { z } from "zod";
 import bcrypt from "bcryptjs";
 
+// Extend session type to include user
+declare module 'express-session' {
+  interface SessionData {
+    user?: { phone: string };
+  }
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
   
   // User registration route
@@ -40,6 +47,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Registration error:", error);
       res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
+  // User login route
+  app.post("/api/login", async (req, res) => {
+    try {
+      const { phone, pin } = req.body;
+
+      if (!phone || !pin) {
+        return res.status(400).json({ error: "Phone and PIN are required" });
+      }
+
+      // Retrieve user from database
+      const user = await storage.getUserByPhone(phone);
+      if (!user) {
+        return res.status(401).json({ error: "Invalid credentials" });
+      }
+
+      // Verify PIN using bcryptjs
+      const isValidPin = await bcrypt.compare(pin, user.password);
+      if (!isValidPin) {
+        return res.status(401).json({ error: "Invalid credentials" });
+      }
+
+      // Set user session
+      req.session.user = { phone };
+
+      res.status(200).json({ success: true });
+    } catch (error) {
+      console.error("Login error:", error);
+      res.status(500).json({ error: "Internal server error" });
     }
   });
 
