@@ -44,10 +44,11 @@ export const orderItems = pgTable("order_items", {
 
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
-  username: text("username").notNull().unique(),
+  username: text("username").unique(),
+  phone: text("phone").unique(),
   password: text("password").notNull(),
-  name: text("name").notNull(),
-  role: text("role").notNull().default("manager"),
+  name: text("name"),
+  role: text("role").notNull().default("user"),
 });
 
 // Relations

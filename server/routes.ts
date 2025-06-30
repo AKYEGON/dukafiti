@@ -1,11 +1,48 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertProductSchema, insertCustomerSchema, insertOrderSchema } from "@shared/schema";
+import { insertProductSchema, insertCustomerSchema, insertOrderSchema, insertUserSchema } from "@shared/schema";
 import { z } from "zod";
+import bcrypt from "bcryptjs";
 
 export async function registerRoutes(app: Express): Promise<Server> {
   
+  // User registration route
+  app.post("/api/register", async (req, res) => {
+    try {
+      const { phone, pin } = req.body;
+
+      if (!phone || !pin) {
+        return res.status(400).json({ message: "Phone and PIN are required" });
+      }
+
+      // Check if user already exists
+      const existingUser = await storage.getUserByPhone(phone);
+      if (existingUser) {
+        return res.status(400).json({ message: "User exists" });
+      }
+
+      // Hash the PIN
+      const hash = await bcrypt.hash(pin, 10);
+
+      // Create new user
+      const userData = {
+        phone,
+        password: hash,
+        name: null,
+        username: null,
+        role: "user"
+      };
+
+      await storage.createUser(userData);
+
+      res.status(200).json({ success: true });
+    } catch (error) {
+      console.error("Registration error:", error);
+      res.status(500).json({ message: "Internal server error" });
+    }
+  });
+
   // Dashboard routes
   app.get("/api/dashboard/metrics", async (req, res) => {
     try {
