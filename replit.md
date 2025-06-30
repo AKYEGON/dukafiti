@@ -103,6 +103,10 @@ RESTful endpoints organized by resource:
 ```
 Changelog:
 - June 30, 2025. Initial setup
+- June 30, 2025. Updated authentication system to use email/password instead of phone/PIN
+- June 30, 2025. Created modern home page with sign up/sign in buttons
+- June 30, 2025. Implemented Google OAuth ready authentication pages
+- June 30, 2025. Separated onboarding flow from initial authentication
 ```
 
 ## User Preferences

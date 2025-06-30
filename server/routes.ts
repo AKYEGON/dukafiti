@@ -25,27 +25,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // User registration route
   app.post("/api/register", async (req, res) => {
     try {
-      const { phone, pin } = req.body;
+      const { name, email, password } = req.body;
 
-      if (!phone || !pin) {
-        return res.status(400).json({ message: "Phone and PIN are required" });
+      if (!name || !email || !password) {
+        return res.status(400).json({ message: "Name, email and password are required" });
       }
 
       // Check if user already exists
-      const existingUser = await storage.getUserByPhone(phone);
+      const existingUser = await storage.getUserByEmail(email);
       if (existingUser) {
-        return res.status(400).json({ message: "User exists" });
+        return res.status(400).json({ message: "User with this email already exists" });
       }
 
-      // Hash the PIN
-      const hash = await bcrypt.hash(pin, 10);
+      // Hash the password
+      const hash = await bcrypt.hash(password, 10);
 
       // Create new user
       const userData = {
-        phone,
+        username: email,
+        phone: null,
         password: hash,
-        name: null,
-        username: null,
+        name,
         role: "user"
       };
 
@@ -70,31 +70,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // User login route
   app.post("/api/login", async (req, res) => {
     try {
-      const { phone, pin } = req.body;
+      const { email, password } = req.body;
 
-      if (!phone || !pin) {
-        return res.status(400).json({ error: "Phone and PIN are required" });
+      if (!email || !password) {
+        return res.status(400).json({ message: "Email and password are required" });
       }
 
       // Retrieve user from database
-      const user = await storage.getUserByPhone(phone);
+      const user = await storage.getUserByEmail(email);
       if (!user) {
-        return res.status(401).json({ error: "Invalid credentials" });
+        return res.status(401).json({ message: "Invalid credentials" });
       }
 
-      // Verify PIN using bcryptjs
-      const isValidPin = await bcrypt.compare(pin, user.password);
-      if (!isValidPin) {
-        return res.status(401).json({ error: "Invalid credentials" });
+      // Verify password using bcryptjs
+      const isValidPassword = await bcrypt.compare(password, user.password);
+      if (!isValidPassword) {
+        return res.status(401).json({ message: "Invalid credentials" });
       }
 
       // Set user session
-      req.session.user = { phone };
+      req.session.user = { phone: user.phone || email };
 
-      res.status(200).json({ success: true });
+      res.status(200).json({ message: "Login successful", user: { email: user.username, name: user.name } });
     } catch (error) {
       console.error("Login error:", error);
-      res.status(500).json({ error: "Internal server error" });
+      res.status(500).json({ message: "Internal server error" });
     }
   });
 

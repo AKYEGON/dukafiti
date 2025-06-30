@@ -8,6 +8,7 @@ import { AuthProvider, useAuth } from "@/hooks/use-auth";
 import Dashboard from "@/pages/dashboard";
 import Inventory from "@/pages/inventory";
 import Sales from "@/pages/sales";
+import Home from "@/pages/home";
 import Login from "@/pages/login";
 import Register from "@/pages/register";
 import Onboarding from "@/pages/onboarding";
@@ -35,9 +36,11 @@ function AuthenticatedApp() {
 function UnauthenticatedApp() {
   return (
     <Switch>
+      <Route path="/" component={Home} />
       <Route path="/login" component={Login} />
       <Route path="/register" component={Register} />
-      <Route component={() => <Login />} />
+      <Route path="/onboarding" component={Onboarding} />
+      <Route component={NotFound} />
     </Switch>
   );
 }
