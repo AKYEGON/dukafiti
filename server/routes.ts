@@ -113,124 +113,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Product routes using Replit DB
+  // Product routes
   app.get("/api/products", requireAuth, async (req, res) => {
     try {
-      // Get all keys starting with "product:"
-      const keysResult: any = await db.list("product:");
-      const products = [];
-      
-      // Extract the actual array from the result
-      const keys = Array.isArray(keysResult) ? keysResult : [];
-      
-      for (const key of keys) {
-        try {
-          const valueResult: any = await db.get(key);
-          // Handle the value result and parse if it's a string
-          let value = valueResult;
-          
-          if (typeof value === 'string') {
-            const product = JSON.parse(value);
-            products.push(product);
-          }
-        } catch (parseError) {
-          console.error(`Failed to parse product ${key}:`, parseError);
-        }
-      }
-      
+      const products = await storage.getProducts();
       res.json(products);
     } catch (error) {
-      console.error("Failed to fetch products:", error);
       res.status(500).json({ message: "Failed to fetch products" });
     }
   });
 
   app.post("/api/products", requireAuth, async (req, res) => {
     try {
-      // Validate the request body
-      const { name, price, quantity, threshold } = req.body;
-      
-      if (!name || price === undefined || quantity === undefined || threshold === undefined) {
-        return res.status(400).json({ 
-          message: "Missing required fields: name, price, quantity, threshold" 
-        });
-      }
-      
-      // Generate unique ID
-      const id = uuidv4();
-      
-      // Create product object
-      const product = {
-        id,
-        name,
-        price: Number(price),
-        quantity: Number(quantity),
-        threshold: Number(threshold)
-      };
-      
-      // Store in Replit DB
-      await db.set(`product:${id}`, JSON.stringify(product));
-      
+      const productData = insertProductSchema.parse(req.body);
+      const product = await storage.createProduct(productData);
       res.status(201).json(product);
     } catch (error) {
-      console.error("Failed to create product:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid product data", errors: error.errors });
+      }
       res.status(500).json({ message: "Failed to create product" });
-    }
-  });
-
-  app.put("/api/products/:id", requireAuth, async (req, res) => {
-    try {
-      const { id } = req.params;
-      const { name, price, quantity, threshold } = req.body;
-      
-      if (!name || price === undefined || quantity === undefined || threshold === undefined) {
-        return res.status(400).json({ 
-          message: "Missing required fields: name, price, quantity, threshold" 
-        });
-      }
-      
-      // Check if product exists
-      const existingValue: any = await db.get(`product:${id}`);
-      if (!existingValue) {
-        return res.status(404).json({ message: "Product not found" });
-      }
-      
-      // Create updated product object
-      const updatedProduct = {
-        id,
-        name,
-        price: Number(price),
-        quantity: Number(quantity),
-        threshold: Number(threshold)
-      };
-      
-      // Store updated product in Replit DB
-      await db.set(`product:${id}`, JSON.stringify(updatedProduct));
-      
-      res.json(updatedProduct);
-    } catch (error) {
-      console.error("Failed to update product:", error);
-      res.status(500).json({ message: "Failed to update product" });
-    }
-  });
-
-  app.delete("/api/products/:id", requireAuth, async (req, res) => {
-    try {
-      const { id } = req.params;
-      
-      // Check if product exists
-      const existingValue: any = await db.get(`product:${id}`);
-      if (!existingValue) {
-        return res.status(404).json({ message: "Product not found" });
-      }
-      
-      // Delete the product from Replit DB
-      await db.delete(`product:${id}`);
-      
-      res.json({ success: true });
-    } catch (error) {
-      console.error("Failed to delete product:", error);
-      res.status(500).json({ message: "Failed to delete product" });
     }
   });
 
