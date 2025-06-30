@@ -58,6 +58,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Check authentication status
+  app.get("/api/me", (req, res) => {
+    if (req.session.user) {
+      res.json({ authenticated: true, user: req.session.user });
+    } else {
+      res.status(401).json({ authenticated: false });
+    }
+  });
+
   // User login route
   app.post("/api/login", async (req, res) => {
     try {

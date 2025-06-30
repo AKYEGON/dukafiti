@@ -1,40 +1,85 @@
-import { Switch, Route } from "wouter";
+import { Switch, Route, useLocation } from "wouter";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "./lib/queryClient";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Sidebar } from "@/components/layout/sidebar";
+import { AuthProvider, useAuth } from "@/hooks/use-auth";
 import Dashboard from "@/pages/dashboard";
 import Inventory from "@/pages/inventory";
 import Sales from "@/pages/sales";
+import Login from "@/pages/login";
+import Register from "@/pages/register";
+import Onboarding from "@/pages/onboarding";
 import NotFound from "@/pages/not-found";
 
-function Router() {
+function AuthenticatedApp() {
+  return (
+    <div className="min-h-screen flex flex-col lg:flex-row bg-gray-50">
+      <Sidebar />
+      <main className="flex-1 flex flex-col">
+        <Switch>
+          <Route path="/" component={Dashboard} />
+          <Route path="/inventory" component={Inventory} />
+          <Route path="/sales" component={Sales} />
+          <Route path="/customers" component={() => <div className="p-6">Customers page coming soon...</div>} />
+          <Route path="/reports" component={() => <div className="p-6">Reports page coming soon...</div>} />
+          <Route path="/settings" component={() => <div className="p-6">Settings page coming soon...</div>} />
+          <Route component={NotFound} />
+        </Switch>
+      </main>
+    </div>
+  );
+}
+
+function UnauthenticatedApp() {
   return (
     <Switch>
-      <Route path="/" component={Dashboard} />
-      <Route path="/inventory" component={Inventory} />
-      <Route path="/sales" component={Sales} />
-      <Route path="/customers" component={() => <div className="p-6">Customers page coming soon...</div>} />
-      <Route path="/reports" component={() => <div className="p-6">Reports page coming soon...</div>} />
-      <Route path="/settings" component={() => <div className="p-6">Settings page coming soon...</div>} />
-      <Route component={NotFound} />
+      <Route path="/login" component={Login} />
+      <Route path="/register" component={Register} />
+      <Route component={() => <Login />} />
     </Switch>
   );
+}
+
+function Router() {
+  const { isAuthenticated, isLoading } = useAuth();
+  const [location] = useLocation();
+
+  // Show loading spinner while checking auth
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600 mx-auto"></div>
+          <p className="mt-2 text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Handle onboarding route
+  if (location === "/onboarding") {
+    return <Onboarding />;
+  }
+
+  // Redirect logic based on authentication
+  if (isAuthenticated) {
+    return <AuthenticatedApp />;
+  } else {
+    return <UnauthenticatedApp />;
+  }
 }
 
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <TooltipProvider>
-        <div className="min-h-screen flex flex-col lg:flex-row bg-gray-50">
-          <Sidebar />
-          <main className="flex-1 flex flex-col">
-            <Router />
-          </main>
-        </div>
-        <Toaster />
-      </TooltipProvider>
+      <AuthProvider>
+        <TooltipProvider>
+          <Router />
+          <Toaster />
+        </TooltipProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }
