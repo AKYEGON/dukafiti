@@ -4,6 +4,11 @@ import { storage } from "./storage";
 import { insertProductSchema, insertCustomerSchema, insertOrderSchema, insertUserSchema } from "@shared/schema";
 import { z } from "zod";
 import bcrypt from "bcryptjs";
+import Database from "@replit/database";
+import { v4 as uuidv4 } from "uuid";
+
+// Initialize Replit Database
+const db = new Database();
 
 // Extend session type to include user
 declare module 'express-session' {
@@ -108,41 +113,61 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Product routes
+  // Product routes using Replit DB
   app.get("/api/products", requireAuth, async (req, res) => {
     try {
-      const { search } = req.query;
-      const products = search 
-        ? await storage.searchProducts(search as string)
-        : await storage.getProducts();
+      // Get all keys starting with "product:"
+      const keys = await db.list("product:");
+      const products = [];
+      
+      for (const key of keys) {
+        try {
+          const value = await db.get(key);
+          if (value) {
+            const product = JSON.parse(value as string);
+            products.push(product);
+          }
+        } catch (parseError) {
+          console.error(`Failed to parse product ${key}:`, parseError);
+        }
+      }
+      
       res.json(products);
     } catch (error) {
+      console.error("Failed to fetch products:", error);
       res.status(500).json({ message: "Failed to fetch products" });
-    }
-  });
-
-  app.get("/api/products/:id", requireAuth, async (req, res) => {
-    try {
-      const id = parseInt(req.params.id);
-      const product = await storage.getProduct(id);
-      if (!product) {
-        return res.status(404).json({ message: "Product not found" });
-      }
-      res.json(product);
-    } catch (error) {
-      res.status(500).json({ message: "Failed to fetch product" });
     }
   });
 
   app.post("/api/products", requireAuth, async (req, res) => {
     try {
-      const productData = insertProductSchema.parse(req.body);
-      const product = await storage.createProduct(productData);
+      // Validate the request body
+      const { name, price, quantity, threshold } = req.body;
+      
+      if (!name || price === undefined || quantity === undefined || threshold === undefined) {
+        return res.status(400).json({ 
+          message: "Missing required fields: name, price, quantity, threshold" 
+        });
+      }
+      
+      // Generate unique ID
+      const id = uuidv4();
+      
+      // Create product object
+      const product = {
+        id,
+        name,
+        price: Number(price),
+        quantity: Number(quantity),
+        threshold: Number(threshold)
+      };
+      
+      // Store in Replit DB
+      await db.set(`product:${id}`, JSON.stringify(product));
+      
       res.status(201).json(product);
     } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid product data", errors: error.errors });
-      }
+      console.error("Failed to create product:", error);
       res.status(500).json({ message: "Failed to create product" });
     }
   });

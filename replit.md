@@ -107,6 +107,8 @@ Changelog:
 - June 30, 2025. Created modern home page with sign up/sign in buttons
 - June 30, 2025. Implemented Google OAuth ready authentication pages
 - June 30, 2025. Separated onboarding flow from initial authentication
+- June 30, 2025. Fixed authentication session handling and query invalidation
+- June 30, 2025. Integrated Replit DB for product storage with UUID-based keys
 ```
 
 ## User Preferences
