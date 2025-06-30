@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 interface AuthContextType {
   isAuthenticated: boolean;
   isLoading: boolean;
-  user: { phone: string } | null;
+  user: { phone: string; email?: string; name?: string } | null;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);

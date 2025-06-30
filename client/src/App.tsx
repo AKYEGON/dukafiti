@@ -21,6 +21,7 @@ function AuthenticatedApp() {
       <main className="flex-1 flex flex-col">
         <Switch>
           <Route path="/" component={Dashboard} />
+          <Route path="/dashboard" component={Dashboard} />
           <Route path="/inventory" component={Inventory} />
           <Route path="/sales" component={Sales} />
           <Route path="/customers" component={() => <div className="p-6">Customers page coming soon...</div>} />
