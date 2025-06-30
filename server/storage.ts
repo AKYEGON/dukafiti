@@ -16,6 +16,13 @@ import {
   orderItems,
   users
 } from "@shared/schema";
+
+export interface BusinessProfile {
+  businessName: string;
+  paybill: string;
+  consumerKey: string;
+  consumerSecret: string;
+}
 import { db } from "./db";
 import { eq, ilike, or, desc } from "drizzle-orm";
 
@@ -55,6 +62,10 @@ export interface IStorage {
 
   // Dashboard
   getDashboardMetrics(): Promise<DashboardMetrics>;
+
+  // Business Profile
+  saveBusinessProfile(phone: string, profile: BusinessProfile): Promise<void>;
+  getBusinessProfile(phone: string): Promise<BusinessProfile | undefined>;
 }
 
 export class MemStorage implements IStorage {
@@ -63,6 +74,7 @@ export class MemStorage implements IStorage {
   private orders: Map<number, Order> = new Map();
   private orderItems: Map<number, OrderItem> = new Map();
   private users: Map<number, User> = new Map();
+  private businessProfiles: Map<string, BusinessProfile> = new Map();
   
   private productId = 1;
   private customerId = 1;
@@ -80,6 +92,7 @@ export class MemStorage implements IStorage {
     const defaultUser: User = {
       id: this.userId++,
       username: "admin",
+      phone: "+254700000000",
       password: "admin123",
       name: "John Doe",
       role: "manager"
@@ -121,7 +134,13 @@ export class MemStorage implements IStorage {
     ];
 
     sampleProducts.forEach(product => {
-      const newProduct: Product = { ...product, id: this.productId++ };
+      const newProduct: Product = { 
+        ...product, 
+        id: this.productId++, 
+        description: product.description || null,
+        stock: product.stock || 0,
+        lowStockThreshold: product.lowStockThreshold || 10
+      };
       this.products.set(newProduct.id, newProduct);
     });
 
@@ -186,7 +205,14 @@ export class MemStorage implements IStorage {
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const user: User = { ...insertUser, id: this.userId++ };
+    const user: User = { 
+      ...insertUser, 
+      id: this.userId++,
+      username: insertUser.username ?? null,
+      phone: insertUser.phone ?? null,
+      name: insertUser.name ?? null,
+      role: insertUser.role ?? "user"
+    };
     this.users.set(user.id, user);
     return user;
   }
@@ -204,6 +230,9 @@ export class MemStorage implements IStorage {
     const product: Product = {
       ...insertProduct,
       id: this.productId++,
+      description: insertProduct.description ?? null,
+      stock: insertProduct.stock ?? 0,
+      lowStockThreshold: insertProduct.lowStockThreshold ?? 10,
       createdAt: new Date()
     };
     this.products.set(product.id, product);
@@ -246,6 +275,9 @@ export class MemStorage implements IStorage {
     const customer: Customer = {
       ...insertCustomer,
       id: this.customerId++,
+      phone: insertCustomer.phone ?? null,
+      email: insertCustomer.email ?? null,
+      address: insertCustomer.address ?? null,
       createdAt: new Date()
     };
     this.customers.set(customer.id, customer);
@@ -278,6 +310,8 @@ export class MemStorage implements IStorage {
     const order: Order = {
       ...insertOrder,
       id: this.orderId++,
+      status: insertOrder.status ?? "pending",
+      customerId: insertOrder.customerId ?? null,
       createdAt: new Date()
     };
     this.orders.set(order.id, order);
@@ -342,6 +376,14 @@ export class MemStorage implements IStorage {
       lowStockCount: lowStockProducts.length,
       activeCustomersCount: customers.length
     };
+  }
+
+  async saveBusinessProfile(phone: string, profile: BusinessProfile): Promise<void> {
+    this.businessProfiles.set(phone, profile);
+  }
+
+  async getBusinessProfile(phone: string): Promise<BusinessProfile | undefined> {
+    return this.businessProfiles.get(phone);
   }
 }
 
@@ -516,6 +558,27 @@ export class DatabaseStorage implements IStorage {
       activeCustomersCount: allCustomers.length
     };
   }
+
+  async saveBusinessProfile(phone: string, profile: BusinessProfile): Promise<void> {
+    // For now, we'll store business profiles as a JSON string in a simple key-value approach
+    // In a real implementation, you'd want a proper business_profiles table
+    const key = `business_profile:${phone}`;
+    // This is a simplified approach - in production you'd use a proper table
+    // For now, we'll just store it in memory like MemStorage
+    if (!this.businessProfiles) {
+      this.businessProfiles = new Map();
+    }
+    this.businessProfiles.set(phone, profile);
+  }
+
+  async getBusinessProfile(phone: string): Promise<BusinessProfile | undefined> {
+    if (!this.businessProfiles) {
+      this.businessProfiles = new Map();
+    }
+    return this.businessProfiles.get(phone);
+  }
+
+  private businessProfiles: Map<string, BusinessProfile> = new Map();
 }
 
 export const storage = new DatabaseStorage();

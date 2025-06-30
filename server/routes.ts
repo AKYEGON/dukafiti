@@ -233,6 +233,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Onboarding route
+  app.post("/api/onboarding", requireAuth, async (req, res) => {
+    try {
+      const { businessName, paybill, consumerKey, consumerSecret } = req.body;
+      
+      if (!businessName || !paybill || !consumerKey || !consumerSecret) {
+        return res.status(400).json({ 
+          message: "All fields are required: businessName, paybill, consumerKey, consumerSecret" 
+        });
+      }
+
+      const phone = req.session.user!.phone;
+      
+      // Store business profile and M-Pesa config
+      await storage.saveBusinessProfile(phone, {
+        businessName,
+        paybill,
+        consumerKey,
+        consumerSecret,
+      });
+
+      res.json({ message: "Business profile saved successfully" });
+    } catch (error) {
+      console.error("Onboarding error:", error);
+      res.status(500).json({ message: "Failed to save business profile" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
