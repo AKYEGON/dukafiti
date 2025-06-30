@@ -41,9 +41,9 @@ export function Sidebar({ className }: SidebarProps) {
           
           return (
             <Link key={item.name} href={item.href}>
-              <a
+              <div
                 className={cn(
-                  "flex items-center space-x-3 p-3 rounded-lg transition-colors",
+                  "flex items-center space-x-3 p-3 rounded-lg transition-colors cursor-pointer",
                   isActive
                     ? "primary-green text-white"
                     : "hover:bg-gray-800"
@@ -51,7 +51,7 @@ export function Sidebar({ className }: SidebarProps) {
               >
                 <Icon size={20} />
                 <span>{item.name}</span>
-              </a>
+              </div>
             </Link>
           );
         })}

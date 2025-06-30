@@ -40,7 +40,6 @@ export default function Inventory() {
   const queryClient = useQueryClient();
 
   const { data: products, isLoading } = useQuery<Product[]>({
-    queryKey: ["/api/products", { search }],
     queryKey: search ? ["/api/products", { search }] : ["/api/products"],
   });
 
