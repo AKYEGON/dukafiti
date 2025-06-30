@@ -128,9 +128,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const productData = insertProductSchema.parse(req.body);
       const product = await storage.createProduct(productData);
       res.status(201).json(product);
-    } catch (error) {
+    } catch (error: any) {
+      console.error("Product creation error:", error);
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Invalid product data", errors: error.errors });
+      }
+      // Handle unique constraint violations
+      if (error?.code === '23505' && error?.constraint === 'products_sku_unique') {
+        return res.status(400).json({ message: "A product with this SKU already exists. Please use a unique SKU." });
       }
       res.status(500).json({ message: "Failed to create product" });
     }

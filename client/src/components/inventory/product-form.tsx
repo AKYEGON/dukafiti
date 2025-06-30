@@ -57,8 +57,9 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
       onOpenChange(false);
       form.reset();
     },
-    onError: () => {
-      toast({ title: "Failed to create product", variant: "destructive" });
+    onError: (error: any) => {
+      const errorMessage = error?.response?.data?.message || "Failed to create product";
+      toast({ title: errorMessage, variant: "destructive" });
     },
   });
 
@@ -73,8 +74,9 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
       toast({ title: "Product updated successfully" });
       onOpenChange(false);
     },
-    onError: () => {
-      toast({ title: "Failed to update product", variant: "destructive" });
+    onError: (error: any) => {
+      const errorMessage = error?.response?.data?.message || "Failed to update product";
+      toast({ title: errorMessage, variant: "destructive" });
     },
   });
 
@@ -116,11 +118,12 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
               name="sku"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>SKU</FormLabel>
+                  <FormLabel>SKU (Product Code)</FormLabel>
                   <FormControl>
-                    <Input {...field} />
+                    <Input {...field} placeholder="e.g. PROD001, TEA001" />
                   </FormControl>
                   <FormMessage />
+                  <p className="text-xs text-gray-500">Must be unique for each product</p>
                 </FormItem>
               )}
             />
