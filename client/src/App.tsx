@@ -67,6 +67,13 @@ function Router() {
     return <Onboarding />;
   }
 
+  // Protected routes - redirect to login if not authenticated
+  const protectedRoutes = ['/dashboard', '/inventory', '/sales', '/customers', '/reports', '/settings'];
+  if (protectedRoutes.includes(location) && !isAuthenticated) {
+    window.location.href = '/login';
+    return null;
+  }
+
   // Redirect logic based on authentication
   if (isAuthenticated) {
     return <AuthenticatedApp />;
