@@ -99,10 +99,10 @@ export default function Inventory() {
                 </div>
                 <Button
                   onClick={() => setShowProductForm(true)}
-                  className="primary-green primary-green-hover"
+                  className="bg-green-600 hover:bg-green-700 text-white"
                 >
                   <Plus className="mr-2 h-4 w-4" />
-                  Add Product
+                  + Add Product
                 </Button>
               </div>
             </div>
@@ -111,84 +111,69 @@ export default function Inventory() {
             {isLoading ? (
               <div className="space-y-3">
                 {[...Array(5)].map((_, i) => (
-                  <Skeleton key={i} className="h-16" />
+                  <Skeleton key={i} className="h-20" />
                 ))}
               </div>
             ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Product</TableHead>
-                    <TableHead>SKU</TableHead>
-                    <TableHead>Stock</TableHead>
-                    <TableHead>Price</TableHead>
-                    <TableHead>Category</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {filteredProducts.length === 0 ? (
-                    <TableRow>
-                      <TableCell colSpan={6} className="text-center py-8">
-                        <div className="flex flex-col items-center space-y-2">
-                          <Package className="h-8 w-8 text-gray-400" />
-                          <p className="text-gray-500">
-                            {search ? "No products found matching your search" : "No products available"}
-                          </p>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ) : (
-                    filteredProducts.map((product) => (
-                      <TableRow key={product.id}>
-                        <TableCell>
-                          <div className="flex items-center space-x-3">
-                            <div className="w-10 h-10 bg-gray-200 rounded-lg flex items-center justify-center">
-                              <Package className="text-gray-500" size={16} />
-                            </div>
-                            <div>
-                              <p className="font-medium">{product.name}</p>
-                              {product.description && (
-                                <p className="text-xs text-gray-500">{product.description}</p>
-                              )}
-                            </div>
-                          </div>
-                        </TableCell>
-                        <TableCell className="font-mono text-sm">{product.sku}</TableCell>
-                        <TableCell>
-                          <Badge className={getStockStatusColor(product.stock, product.lowStockThreshold)}>
-                            {getStockStatusText(product.stock, product.lowStockThreshold)}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="font-medium">
-                          {formatCurrency(product.price)}
-                        </TableCell>
-                        <TableCell>{product.category}</TableCell>
-                        <TableCell>
+              <div className="space-y-3">
+                {filteredProducts.length === 0 ? (
+                  <div className="text-center py-8">
+                    <div className="flex flex-col items-center space-y-2">
+                      <Package className="h-8 w-8 text-gray-400" />
+                      <p className="text-gray-500">
+                        {search ? "No products found matching your search" : "No products available"}
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  filteredProducts.map((product) => (
+                    <div
+                      key={product.id}
+                      className={`p-4 mb-2 bg-gray-800 rounded flex items-center justify-between ${
+                        product.stock <= product.lowStockThreshold ? 'border-2 border-yellow-500' : ''
+                      }`}
+                    >
+                      <div className="flex-1">
+                        <div className="flex items-center space-x-3 mb-2">
+                          <h3 className="text-lg font-semibold text-white">{product.name}</h3>
                           <div className="flex space-x-2">
                             <Button
                               variant="ghost"
                               size="sm"
                               onClick={() => handleEdit(product)}
-                              className="text-primary hover:text-primary-dark"
+                              className="text-blue-400 hover:text-blue-300 p-1 h-auto"
                             >
-                              <Edit size={16} />
+                              ✏️
                             </Button>
                             <Button
                               variant="ghost"
                               size="sm"
                               onClick={() => handleDelete(product)}
-                              className="text-red-600 hover:text-red-800"
+                              className="text-red-400 hover:text-red-300 p-1 h-auto"
                             >
-                              <Trash2 size={16} />
+                              🗑️
                             </Button>
                           </div>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  )}
-                </TableBody>
-              </Table>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4 text-sm text-gray-300">
+                          <div>
+                            <span className="font-medium">Price:</span> KES {parseFloat(product.price).toLocaleString()}
+                          </div>
+                          <div>
+                            <span className="font-medium">Quantity:</span> {product.stock} units
+                          </div>
+                          <div>
+                            <span className="font-medium">Threshold:</span> {product.lowStockThreshold} units
+                          </div>
+                          <div>
+                            <span className="font-medium">Category:</span> {product.category}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
+              </div>
             )}
           </CardContent>
         </Card>

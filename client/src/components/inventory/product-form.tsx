@@ -218,12 +218,13 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
               <Button
                 type="submit"
                 disabled={createMutation.isPending || updateMutation.isPending}
+                className="bg-green-600 hover:bg-green-700 text-white"
               >
                 {createMutation.isPending || updateMutation.isPending
                   ? "Saving..."
                   : product
-                  ? "Update Product"
-                  : "Add Product"}
+                  ? "Save"
+                  : "Save"}
               </Button>
             </div>
           </form>
