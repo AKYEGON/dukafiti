@@ -448,10 +448,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
         status = 'credit';
       }
       
+      // Handle customer lookup/creation for credit sales
+      let customerId = null;
+      if (paymentType === 'credit') {
+        // Split customer input to extract name and phone if provided
+        const customerParts = customer.split(/[,|\-|:|\s]+/).map(part => part.trim()).filter(Boolean);
+        const customerName = customerParts[0];
+        const customerPhone = customerParts.length > 1 ? customerParts[1] : null;
+        
+        // Try to find existing customer by name or phone
+        let existingCustomer = await storage.getCustomerByNameOrPhone(customerName, customerPhone);
+        
+        if (!existingCustomer) {
+          // Create new customer
+          existingCustomer = await storage.createCustomer({
+            name: customerName,
+            phone: customerPhone,
+            email: null,
+            address: null,
+            balance: "0.00"
+          });
+        }
+        
+        // Update customer balance (add sale amount to their credit)
+        await storage.updateCustomerBalance(existingCustomer.id, total);
+        customerId = existingCustomer.id;
+      }
+
       // Create the order
       const orderData = {
-        customerId: null,
-        customerName: paymentType === 'credit' ? customer : "Walk-in Customer",
+        customerId,
+        customerName: paymentType === 'credit' ? customer.split(/[,|\-|:|\s]+/)[0].trim() : "Walk-in Customer",
         total: total.toFixed(2),
         paymentMethod: paymentType,
         status,

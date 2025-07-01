@@ -7,10 +7,7 @@ export function cn(...inputs: ClassValue[]) {
 
 export function formatCurrency(amount: string | number): string {
   const num = typeof amount === 'string' ? parseFloat(amount) : amount;
-  return new Intl.NumberFormat('en-US', {
-    style: 'currency',
-    currency: 'USD',
-  }).format(num);
+  return `KES ${num.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
 export function formatPrice(amount: string | number): string {
