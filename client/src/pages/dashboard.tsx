@@ -164,9 +164,9 @@ export default function Dashboard() {
           />
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 lg:gap-6">
           {/* Recent Orders */}
-          <Card className="lg:col-span-2 order-2 lg:order-1">
+          <Card className="lg:col-span-3 order-2 lg:order-1">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <CardTitle>Recent Orders</CardTitle>
@@ -187,7 +187,7 @@ export default function Dashboard() {
                     <Skeleton key={i} className="h-16" />
                   ))}
                 </div>
-              ) : (
+              ) : recentOrders && recentOrders.length > 0 ? (
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -198,7 +198,7 @@ export default function Dashboard() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {recentOrders?.map((order) => (
+                    {recentOrders.map((order) => (
                       <TableRow key={order.id}>
                         <TableCell className="font-medium">
                           #ORD-{order.id.toString().padStart(3, '0')}
@@ -214,96 +214,66 @@ export default function Dashboard() {
                     ))}
                   </TableBody>
                 </Table>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-12 text-center">
+                  <ShoppingCart className="h-12 w-12 text-muted-foreground mb-4" />
+                  <h3 className="text-lg font-medium text-foreground mb-2">No recent orders</h3>
+                  <p className="text-sm text-muted-foreground mb-4">Start by creating your first order</p>
+                  <Button onClick={handleCreateOrder} className="primary-green">
+                    Create Order
+                  </Button>
+                </div>
               )}
             </CardContent>
           </Card>
 
-          {/* Quick Actions & Alerts */}
-          <div className="space-y-4 lg:space-y-6 order-1 lg:order-2">
-            {/* Quick Actions */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Quick Actions</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-2 sm:space-y-3">
-                <Button 
-                  className="w-full justify-start text-sm sm:text-base py-2 sm:py-3 primary-green primary-green-hover hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 focus:ring-2 focus:ring-primary/50"
-                  onClick={handleAddProduct}
-                  aria-label="Add a new product to inventory"
-                >
-                  <Plus className="mr-2 h-4 w-4 flex-shrink-0" />
-                  <span className="truncate">Add New Product</span>
-                  <kbd className="hidden sm:inline-block ml-auto text-xs bg-muted px-1.5 py-0.5 rounded">Ctrl+P</kbd>
-                </Button>
-                <Button 
-                  variant="outline" 
-                  className="w-full justify-start text-sm sm:text-base py-2 sm:py-3 hover:bg-primary/10 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 focus:ring-2 focus:ring-primary/50"
-                  onClick={handleCreateOrder}
-                  aria-label="Create a new sales order"
-                >
-                  <ShoppingCart className="mr-2 h-4 w-4 flex-shrink-0" />
-                  <span className="truncate">Create Order</span>
-                  <kbd className="hidden sm:inline-block ml-auto text-xs bg-muted px-1.5 py-0.5 rounded">Ctrl+O</kbd>
-                </Button>
-                <Button 
-                  variant="outline" 
-                  className="w-full justify-start text-sm sm:text-base py-2 sm:py-3 hover:bg-primary/10 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 focus:ring-2 focus:ring-primary/50"
-                  onClick={handleAddCustomer}
-                  aria-label="Add a new customer"
-                >
-                  <UserPlus className="mr-2 h-4 w-4 flex-shrink-0" />
-                  <span className="truncate">Add Customer</span>
-                  <kbd className="hidden sm:inline-block ml-auto text-xs bg-muted px-1.5 py-0.5 rounded">Ctrl+U</kbd>
-                </Button>
-                <Button 
-                  variant="outline" 
-                  className="w-full justify-start text-sm sm:text-base py-2 sm:py-3 hover:bg-primary/10 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 focus:ring-2 focus:ring-primary/50"
-                  onClick={handleGenerateReport}
-                  aria-label="Generate business reports"
-                >
-                  <BarChart3 className="mr-2 h-4 w-4 flex-shrink-0" />
-                  <span className="truncate">Generate Report</span>
-                  <kbd className="hidden sm:inline-block ml-auto text-xs bg-muted px-1.5 py-0.5 rounded">Ctrl+R</kbd>
-                </Button>
-              </CardContent>
-            </Card>
-
-            {/* Alerts */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Alerts</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                {metrics?.lowStockCount && metrics.lowStockCount > 0 && (
-                  <div className="flex items-start space-x-3 p-3 bg-orange-50 rounded-lg border border-orange-200">
-                    <AlertTriangle className="text-orange-600 mt-1" size={16} />
-                    <div>
-                      <p className="text-sm font-medium text-orange-800">Low Stock Alert</p>
-                      <p className="text-xs text-orange-600">
-                        {metrics.lowStockCount} products are running low
-                      </p>
-                    </div>
-                  </div>
-                )}
-                
-                <div className="flex items-start space-x-3 p-3 bg-blue-50 rounded-lg border border-blue-200">
-                  <Info className="text-blue-600 mt-1" size={16} />
-                  <div>
-                    <p className="text-sm font-medium text-blue-800">System Update</p>
-                    <p className="text-xs text-blue-600">New features available</p>
-                  </div>
-                </div>
-                
-                <div className="flex items-start space-x-3 p-3 bg-green-50 rounded-lg border border-green-200">
-                  <CheckCircle className="text-green-600 mt-1" size={16} />
-                  <div>
-                    <p className="text-sm font-medium text-green-800">Backup Complete</p>
-                    <p className="text-xs text-green-600">Daily backup successful</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+          {/* Quick Actions */}
+          <Card className="order-1 lg:order-2">
+            <CardHeader>
+              <CardTitle>Quick Actions</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2 sm:space-y-3">
+              <Button 
+                className="w-full justify-start text-sm sm:text-base py-2 sm:py-3 primary-green primary-green-hover hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 focus:ring-2 focus:ring-primary/50"
+                onClick={handleAddProduct}
+                aria-label="Add a new product to inventory"
+              >
+                <Plus className="mr-2 h-4 w-4 flex-shrink-0" />
+                <span className="truncate">Add New Product</span>
+                <kbd className="hidden sm:inline-block ml-auto text-xs bg-muted px-1.5 py-0.5 rounded">Ctrl+P</kbd>
+              </Button>
+              <Button 
+                variant="outline" 
+                className="w-full justify-start text-sm sm:text-base py-2 sm:py-3 hover:bg-primary/10 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 focus:ring-2 focus:ring-primary/50"
+                onClick={handleCreateOrder}
+                aria-label="Create a new sales order"
+              >
+                <ShoppingCart className="mr-2 h-4 w-4 flex-shrink-0" />
+                <span className="truncate">Create Order</span>
+                <kbd className="hidden sm:inline-block ml-auto text-xs bg-muted px-1.5 py-0.5 rounded">Ctrl+O</kbd>
+              </Button>
+              <Button 
+                variant="outline" 
+                className="w-full justify-start text-sm sm:text-base py-2 sm:py-3 hover:bg-primary/10 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 focus:ring-2 focus:ring-primary/50"
+                onClick={handleAddCustomer}
+                aria-label="Add a new customer"
+              >
+                <UserPlus className="mr-2 h-4 w-4 flex-shrink-0" />
+                <span className="truncate">Add Customer</span>
+                <kbd className="hidden sm:inline-block ml-auto text-xs bg-muted px-1.5 py-0.5 rounded">Ctrl+U</kbd>
+              </Button>
+              <Button 
+                variant="outline" 
+                className="w-full justify-start text-sm sm:text-base py-2 sm:py-3 hover:bg-primary/10 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 focus:ring-2 focus:ring-primary/50"
+                onClick={handleGenerateReport}
+                aria-label="Generate business reports"
+              >
+                <BarChart3 className="mr-2 h-4 w-4 flex-shrink-0" />
+                <span className="truncate">Generate Report</span>
+                <kbd className="hidden sm:inline-block ml-auto text-xs bg-muted px-1.5 py-0.5 rounded">Ctrl+R</kbd>
+              </Button>
+            </CardContent>
+          </Card>
         </div>
       </div>
 

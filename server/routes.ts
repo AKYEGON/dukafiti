@@ -17,7 +17,7 @@ const wsClients = new Set<WebSocket>();
 // Extend session type to include user
 declare module 'express-session' {
   interface SessionData {
-    user?: { phone: string };
+    user?: { phone: string; email?: string; username?: string };
   }
 }
 
@@ -37,6 +37,26 @@ function requireAuth(req: any, res: any, next: any) {
     return res.status(401).json({ error: "Authentication required" });
   }
   next();
+}
+
+// Helper function to get current user from session
+async function getCurrentUser(req: any) {
+  if (!req.session.user) {
+    return null;
+  }
+  
+  // Try to get user by email/username first (current auth system)
+  if (req.session.user.email || req.session.user.username) {
+    const email = req.session.user.email || req.session.user.username;
+    return await storage.getUserByEmail(email);
+  }
+  
+  // Fallback to phone lookup for legacy sessions
+  if (req.session.user.phone) {
+    return await storage.getUserByPhone(req.session.user.phone);
+  }
+  
+  return null;
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -126,8 +146,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "Invalid credentials" });
       }
 
-      // Set user session
-      req.session.user = { phone: user.phone || email };
+      // Set user session  
+      req.session.user = { 
+        phone: user.phone || email, 
+        email: user.username ? user.username : undefined,
+        username: user.username ? user.username : undefined 
+      };
 
       res.status(200).json({ message: "Login successful", user: { email: user.username, name: user.name } });
     } catch (error) {
@@ -379,7 +403,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // For M-Pesa payments, check if M-Pesa is enabled
       if (paymentType === 'mpesa') {
-        const user = await storage.getUserByPhone(req.session.user.phone);
+        const user = await getCurrentUser(req);
         if (!user) {
           return res.status(404).json({ message: "User not found" });
         }
@@ -853,7 +877,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Business profile endpoints
   app.get('/api/business-profile', requireAuth, async (req: any, res: any) => {
     try {
-      const user = await storage.getUserByPhone(req.session.user.phone);
+      const user = await getCurrentUser(req);
       if (!user) {
         return res.status(404).json({ error: 'User not found' });
       }
@@ -872,7 +896,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/business-profile', requireAuth, async (req: any, res: any) => {
     try {
-      const user = await storage.getUserByPhone(req.session.user.phone);
+      const user = await getCurrentUser(req);
       if (!user) {
         return res.status(404).json({ error: 'User not found' });
       }
@@ -888,7 +912,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Store profile endpoints
   app.get('/api/store', requireAuth, async (req: any, res: any) => {
     try {
-      const user = await storage.getUserByPhone(req.session.user.phone);
+      const user = await getCurrentUser(req);
       if (!user) {
         return res.status(404).json({ error: 'User not found' });
       }
@@ -903,7 +927,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.put('/api/store', requireAuth, async (req: any, res: any) => {
     try {
-      const user = await storage.getUserByPhone(req.session.user.phone);
+      const user = await getCurrentUser(req);
       if (!user) {
         return res.status(404).json({ error: 'User not found' });
       }
@@ -926,7 +950,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.put('/api/store/mpesa', requireAuth, async (req: any, res: any) => {
     try {
-      const user = await storage.getUserByPhone(req.session.user.phone);
+      const user = await getCurrentUser(req);
       if (!user) {
         return res.status(404).json({ error: 'User not found' });
       }
@@ -960,7 +984,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // User settings endpoints
   app.get('/api/settings', requireAuth, async (req: any, res: any) => {
     try {
-      const user = await storage.getUserByPhone(req.session.user.phone);
+      const user = await getCurrentUser(req);
       if (!user) {
         return res.status(404).json({ error: 'User not found' });
       }
@@ -975,7 +999,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/settings/language', requireAuth, async (req: any, res: any) => {
     try {
-      const user = await storage.getUserByPhone(req.session.user.phone);
+      const user = await getCurrentUser(req);
       if (!user) {
         return res.status(404).json({ error: 'User not found' });
       }
@@ -1005,7 +1029,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // M-Pesa enabled setting routes
   app.get('/api/settings/mpesa-enabled', requireAuth, async (req: any, res: any) => {
     try {
-      const user = await storage.getUserByPhone(req.session.user.phone);
+      const user = await getCurrentUser(req);
       if (!user) {
         return res.status(404).json({ error: 'User not found' });
       }
@@ -1020,7 +1044,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.put('/api/settings/mpesa-enabled', requireAuth, async (req: any, res: any) => {
     try {
-      const user = await storage.getUserByPhone(req.session.user.phone);
+      const user = await getCurrentUser(req);
       if (!user) {
         return res.status(404).json({ error: 'User not found' });
       }
@@ -1050,7 +1074,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Theme setting routes
   app.get('/api/settings/theme', requireAuth, async (req: any, res: any) => {
     try {
-      const user = await storage.getUserByPhone(req.session.user.phone);
+      const user = await getCurrentUser(req);
       if (!user) {
         return res.status(404).json({ error: 'User not found' });
       }
@@ -1065,7 +1089,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.put('/api/settings/theme', requireAuth, async (req: any, res: any) => {
     try {
-      const user = await storage.getUserByPhone(req.session.user.phone);
+      const user = await getCurrentUser(req);
       if (!user) {
         return res.status(404).json({ error: 'User not found' });
       }
@@ -1111,7 +1135,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Full data export endpoint
   app.get('/api/backup', requireAuth, async (req: any, res: any) => {
     try {
-      const user = await storage.getUserByPhone(req.session.user.phone);
+      const user = await getCurrentUser(req);
       if (!user) {
         return res.status(404).json({ error: 'User not found' });
       }
@@ -1146,7 +1170,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         user: {
           id: user.id,
           phone: user.phone,
-          email: user.email || null,
+          email: user.username || null,
           name: user.name || null
         },
         storeProfile,
@@ -1173,7 +1197,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // This would integrate with Google Drive API in production
       // For now, we'll just simulate the backup process
       
-      const user = await storage.getUserByPhone(req.session.user.phone);
+      const user = await getCurrentUser(req);
       if (!user) {
         return res.status(404).json({ error: 'User not found' });
       }
