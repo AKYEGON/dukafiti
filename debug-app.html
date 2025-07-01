@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DukaSmart Debug</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; background: #f0f0f0; }
+        .test { margin: 10px 0; padding: 10px; border: 1px solid #ccc; background: white; }
+        .success { border-color: green; background: #f0fff0; }
+        .error { border-color: red; background: #fff0f0; }
+        .loading { border-color: orange; background: #fffaf0; }
+    </style>
+</head>
+<body>
+    <h1>DukaSmart Debug Analysis</h1>
+    <div id="tests"></div>
+    
+    <script type="module">
+        const tests = document.getElementById('tests');
+        
+        function addTest(name, status, details) {
+            const div = document.createElement('div');
+            div.className = `test ${status}`;
+            div.innerHTML = `<h3>${name}</h3><p>${details}</p>`;
+            tests.appendChild(div);
+        }
+        
+        // Test 1: Basic DOM
+        addTest('DOM Ready', 'success', 'HTML loaded and JavaScript executing');
+        
+        // Test 2: Fetch API endpoint
+        try {
+            const response = await fetch('/api/me', { credentials: 'include' });
+            const data = await response.json();
+            addTest('API Endpoint', response.ok ? 'success' : 'error', 
+                `Status: ${response.status}, Data: ${JSON.stringify(data)}`);
+        } catch (e) {
+            addTest('API Endpoint', 'error', `Failed: ${e.message}`);
+        }
+        
+        // Test 3: React Dependencies
+        try {
+            const React = await import('/@fs/home/runner/workspace/node_modules/.vite/deps/react.js?v=31cfa862');
+            const ReactDOM = await import('/@fs/home/runner/workspace/node_modules/.vite/deps/react-dom_client.js?v=31cfa862');
+            addTest('React Dependencies', 'success', 
+                `React: ${!!React.default}, ReactDOM: ${!!ReactDOM.createRoot}`);
+        } catch (e) {
+            addTest('React Dependencies', 'error', `Failed: ${e.message}`);
+        }
+        
+        // Test 4: App Component
+        try {
+            const App = await import('/src/App.tsx');
+            addTest('App Component', 'success', `App component loaded: ${!!App.default}`);
+        } catch (e) {
+            addTest('App Component', 'error', `Failed: ${e.message}`);
+        }
+        
+        // Test 5: CSS Loading
+        try {
+            await import('/src/index.css');
+            addTest('CSS Loading', 'success', 'Styles loaded successfully');
+        } catch (e) {
+            addTest('CSS Loading', 'error', `Failed: ${e.message}`);
+        }
+        
+        // Test 6: Try Manual React Render
+        try {
+            const { createElement } = await import('/@fs/home/runner/workspace/node_modules/.vite/deps/react.js?v=31cfa862');
+            const { createRoot } = await import('/@fs/home/runner/workspace/node_modules/.vite/deps/react-dom_client.js?v=31cfa862');
+            
+            const testDiv = document.createElement('div');
+            testDiv.id = 'react-test';
+            document.body.appendChild(testDiv);
+            
+            const TestComponent = () => createElement('div', { 
+                style: { padding: '10px', background: 'lightblue', margin: '10px 0' } 
+            }, 'React is working!');
+            
+            const root = createRoot(testDiv);
+            root.render(createElement(TestComponent));
+            
+            addTest('Manual React Render', 'success', 'React rendered successfully');
+        } catch (e) {
+            addTest('Manual React Render', 'error', `Failed: ${e.message}`);
+        }
+    </script>
+</body>
+</html>

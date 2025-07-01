@@ -16,17 +16,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { data, isLoading } = useQuery({
     queryKey: ["/api/me"],
     queryFn: async () => {
-      const response = await fetch("/api/me", { credentials: "include" });
-      if (response.ok) {
-        return response.json();
+      try {
+        const response = await fetch("/api/me", { credentials: "include" });
+        if (response.ok) {
+          return response.json();
+        }
+        // For 401/403, return unauthenticated state instead of throwing
+        if (response.status === 401 || response.status === 403) {
+          return { authenticated: false };
+        }
+        // For other errors, still throw
+        throw new Error(`${response.status}: ${response.statusText}`);
+      } catch (error) {
+        // On network errors or other failures, assume unauthenticated
+        console.warn('Auth check failed:', error);
+        return { authenticated: false };
       }
-      // Return a proper authentication failure result instead of null
-      return { authenticated: false };
     },
     retry: false,
     refetchInterval: false,
     refetchOnWindowFocus: false,
-    // Ensure query doesn't get stuck in loading state
     staleTime: 0,
     gcTime: 0,
   });
