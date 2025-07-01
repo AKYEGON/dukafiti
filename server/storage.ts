@@ -11,13 +11,16 @@ import {
   InsertUser,
   BusinessProfile,
   InsertBusinessProfile,
+  Payment,
+  InsertPayment,
   DashboardMetrics,
   products,
   customers,
   orders,
   orderItems,
   users,
-  businessProfiles
+  businessProfiles,
+  payments
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, like, sql, or, ilike } from "drizzle-orm";
@@ -60,6 +63,12 @@ export interface IStorage {
   // Order Items
   getOrderItems(orderId: number): Promise<OrderItem[]>;
   createOrderItem(orderItem: InsertOrderItem): Promise<OrderItem>;
+
+  // Payments
+  getPayments(): Promise<Payment[]>;
+  getPayment(id: number): Promise<Payment | undefined>;
+  getPaymentsByCustomer(customerId: number): Promise<Payment[]>;
+  createPayment(payment: InsertPayment): Promise<Payment>;
 
   // Dashboard
   getDashboardMetrics(): Promise<DashboardMetrics>;
@@ -666,6 +675,34 @@ export class DatabaseStorage implements IStorage {
       .where(eq(businessProfiles.userId, userId))
       .limit(1);
     return profile;
+  }
+
+  // Payment methods
+  async getPayments(): Promise<Payment[]> {
+    return await db.select().from(payments).orderBy(payments.createdAt);
+  }
+
+  async getPayment(id: number): Promise<Payment | undefined> {
+    const [result] = await db.select().from(payments).where(eq(payments.id, id));
+    return result;
+  }
+
+  async getPaymentsByCustomer(customerId: number): Promise<Payment[]> {
+    return await db.select().from(payments).where(eq(payments.customerId, customerId)).orderBy(payments.createdAt);
+  }
+
+  async createPayment(insertPayment: InsertPayment): Promise<Payment> {
+    const [result] = await db.insert(payments).values(insertPayment).returning();
+    
+    // Update customer balance by subtracting the payment amount
+    await db
+      .update(customers)
+      .set({
+        balance: sql`${customers.balance} - ${insertPayment.amount}`
+      })
+      .where(eq(customers.id, insertPayment.customerId));
+    
+    return result;
   }
 }
 

@@ -1,18 +1,78 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { Plus, User, Phone, DollarSign } from "lucide-react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { Plus, User, Phone, DollarSign, CreditCard, ChevronDown, ChevronUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { formatCurrency } from "@/lib/utils";
 import { CustomerForm } from "@/components/customers/customer-form";
+import { useToast } from "@/hooks/use-toast";
 import type { Customer } from "@shared/schema";
 
 export default function Customers() {
   const { data: customers, isLoading } = useQuery<Customer[]>({
     queryKey: ["/api/customers"],
   });
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   const [showNewCustomerForm, setShowNewCustomerForm] = useState(false);
+  const [showPaymentPanel, setShowPaymentPanel] = useState(false);
+  const [selectedCustomerId, setSelectedCustomerId] = useState("");
+  const [paymentAmount, setPaymentAmount] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState("");
+
+  const recordPayment = useMutation({
+    mutationFn: async (data: { customerId: number; amount: string; method: string }) => {
+      const response = await fetch("/api/payments", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || "Failed to record payment");
+      }
+      return response.json();
+    },
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["/api/customers"] });
+      setShowPaymentPanel(false);
+      setSelectedCustomerId("");
+      setPaymentAmount("");
+      setPaymentMethod("");
+      toast({
+        title: "Payment Recorded",
+        description: data.message,
+        className: "bg-green-600 text-white",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to record payment",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handlePaymentSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedCustomerId || !paymentAmount || !paymentMethod) {
+      return;
+    }
+    recordPayment.mutate({
+      customerId: parseInt(selectedCustomerId),
+      amount: paymentAmount,
+      method: paymentMethod,
+    });
+  };
+
+  const selectedCustomer = customers?.find(c => c.id.toString() === selectedCustomerId);
+  const isPaymentFormValid = selectedCustomerId && paymentAmount && paymentMethod;
 
   if (isLoading) {
     return (
@@ -119,6 +179,100 @@ export default function Customers() {
           ))}
         </div>
       )}
+
+      {/* Record Payment Section */}
+      <Collapsible open={showPaymentPanel} onOpenChange={setShowPaymentPanel}>
+        <Card className="bg-gray-800 border-gray-700">
+          <CollapsibleTrigger asChild>
+            <CardHeader className="cursor-pointer hover:bg-gray-750 transition-colors">
+              <CardTitle className="flex items-center justify-between text-white">
+                <div className="flex items-center space-x-2">
+                  <CreditCard className="h-5 w-5" />
+                  <span>Record Payment</span>
+                </div>
+                {showPaymentPanel ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+              </CardTitle>
+            </CardHeader>
+          </CollapsibleTrigger>
+          <CollapsibleContent>
+            <CardContent className="pt-0">
+              <form onSubmit={handlePaymentSubmit} className="space-y-4">
+                <div className="grid gap-4 md:grid-cols-3">
+                  <div>
+                    <Label htmlFor="customer" className="text-white">Customer</Label>
+                    <Select value={selectedCustomerId} onValueChange={setSelectedCustomerId}>
+                      <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
+                        <SelectValue placeholder="Select customer" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-gray-700 border-gray-600">
+                        {customers?.map((customer) => (
+                          <SelectItem key={customer.id} value={customer.id.toString()}>
+                            {customer.name} - {customer.phone}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="amount" className="text-white">Amount (KES)</Label>
+                    <Input
+                      id="amount"
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      value={paymentAmount}
+                      onChange={(e) => setPaymentAmount(e.target.value)}
+                      placeholder="0.00"
+                      className="bg-gray-700 border-gray-600 text-white placeholder-gray-400"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="method" className="text-white">Payment Method</Label>
+                    <Select value={paymentMethod} onValueChange={setPaymentMethod}>
+                      <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
+                        <SelectValue placeholder="Select method" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-gray-700 border-gray-600">
+                        <SelectItem value="cash">Cash</SelectItem>
+                        <SelectItem value="mpesa">M-Pesa</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                
+                {selectedCustomer && (
+                  <div className="p-3 bg-gray-700 rounded-lg">
+                    <p className="text-sm text-gray-300">
+                      Recording payment for: <span className="text-white font-medium">{selectedCustomer.name}</span>
+                    </p>
+                    <p className="text-sm text-gray-300">
+                      Current balance: <span className="text-white font-medium">{formatCurrency(selectedCustomer.balance)}</span>
+                    </p>
+                  </div>
+                )}
+
+                <div className="flex justify-end space-x-2">
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    onClick={() => setShowPaymentPanel(false)}
+                    className="border-gray-600 text-gray-300 hover:bg-gray-700"
+                  >
+                    Cancel
+                  </Button>
+                  <Button 
+                    type="submit" 
+                    disabled={!isPaymentFormValid || recordPayment.isPending}
+                    className="bg-green-600 hover:bg-green-700 text-white disabled:opacity-50"
+                  >
+                    {recordPayment.isPending ? "Recording..." : "Save Payment"}
+                  </Button>
+                </div>
+              </form>
+            </CardContent>
+          </CollapsibleContent>
+        </Card>
+      </Collapsible>
 
       <CustomerForm 
         open={showNewCustomerForm} 

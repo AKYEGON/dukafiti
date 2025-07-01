@@ -227,6 +227,68 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Payment routes
+  app.get("/api/payments", requireAuth, async (req, res) => {
+    try {
+      const payments = await storage.getPayments();
+      res.json(payments);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch payments" });
+    }
+  });
+
+  app.post("/api/payments", requireAuth, async (req, res) => {
+    try {
+      const { customerId, amount, method, reference } = req.body;
+      
+      if (!customerId || !amount || !method) {
+        return res.status(400).json({ message: "Customer ID, amount, and payment method are required" });
+      }
+
+      // Validate customer exists
+      const customer = await storage.getCustomer(customerId);
+      if (!customer) {
+        return res.status(404).json({ message: "Customer not found" });
+      }
+
+      // Check for negative payment amount
+      if (parseFloat(amount) <= 0) {
+        return res.status(400).json({ message: "Payment amount must be greater than zero" });
+      }
+
+      const paymentData = {
+        customerId: parseInt(customerId),
+        amount: parseFloat(amount).toFixed(2),
+        paymentMethod: method,
+        reference: reference || null
+      };
+
+      const payment = await storage.createPayment(paymentData);
+      
+      // Get updated customer to return current balance
+      const updatedCustomer = await storage.getCustomer(customerId);
+      
+      res.status(201).json({ 
+        payment, 
+        customer: updatedCustomer,
+        message: `Payment recorded for ${customer.name}` 
+      });
+    } catch (error) {
+      console.error("Payment creation error:", error);
+      res.status(500).json({ message: "Failed to record payment" });
+    }
+  });
+
+  app.get("/api/customers/:id/payments", requireAuth, async (req, res) => {
+    try {
+      const customerId = parseInt(req.params.id);
+      const payments = await storage.getPaymentsByCustomer(customerId);
+      res.json(payments);
+    } catch (error) {
+      res.status(500).json({ message: "Failed to fetch customer payments" });
+    }
+  });
+
   // Order routes
   app.get("/api/orders", requireAuth, async (req, res) => {
     try {

@@ -65,9 +65,19 @@ export const businessProfiles = pgTable("business_profiles", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+export const payments = pgTable("payments", {
+  id: serial("id").primaryKey(),
+  customerId: integer("customer_id").notNull().references(() => customers.id),
+  amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
+  paymentMethod: text("payment_method").notNull(), // cash, mpesa
+  reference: text("reference"), // M-Pesa reference
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // Relations
 export const customersRelations = relations(customers, ({ many }) => ({
   orders: many(orders),
+  payments: many(payments),
 }));
 
 export const ordersRelations = relations(orders, ({ one, many }) => ({
@@ -91,6 +101,13 @@ export const orderItemsRelations = relations(orderItems, ({ one }) => ({
 
 export const productsRelations = relations(products, ({ many }) => ({
   orderItems: many(orderItems),
+}));
+
+export const paymentsRelations = relations(payments, ({ one }) => ({
+  customer: one(customers, {
+    fields: [payments.customerId],
+    references: [customers.id],
+  }),
 }));
 
 // Insert schemas
@@ -123,6 +140,11 @@ export const insertBusinessProfileSchema = createInsertSchema(businessProfiles).
   updatedAt: true,
 });
 
+export const insertPaymentSchema = createInsertSchema(payments).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Types
 export type Product = typeof products.$inferSelect;
 export type InsertProduct = z.infer<typeof insertProductSchema>;
@@ -141,6 +163,9 @@ export type InsertUser = z.infer<typeof insertUserSchema>;
 
 export type BusinessProfile = typeof businessProfiles.$inferSelect;
 export type InsertBusinessProfile = z.infer<typeof insertBusinessProfileSchema>;
+
+export type Payment = typeof payments.$inferSelect;
+export type InsertPayment = z.infer<typeof insertPaymentSchema>;
 
 // Dashboard metrics type
 export interface DashboardMetrics {
