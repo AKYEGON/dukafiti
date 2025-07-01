@@ -1,13 +1,12 @@
 import { Pool, neonConfig } from '@neondatabase/serverless';
 import { drizzle } from 'drizzle-orm/neon-serverless';
-import { drizzle as drizzleSqlite } from 'drizzle-orm/better-sqlite3';
-import Database from 'better-sqlite3';
 import ws from "ws";
 import * as schema from "@shared/schema";
 
 neonConfig.webSocketConstructor = ws;
 
-// Development: Use SQLite for now since DATABASE_URL is not available
-const sqlite = new Database('./database.sqlite');
-export const db = drizzleSqlite(sqlite, { schema });
-export const pool = null; // Not used in SQLite mode
+// Set a default DATABASE_URL if not provided
+const DATABASE_URL = process.env.DATABASE_URL || 'postgresql://username:password@localhost:5432/dukasmart?sslmode=require';
+
+export const pool = new Pool({ connectionString: DATABASE_URL });
+export const db = drizzle({ client: pool, schema });
