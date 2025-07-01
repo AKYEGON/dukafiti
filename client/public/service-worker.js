@@ -1,4 +1,4 @@
-const CACHE_NAME = 'dukasmart-v1';
+const CACHE_NAME = 'dukasmart-v2';
 const urlsToCache = [
   '/',
   '/manifest.json',

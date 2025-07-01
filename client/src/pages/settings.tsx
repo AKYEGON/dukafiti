@@ -1,34 +1,80 @@
 import { useState, useEffect } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Store, Shield, Globe, RotateCcw, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
-import { Store, Download, Globe, RotateCcw, Shield } from "lucide-react";
 
-// Schema for store profile form
+// Form validation schemas
 const storeProfileSchema = z.object({
   storeName: z.string().min(1, "Store name is required"),
   ownerName: z.string().min(1, "Owner name is required"),
   address: z.string().min(1, "Address is required"),
 });
 
-// Schema for M-Pesa credentials form
 const mpesaCredentialsSchema = z.object({
-  paybillTillNumber: z.string().regex(/^\d+$/, "Must be a valid number"),
+  paybillTillNumber: z.string().min(1, "Paybill/Till number is required"),
   consumerKey: z.string().min(1, "Consumer key is required"),
   consumerSecret: z.string().min(1, "Consumer secret is required"),
 });
 
 type StoreProfileData = z.infer<typeof storeProfileSchema>;
 type MpesaCredentialsData = z.infer<typeof mpesaCredentialsSchema>;
+
+// Translation object
+const translations = {
+  en: {
+    settings: "Settings",
+    storeProfile: "Store Profile",
+    storeName: "Store Name",
+    ownerName: "Owner Name",
+    address: "Address",
+    saveProfile: "Save Profile",
+    saving: "Saving...",
+    mpesaCredentials: "M-Pesa Credentials",
+    paybillTill: "Paybill/Till Number",
+    consumerKey: "Consumer Key",
+    consumerSecret: "Consumer Secret",
+    saveMpesa: "Save M-Pesa Settings",
+    languageToggle: "Language Settings",
+    english: "English",
+    kiswahili: "Kiswahili",
+    manualSync: "Manual Sync",
+    syncNow: "Sync Now",
+    syncing: "Syncing...",
+    dataBackup: "Data Backup",
+    downloadBackup: "Download Backup",
+  },
+  sw: {
+    settings: "Mipangilio",
+    storeProfile: "Maelezo ya Duka",
+    storeName: "Jina la Duka",
+    ownerName: "Jina la Mmiliki",
+    address: "Anwani",
+    saveProfile: "Hifadhi Maelezo",
+    saving: "Inahifadhi...",
+    mpesaCredentials: "Ufunguo wa M-Pesa",
+    paybillTill: "Nambari ya Paybill/Till",
+    consumerKey: "Ufunguo wa Mtumizi",
+    consumerSecret: "Ufunguo wa Siri",
+    saveMpesa: "Hifadhi Mipangilio ya M-Pesa",
+    languageToggle: "Mipangilio ya Lugha",
+    english: "Kiingereza",
+    kiswahili: "Kiswahili",
+    manualSync: "Sawazisho la Mwongozo",
+    syncNow: "Sawazisha Sasa",
+    syncing: "Inasawazisha...",
+    dataBackup: "Hifadhi ya Data",
+    downloadBackup: "Pakua Hifadhi",
+  }
+};
 
 interface StoreData {
   storeName?: string;
@@ -43,57 +89,8 @@ interface UserSettingsData {
   language?: 'en' | 'sw';
 }
 
-// Basic translations (stubbed)
-const translations = {
-  en: {
-    settings: "Settings",
-    storeProfile: "Store Profile",
-    mpesaCredentials: "M-Pesa Credentials",
-    languageToggle: "Language",
-    manualSync: "Manual Sync",
-    dataBackup: "Data Backup",
-    storeName: "Store Name",
-    ownerName: "Owner Name",
-    address: "Address",
-    paybillTill: "Paybill/Till Number",
-    consumerKey: "Consumer Key",
-    consumerSecret: "Consumer Secret",
-    saveProfile: "Save Profile",
-    saveMpesa: "Save M-Pesa Settings",
-    english: "English",
-    kiswahili: "Kiswahili",
-    syncNow: "Sync Now",
-    downloadBackup: "Download Backup",
-    saving: "Saving...",
-    syncing: "Syncing...",
-  },
-  sw: {
-    settings: "Mipangilio",
-    storeProfile: "Maelezo ya Duka",
-    mpesaCredentials: "Ufunguo wa M-Pesa",
-    languageToggle: "Lugha",
-    manualSync: "Sawazisha Mwenyewe",
-    dataBackup: "Hifadhi ya Data",
-    storeName: "Jina la Duka",
-    ownerName: "Jina la Mmiliki",
-    address: "Anwani",
-    paybillTill: "Nambari ya Paybill/Till",
-    consumerKey: "Ufunguo wa Mteja",
-    consumerSecret: "Siri ya Mteja",
-    saveProfile: "Hifadhi Maelezo",
-    saveMpesa: "Hifadhi Mipangilio ya M-Pesa",
-    english: "Kiingereza",
-    kiswahili: "Kiswahili",
-    syncNow: "Sawazisha Sasa",
-    downloadBackup: "Pakua Hifadhi",
-    saving: "Inahifadhi...",
-    syncing: "Inasawazisha...",
-  }
-};
-
-// Comprehensive Settings Page with Store Profile, M-Pesa, Language Toggle, Sync, and Backup
-export default function Settings() {
-  console.log("Loading NEW comprehensive Settings page");
+export default function SettingsPage() {
+  console.log(">>> Loading COMPREHENSIVE Settings Page <<<");
   const [currentLanguage, setCurrentLanguage] = useState<'en' | 'sw'>('en');
   const { toast } = useToast();
   const queryClient = useQueryClient();
