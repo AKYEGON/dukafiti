@@ -1,6 +1,22 @@
 import { createRoot } from "react-dom/client";
-import App from "./App-simple";
 import "./index.css";
+
+// Minimal test component
+function MinimalApp() {
+  return (
+    <div style={{ 
+      padding: "20px", 
+      fontFamily: "Arial", 
+      backgroundColor: "#f0f0f0",
+      minHeight: "100vh",
+      color: "#333"
+    }}>
+      <h1>DukaSmart Test</h1>
+      <p>Application is loading...</p>
+      <button onClick={() => alert("Button works!")}>Test Button</button>
+    </div>
+  );
+}
 
 // Register service worker for PWA functionality
 if ('serviceWorker' in navigator) {
@@ -64,4 +80,4 @@ if ('serviceWorker' in navigator) {
   });
 }
 
-createRoot(document.getElementById("root")!).render(<App />);
+createRoot(document.getElementById("root")!).render(<MinimalApp />);
