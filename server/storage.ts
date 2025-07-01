@@ -120,10 +120,10 @@ export class MemStorage implements IStorage {
     const defaultUser: User = {
       id: this.userId++,
       username: "admin",
+      email: "admin@dukasmart.com",
       phone: "+254700000000",
-      password: "admin123",
-      name: "John Doe",
-      role: "manager"
+      passwordHash: "$2b$10$QJ7JlZEhLzZyJ6.JGqD9qOk5QYpGvDqBgUJYGqvXkJdFzVGJcWqOy", // admin123
+      createdAt: new Date()
     };
     this.users.set(defaultUser.id, defaultUser);
 
@@ -214,13 +214,17 @@ export class MemStorage implements IStorage {
         customerId: 1,
         customerName: "Alice Johnson",
         total: "127.50",
+        paymentMethod: "cash",
+        reference: null,
         status: "completed",
         createdAt: new Date()
       },
       {
         customerId: 2,
         customerName: "Mike Brown",
-        total: "89.25", 
+        total: "89.25",
+        paymentMethod: "credit",
+        reference: null, 
         status: "processing",
         createdAt: new Date()
       }
@@ -253,10 +257,7 @@ export class MemStorage implements IStorage {
     const user: User = { 
       ...insertUser, 
       id: this.userId++,
-      username: insertUser.username ?? null,
-      phone: insertUser.phone ?? null,
-      name: insertUser.name ?? null,
-      role: insertUser.role ?? "user"
+      createdAt: new Date()
     };
     this.users.set(user.id, user);
     return user;
@@ -469,6 +470,92 @@ export class MemStorage implements IStorage {
 
   async getBusinessProfile(userId: number): Promise<BusinessProfile | undefined> {
     return this.businessProfiles.get(userId.toString());
+  }
+
+  // Missing methods implementation
+  async updateProductStock(id: number, stockChange: number): Promise<Product | undefined> {
+    const product = this.products.get(id);
+    if (!product) return undefined;
+    
+    const updatedProduct = { ...product, stock: product.stock + stockChange };
+    this.products.set(id, updatedProduct);
+    return updatedProduct;
+  }
+
+  async getCustomerByNameOrPhone(name: string, phone?: string): Promise<Customer | undefined> {
+    for (const customer of this.customers.values()) {
+      if (customer.name === name || (phone && customer.phone === phone)) {
+        return customer;
+      }
+    }
+    return undefined;
+  }
+
+  async updateCustomerBalance(id: number, amount: number): Promise<Customer | undefined> {
+    const customer = this.customers.get(id);
+    if (!customer) return undefined;
+    
+    const currentBalance = parseFloat(customer.balance) || 0;
+    const updatedCustomer = { ...customer, balance: (currentBalance + amount).toFixed(2) };
+    this.customers.set(id, updatedCustomer);
+    return updatedCustomer;
+  }
+
+  async getPayments(): Promise<Payment[]> {
+    return [];
+  }
+
+  async getPayment(id: number): Promise<Payment | undefined> {
+    return undefined;
+  }
+
+  async getPaymentsByCustomer(customerId: number): Promise<Payment[]> {
+    return [];
+  }
+
+  async createPayment(payment: InsertPayment): Promise<Payment> {
+    const newPayment: Payment = {
+      ...payment,
+      id: Date.now(),
+      createdAt: new Date()
+    };
+    return newPayment;
+  }
+
+  async getStoreProfile(userId: number): Promise<StoreProfile | undefined> {
+    return undefined;
+  }
+
+  async saveStoreProfile(userId: number, profile: Omit<InsertStoreProfile, 'userId'>): Promise<StoreProfile> {
+    const storeProfile: StoreProfile = {
+      ...profile,
+      id: Date.now(),
+      userId,
+      createdAt: new Date()
+    };
+    return storeProfile;
+  }
+
+  async updateStoreProfile(userId: number, profile: Partial<Omit<InsertStoreProfile, 'userId'>>): Promise<StoreProfile | undefined> {
+    return undefined;
+  }
+
+  async getUserSettings(userId: number): Promise<UserSettings | undefined> {
+    return undefined;
+  }
+
+  async saveUserSettings(userId: number, settings: Omit<InsertUserSettings, 'userId'>): Promise<UserSettings> {
+    const userSettings: UserSettings = {
+      ...settings,
+      id: Date.now(),
+      userId,
+      createdAt: new Date()
+    };
+    return userSettings;
+  }
+
+  async updateUserSettings(userId: number, settings: Partial<Omit<InsertUserSettings, 'userId'>>): Promise<UserSettings | undefined> {
+    return undefined;
   }
 }
 

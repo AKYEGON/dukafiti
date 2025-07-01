@@ -101,10 +101,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Create new user
       const userData = {
         username: email,
+        email: email,
         phone: null,
-        password: hash,
-        name,
-        role: "user"
+        passwordHash: hash
       };
 
       await storage.createUser(userData);
@@ -141,7 +140,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Verify password using bcryptjs
-      const isValidPassword = await bcrypt.compare(password, user.password);
+      const isValidPassword = await bcrypt.compare(password, user.passwordHash);
       if (!isValidPassword) {
         return res.status(401).json({ message: "Invalid credentials" });
       }
@@ -153,7 +152,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         username: user.username ? user.username : undefined 
       };
 
-      res.status(200).json({ message: "Login successful", user: { email: user.username, name: user.name } });
+      res.status(200).json({ message: "Login successful", user: { email: user.email, username: user.username } });
     } catch (error) {
       console.error("Login error:", error);
       res.status(500).json({ message: "Internal server error" });
