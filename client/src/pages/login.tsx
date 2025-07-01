@@ -53,7 +53,10 @@ export default function Login() {
       });
       // Invalidate auth query to trigger re-fetch
       queryClient.invalidateQueries({ queryKey: ["/api/me"] });
-      setLocation("/dashboard");
+      // Wait a brief moment for auth state to update, then redirect
+      setTimeout(() => {
+        setLocation("/dashboard");
+      }, 100);
     },
     onError: (error: any) => {
       toast({

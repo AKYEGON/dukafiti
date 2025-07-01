@@ -57,7 +57,7 @@ function UnauthenticatedApp() {
 
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
 
   // Show loading spinner while checking auth
   if (isLoading) {
@@ -79,7 +79,13 @@ function Router() {
   // Protected routes - redirect to login if not authenticated
   const protectedRoutes = ['/dashboard', '/inventory', '/sales', '/customers', '/reports', '/settings'];
   if (protectedRoutes.includes(location) && !isAuthenticated) {
-    window.location.href = '/login';
+    setLocation('/login');
+    return null;
+  }
+
+  // Redirect authenticated users from login/register pages to dashboard
+  if (isAuthenticated && (location === '/login' || location === '/register' || location === '/')) {
+    setLocation('/dashboard');
     return null;
   }
 
