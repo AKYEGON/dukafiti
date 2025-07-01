@@ -107,7 +107,7 @@ export default function Customers() {
         </div>
         <Button 
           onClick={() => setShowNewCustomerForm(true)}
-          className="bg-green-600 hover:bg-green-700 text-foreground"
+          className="btn-purple"
         >
           <Plus className="mr-2 h-4 w-4" />
           New Customer

@@ -234,43 +234,40 @@ export default function Dashboard() {
             </CardHeader>
             <CardContent className="space-y-2 sm:space-y-3">
               <Button 
-                className="w-full justify-start text-sm sm:text-base py-2 sm:py-3 primary-green primary-green-hover hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 focus:ring-2 focus:ring-primary/50"
+                className="w-full justify-start text-sm sm:text-base py-2 sm:py-3 btn-purple"
                 onClick={handleAddProduct}
                 aria-label="Add a new product to inventory"
               >
                 <Plus className="mr-2 h-4 w-4 flex-shrink-0" />
                 <span className="truncate">Add New Product</span>
-                <kbd className="hidden sm:inline-block ml-auto text-xs bg-muted px-1.5 py-0.5 rounded">Ctrl+P</kbd>
+                <kbd className="hidden sm:inline-block ml-auto text-xs bg-purple-100 text-purple-800 px-1.5 py-0.5 rounded">Ctrl+P</kbd>
               </Button>
               <Button 
-                variant="outline" 
-                className="w-full justify-start text-sm sm:text-base py-2 sm:py-3 hover:bg-primary/10 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 focus:ring-2 focus:ring-primary/50"
+                className="w-full justify-start text-sm sm:text-base py-2 sm:py-3 bg-green-600 hover:bg-green-700 text-white font-medium transition-all duration-200"
                 onClick={handleCreateOrder}
                 aria-label="Create a new sales order"
               >
                 <ShoppingCart className="mr-2 h-4 w-4 flex-shrink-0" />
                 <span className="truncate">Create Order</span>
-                <kbd className="hidden sm:inline-block ml-auto text-xs bg-muted px-1.5 py-0.5 rounded">Ctrl+O</kbd>
+                <kbd className="hidden sm:inline-block ml-auto text-xs bg-green-100 text-green-800 px-1.5 py-0.5 rounded">Ctrl+O</kbd>
               </Button>
               <Button 
-                variant="outline" 
-                className="w-full justify-start text-sm sm:text-base py-2 sm:py-3 hover:bg-primary/10 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 focus:ring-2 focus:ring-primary/50"
+                className="w-full justify-start text-sm sm:text-base py-2 sm:py-3 border border-purple-300 text-purple-600 hover:bg-purple-50 hover:shadow-[0_4px_12px_rgba(168,85,247,0.4)] transition-all duration-200"
                 onClick={handleAddCustomer}
                 aria-label="Add a new customer"
               >
                 <UserPlus className="mr-2 h-4 w-4 flex-shrink-0" />
                 <span className="truncate">Add Customer</span>
-                <kbd className="hidden sm:inline-block ml-auto text-xs bg-muted px-1.5 py-0.5 rounded">Ctrl+U</kbd>
+                <kbd className="hidden sm:inline-block ml-auto text-xs bg-purple-100 text-purple-800 px-1.5 py-0.5 rounded">Ctrl+U</kbd>
               </Button>
               <Button 
-                variant="outline" 
-                className="w-full justify-start text-sm sm:text-base py-2 sm:py-3 hover:bg-primary/10 hover:scale-[1.02] active:scale-[0.98] transition-all duration-200 focus:ring-2 focus:ring-primary/50"
+                className="w-full justify-start text-sm sm:text-base py-2 sm:py-3 border border-purple-300 text-purple-600 hover:bg-purple-50 hover:shadow-[0_4px_12px_rgba(168,85,247,0.4)] transition-all duration-200"
                 onClick={handleGenerateReport}
                 aria-label="Generate business reports"
               >
                 <BarChart3 className="mr-2 h-4 w-4 flex-shrink-0" />
                 <span className="truncate">Generate Report</span>
-                <kbd className="hidden sm:inline-block ml-auto text-xs bg-muted px-1.5 py-0.5 rounded">Ctrl+R</kbd>
+                <kbd className="hidden sm:inline-block ml-auto text-xs bg-purple-100 text-purple-800 px-1.5 py-0.5 rounded">Ctrl+R</kbd>
               </Button>
             </CardContent>
           </Card>

@@ -4,12 +4,15 @@ import { cn } from "@/lib/utils"
 
 const Card = React.forwardRef<
   HTMLDivElement,
-  React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => (
+  React.HTMLAttributes<HTMLDivElement> & {
+    interactive?: boolean;
+  }
+>(({ className, interactive = false, ...props }, ref) => (
   <div
     ref={ref}
     className={cn(
-      "rounded-lg border border-gray-300 bg-card text-card-foreground shadow-[0_4px_8px_rgba(0,170,0,0.3)] overflow-visible",
+      "rounded-lg bg-card text-card-foreground overflow-visible",
+      interactive ? "interactive-card" : "elevated-card",
       className
     )}
     {...props}

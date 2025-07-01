@@ -127,9 +127,10 @@ export default function Inventory() {
                   </div>
                 ) : (
                   filteredProducts.map((product) => (
-                    <div
+                    <Card
                       key={product.id}
-                      className={`p-4 mb-2 bg-card rounded flex items-center justify-between ${
+                      interactive
+                      className={`p-4 mb-2 mobile-compact ${
                         product.stock <= product.lowStockThreshold ? 'border-2 border-yellow-500' : ''
                       }`}
                     >
@@ -139,14 +140,14 @@ export default function Inventory() {
                           <div className="flex space-x-2">
                             <Button
                               onClick={() => handleEdit(product)}
-                              className="px-3 py-1 bg-green-600 text-white rounded-md mr-2"
+                              className="btn-purple mr-2"
                               aria-label={`Edit ${product.name}`}
                             >
                               Edit
                             </Button>
                             <Button
                               onClick={() => handleDelete(product)}
-                              className="px-3 py-1 bg-red-600 text-white rounded-md"
+                              className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded-md transition-all duration-200"
                               aria-label={`Delete ${product.name}`}
                             >
                               Delete
@@ -168,7 +169,7 @@ export default function Inventory() {
                           </div>
                         </div>
                       </div>
-                    </div>
+                    </Card>
                   ))
                 )}
               </div>
