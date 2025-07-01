@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { Sidebar } from "@/components/layout/sidebar";
 import { AuthProvider, useAuth } from "@/hooks/use-auth";
 import { useWebSocket } from "@/hooks/use-websocket";
+import { ThemeProvider } from "@/contexts/theme-context";
 import { OfflineIndicator } from "@/components/offline-indicator";
 import Dashboard from "@/pages/dashboard";
 import Inventory from "@/pages/inventory";
@@ -93,13 +94,15 @@ function Router() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <TooltipProvider>
-          <Router />
-          <OfflineIndicator />
-          <Toaster />
-        </TooltipProvider>
-      </AuthProvider>
+      <ThemeProvider>
+        <AuthProvider>
+          <TooltipProvider>
+            <Router />
+            <OfflineIndicator />
+            <Toaster />
+          </TooltipProvider>
+        </AuthProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   );
 }

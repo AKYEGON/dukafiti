@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Store, Shield, Globe, RotateCcw, Download, Cloud } from "lucide-react";
+import { Store, Shield, Globe, RotateCcw, Download, Cloud, Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -13,6 +13,7 @@ import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { useTheme } from "@/contexts/theme-context";
 
 // Form validation schemas
 const storeProfileSchema = z.object({
@@ -49,6 +50,8 @@ const translations = {
     languageToggle: "Language Settings",
     english: "English",
     kiswahili: "Kiswahili",
+    darkMode: "Dark Mode",
+    darkModeDesc: "Switch between light and dark themes",
     manualSync: "Manual Sync",
     syncNow: "Sync Now",
     syncing: "Syncing...",
@@ -74,6 +77,8 @@ const translations = {
     languageToggle: "Mipangilio ya Lugha",
     english: "Kiingereza",
     kiswahili: "Kiswahili",
+    darkMode: "Mfumo wa Giza",
+    darkModeDesc: "Badilisha kati ya mandhari ya mwanga na giza",
     manualSync: "Sawazisho la Mwongozo",
     syncNow: "Sawazisha Sasa",
     syncing: "Inasawazisha...",
@@ -104,6 +109,7 @@ export default function SettingsPage() {
   const [mpesaEnabled, setMpesaEnabled] = useState<boolean>(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { theme, setTheme } = useTheme();
 
   const t = translations[currentLanguage];
 
@@ -345,11 +351,11 @@ export default function SettingsPage() {
 
   if (storeLoading) {
     return (
-      <div className="container mx-auto p-6">
+      <div className="container mx-auto p-6 bg-gray-50 dark:bg-gray-950 min-h-screen">
         <div className="flex items-center justify-center min-h-[400px]">
           <div className="text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500 mx-auto mb-4"></div>
-            <p className="text-muted-foreground">Loading settings...</p>
+            <p className="text-gray-600 dark:text-gray-400">Loading settings...</p>
           </div>
         </div>
       </div>
@@ -357,19 +363,19 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="container mx-auto p-6 space-y-8">
+    <div className="container mx-auto p-6 space-y-8 bg-gray-50 dark:bg-gray-950 min-h-screen">
       {/* Header */}
       <div className="flex items-center gap-3 mb-8">
         <div className="p-2 bg-green-500/10 rounded-lg">
           <Store className="h-6 w-6 text-green-500" />
         </div>
-        <h1 className="text-2xl font-bold text-white">{t.settings}</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t.settings}</h1>
       </div>
 
       {/* Store Profile Section */}
-      <Card className="bg-gray-900 border-gray-800">
+      <Card className="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800">
         <CardHeader>
-          <CardTitle className="text-green-500 flex items-center gap-2">
+          <CardTitle className="text-gray-900 dark:text-green-500 flex items-center gap-2">
             <Store className="h-5 w-5" />
             {t.storeProfile}
           </CardTitle>
@@ -429,9 +435,9 @@ export default function SettingsPage() {
       </Card>
 
       {/* M-Pesa Credentials Section */}
-      <Card className="bg-gray-900 border-gray-800">
+      <Card className="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800">
         <CardHeader>
-          <CardTitle className="text-green-500 flex items-center gap-2">
+          <CardTitle className="text-gray-900 dark:text-green-500 flex items-center gap-2">
             <Shield className="h-5 w-5" />
             {t.mpesaCredentials}
           </CardTitle>
@@ -531,9 +537,9 @@ export default function SettingsPage() {
       </Card>
 
       {/* Language Toggle Section */}
-      <Card className="bg-gray-900 border-gray-800">
+      <Card className="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800">
         <CardHeader>
-          <CardTitle className="text-green-500 flex items-center gap-2">
+          <CardTitle className="text-gray-900 dark:text-green-500 flex items-center gap-2">
             <Globe className="h-5 w-5" />
             {t.languageToggle}
           </CardTitle>
@@ -564,10 +570,33 @@ export default function SettingsPage() {
         </CardContent>
       </Card>
 
-      {/* Manual Sync Section */}
-      <Card className="bg-gray-900 border-gray-800">
+      {/* Dark Mode Toggle Section */}
+      <Card className="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800">
         <CardHeader>
-          <CardTitle className="text-green-500 flex items-center gap-2">
+          <CardTitle className="text-gray-900 dark:text-green-500 flex items-center gap-2">
+            {theme === 'dark' ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
+            {t.darkMode}
+          </CardTitle>
+          <p className="text-sm text-gray-600 dark:text-gray-400">{t.darkModeDesc}</p>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-between">
+            <Label htmlFor="dark-mode-toggle" className="text-gray-700 dark:text-gray-300">
+              {theme === 'dark' ? t.darkMode : 'Light Mode'}
+            </Label>
+            <Switch
+              id="dark-mode-toggle"
+              checked={theme === 'dark'}
+              onCheckedChange={(checked) => setTheme(checked ? 'dark' : 'light')}
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Manual Sync Section */}
+      <Card className="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800">
+        <CardHeader>
+          <CardTitle className="text-gray-900 dark:text-green-500 flex items-center gap-2">
             <RotateCcw className="h-5 w-5" />
             {t.manualSync}
           </CardTitle>
@@ -589,9 +618,9 @@ export default function SettingsPage() {
       </Card>
 
       {/* Data Backup Section */}
-      <Card className="bg-gray-900 border-gray-800">
+      <Card className="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800">
         <CardHeader>
-          <CardTitle className="text-green-500 flex items-center gap-2">
+          <CardTitle className="text-gray-900 dark:text-green-500 flex items-center gap-2">
             <Download className="h-5 w-5" />
             {t.dataBackup}
           </CardTitle>

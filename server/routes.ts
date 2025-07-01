@@ -1033,6 +1033,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Theme setting routes
+  app.get('/api/settings/theme', requireAuth, async (req: any, res: any) => {
+    try {
+      const user = await storage.getUserByPhone(req.session.user.phone);
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+      
+      const settings = await storage.getUserSettings(user.id);
+      res.json({ theme: settings?.theme || 'dark' });
+    } catch (error) {
+      console.error('Theme setting fetch error:', error);
+      res.status(500).json({ error: 'Failed to fetch theme setting' });
+    }
+  });
+
+  app.put('/api/settings/theme', requireAuth, async (req: any, res: any) => {
+    try {
+      const user = await storage.getUserByPhone(req.session.user.phone);
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+      
+      const { theme } = req.body;
+      
+      if (!['light', 'dark'].includes(theme)) {
+        return res.status(400).json({ error: 'Theme must be either "light" or "dark"' });
+      }
+      
+      const existingSettings = await storage.getUserSettings(user.id);
+      let settings;
+      
+      if (existingSettings) {
+        settings = await storage.updateUserSettings(user.id, { theme });
+      } else {
+        settings = await storage.saveUserSettings(user.id, { theme });
+      }
+      
+      res.json({ theme: settings?.theme || 'dark' });
+    } catch (error) {
+      console.error('Theme setting save error:', error);
+      res.status(500).json({ error: 'Failed to save theme setting' });
+    }
+  });
+
   // Manual sync endpoint
   app.get('/api/sync', requireAuth, async (req: any, res: any) => {
     try {

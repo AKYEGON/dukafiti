@@ -61,6 +61,8 @@ export default {
           border: "var(--sidebar-border)",
           ring: "var(--sidebar-ring)",
         },
+        "light-gray": "#CCCCCC",
+        "light-gray-dark": "#999999",
       },
       keyframes: {
         "accordion-down": {

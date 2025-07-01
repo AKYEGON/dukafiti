@@ -92,6 +92,7 @@ export const userSettings = pgTable("user_settings", {
   userId: integer("user_id").notNull().references(() => users.id),
   language: text("language").notNull().default("en"),
   mpesaEnabled: boolean("mpesa_enabled").notNull().default(false),
+  theme: text("theme").notNull().default("dark"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
