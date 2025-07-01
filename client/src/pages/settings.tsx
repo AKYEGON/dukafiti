@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Store, Shield, Globe, RotateCcw, Download } from "lucide-react";
+import { Store, Shield, Globe, RotateCcw, Download, Cloud } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -50,7 +50,9 @@ const translations = {
     syncNow: "Sync Now",
     syncing: "Syncing...",
     dataBackup: "Data Backup",
-    downloadBackup: "Download Backup",
+    exportAllData: "Export All Data",
+    backupToGoogleDrive: "Backup to Google Drive",
+    backingUp: "Backing up...",
   },
   sw: {
     settings: "Mipangilio",
@@ -72,7 +74,9 @@ const translations = {
     syncNow: "Sawazisha Sasa",
     syncing: "Inasawazisha...",
     dataBackup: "Hifadhi ya Data",
-    downloadBackup: "Pakua Hifadhi",
+    exportAllData: "Pakua Data Yote",
+    backupToGoogleDrive: "Hifadhi kwa Google Drive",
+    backingUp: "Inahifadhi...",
   }
 };
 
@@ -227,31 +231,60 @@ export default function SettingsPage() {
     },
   });
 
-  // Data backup function
-  const handleDataBackup = async () => {
+  // Google Drive backup mutation
+  const googleDriveBackupMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest("POST", "/api/backup/google-drive");
+      return response.json();
+    },
+    onSuccess: (data) => {
+      toast({ 
+        title: "Backup sent to Google Drive",
+        description: `File: ${data.filename || 'backup file'}`
+      });
+    },
+    onError: (error: any) => {
+      toast({ 
+        title: "Google Drive backup failed", 
+        description: error?.message || "Please try again",
+        variant: "destructive" 
+      });
+    },
+  });
+
+  // Export all data function
+  const handleExportAllData = async () => {
     try {
       const response = await apiRequest("GET", "/api/backup");
       const data = await response.json();
       
-      // Create and download backup file
+      // Create and download backup file with comprehensive data
       const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `dukasmart-backup-${new Date().toISOString().split('T')[0]}.json`;
+      a.download = `dukasmart-export-${new Date().toISOString().split('T')[0]}.json`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
       
-      toast({ title: "Backup downloaded successfully" });
+      toast({ 
+        title: "Data exported successfully",
+        description: "All business data downloaded as JSON file"
+      });
     } catch (error) {
       toast({ 
-        title: "Backup failed", 
+        title: "Export failed", 
         description: "Please try again",
         variant: "destructive" 
       });
     }
+  };
+
+  // Google Drive backup handler
+  const handleGoogleDriveBackup = () => {
+    googleDriveBackupMutation.mutate();
   };
 
   const handleLanguageChange = (language: 'en' | 'sw') => {
@@ -485,12 +518,27 @@ export default function SettingsPage() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <Button
-            onClick={handleDataBackup}
-            className="bg-green-600 hover:bg-green-700 text-white"
-          >
-            {t.downloadBackup}
-          </Button>
+          <div className="flex flex-col sm:flex-row gap-3">
+            <Button
+              onClick={handleExportAllData}
+              className="bg-green-600 hover:bg-green-700 text-white flex items-center gap-2 flex-1"
+            >
+              <Download className="h-4 w-4" />
+              {t.exportAllData}
+            </Button>
+            <Button
+              onClick={handleGoogleDriveBackup}
+              disabled={googleDriveBackupMutation.isPending}
+              className="bg-green-600 hover:bg-green-700 text-white flex items-center gap-2 flex-1"
+            >
+              {googleDriveBackupMutation.isPending ? (
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+              ) : (
+                <Cloud className="h-4 w-4" />
+              )}
+              {googleDriveBackupMutation.isPending ? t.backingUp : t.backupToGoogleDrive}
+            </Button>
+          </div>
         </CardContent>
       </Card>
     </div>
