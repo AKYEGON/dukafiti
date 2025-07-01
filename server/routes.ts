@@ -1,7 +1,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { insertProductSchema, insertCustomerSchema, insertOrderSchema, insertUserSchema } from "@shared/schema";
+import { insertProductSchema, insertCustomerSchema, insertOrderSchema, insertOrderItemSchema, insertUserSchema } from "@shared/schema";
 import { z } from "zod";
 import bcrypt from "bcryptjs";
 import Database from "@replit/database";
@@ -224,6 +224,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid order data", errors: error.errors });
       }
       res.status(500).json({ message: "Failed to create order" });
+    }
+  });
+
+  app.post("/api/orders/:orderId/items", requireAuth, async (req, res) => {
+    try {
+      const orderId = parseInt(req.params.orderId);
+      const orderItemData = insertOrderItemSchema.parse({ ...req.body, orderId });
+      const orderItem = await storage.createOrderItem(orderItemData);
+      res.status(201).json(orderItem);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid order item data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to create order item" });
     }
   });
 
