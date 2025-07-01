@@ -244,14 +244,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Sales endpoint with payment method handling
   app.post("/api/sales", requireAuth, async (req, res) => {
     try {
-      const { items, paymentType } = req.body;
+      const { items, paymentType, reference } = req.body;
       
       if (!items || !Array.isArray(items) || items.length === 0) {
         return res.status(400).json({ message: "Items are required" });
       }
       
-      if (!paymentType || !['cash', 'credit'].includes(paymentType)) {
-        return res.status(400).json({ message: "Valid payment type is required (cash or credit)" });
+      if (!paymentType || !['cash', 'credit', 'mpesa'].includes(paymentType)) {
+        return res.status(400).json({ message: "Valid payment type is required (cash, credit, or mpesa)" });
       }
 
       // Calculate total
@@ -263,7 +263,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         customerName: "Walk-in Customer",
         total: total.toFixed(2),
         paymentMethod: paymentType,
-        status: paymentType === 'credit' ? 'credit' : 'completed'
+        status: paymentType === 'credit' ? 'credit' : paymentType === 'mpesa' ? 'pending' : 'completed',
+        reference: paymentType === 'mpesa' ? reference : null
       };
       
       const order = await storage.createOrder(orderData);
@@ -288,6 +289,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         order,
         message: paymentType === 'credit' 
           ? "Credit sale saved" 
+          : paymentType === 'mpesa'
+          ? "M-Pesa payment request sent"
           : "Cash sale recorded"
       });
       

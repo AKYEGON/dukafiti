@@ -32,6 +32,7 @@ export const orders = pgTable("orders", {
   total: decimal("total", { precision: 10, scale: 2 }).notNull(),
   paymentMethod: text("payment_method").notNull().default("cash"), // cash, mpesa, credit
   status: text("status").notNull().default("pending"), // pending, awaiting_payment, processing, shipped, completed, cancelled
+  reference: text("reference"), // M-Pesa reference or other payment reference
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

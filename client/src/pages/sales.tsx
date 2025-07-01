@@ -22,6 +22,7 @@ export default function Sales() {
     mutationFn: async (saleData: { 
       items: any[]; 
       paymentType: string; 
+      reference?: string;
     }) => {
       const response = await apiRequest("POST", "/api/sales", saleData);
       return response.json();
@@ -33,6 +34,12 @@ export default function Sales() {
           title: "Cash sale recorded", 
           description: `Order #${result.order.id} for ${formatCurrency(result.order.total)}`,
           className: "bg-green-50 border-green-200 text-green-800"
+        });
+      } else if (paymentType === 'mpesa') {
+        toast({ 
+          title: "Awaiting M-Pesa payment", 
+          description: `Order #${result.order.id} for ${formatCurrency(result.order.total)}`,
+          className: "bg-yellow-50 border-yellow-200 text-yellow-800"
         });
       } else if (paymentType === 'credit') {
         toast({ 
@@ -91,7 +98,7 @@ export default function Sales() {
     setCustomerName("");
   };
 
-  const handlePaymentSelected = (method: 'cash' | 'credit') => {
+  const handlePaymentSelected = (method: 'cash' | 'credit' | 'mpesa', reference?: string) => {
     if (cartItems.length === 0) {
       toast({ title: "Cart is empty", variant: "destructive" });
       return;
@@ -116,6 +123,7 @@ export default function Sales() {
         price: item.unitPrice,
       })),
       paymentType: method,
+      reference: reference,
     };
 
     createSaleMutation.mutate(saleData);
