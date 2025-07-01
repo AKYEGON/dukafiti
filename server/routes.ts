@@ -244,7 +244,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Sales endpoint with payment method handling
   app.post("/api/sales", requireAuth, async (req, res) => {
     try {
-      const { items, paymentMethod, customerInfo, customerName } = req.body;
+      const { items, paymentMethod, customerInfo, customerName, paymentReference } = req.body;
       
       if (!items || !Array.isArray(items) || items.length === 0) {
         return res.status(400).json({ message: "Items are required" });
@@ -288,13 +288,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
       }
       
-      // Create the order
+      // Create the order with appropriate status
+      const orderStatus = paymentMethod === 'mpesa' ? 'awaiting_payment' : 'completed';
       const orderData = {
         customerId,
         customerName: finalCustomerName,
         total: total.toFixed(2),
         paymentMethod,
-        status: 'completed'
+        status: orderStatus
       };
       
       const order = await storage.createOrder(orderData);
@@ -317,7 +318,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(201).json({
         success: true,
         order,
-        message: paymentMethod === 'credit' 
+        message: paymentMethod === 'mpesa' 
+          ? `M-Pesa payment request initiated. Waiting for customer confirmation...`
+          : paymentMethod === 'credit' 
           ? `Credit sale recorded for ${finalCustomerName}` 
           : `${paymentMethod.toUpperCase()} sale completed successfully`
       });
@@ -328,6 +331,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Invalid sale data", errors: error.errors });
       }
       res.status(500).json({ message: "Failed to process sale" });
+    }
+  });
+
+  // M-Pesa payment initiation route
+  app.post("/api/sales/mpesa/initiate", requireAuth, async (req, res) => {
+    try {
+      const { amount, phone, reference, orderId } = req.body;
+      
+      if (!amount || !phone || !reference) {
+        return res.status(400).json({ message: "Amount, phone, and reference are required" });
+      }
+      
+      // Get user's business profile for M-Pesa credentials
+      const userPhone = req.session.user?.phone;
+      if (!userPhone) {
+        return res.status(401).json({ message: "User session not found" });
+      }
+      
+      // For now, we'll simulate the M-Pesa API call
+      // In production, you would call Safaricom's Daraja API here
+      console.log("M-Pesa payment initiation:", {
+        amount,
+        phone,
+        reference,
+        orderId,
+        userPhone
+      });
+      
+      // Simulate API response
+      res.json({
+        success: true,
+        message: "M-Pesa payment request sent to customer",
+        transactionId: `MPESA${Date.now()}`,
+        reference
+      });
+      
+    } catch (error: any) {
+      console.error("M-Pesa initiation error:", error);
+      res.status(500).json({ message: "Failed to initiate M-Pesa payment" });
     }
   });
 

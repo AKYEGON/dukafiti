@@ -31,7 +31,7 @@ export const orders = pgTable("orders", {
   customerName: text("customer_name").notNull(),
   total: decimal("total", { precision: 10, scale: 2 }).notNull(),
   paymentMethod: text("payment_method").notNull().default("cash"), // cash, mpesa, credit
-  status: text("status").notNull().default("pending"), // pending, processing, shipped, completed, cancelled
+  status: text("status").notNull().default("pending"), // pending, awaiting_payment, processing, shipped, completed, cancelled
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -51,6 +51,17 @@ export const users = pgTable("users", {
   password: text("password").notNull(),
   name: text("name"),
   role: text("role").notNull().default("user"),
+});
+
+export const businessProfiles = pgTable("business_profiles", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  businessName: text("business_name").notNull(),
+  paybill: text("paybill").notNull(),
+  consumerKey: text("consumer_key").notNull(),
+  consumerSecret: text("consumer_secret").notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
 // Relations
@@ -105,6 +116,12 @@ export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
 });
 
+export const insertBusinessProfileSchema = createInsertSchema(businessProfiles).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Types
 export type Product = typeof products.$inferSelect;
 export type InsertProduct = z.infer<typeof insertProductSchema>;
@@ -120,6 +137,9 @@ export type InsertOrderItem = z.infer<typeof insertOrderItemSchema>;
 
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
+
+export type BusinessProfile = typeof businessProfiles.$inferSelect;
+export type InsertBusinessProfile = z.infer<typeof insertBusinessProfileSchema>;
 
 // Dashboard metrics type
 export interface DashboardMetrics {

@@ -9,24 +9,18 @@ import {
   InsertOrderItem,
   User, 
   InsertUser,
+  BusinessProfile,
+  InsertBusinessProfile,
   DashboardMetrics,
   products,
   customers,
   orders,
   orderItems,
-  users
+  users,
+  businessProfiles
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, like, sql, or, ilike } from "drizzle-orm";
-
-export interface BusinessProfile {
-  businessName: string;
-  paybill: string;
-  consumerKey: string;
-  consumerSecret: string;
-}
-import { db } from "./db";
-import { eq, ilike, or, desc } from "drizzle-orm";
 
 export interface IStorage {
   // Users
@@ -70,8 +64,8 @@ export interface IStorage {
   getDashboardMetrics(): Promise<DashboardMetrics>;
 
   // Business Profile
-  saveBusinessProfile(phone: string, profile: BusinessProfile): Promise<void>;
-  getBusinessProfile(phone: string): Promise<BusinessProfile | undefined>;
+  saveBusinessProfile(userId: number, profile: InsertBusinessProfile): Promise<void>;
+  getBusinessProfile(userId: number): Promise<BusinessProfile | undefined>;
 }
 
 export class MemStorage implements IStorage {
@@ -605,26 +599,42 @@ export class DatabaseStorage implements IStorage {
     };
   }
 
-  async saveBusinessProfile(phone: string, profile: BusinessProfile): Promise<void> {
-    // For now, we'll store business profiles as a JSON string in a simple key-value approach
-    // In a real implementation, you'd want a proper business_profiles table
-    const key = `business_profile:${phone}`;
-    // This is a simplified approach - in production you'd use a proper table
-    // For now, we'll just store it in memory like MemStorage
-    if (!this.businessProfiles) {
-      this.businessProfiles = new Map();
+  async saveBusinessProfile(userId: number, profile: InsertBusinessProfile): Promise<void> {
+    // First check if a profile already exists for this user
+    const existing = await db
+      .select() 
+      .from(businessProfiles)
+      .where(eq(businessProfiles.userId, userId))
+      .limit(1);
+
+    if (existing.length > 0) {
+      // Update existing profile
+      await db
+        .update(businessProfiles)
+        .set({
+          ...profile,
+          updatedAt: new Date()
+        })
+        .where(eq(businessProfiles.userId, userId));
+    } else {
+      // Create new profile
+      await db
+        .insert(businessProfiles)
+        .values({
+          ...profile,
+          userId
+        });
     }
-    this.businessProfiles.set(phone, profile);
   }
 
-  async getBusinessProfile(phone: string): Promise<BusinessProfile | undefined> {
-    if (!this.businessProfiles) {
-      this.businessProfiles = new Map();
-    }
-    return this.businessProfiles.get(phone);
+  async getBusinessProfile(userId: number): Promise<BusinessProfile | undefined> {
+    const [profile] = await db
+      .select()
+      .from(businessProfiles)
+      .where(eq(businessProfiles.userId, userId))
+      .limit(1);
+    return profile;
   }
-
-  private businessProfiles: Map<string, BusinessProfile> = new Map();
 }
 
 export const storage = new DatabaseStorage();

@@ -6,15 +6,17 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { formatCurrency } from "@/lib/utils";
+import { MpesaPaymentModal } from "./mpesa-payment-modal";
 
 interface PaymentMethodSelectorProps {
   total: number;
-  onPaymentSelected: (method: 'cash' | 'mpesa' | 'credit', customerInfo?: { name: string; phone?: string }) => void;
+  onPaymentSelected: (method: 'cash' | 'mpesa' | 'credit', customerInfo?: { name: string; phone?: string }, paymentReference?: string) => void;
   isProcessing?: boolean;
 }
 
 export function PaymentMethodSelector({ total, onPaymentSelected, isProcessing }: PaymentMethodSelectorProps) {
   const [showCreditDialog, setShowCreditDialog] = useState(false);
+  const [showMpesaModal, setShowMpesaModal] = useState(false);
   const [customerName, setCustomerName] = useState("");
   const [customerPhone, setCustomerPhone] = useState("");
 
@@ -23,7 +25,12 @@ export function PaymentMethodSelector({ total, onPaymentSelected, isProcessing }
   };
 
   const handleMpesaPayment = () => {
-    onPaymentSelected('mpesa');
+    setShowMpesaModal(true);
+  };
+
+  const handleMpesaPaymentInitiated = (reference: string) => {
+    onPaymentSelected('mpesa', undefined, reference);
+    setShowMpesaModal(false);
   };
 
   const handleCreditPayment = () => {
@@ -183,6 +190,15 @@ export function PaymentMethodSelector({ total, onPaymentSelected, isProcessing }
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* M-Pesa Payment Modal */}
+      <MpesaPaymentModal
+        open={showMpesaModal}
+        onOpenChange={setShowMpesaModal}
+        total={total}
+        onPaymentInitiated={handleMpesaPaymentInitiated}
+        isProcessing={isProcessing}
+      />
     </>
   );
 }

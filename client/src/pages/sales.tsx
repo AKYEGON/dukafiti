@@ -24,15 +24,24 @@ export default function Sales() {
       paymentMethod: string; 
       customerInfo?: { name: string; phone?: string }; 
       customerName?: string;
+      paymentReference?: string;
     }) => {
       const response = await apiRequest("POST", "/api/sales", saleData);
       return response.json();
     },
     onSuccess: (result: any) => {
-      toast({ 
-        title: result.message || "Sale completed successfully!", 
-        description: `Order #${result.order.id} for ${formatCurrency(result.order.total)}`
-      });
+      if (result.order.paymentMethod === 'mpesa') {
+        toast({ 
+          title: "M-Pesa Payment Initiated", 
+          description: "Waiting for customer to complete payment...",
+          duration: 5000
+        });
+      } else {
+        toast({ 
+          title: result.message || "Sale completed successfully!", 
+          description: `Order #${result.order.id} for ${formatCurrency(result.order.total)}`
+        });
+      }
       setCartItems([]);
       setCustomerName("");
       queryClient.invalidateQueries({ queryKey: ["/api/orders"] });
@@ -83,7 +92,7 @@ export default function Sales() {
     setCustomerName("");
   };
 
-  const handlePaymentSelected = (method: 'cash' | 'mpesa' | 'credit', customerInfo?: { name: string; phone?: string }) => {
+  const handlePaymentSelected = (method: 'cash' | 'mpesa' | 'credit', customerInfo?: { name: string; phone?: string }, paymentReference?: string) => {
     if (cartItems.length === 0) {
       toast({ title: "Cart is empty", variant: "destructive" });
       return;
@@ -110,6 +119,7 @@ export default function Sales() {
       paymentMethod: method,
       customerInfo,
       customerName: customerName || "Walk-in Customer",
+      paymentReference,
     };
 
     createSaleMutation.mutate(saleData);
