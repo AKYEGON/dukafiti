@@ -6,14 +6,12 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
-import { insertCustomerSchema, type Customer, type InsertCustomer } from "@shared/schema";
+import type { Customer } from "@shared/schema";
 
-const customerFormSchema = insertCustomerSchema.extend({
-  name: z.string().min(1, "Name is required"),
-  phone: z.string().min(1, "Phone number is required"),
+const customerFormSchema = z.object({
+  name: z.string().min(1, "Customer name is required"),
+  phone: z.string().min(1, "Phone number is required").regex(/^[0-9+\-\s()]+$/, "Please enter a valid phone number"),
 });
 
 type CustomerFormData = z.infer<typeof customerFormSchema>;
@@ -33,9 +31,6 @@ export function CustomerForm({ open, onOpenChange, customer }: CustomerFormProps
     defaultValues: {
       name: customer?.name || "",
       phone: customer?.phone || "",
-      email: customer?.email || "",
-      address: customer?.address || "",
-      balance: customer?.balance || "0.00",
     },
   });
 
@@ -44,7 +39,10 @@ export function CustomerForm({ open, onOpenChange, customer }: CustomerFormProps
       const response = await fetch("/api/customers", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
+        body: JSON.stringify({
+          ...data,
+          balance: "0.00", // Set default balance to 0
+        }),
       });
       if (!response.ok) {
         throw new Error("Failed to create customer");
@@ -151,63 +149,7 @@ export function CustomerForm({ open, onOpenChange, customer }: CustomerFormProps
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-white">Email (Optional)</FormLabel>
-                  <FormControl>
-                    <Input 
-                      placeholder="customer@example.com" 
-                      type="email"
-                      {...field}
-                      value={field.value || ""} 
-                      className="bg-gray-700 border-gray-600 text-white placeholder-gray-400"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="balance"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-white">Initial Balance (KES)</FormLabel>
-                  <FormControl>
-                    <Input 
-                      placeholder="0.00" 
-                      type="number"
-                      step="0.01"
-                      {...field} 
-                      className="bg-gray-700 border-gray-600 text-white placeholder-gray-400"
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="address"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel className="text-white">Address (Optional)</FormLabel>
-                  <FormControl>
-                    <Textarea 
-                      placeholder="Customer address..."
-                      {...field}
-                      value={field.value || ""} 
-                      className="bg-gray-700 border-gray-600 text-white placeholder-gray-400"
-                      rows={3}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+
             <div className="flex justify-end space-x-2 pt-4">
               <Button 
                 type="button" 
