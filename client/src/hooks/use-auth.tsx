@@ -20,20 +20,26 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (response.ok) {
         return response.json();
       }
-      return null;
+      // Return a proper authentication failure result instead of null
+      return { authenticated: false };
     },
     retry: false,
     refetchInterval: false,
     refetchOnWindowFocus: false,
+    // Ensure query doesn't get stuck in loading state
+    staleTime: 0,
+    gcTime: 0,
   });
 
   useEffect(() => {
-    if (data && data.authenticated) {
-      setIsAuthenticated(true);
-      setUser(data.user);
-    } else {
-      setIsAuthenticated(false);
-      setUser(null);
+    if (data) {
+      if (data.authenticated) {
+        setIsAuthenticated(true);
+        setUser(data.user);
+      } else {
+        setIsAuthenticated(false);
+        setUser(null);
+      }
     }
   }, [data]);
 
