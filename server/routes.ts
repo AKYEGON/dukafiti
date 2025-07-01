@@ -366,6 +366,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Customer required for credit sales" });
       }
 
+      // For M-Pesa payments, check if M-Pesa is enabled
+      if (paymentType === 'mpesa') {
+        const user = await storage.getUserByPhone(req.session.user.phone);
+        if (!user) {
+          return res.status(404).json({ message: "User not found" });
+        }
+        
+        const settings = await storage.getUserSettings(user.id);
+        if (!settings?.mpesaEnabled) {
+          return res.status(403).json({ message: "M-Pesa payments are disabled. Please enable M-Pesa in settings." });
+        }
+      }
+
       // Get product details and calculate total
       let total = 0;
       const enrichedItems = [];
@@ -972,6 +985,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Language settings save error:', error);
       res.status(500).json({ error: 'Failed to save language settings' });
+    }
+  });
+
+  // M-Pesa enabled setting routes
+  app.get('/api/settings/mpesa-enabled', requireAuth, async (req: any, res: any) => {
+    try {
+      const user = await storage.getUserByPhone(req.session.user.phone);
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+      
+      const settings = await storage.getUserSettings(user.id);
+      res.json({ enabled: settings?.mpesaEnabled || false });
+    } catch (error) {
+      console.error('M-Pesa enabled setting fetch error:', error);
+      res.status(500).json({ error: 'Failed to fetch M-Pesa setting' });
+    }
+  });
+
+  app.put('/api/settings/mpesa-enabled', requireAuth, async (req: any, res: any) => {
+    try {
+      const user = await storage.getUserByPhone(req.session.user.phone);
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+      
+      const { enabled } = req.body;
+      
+      if (typeof enabled !== 'boolean') {
+        return res.status(400).json({ error: 'Enabled must be a boolean value' });
+      }
+      
+      const existingSettings = await storage.getUserSettings(user.id);
+      let settings;
+      
+      if (existingSettings) {
+        settings = await storage.updateUserSettings(user.id, { mpesaEnabled: enabled });
+      } else {
+        settings = await storage.saveUserSettings(user.id, { mpesaEnabled: enabled });
+      }
+      
+      res.json({ enabled: settings?.mpesaEnabled || false });
+    } catch (error) {
+      console.error('M-Pesa enabled setting save error:', error);
+      res.status(500).json({ error: 'Failed to save M-Pesa setting' });
     }
   });
 

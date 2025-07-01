@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { ShoppingCart, Plus, TrendingUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,6 +19,12 @@ export default function Sales() {
   const [paymentMethod, setPaymentMethod] = useState<'cash' | 'mpesa' | 'credit' | ''>('');
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  // Fetch M-Pesa enabled status
+  const { data: mpesaEnabledData } = useQuery<{ enabled: boolean }>({
+    queryKey: ['/api/settings/mpesa-enabled'],
+    retry: false,
+  });
 
   const createSaleMutation = useMutation({
     mutationFn: async (saleData: { 
@@ -345,16 +351,19 @@ export default function Sales() {
                       >
                         Cash
                       </button>
-                      <button
-                        onClick={() => setPaymentMethod('mpesa')}
-                        className={`flex-1 py-2 px-4 rounded-full text-sm font-medium transition-colors ${
-                          paymentMethod === 'mpesa'
-                            ? 'bg-[#00AA00] text-white'
-                            : 'bg-black text-white hover:bg-gray-800'
-                        }`}
-                      >
-                        M-Pesa
-                      </button>
+                      {/* M-Pesa button - only show if enabled */}
+                      {mpesaEnabledData?.enabled && (
+                        <button
+                          onClick={() => setPaymentMethod('mpesa')}
+                          className={`flex-1 py-2 px-4 rounded-full text-sm font-medium transition-colors ${
+                            paymentMethod === 'mpesa'
+                              ? 'bg-[#00AA00] text-white'
+                              : 'bg-black text-white hover:bg-gray-800'
+                          }`}
+                        >
+                          M-Pesa
+                        </button>
+                      )}
                       <button
                         onClick={() => setPaymentMethod('credit')}
                         className={`flex-1 py-2 px-4 rounded-full text-sm font-medium transition-colors ${

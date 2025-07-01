@@ -9,6 +9,8 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 
@@ -39,6 +41,7 @@ const translations = {
     saveProfile: "Save Profile",
     saving: "Saving...",
     mpesaCredentials: "M-Pesa Credentials",
+    enableMpesa: "Enable M-Pesa payments",
     paybillTill: "Paybill/Till Number",
     consumerKey: "Consumer Key",
     consumerSecret: "Consumer Secret",
@@ -63,6 +66,7 @@ const translations = {
     saveProfile: "Hifadhi Maelezo",
     saving: "Inahifadhi...",
     mpesaCredentials: "Ufunguo wa M-Pesa",
+    enableMpesa: "Wezesha malipo ya M-Pesa",
     paybillTill: "Nambari ya Paybill/Till",
     consumerKey: "Ufunguo wa Mtumizi",
     consumerSecret: "Ufunguo wa Siri",
@@ -91,11 +95,13 @@ interface StoreData {
 
 interface UserSettingsData {
   language?: 'en' | 'sw';
+  mpesaEnabled?: boolean;
 }
 
 export default function SettingsPage() {
   console.log(">>> Loading COMPREHENSIVE Settings Page <<<");
   const [currentLanguage, setCurrentLanguage] = useState<'en' | 'sw'>('en');
+  const [mpesaEnabled, setMpesaEnabled] = useState<boolean>(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -113,12 +119,25 @@ export default function SettingsPage() {
     retry: false,
   });
 
+  // Fetch M-Pesa enabled status
+  const { data: mpesaEnabledData } = useQuery<{ enabled: boolean }>({
+    queryKey: ['/api/settings/mpesa-enabled'],
+    retry: false,
+  });
+
   // Initialize language from settings
   useEffect(() => {
     if (userSettings?.language) {
       setCurrentLanguage(userSettings.language);
     }
   }, [userSettings]);
+
+  // Initialize M-Pesa enabled state
+  useEffect(() => {
+    if (mpesaEnabledData) {
+      setMpesaEnabled(mpesaEnabledData.enabled);
+    }
+  }, [mpesaEnabledData]);
 
   // Store profile form
   const storeForm = useForm<StoreProfileData>({
@@ -213,6 +232,25 @@ export default function SettingsPage() {
     },
   });
 
+  // M-Pesa enabled toggle mutation
+  const mpesaEnabledMutation = useMutation({
+    mutationFn: async (enabled: boolean) => {
+      const response = await apiRequest("PUT", "/api/settings/mpesa-enabled", { enabled });
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({ title: "M-Pesa settings updated successfully" });
+      queryClient.invalidateQueries({ queryKey: ['/api/settings/mpesa-enabled'] });
+    },
+    onError: (error: any) => {
+      toast({ 
+        title: "Failed to update M-Pesa settings", 
+        description: error?.message || "Please try again",
+        variant: "destructive" 
+      });
+    },
+  });
+
   // Manual sync mutation
   const syncMutation = useMutation({
     mutationFn: async () => {
@@ -298,6 +336,11 @@ export default function SettingsPage() {
 
   const onMpesaSubmit = (data: MpesaCredentialsData) => {
     mpesaMutation.mutate(data);
+  };
+
+  const handleMpesaToggle = (enabled: boolean) => {
+    setMpesaEnabled(enabled);
+    mpesaEnabledMutation.mutate(enabled);
   };
 
   if (storeLoading) {
@@ -394,8 +437,33 @@ export default function SettingsPage() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <Form {...mpesaForm}>
-            <form onSubmit={mpesaForm.handleSubmit(onMpesaSubmit)} className="space-y-4">
+          <div className="space-y-6">
+            {/* M-Pesa Toggle */}
+            <div className="flex items-center justify-between p-4 bg-gray-800 rounded-lg border border-gray-700">
+              <div className="flex-1">
+                <Label htmlFor="mpesa-toggle" className="text-white font-medium">
+                  {t.enableMpesa}
+                </Label>
+                <p className="text-sm text-gray-400 mt-1">
+                  {mpesaEnabled 
+                    ? "M-Pesa payments are enabled for your store" 
+                    : "Enable M-Pesa to accept mobile payments"
+                  }
+                </p>
+              </div>
+              <Switch
+                id="mpesa-toggle"
+                checked={mpesaEnabled}
+                onCheckedChange={handleMpesaToggle}
+                disabled={mpesaEnabledMutation.isPending}
+                className={`${!mpesaEnabled ? 'data-[state=unchecked]:bg-red-600' : ''}`}
+              />
+            </div>
+            
+            {/* M-Pesa Credentials Form */}
+            <div className={`transition-opacity duration-200 ${!mpesaEnabled ? 'opacity-50' : ''}`}>
+              <Form {...mpesaForm}>
+                <form onSubmit={mpesaForm.handleSubmit(onMpesaSubmit)} className="space-y-4">
               <FormField
                 control={mpesaForm.control}
                 name="paybillTillNumber"
@@ -403,7 +471,11 @@ export default function SettingsPage() {
                   <FormItem>
                     <FormLabel className="text-white">{t.paybillTill}</FormLabel>
                     <FormControl>
-                      <Input {...field} className="bg-gray-800 border-gray-700 text-white" />
+                      <Input 
+                        {...field} 
+                        disabled={!mpesaEnabled}
+                        className="bg-gray-800 border-gray-700 text-white" 
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -416,7 +488,11 @@ export default function SettingsPage() {
                   <FormItem>
                     <FormLabel className="text-white">{t.consumerKey}</FormLabel>
                     <FormControl>
-                      <Input {...field} className="bg-gray-800 border-gray-700 text-white" />
+                      <Input 
+                        {...field} 
+                        disabled={!mpesaEnabled}
+                        className="bg-gray-800 border-gray-700 text-white" 
+                      />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -432,6 +508,7 @@ export default function SettingsPage() {
                       <Input 
                         {...field} 
                         type="password" 
+                        disabled={!mpesaEnabled}
                         className="bg-gray-800 border-gray-700 text-white" 
                       />
                     </FormControl>
@@ -441,13 +518,15 @@ export default function SettingsPage() {
               />
               <Button
                 type="submit"
-                disabled={mpesaMutation.isPending}
+                disabled={mpesaMutation.isPending || !mpesaEnabled}
                 className="bg-green-600 hover:bg-green-700 text-white"
               >
                 {mpesaMutation.isPending ? t.saving : t.saveMpesa}
               </Button>
-            </form>
-          </Form>
+                </form>
+              </Form>
+            </div>
+          </div>
         </CardContent>
       </Card>
 
