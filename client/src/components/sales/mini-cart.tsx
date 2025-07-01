@@ -84,37 +84,25 @@ export function MiniCart({
         <Separator className="my-4" />
 
         {/* Action Buttons */}
-        <div className="space-y-2">
+        <div className="flex gap-2">
           <Button
-            className="w-full bg-[#00AA00] hover:bg-[#00AA00]/90 text-white"
-            size="lg"
-            onClick={onCheckout}
-            disabled={isProcessing || totalAmount === 0}
+            variant="outline"
+            className="flex-1 border-[#00AA00] text-[#00AA00] hover:bg-[#00AA00]/10"
+            onClick={onClearCart}
+            disabled={isProcessing}
           >
-            <CreditCard className="w-4 h-4 mr-2" />
-            {isProcessing ? 'Processing...' : `Complete Sale - ${formatCurrency(totalAmount.toFixed(2))}`}
+            <Receipt className="w-4 h-4 mr-2" />
+            Save Draft
           </Button>
           
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              className="flex-1 border-[#00AA00] text-[#00AA00] hover:bg-[#00AA00]/10"
-              onClick={onClearCart}
-              disabled={isProcessing}
-            >
-              <Receipt className="w-4 h-4 mr-2" />
-              Save Draft
-            </Button>
-            
-            <Button
-              variant="outline"
-              className="flex-1 border-red-200 text-red-600 hover:bg-red-50"
-              onClick={onClearCart}
-              disabled={isProcessing}
-            >
-              Clear Cart
-            </Button>
-          </div>
+          <Button
+            variant="outline"
+            className="flex-1 border-red-200 text-red-600 hover:bg-red-50"
+            onClick={onClearCart}
+            disabled={isProcessing}
+          >
+            Clear Cart
+          </Button>
         </div>
 
         {/* Stock Warnings */}

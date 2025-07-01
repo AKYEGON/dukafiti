@@ -119,6 +119,8 @@ Changelog:
 - July 1, 2025. Updated backend API to handle simplified sale payload structure
 - July 1, 2025. Integrated real-time toast notifications with status-based messaging
 - July 1, 2025. Removed legacy M-Pesa initiation endpoints for cleaner API
+- July 1, 2025. Removed "Complete Sale" button from mini cart component
+- July 1, 2025. Updated credit sales modal with separate Customer Name and Phone fields
 ```
 
 ## User Preferences
