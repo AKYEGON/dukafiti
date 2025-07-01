@@ -41,7 +41,7 @@
   --background: hsl(222, 84%, 4.9%);
   --foreground: hsl(210, 40%, 98%);
   --muted: hsl(217.2, 32.6%, 17.5%);
-  --muted-foreground: hsl(215, 20.2%, 65.1%);
+  --muted-foreground: hsl(215, 20.2%, 75%);
   --popover: hsl(222, 84%, 4.9%);
   --popover-foreground: hsl(210, 40%, 98%);
   --card: hsl(222, 84%, 4.9%);
@@ -70,11 +70,64 @@
   }
 
   body {
-    @apply bg-black text-white font-sans antialiased;
+    @apply bg-background text-foreground font-sans antialiased;
   }
   
   html {
     @apply dark;
+  }
+  
+  /* Ensure proper text contrast in all components */
+  .text-muted-foreground {
+    color: hsl(var(--muted-foreground));
+  }
+  
+  /* Fix dialog content text visibility */
+  [data-radix-dialog-content] {
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
+  }
+  
+  /* Fix form labels and placeholders */
+  label {
+    color: hsl(var(--foreground)) !important;
+  }
+  
+  input::placeholder,
+  textarea::placeholder {
+    color: hsl(var(--muted-foreground)) !important;
+  }
+  
+  /* Fix input text color */
+  input[type="text"],
+  input[type="email"],
+  input[type="number"],
+  textarea,
+  select {
+    color: hsl(var(--foreground)) !important;
+    background-color: hsl(var(--background));
+  }
+  
+  /* Fix help text and descriptions */
+  .text-gray-500,
+  .text-xs.text-gray-500 {
+    color: hsl(var(--muted-foreground)) !important;
+  }
+  
+  /* Fix form message colors */
+  .text-sm.font-medium.text-destructive {
+    color: hsl(var(--destructive)) !important;
+  }
+  
+  /* Ensure all text elements have proper contrast */
+  p, span, div {
+    color: inherit;
+  }
+  
+  /* Fix any remaining gray text issues */
+  .text-gray-400,
+  .text-gray-600 {
+    color: hsl(var(--muted-foreground)) !important;
   }
 }
 
