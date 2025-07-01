@@ -20,24 +20,6 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const { data: themeData, isLoading } = useQuery<{ theme: Theme }>({
     queryKey: ['/api/settings/theme'],
     retry: false,
-    refetchInterval: false,
-    refetchOnWindowFocus: false,
-    staleTime: 0,
-    gcTime: 0,
-    // Return fallback if request fails
-    queryFn: async () => {
-      try {
-        const response = await fetch('/api/settings/theme', { credentials: 'include' });
-        if (response.ok) {
-          return response.json();
-        }
-        // Return default theme if user is not authenticated or endpoint fails
-        return { theme: 'dark' as Theme };
-      } catch (error) {
-        // Return default theme on network error
-        return { theme: 'dark' as Theme };
-      }
-    },
   });
 
   // Update theme mutation
