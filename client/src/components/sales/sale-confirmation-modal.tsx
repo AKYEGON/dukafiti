@@ -10,7 +10,7 @@ interface SaleConfirmationModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   items: SaleLineItem[];
-  onConfirm: (paymentType: 'cash' | 'mpesa' | 'credit') => void;
+  onConfirm: (paymentType: 'cash' | 'mpesa' | 'credit', customerName?: string, customerPhone?: string) => void;
   isProcessing?: boolean;
 }
 
@@ -22,12 +22,19 @@ export function SaleConfirmationModal({
   isProcessing 
 }: SaleConfirmationModalProps) {
   const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<'cash' | 'mpesa' | 'credit' | ''>('');
+  const [customerName, setCustomerName] = useState('');
+  const [customerPhone, setCustomerPhone] = useState('');
 
   const total = items.reduce((sum, item) => sum + parseFloat(item.total), 0);
 
   const handleConfirm = () => {
     if (selectedPaymentMethod) {
-      onConfirm(selectedPaymentMethod);
+      onConfirm(selectedPaymentMethod, customerName || undefined, customerPhone || undefined);
+      onOpenChange(false);
+      // Reset form
+      setSelectedPaymentMethod('');
+      setCustomerName('');
+      setCustomerPhone('');
     }
   };
 
@@ -121,6 +128,40 @@ export function SaleConfirmationModal({
             </Select>
           </div>
 
+          {/* Customer Information for Credit Sales */}
+          {selectedPaymentMethod === 'credit' && (
+            <div className="space-y-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
+              <h4 className="font-medium text-blue-900">Customer Information (Credit Sale)</h4>
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-sm font-medium text-blue-700 mb-1">
+                    Customer Name *
+                  </label>
+                  <input
+                    type="text"
+                    value={customerName}
+                    onChange={(e) => setCustomerName(e.target.value)}
+                    placeholder="Enter customer name"
+                    className="w-full px-3 py-2 border border-blue-300 rounded-md focus:border-blue-500 focus:ring-blue-500/20 focus:outline-none"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-blue-700 mb-1">
+                    Phone Number (Optional)
+                  </label>
+                  <input
+                    type="tel"
+                    value={customerPhone}
+                    onChange={(e) => setCustomerPhone(e.target.value)}
+                    placeholder="Enter phone number"
+                    className="w-full px-3 py-2 border border-blue-300 rounded-md focus:border-blue-500 focus:ring-blue-500/20 focus:outline-none"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Action Buttons */}
           <div className="flex gap-3 pt-4">
             <Button
@@ -134,7 +175,7 @@ export function SaleConfirmationModal({
             <Button
               className="flex-1 bg-[#00AA00] hover:bg-[#00AA00]/90"
               onClick={handleConfirm}
-              disabled={!selectedPaymentMethod || isProcessing}
+              disabled={!selectedPaymentMethod || (selectedPaymentMethod === 'credit' && !customerName.trim()) || isProcessing}
             >
               {isProcessing ? "Processing..." : "Confirm Sale"}
             </Button>

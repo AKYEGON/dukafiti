@@ -277,7 +277,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Sales endpoint with simplified payload
   app.post("/api/sales", requireAuth, async (req, res) => {
     try {
-      const { items, paymentType } = req.body;
+      const { items, paymentType, customerName, customerPhone } = req.body;
       
       if (!items || !Array.isArray(items) || items.length === 0) {
         return res.status(400).json({ message: "Items are required" });
@@ -325,11 +325,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Create the order
       const orderData = {
         customerId: null,
-        customerName: "Walk-in Customer",
+        customerName: customerName || "Walk-in Customer",
         total: total.toFixed(2),
         paymentMethod: paymentType,
         status,
-        reference: null
+        reference: customerPhone || null
       };
       
       const order = await storage.createOrder(orderData);

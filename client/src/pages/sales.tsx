@@ -122,13 +122,15 @@ export default function Sales() {
     setShowConfirmationModal(true);
   };
 
-  const handleConfirmSale = (paymentType: 'cash' | 'mpesa' | 'credit') => {
+  const handleConfirmSale = (paymentType: 'cash' | 'mpesa' | 'credit', customerName?: string, customerPhone?: string) => {
     const saleData = {
       items: cartItems.map(item => ({
         productId: item.product.id,
         qty: item.quantity,
       })),
       paymentType,
+      customerName,
+      customerPhone,
     };
 
     createSaleMutation.mutate(saleData);
