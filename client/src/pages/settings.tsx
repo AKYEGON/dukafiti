@@ -213,7 +213,7 @@ export default function Settings() {
   // Manual sync mutation
   const syncMutation = useMutation({
     mutationFn: async () => {
-      const response = await apiRequest("POST", "/api/sync");
+      const response = await apiRequest("GET", "/api/sync");
       return response.json();
     },
     onSuccess: () => {
@@ -465,8 +465,13 @@ export default function Settings() {
           <Button
             onClick={() => syncMutation.mutate()}
             disabled={syncMutation.isPending}
-            className="bg-green-600 hover:bg-green-700 text-white"
+            className="bg-green-600 hover:bg-green-700 text-white flex items-center gap-2"
           >
+            {syncMutation.isPending ? (
+              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+            ) : (
+              <RotateCcw className="h-4 w-4" />
+            )}
             {syncMutation.isPending ? t.syncing : t.syncNow}
           </Button>
         </CardContent>

@@ -976,7 +976,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Manual sync endpoint
-  app.post('/api/sync', requireAuth, async (req: any, res: any) => {
+  app.get('/api/sync', requireAuth, async (req: any, res: any) => {
     try {
       // For now, this is a placeholder that simulates a sync process
       // In a real implementation, this would sync with external services or databases
