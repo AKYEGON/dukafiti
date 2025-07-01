@@ -22,19 +22,43 @@ export function useWebSocket() {
       try {
         const data = JSON.parse(event.data);
         
-        if (data.type === 'payment_received') {
+        if (data.type === 'saleUpdate') {
+          // Handle sale completion notifications
+          if (data.paymentType === 'cash') {
+            toast({
+              title: "Cash sale recorded",
+              description: `Sale completed for ${formatCurrency(data.total)}`,
+              className: "bg-green-50 border-green-200 text-green-800",
+              duration: 3000,
+            });
+          } else if (data.paymentType === 'credit') {
+            toast({
+              title: "Credit sale saved",
+              description: `Credit sale recorded for ${formatCurrency(data.total)}`,
+              className: "bg-blue-50 border-blue-200 text-blue-800",
+              duration: 3000,
+            });
+          } else if (data.paymentType === 'mpesa') {
+            toast({
+              title: "M-Pesa payment initiated",
+              description: `Payment request sent for ${data.reference}`,
+              className: "bg-yellow-50 border-yellow-200 text-yellow-800",
+              duration: 3000,
+            });
+          }
+        } else if (data.type === 'payment_received') {
           toast({
             title: "M-Pesa payment received!",
             description: `Payment confirmed for ${data.reference} - ${formatCurrency(data.amount)}`,
             className: "bg-green-50 border-green-200 text-green-800",
-            duration: 5000,
+            duration: 3000,
           });
         } else if (data.type === 'payment_failed') {
           toast({
             title: "M-Pesa payment failed",
             description: `Payment failed for ${data.reference}: ${data.resultDesc}`,
             variant: "destructive",
-            duration: 5000,
+            duration: 3000,
           });
         }
       } catch (error) {

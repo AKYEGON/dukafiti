@@ -317,6 +317,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         await storage.updateProductStock(item.productId, -item.quantity);
       }
       
+      // Emit real-time notification
+      const notificationData = {
+        type: 'saleUpdate',
+        paymentType,
+        saleId: order.id,
+        reference: reference || null,
+        total: total.toFixed(2),
+        message: paymentType === 'credit' 
+          ? "Credit sale saved" 
+          : paymentType === 'mpesa'
+          ? "M-Pesa payment request sent"
+          : "Cash sale recorded"
+      };
+      
+      broadcastToClients(notificationData);
+      
       res.status(201).json({
         success: true,
         order,
@@ -388,8 +404,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       const phone = req.session.user!.phone;
       
+      // Get user by phone to get the user ID
+      const user = await storage.getUserByPhone(phone);
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+      
       // Store business profile and M-Pesa config
-      await storage.saveBusinessProfile(phone, {
+      await storage.saveBusinessProfile(user.id, {
         businessName,
         paybill,
         consumerKey,

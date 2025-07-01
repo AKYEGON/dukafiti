@@ -65,7 +65,7 @@ export interface IStorage {
   getDashboardMetrics(): Promise<DashboardMetrics>;
 
   // Business Profile
-  saveBusinessProfile(userId: number, profile: InsertBusinessProfile): Promise<void>;
+  saveBusinessProfile(userId: number, profile: Omit<InsertBusinessProfile, 'userId'>): Promise<void>;
   getBusinessProfile(userId: number): Promise<BusinessProfile | undefined>;
 }
 
@@ -392,12 +392,19 @@ export class MemStorage implements IStorage {
     };
   }
 
-  async saveBusinessProfile(phone: string, profile: BusinessProfile): Promise<void> {
-    this.businessProfiles.set(phone, profile);
+  async saveBusinessProfile(userId: number, profile: Omit<InsertBusinessProfile, 'userId'>): Promise<void> {
+    const businessProfile: BusinessProfile = {
+      ...profile,
+      id: Date.now(), // Simple ID generation for memory storage
+      userId,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    this.businessProfiles.set(userId.toString(), businessProfile);
   }
 
-  async getBusinessProfile(phone: string): Promise<BusinessProfile | undefined> {
-    return this.businessProfiles.get(phone);
+  async getBusinessProfile(userId: number): Promise<BusinessProfile | undefined> {
+    return this.businessProfiles.get(userId.toString());
   }
 }
 
@@ -614,7 +621,7 @@ export class DatabaseStorage implements IStorage {
     };
   }
 
-  async saveBusinessProfile(userId: number, profile: InsertBusinessProfile): Promise<void> {
+  async saveBusinessProfile(userId: number, profile: Omit<InsertBusinessProfile, 'userId'>): Promise<void> {
     // First check if a profile already exists for this user
     const existing = await db
       .select() 
