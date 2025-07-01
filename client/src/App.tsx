@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Sidebar } from "@/components/layout/sidebar";
 import { AuthProvider, useAuth } from "@/hooks/use-auth";
+import { useWebSocket } from "@/hooks/use-websocket";
 import Dashboard from "@/pages/dashboard";
 import Inventory from "@/pages/inventory";
 import Sales from "@/pages/sales";
@@ -15,6 +16,9 @@ import Onboarding from "@/pages/onboarding";
 import NotFound from "@/pages/not-found";
 
 function AuthenticatedApp() {
+  // Initialize WebSocket connection for real-time notifications
+  useWebSocket();
+  
   return (
     <div className="min-h-screen flex flex-col lg:flex-row bg-gray-50">
       <Sidebar />

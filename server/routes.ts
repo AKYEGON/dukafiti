@@ -1,5 +1,6 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
+import { WebSocketServer, WebSocket } from "ws";
 import { storage } from "./storage";
 import { insertProductSchema, insertCustomerSchema, insertOrderSchema, insertOrderItemSchema, insertUserSchema } from "@shared/schema";
 import { z } from "zod";
@@ -10,11 +11,24 @@ import { v4 as uuidv4 } from "uuid";
 // Initialize Replit Database
 const db = new Database();
 
+// WebSocket clients store
+const wsClients = new Set<WebSocket>();
+
 // Extend session type to include user
 declare module 'express-session' {
   interface SessionData {
     user?: { phone: string };
   }
+}
+
+// Broadcast function for real-time notifications
+function broadcastToClients(message: any) {
+  const messageStr = JSON.stringify(message);
+  wsClients.forEach(client => {
+    if (client.readyState === WebSocket.OPEN) {
+      client.send(messageStr);
+    }
+  });
 }
 
 // Authentication middleware
@@ -26,6 +40,25 @@ function requireAuth(req: any, res: any, next: any) {
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  const httpServer = createServer(app);
+  
+  // Set up WebSocket server
+  const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
+  
+  wss.on('connection', (ws) => {
+    console.log('WebSocket client connected');
+    wsClients.add(ws);
+    
+    ws.on('close', () => {
+      console.log('WebSocket client disconnected');
+      wsClients.delete(ws);
+    });
+    
+    ws.on('error', (error) => {
+      console.error('WebSocket error:', error);
+      wsClients.delete(ws);
+    });
+  });
   
   // User registration route
   app.post("/api/register", async (req, res) => {
@@ -370,6 +403,116 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  const httpServer = createServer(app);
+  // M-Pesa C2B Callback endpoint
+  app.post("/api/sales/mpesa/callback", async (req, res) => {
+    try {
+      const { 
+        ShortCode,
+        BillRefNumber, 
+        Amount,
+        TransID,
+        ResultCode,
+        ResultDesc 
+      } = req.body;
+
+      console.log("M-Pesa callback received:", {
+        ShortCode,
+        BillRefNumber,
+        Amount,
+        TransID,
+        ResultCode,
+        ResultDesc
+      });
+
+      // Check if payment was successful
+      if (ResultCode === '0' || ResultCode === 0) {
+        // Find the order with matching reference and pending status
+        const order = await storage.getOrderByReference(BillRefNumber);
+        
+        if (!order) {
+          console.error(`Order not found for reference: ${BillRefNumber}`);
+          return res.status(404).json({ 
+            ResultCode: "1", 
+            ResultDesc: "Order not found" 
+          });
+        }
+
+        if (order.status !== 'pending') {
+          console.log(`Order ${order.id} already processed (status: ${order.status})`);
+          return res.json({ 
+            ResultCode: "0", 
+            ResultDesc: "Already processed" 
+          });
+        }
+
+        // Update order status to 'paid'
+        await storage.updateOrder(order.id, { 
+          status: 'paid' 
+        });
+
+        // Get order items to update inventory (if not already done)
+        const orderItems = await storage.getOrderItems(order.id);
+        
+        // In M-Pesa flow, inventory was already decremented when order was created
+        // So we don't need to decrement again, just confirm payment
+
+        console.log(`M-Pesa payment confirmed for order ${order.id}, reference: ${BillRefNumber}`);
+
+        // Broadcast real-time notification to connected clients
+        broadcastToClients({
+          type: 'payment_received',
+          orderId: order.id,
+          reference: BillRefNumber,
+          amount: Amount,
+          transactionId: TransID,
+          message: `M-Pesa payment received for ${BillRefNumber}`
+        });
+
+        return res.json({ 
+          ResultCode: "0", 
+          ResultDesc: "Accepted" 
+        });
+      } else {
+        // Payment failed
+        console.error(`M-Pesa payment failed for reference ${BillRefNumber}:`, ResultDesc);
+        
+        // Find the order and optionally update status to 'failed'
+        const order = await storage.getOrderByReference(BillRefNumber);
+        if (order && order.status === 'pending') {
+          await storage.updateOrder(order.id, { 
+            status: 'failed' 
+          });
+          
+          // Optionally restore inventory since payment failed
+          const orderItems = await storage.getOrderItems(order.id);
+          for (const item of orderItems) {
+            await storage.updateProductStock(item.productId, item.quantity);
+          }
+        }
+
+        // Broadcast failure notification
+        broadcastToClients({
+          type: 'payment_failed',
+          reference: BillRefNumber,
+          resultCode: ResultCode,
+          resultDesc: ResultDesc,
+          message: `M-Pesa payment failed for ${BillRefNumber}`
+        });
+
+        return res.json({ 
+          ResultCode: "1", 
+          ResultDesc: "Rejected" 
+        });
+      }
+      
+    } catch (error: any) {
+      console.error("M-Pesa callback error:", error);
+      return res.status(500).json({ 
+        ResultCode: "1", 
+        ResultDesc: "Internal server error" 
+      });
+    }
+  });
+
   return httpServer;
 }

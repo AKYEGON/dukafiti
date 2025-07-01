@@ -51,6 +51,7 @@ export interface IStorage {
   // Orders
   getOrders(): Promise<Order[]>;
   getOrder(id: number): Promise<Order | undefined>;
+  getOrderByReference(reference: string): Promise<Order | undefined>;
   createOrder(order: InsertOrder): Promise<Order>;
   updateOrder(id: number, order: Partial<InsertOrder>): Promise<Order | undefined>;
   deleteOrder(id: number): Promise<boolean>;
@@ -310,6 +311,15 @@ export class MemStorage implements IStorage {
     return this.orders.get(id);
   }
 
+  async getOrderByReference(reference: string): Promise<Order | undefined> {
+    for (const order of this.orders.values()) {
+      if (order.reference === reference) {
+        return order;
+      }
+    }
+    return undefined;
+  }
+
   async createOrder(insertOrder: InsertOrder): Promise<Order> {
     const order: Order = {
       ...insertOrder,
@@ -532,6 +542,11 @@ export class DatabaseStorage implements IStorage {
 
   async getOrder(id: number): Promise<Order | undefined> {
     const [order] = await db.select().from(orders).where(eq(orders.id, id));
+    return order || undefined;
+  }
+
+  async getOrderByReference(reference: string): Promise<Order | undefined> {
+    const [order] = await db.select().from(orders).where(eq(orders.reference, reference));
     return order || undefined;
   }
 
