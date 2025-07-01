@@ -54,4 +54,14 @@ window.addEventListener('appinstalled', (evt) => {
   deferredPrompt = null;
 });
 
+// Listen for service worker messages
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.addEventListener('message', (event) => {
+    if (event.data.type === 'SALE_SYNCED') {
+      console.log(`Sale ${event.data.saleId} synced successfully`);
+      // You could show a toast notification here if needed
+    }
+  });
+}
+
 createRoot(document.getElementById("root")!).render(<App />);

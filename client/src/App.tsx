@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { Sidebar } from "@/components/layout/sidebar";
 import { AuthProvider, useAuth } from "@/hooks/use-auth";
 import { useWebSocket } from "@/hooks/use-websocket";
+import { OfflineIndicator } from "@/components/offline-indicator";
 import Dashboard from "@/pages/dashboard";
 import Inventory from "@/pages/inventory";
 import Sales from "@/pages/sales";
@@ -93,6 +94,7 @@ function App() {
       <AuthProvider>
         <TooltipProvider>
           <Router />
+          <OfflineIndicator />
           <Toaster />
         </TooltipProvider>
       </AuthProvider>

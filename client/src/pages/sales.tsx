@@ -11,6 +11,7 @@ import { type SaleLineItem } from "@/components/sales/sale-line-item";
 import { type Product } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { formatCurrency } from "@/lib/utils";
+import { offlineQueue, isOnline } from "@/lib/offline-queue";
 
 export default function Sales() {
   const [cartItems, setCartItems] = useState<SaleLineItem[]>([]);
@@ -23,7 +24,42 @@ export default function Sales() {
     mutationFn: async (saleData: { 
       items: Array<{ productId: number; qty: number }>;
       paymentType: 'cash' | 'mpesa' | 'credit';
+      customerName?: string;
+      customerPhone?: string;
     }) => {
+      // Check if online
+      if (!isOnline()) {
+        // Queue sale for offline processing
+        const queuedSaleId = await offlineQueue.queueSale({
+          items: saleData.items.map(item => ({
+            productId: item.productId,
+            quantity: item.qty,
+            price: cartItems.find(cartItem => cartItem.product.id === item.productId)?.unitPrice || "0"
+          })),
+          paymentType: saleData.paymentType as 'cash' | 'credit',
+          customerName: saleData.customerName,
+          customerPhone: saleData.customerPhone,
+        });
+
+        // Register background sync if supported
+        if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+          navigator.serviceWorker.ready.then(registration => {
+            try {
+              // Use any to bypass TypeScript limitations with experimental API
+              const syncManager = (registration as any).sync;
+              if (syncManager) {
+                syncManager.register('sync-sales');
+              }
+            } catch (error) {
+              console.error('Background sync registration failed:', error);
+            }
+          });
+        }
+
+        return { success: true, status: 'queued', saleId: queuedSaleId };
+      }
+
+      // Online - proceed with normal API call
       const response = await apiRequest("POST", "/api/sales", saleData);
       return response.json();
     },
@@ -33,14 +69,23 @@ export default function Sales() {
       setCartItems([]);
       setPaymentMethod('');
       
-      // Invalidate products query to refresh stock levels
-      queryClient.invalidateQueries({ queryKey: ["/api/orders"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/dashboard/metrics"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/products"] });
+      // Only invalidate queries if online
+      if (isOnline()) {
+        queryClient.invalidateQueries({ queryKey: ["/api/orders"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/dashboard/metrics"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/products"] });
+      }
       
       // Show appropriate toast based on status
       const status = result.status;
-      if (status === 'paid') {
+      if (status === 'queued') {
+        toast({ 
+          title: "Sale queued – offline mode", 
+          description: "Sale will be processed when connection is restored",
+          className: "bg-yellow-50 border-yellow-200 text-yellow-800",
+          duration: 5000
+        });
+      } else if (status === 'paid') {
         toast({ 
           title: "Sale recorded (Cash)", 
           description: `Sale #${result.saleId} completed successfully`,

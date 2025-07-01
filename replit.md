@@ -127,6 +127,10 @@ Changelog:
 - July 1, 2025. Implemented service worker for offline caching and app shell functionality
 - July 1, 2025. Added app icons (192x192 and 512x512) with custom DukaSmart branding
 - July 1, 2025. Configured PWA meta tags for mobile installation and standalone display
+- July 1, 2025. Implemented offline sales queuing with IndexedDB for offline operation
+- July 1, 2025. Added Background Sync API for automatic sale replay when connection restored
+- July 1, 2025. Created offline.html fallback page with user-friendly offline message
+- July 1, 2025. Added real-time offline/online status indicators with pending sales counter
 ```
 
 ## User Preferences
