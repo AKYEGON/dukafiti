@@ -107,9 +107,9 @@ export function CustomerForm({ open, onOpenChange, customer }: CustomerFormProps
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px] bg-gray-800 border-gray-700">
+      <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle className="text-white">
+          <DialogTitle className="text-foreground">
             {customer ? "Edit Customer" : "Add New Customer"}
           </DialogTitle>
         </DialogHeader>
@@ -120,12 +120,12 @@ export function CustomerForm({ open, onOpenChange, customer }: CustomerFormProps
               name="name"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-white">Name</FormLabel>
+                  <FormLabel className="text-foreground">Name</FormLabel>
                   <FormControl>
                     <Input 
                       placeholder="Customer name" 
                       {...field} 
-                      className="bg-gray-700 border-gray-600 text-white placeholder-gray-400"
+                      className="bg-input border-border text-foreground placeholder-muted-foreground"
                     />
                   </FormControl>
                   <FormMessage />
@@ -137,12 +137,12 @@ export function CustomerForm({ open, onOpenChange, customer }: CustomerFormProps
               name="phone"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel className="text-white">Phone Number</FormLabel>
+                  <FormLabel className="text-foreground">Phone Number</FormLabel>
                   <FormControl>
                     <Input 
                       placeholder="0712345678" 
                       {...field} 
-                      className="bg-gray-700 border-gray-600 text-white placeholder-gray-400"
+                      className="bg-input border-border text-foreground placeholder-muted-foreground"
                     />
                   </FormControl>
                   <FormMessage />
@@ -155,14 +155,14 @@ export function CustomerForm({ open, onOpenChange, customer }: CustomerFormProps
                 type="button" 
                 variant="outline" 
                 onClick={() => onOpenChange(false)}
-                className="border-gray-600 text-gray-300 hover:bg-gray-700"
+                className="border-border text-muted-foreground hover:bg-input"
               >
                 Cancel
               </Button>
               <Button 
                 type="submit" 
                 disabled={createCustomer.isPending || updateCustomer.isPending}
-                className="bg-green-600 hover:bg-green-700 text-white"
+                className="bg-green-600 hover:bg-green-700 text-foreground"
               >
                 {createCustomer.isPending || updateCustomer.isPending ? "Saving..." : customer ? "Update Customer" : "Add Customer"}
               </Button>
