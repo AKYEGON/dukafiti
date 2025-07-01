@@ -40,12 +40,12 @@ export default function Dashboard() {
 
   if (metricsLoading) {
     return (
-      <div className="space-y-6 bg-black text-white min-h-screen">
+      <div className="space-y-6 bg-background text-foreground min-h-screen">
         <Header title="Dashboard" subtitle="Business overview and key metrics" />
         <div className="p-4 lg:p-6 space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {[...Array(4)].map((_, i) => (
-              <Skeleton key={i} className="h-32 bg-gray-800" />
+              <Skeleton key={i} className="h-32" />
             ))}
           </div>
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -58,7 +58,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="space-y-6 bg-black text-white min-h-screen">
+    <div className="space-y-6 bg-background text-foreground min-h-screen">
       <Header title="Dashboard" subtitle="Business overview and key metrics" />
       
       <div className="p-4 lg:p-6 space-y-6">
