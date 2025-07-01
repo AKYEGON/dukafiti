@@ -259,19 +259,17 @@ export default function Reports() {
           <>
             <Button 
               onClick={handleWhatsAppShare} 
-              size="sm" 
-              variant="ghost"
-              className="text-green-500 hover:text-green-400 hover:bg-green-500/10"
+              className="px-3 py-1 bg-green-600 text-white rounded-md mr-2"
+              aria-label={`Share ${type} report via WhatsApp`}
             >
-              <MessageCircle className="h-4 w-4" />
+              Share WhatsApp
             </Button>
             <Button 
               onClick={handleEmailShare} 
-              size="sm" 
-              variant="ghost"
-              className="text-green-500 hover:text-green-400 hover:bg-green-500/10"
+              className="px-3 py-1 bg-green-600 text-white rounded-md"
+              aria-label={`Share ${type} report via Email`}
             >
-              <Mail className="h-4 w-4" />
+              Share Email
             </Button>
           </>
         )}

@@ -134,24 +134,22 @@ export default function Inventory() {
                       }`}
                     >
                       <div className="flex-1">
-                        <div className="flex items-center space-x-3 mb-2">
+                        <div className="flex items-center justify-between mb-2">
                           <h3 className="text-lg font-semibold text-foreground">{product.name}</h3>
                           <div className="flex space-x-2">
                             <Button
-                              variant="ghost"
-                              size="sm"
                               onClick={() => handleEdit(product)}
-                              className="text-blue-400 hover:text-blue-300 p-1 h-auto"
+                              className="px-3 py-1 bg-green-600 text-white rounded-md mr-2"
+                              aria-label={`Edit ${product.name}`}
                             >
-                              ✏️
+                              Edit
                             </Button>
                             <Button
-                              variant="ghost"
-                              size="sm"
                               onClick={() => handleDelete(product)}
-                              className="text-red-400 hover:text-red-300 p-1 h-auto"
+                              className="px-3 py-1 bg-red-600 text-white rounded-md"
+                              aria-label={`Delete ${product.name}`}
                             >
-                              🗑️
+                              Delete
                             </Button>
                           </div>
                         </div>

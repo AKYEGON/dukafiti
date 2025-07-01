@@ -94,12 +94,11 @@ export function SaleLineItemComponent({ item, onQuantityChange, onRemove }: Sale
 
               {/* Remove Button */}
               <Button
-                variant="ghost"
-                size="sm"
                 onClick={handleRemove}
-                className="text-red-500 hover:text-red-700 hover:bg-red-50 p-2"
+                className="px-3 py-1 bg-red-600 text-white rounded-md"
+                aria-label={`Remove ${item.product.name} from cart`}
               >
-                <Trash2 className="w-4 h-4" />
+                Remove
               </Button>
             </div>
           </div>
