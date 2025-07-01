@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { ProductSearch } from "@/components/sales/product-search";
+import { QuickSelectProducts } from "@/components/sales/quick-select-products";
 import { MiniCart } from "@/components/sales/mini-cart";
 import { SaleConfirmationModal } from "@/components/sales/sale-confirmation-modal";
 import { type SaleLineItem } from "@/components/sales/sale-line-item";
@@ -24,6 +25,11 @@ export default function Sales() {
   const { data: mpesaEnabledData } = useQuery<{ enabled: boolean }>({
     queryKey: ['/api/settings/mpesa-enabled'],
     retry: false,
+  });
+
+  // Fetch all products for quick select functionality
+  const { data: products = [] } = useQuery<Product[]>({
+    queryKey: ["/api/products"],
   });
 
   const createSaleMutation = useMutation({
@@ -136,6 +142,19 @@ export default function Sales() {
         total: product.price,
       };
       setCartItems(prev => [...prev, newItem]);
+    }
+  };
+
+  const handleQuickSelectProduct = (productId: number) => {
+    const product = products.find(p => p.id === productId);
+    if (product) {
+      handleProductSelect(product);
+      toast({
+        title: "Product added",
+        description: `${product.name} added to cart`,
+        className: "bg-green-50 border-green-200 text-green-800",
+        duration: 2000,
+      });
     }
   };
 
@@ -296,8 +315,6 @@ export default function Sales() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Left Column - Product Search and Customer */}
         <div className="space-y-6">
-
-
           {/* Product Search */}
           <Card className="border-2 border-[#00AA00]/20">
             <CardHeader>
@@ -312,6 +329,9 @@ export default function Sales() {
               </div>
             </CardContent>
           </Card>
+
+          {/* Quick Select Products */}
+          <QuickSelectProducts onProductSelect={handleQuickSelectProduct} />
         </div>
 
         {/* Right Column - Cart and Payment */}

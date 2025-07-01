@@ -204,6 +204,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Frequent products endpoint
+  app.get("/api/products/frequent", requireAuth, async (req, res) => {
+    try {
+      const frequentProducts = await storage.getFrequentProducts();
+      res.json(frequentProducts);
+    } catch (error) {
+      console.error("Error fetching frequent products:", error);
+      res.status(500).json({ message: "Failed to fetch frequent products" });
+    }
+  });
+
   // Customer routes
   app.get("/api/customers", requireAuth, async (req, res) => {
     try {
@@ -439,6 +450,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         // Update product stock (decrement for all payment types)
         await storage.updateProductStock(item.productId, -item.quantity);
+        
+        // Increment sales count for analytics
+        await storage.incrementProductSalesCount(item.productId, item.quantity);
       }
       
       // Emit real-time notification

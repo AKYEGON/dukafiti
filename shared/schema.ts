@@ -12,6 +12,7 @@ export const products = pgTable("products", {
   stock: integer("stock").notNull().default(0),
   category: text("category").notNull(),
   lowStockThreshold: integer("low_stock_threshold").notNull().default(10),
+  salesCount: integer("sales_count").notNull().default(0),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

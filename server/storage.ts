@@ -47,6 +47,8 @@ export interface IStorage {
   updateProductStock(id: number, stockChange: number): Promise<Product | undefined>;
   deleteProduct(id: number): Promise<boolean>;
   searchProducts(query: string): Promise<Product[]>;
+  getFrequentProducts(): Promise<Array<{ id: number; name: string; price: string }>>;
+  incrementProductSalesCount(id: number, quantity: number): Promise<Product | undefined>;
 
   // Customers
   getCustomers(): Promise<Customer[]>;
@@ -135,6 +137,7 @@ export class MemStorage implements IStorage {
         stock: 5,
         category: "Electronics",
         lowStockThreshold: 10,
+        salesCount: 15,
         createdAt: new Date()
       },
       {
@@ -145,6 +148,7 @@ export class MemStorage implements IStorage {
         stock: 45,
         category: "Accessories",
         lowStockThreshold: 10,
+        salesCount: 8,
         createdAt: new Date()
       },
       {
@@ -155,6 +159,7 @@ export class MemStorage implements IStorage {
         stock: 25,
         category: "Electronics",
         lowStockThreshold: 5,
+        salesCount: 12,
         createdAt: new Date()
       }
     ];
@@ -300,6 +305,30 @@ export class MemStorage implements IStorage {
       product.sku.toLowerCase().includes(lowerQuery) ||
       product.category.toLowerCase().includes(lowerQuery)
     );
+  }
+
+  async getFrequentProducts(): Promise<Array<{ id: number; name: string; price: string }>> {
+    return Array.from(this.products.values())
+      .filter(product => product.salesCount && product.salesCount > 0)
+      .sort((a, b) => (b.salesCount || 0) - (a.salesCount || 0))
+      .slice(0, 10)
+      .map(product => ({
+        id: product.id,
+        name: product.name,
+        price: product.price
+      }));
+  }
+
+  async incrementProductSalesCount(id: number, quantity: number): Promise<Product | undefined> {
+    const product = this.products.get(id);
+    if (!product) return undefined;
+
+    const updatedProduct = { 
+      ...product, 
+      salesCount: (product.salesCount || 0) + quantity 
+    };
+    this.products.set(id, updatedProduct);
+    return updatedProduct;
   }
 
   // Customer methods
@@ -523,6 +552,29 @@ export class DatabaseStorage implements IStorage {
           ilike(products.category, `%${query}%`)
         )
       );
+  }
+
+  async getFrequentProducts(): Promise<Array<{ id: number; name: string; price: string }>> {
+    const result = await db
+      .select({
+        id: products.id,
+        name: products.name,
+        price: products.price
+      })
+      .from(products)
+      .where(sql`${products.salesCount} > 0`)
+      .orderBy(desc(products.salesCount))
+      .limit(10);
+    return result;
+  }
+
+  async incrementProductSalesCount(id: number, quantity: number): Promise<Product | undefined> {
+    const [product] = await db
+      .update(products)
+      .set({ salesCount: sql`${products.salesCount} + ${quantity}` })
+      .where(eq(products.id, id))
+      .returning();
+    return product || undefined;
   }
 
   async getCustomers(): Promise<Customer[]> {
