@@ -17,7 +17,7 @@ import Login from "@/pages/login";
 import Register from "@/pages/register";
 import Onboarding from "@/pages/onboarding";
 import NotFound from "@/pages/not-found";
-import Settings from "@/pages/settings";
+import SettingsPage from "@/pages/settings";
 
 function AuthenticatedApp() {
   // Initialize WebSocket connection for real-time notifications
@@ -34,7 +34,7 @@ function AuthenticatedApp() {
           <Route path="/sales" component={Sales} />
           <Route path="/customers" component={Customers} />
           <Route path="/reports" component={Reports} />
-          <Route path="/settings" component={Settings} />
+          <Route path="/settings" component={SettingsPage} />
           <Route component={NotFound} />
         </Switch>
       </main>

@@ -91,7 +91,9 @@ const translations = {
   }
 };
 
+// Comprehensive Settings Page with Store Profile, M-Pesa, Language Toggle, Sync, and Backup
 export default function Settings() {
+  console.log("Loading NEW comprehensive Settings page");
   const [currentLanguage, setCurrentLanguage] = useState<'en' | 'sw'>('en');
   const { toast } = useToast();
   const queryClient = useQueryClient();
