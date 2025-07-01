@@ -9,6 +9,7 @@ import { useWebSocket } from "@/hooks/use-websocket";
 import Dashboard from "@/pages/dashboard";
 import Inventory from "@/pages/inventory";
 import Sales from "@/pages/sales";
+import Customers from "@/pages/customers";
 import Home from "@/pages/home";
 import Login from "@/pages/login";
 import Register from "@/pages/register";
@@ -28,7 +29,7 @@ function AuthenticatedApp() {
           <Route path="/dashboard" component={Dashboard} />
           <Route path="/inventory" component={Inventory} />
           <Route path="/sales" component={Sales} />
-          <Route path="/customers" component={() => <div className="p-6">Customers page coming soon...</div>} />
+          <Route path="/customers" component={Customers} />
           <Route path="/reports" component={() => <div className="p-6">Reports page coming soon...</div>} />
           <Route path="/settings" component={() => <div className="p-6">Settings page coming soon...</div>} />
           <Route component={NotFound} />

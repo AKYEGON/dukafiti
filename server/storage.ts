@@ -150,15 +150,25 @@ export class MemStorage implements IStorage {
       {
         name: "Alice Johnson",
         email: "alice@example.com",
-        phone: "+1234567890",
-        address: "123 Main St, City",
+        phone: "+254712345678",
+        address: "123 Main St, Nairobi",
+        balance: "250.00",
         createdAt: new Date()
       },
       {
         name: "Mike Brown", 
         email: "mike@example.com",
-        phone: "+1234567891",
-        address: "456 Oak Ave, City",
+        phone: "+254712345679",
+        address: "456 Oak Ave, Mombasa",
+        balance: "0.00",
+        createdAt: new Date()
+      },
+      {
+        name: "Sarah Wanjiku",
+        email: "sarah@example.com", 
+        phone: "+254712345680",
+        address: "789 Kenyatta Ave, Kisumu",
+        balance: "125.50",
         createdAt: new Date()
       }
     ];
