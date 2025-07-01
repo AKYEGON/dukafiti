@@ -1,5 +1,6 @@
 import express, { type Request, Response, NextFunction } from "express";
 import session from "express-session";
+import path from "path";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 
@@ -26,6 +27,11 @@ app.use(session({
     sameSite: 'lax'
   }
 }));
+
+// Serve PWA static files (manifest.json, service-worker.js, icons) in development
+if (app.get("env") === "development") {
+  app.use(express.static(path.resolve(import.meta.dirname, "..", "client", "public")));
+}
 
 app.use((req, res, next) => {
   const start = Date.now();

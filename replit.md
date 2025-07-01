@@ -14,6 +14,7 @@ DukaSmart is a comprehensive business management platform built with a modern fu
 - **Styling**: Tailwind CSS with custom design system
 - **State Management**: TanStack Query (React Query) for server state
 - **Form Handling**: React Hook Form with Zod validation
+- **PWA Features**: Service worker for offline caching, Web App Manifest for installability
 
 ### Backend Architecture
 - **Runtime**: Node.js with Express.js server
@@ -121,6 +122,11 @@ Changelog:
 - July 1, 2025. Removed legacy M-Pesa initiation endpoints for cleaner API
 - July 1, 2025. Removed "Complete Sale" button from mini cart component
 - July 1, 2025. Updated credit sales modal with separate Customer Name and Phone fields
+- July 1, 2025. Successfully migrated from Replit Agent to standard Replit environment
+- July 1, 2025. Converted application to Progressive Web App (PWA) with manifest.json
+- July 1, 2025. Implemented service worker for offline caching and app shell functionality
+- July 1, 2025. Added app icons (192x192 and 512x512) with custom DukaSmart branding
+- July 1, 2025. Configured PWA meta tags for mobile installation and standalone display
 ```
 
 ## User Preferences
