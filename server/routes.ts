@@ -5,11 +5,7 @@ import { storage } from "./storage";
 import { insertProductSchema, insertCustomerSchema, insertOrderSchema, insertOrderItemSchema, insertUserSchema } from "@shared/schema";
 import { z } from "zod";
 import bcrypt from "bcryptjs";
-import Database from "@replit/database";
 import { v4 as uuidv4 } from "uuid";
-
-// Initialize Replit Database
-const db = new Database();
 
 // WebSocket clients store
 const wsClients = new Set<WebSocket>();
@@ -293,7 +289,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const paymentData = {
         customerId: parseInt(customerId),
         amount: parseFloat(amount).toFixed(2),
-        paymentMethod: method,
+        method: method,
         reference: reference || null
       };
 
@@ -452,7 +448,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       let customerId = null;
       if (paymentType === 'credit') {
         // Split customer input to extract name and phone if provided
-        const customerParts = customer.split(/[,|\-|:|\s]+/).map(part => part.trim()).filter(Boolean);
+        const customerParts = customer.split(/[,|\-|:|\s]+/).map((part: string) => part.trim()).filter(Boolean);
         const customerName = customerParts[0];
         const customerPhone = customerParts.length > 1 ? customerParts[1] : null;
         
@@ -552,12 +548,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "User not found" });
       }
       
-      // Store business profile and M-Pesa config
+      // Store business profile
       await storage.saveBusinessProfile(user.id, {
         businessName,
-        paybill,
-        consumerKey,
-        consumerSecret,
+        businessType: 'General Business',
+        location: '',
+        description: ''
       });
 
       res.json({ message: "Business profile saved successfully" });
@@ -994,6 +990,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       } else {
         profile = await storage.saveStoreProfile(user.id, {
+          storeName: 'My Store',
+          storeType: 'General',
           paybillTillNumber,
           consumerKey,
           consumerSecret
@@ -1196,8 +1194,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         user: {
           id: user.id,
           phone: user.phone,
-          email: user.username || null,
-          name: user.name || null
+          email: user.email || null,
+          username: user.username || null
         },
         storeProfile,
         userSettings,

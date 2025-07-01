@@ -82,6 +82,9 @@ export const storeProfiles = pgTable("store_profiles", {
   storeType: text("store_type").notNull(),
   location: text("location"),
   description: text("description"),
+  paybillTillNumber: text("paybill_till_number"),
+  consumerKey: text("consumer_key"),
+  consumerSecret: text("consumer_secret"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -92,7 +95,9 @@ export const userSettings = pgTable("user_settings", {
   currency: text("currency").notNull().default("KES"),
   language: text("language").notNull().default("en"),
   notifications: boolean("notifications").notNull().default(true),
+  mpesaEnabled: boolean("mpesa_enabled").notNull().default(false),
   createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
 // Relations
