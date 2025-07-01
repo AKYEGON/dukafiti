@@ -44,20 +44,17 @@ export function SaleConfirmationModal({
   const total = items.reduce((sum, item) => sum + parseFloat(item.total), 0);
 
   // Handle customer selection
-  const handleCustomerSelect = (customerId: string) => {
-    if (customerId === 'new') {
+  const handleCustomerSelect = (mode: string) => {
+    if (mode === 'new') {
       setIsNewCustomer(true);
       setSelectedCustomerId('');
       setCustomerName('');
       setCustomerPhone('');
-    } else {
-      const customer = customers.find(c => c.id.toString() === customerId);
-      if (customer) {
-        setIsNewCustomer(false);
-        setSelectedCustomerId(customerId);
-        setCustomerName(customer.name);
-        setCustomerPhone(customer.phone || '');
-      }
+    } else if (mode === 'existing') {
+      setIsNewCustomer(false);
+      setSelectedCustomerId('');
+      setCustomerName('');
+      setCustomerPhone('');
     }
   };
 
@@ -153,61 +150,123 @@ export function SaleConfirmationModal({
           {/* Customer Information for Credit Sales */}
           {paymentMethod === 'credit' && (
             <div className="space-y-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
-              <h4 className="font-medium text-blue-900">Customer Information</h4>
-              <div className="space-y-3">
-                <div>
-                  <label className="block text-sm font-medium text-blue-700 mb-1">
-                    Select Customer *
-                  </label>
-                  <Select 
-                    value={selectedCustomerId || (isNewCustomer ? 'new' : '')} 
-                    onValueChange={handleCustomerSelect}
+              <div className="flex items-center gap-2">
+                <User className="w-5 h-5 text-blue-600" />
+                <h4 className="font-medium text-blue-900">Customer Information</h4>
+              </div>
+              
+              <div className="space-y-4">
+                {/* Customer Selection Tabs */}
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    variant={!isNewCustomer ? "default" : "outline"}
+                    size="sm"
+                    className={`flex-1 ${!isNewCustomer ? 'bg-blue-600 hover:bg-blue-700' : 'border-blue-300 text-blue-700 hover:bg-blue-50'}`}
+                    onClick={() => handleCustomerSelect('existing')}
                   >
-                    <SelectTrigger className="w-full border-blue-300 focus:border-blue-500">
-                      <SelectValue placeholder="Choose existing customer or add new" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="new">+ Add New Customer</SelectItem>
-                      {customers.map((customer) => (
-                        <SelectItem key={customer.id} value={customer.id.toString()}>
-                          {customer.name} {customer.phone && `(${customer.phone})`}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                    Existing Customer
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={isNewCustomer ? "default" : "outline"}
+                    size="sm"
+                    className={`flex-1 ${isNewCustomer ? 'bg-green-600 hover:bg-green-700' : 'border-green-300 text-green-700 hover:bg-green-50'}`}
+                    onClick={() => handleCustomerSelect('new')}
+                  >
+                    + New Customer
+                  </Button>
                 </div>
 
-                {/* Show input fields when adding new customer or if selected customer needs editing */}
-                {(isNewCustomer || selectedCustomerId) && (
-                  <>
+                {/* Existing Customer Selection */}
+                {!isNewCustomer && (
+                  <div>
+                    <label className="block text-sm font-medium text-blue-700 mb-2">
+                      Select Customer *
+                    </label>
+                    <Select 
+                      value={selectedCustomerId} 
+                      onValueChange={(value) => {
+                        const customer = customers.find(c => c.id.toString() === value);
+                        if (customer) {
+                          setSelectedCustomerId(value);
+                          setCustomerName(customer.name);
+                          setCustomerPhone(customer.phone || '');
+                        }
+                      }}
+                    >
+                      <SelectTrigger className="w-full border-blue-300 focus:border-blue-500">
+                        <SelectValue placeholder="Choose a customer from your list" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {customers.map((customer) => (
+                          <SelectItem key={customer.id} value={customer.id.toString()}>
+                            <div className="flex justify-between w-full">
+                              <span className="font-medium">{customer.name}</span>
+                              {customer.phone && (
+                                <span className="text-gray-500 ml-2">{customer.phone}</span>
+                              )}
+                            </div>
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    
+                    {/* Selected Customer Preview */}
+                    {selectedCustomerId && customerName && (
+                      <div className="mt-3 p-3 bg-blue-100 rounded-md border border-blue-200">
+                        <div className="flex items-center gap-2">
+                          <Check className="w-4 h-4 text-blue-600" />
+                          <span className="font-medium text-blue-900">{customerName}</span>
+                        </div>
+                        {customerPhone && (
+                          <p className="text-sm text-blue-700 mt-1">Phone: {customerPhone}</p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* New Customer Form */}
+                {isNewCustomer && (
+                  <div className="space-y-3 p-3 bg-green-50 rounded-md border border-green-200">
+                    <div className="flex items-center gap-2 mb-2">
+                      <Check className="w-4 h-4 text-green-600" />
+                      <span className="text-sm font-medium text-green-800">Adding New Customer</span>
+                    </div>
+                    
                     <div>
-                      <label className="block text-sm font-medium text-blue-700 mb-1">
+                      <label className="block text-sm font-medium text-green-700 mb-1">
                         Customer Name *
                       </label>
                       <input
                         type="text"
                         value={customerName}
                         onChange={(e) => setCustomerName(e.target.value)}
-                        placeholder="Enter customer name"
-                        className="w-full px-3 py-2 border border-blue-300 rounded-md focus:border-blue-500 focus:ring-blue-500/20 focus:outline-none"
+                        placeholder="Enter full name"
+                        className="w-full px-3 py-2 border border-green-300 rounded-md focus:border-green-500 focus:ring-green-500/20 focus:outline-none bg-white"
                         required
-                        disabled={!isNewCustomer}
+                        autoFocus
                       />
                     </div>
+                    
                     <div>
-                      <label className="block text-sm font-medium text-blue-700 mb-1">
-                        Customer Phone (Optional)
+                      <label className="block text-sm font-medium text-green-700 mb-1">
+                        Phone Number (Optional)
                       </label>
                       <input
                         type="tel"
                         value={customerPhone}
                         onChange={(e) => setCustomerPhone(e.target.value)}
-                        placeholder="Enter phone number"
-                        className="w-full px-3 py-2 border border-blue-300 rounded-md focus:border-blue-500 focus:ring-blue-500/20 focus:outline-none"
-                        disabled={!isNewCustomer}
+                        placeholder="e.g. 0712345678"
+                        className="w-full px-3 py-2 border border-green-300 rounded-md focus:border-green-500 focus:ring-green-500/20 focus:outline-none bg-white"
                       />
                     </div>
-                  </>
+                    
+                    <div className="text-xs text-green-600 bg-green-100 p-2 rounded">
+                      💡 This customer will be automatically saved to your customers list
+                    </div>
+                  </div>
                 )}
               </div>
             </div>

@@ -139,16 +139,12 @@ export default function Sales() {
     // If this is a new customer, save them to the database first
     if (customer?.isNew && customer.name) {
       try {
-        const newCustomer = await apiRequest({
-          url: "/api/customers",
-          method: "POST",
-          body: {
-            name: customer.name,
-            phone: customer.phone || null,
-            email: null,
-            address: null,
-            balance: "0.00"
-          }
+        const newCustomer = await apiRequest("POST", "/api/customers", {
+          name: customer.name,
+          phone: customer.phone || null,
+          email: null,
+          address: null,
+          balance: "0.00"
         });
         
         // Invalidate customers cache to refresh the list
