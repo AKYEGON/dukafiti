@@ -783,5 +783,80 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // CSV export hosting endpoints
+  const csvStorage = new Map<string, { content: string; timestamp: number }>();
+  
+  // Store CSV file temporarily (auto-cleanup after 1 hour)
+  app.post('/api/exports', requireAuth, (req: any, res: any) => {
+    try {
+      const { filename, content } = req.body;
+      if (!filename || !content) {
+        return res.status(400).json({ error: 'Filename and content required' });
+      }
+      
+      const id = uuidv4();
+      csvStorage.set(id, { content, timestamp: Date.now() });
+      
+      // Auto cleanup after 1 hour
+      setTimeout(() => {
+        csvStorage.delete(id);
+      }, 60 * 60 * 1000);
+      
+      res.json({ id, url: `/exports/${id}/${filename}` });
+    } catch (error) {
+      console.error('CSV export error:', error);
+      res.status(500).json({ error: 'Failed to store CSV' });
+    }
+  });
+  
+  // Serve CSV files
+  app.get('/exports/:id/:filename', (req, res) => {
+    const { id, filename } = req.params;
+    const csvData = csvStorage.get(id);
+    
+    if (!csvData) {
+      return res.status(404).json({ error: 'CSV file not found or expired' });
+    }
+    
+    res.setHeader('Content-Type', 'text/csv');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.send(csvData.content);
+  });
+
+  // Business profile endpoints
+  app.get('/api/business-profile', requireAuth, async (req: any, res: any) => {
+    try {
+      const user = await storage.getUserByPhone(req.session.user.phone);
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+      
+      const profile = await storage.getBusinessProfile(user.id);
+      if (!profile) {
+        return res.status(404).json({ error: 'Business profile not found' });
+      }
+      
+      res.json(profile);
+    } catch (error) {
+      console.error('Business profile fetch error:', error);
+      res.status(500).json({ error: 'Failed to fetch business profile' });
+    }
+  });
+
+  app.post('/api/business-profile', requireAuth, async (req: any, res: any) => {
+    try {
+      const user = await storage.getUserByPhone(req.session.user.phone);
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+      
+      await storage.saveBusinessProfile(user.id, req.body);
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Business profile save error:', error);
+      res.status(500).json({ error: 'Failed to save business profile' });
+    }
+  });
+
   return httpServer;
 }

@@ -17,13 +17,14 @@ import Login from "@/pages/login";
 import Register from "@/pages/register";
 import Onboarding from "@/pages/onboarding";
 import NotFound from "@/pages/not-found";
+import Settings from "@/pages/settings";
 
 function AuthenticatedApp() {
   // Initialize WebSocket connection for real-time notifications
   useWebSocket();
   
   return (
-    <div className="min-h-screen flex flex-col lg:flex-row bg-gray-50">
+    <div className="min-h-screen flex flex-col lg:flex-row bg-black">
       <Sidebar />
       <main className="flex-1 flex flex-col">
         <Switch>
@@ -33,7 +34,7 @@ function AuthenticatedApp() {
           <Route path="/sales" component={Sales} />
           <Route path="/customers" component={Customers} />
           <Route path="/reports" component={Reports} />
-          <Route path="/settings" component={() => <div className="p-6">Settings page coming soon...</div>} />
+          <Route path="/settings" component={Settings} />
           <Route component={NotFound} />
         </Switch>
       </main>

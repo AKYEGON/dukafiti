@@ -70,7 +70,11 @@
   }
 
   body {
-    @apply bg-background text-foreground font-sans antialiased;
+    @apply bg-black text-white font-sans antialiased;
+  }
+  
+  html {
+    @apply dark;
   }
 }
 
