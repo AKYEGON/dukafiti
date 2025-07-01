@@ -217,6 +217,42 @@
   .opacity-50 {
     opacity: 0.75 !important;
   }
+  
+  /* Global text color enforcement */
+  * {
+    /* Ensure no invisible text */
+    color: inherit;
+  }
+  
+  /* Override any remaining hardcoded colors */
+  .text-gray-100,
+  .text-gray-200,
+  .text-gray-300 {
+    color: hsl(var(--foreground)) !important;
+  }
+  
+  .text-gray-700,
+  .text-gray-800,
+  .text-gray-900 {
+    color: hsl(var(--foreground)) !important;
+  }
+  
+  /* Ensure all buttons have proper text visibility */
+  button, .btn {
+    color: inherit;
+  }
+  
+  /* Fix any remaining invisible elements */
+  [class*="text-"] {
+    color: inherit;
+  }
+  
+  /* Strong text visibility for important elements */
+  .font-bold,
+  .font-semibold,
+  .font-medium {
+    color: hsl(var(--foreground)) !important;
+  }
 }
 
 @layer components {

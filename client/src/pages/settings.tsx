@@ -369,11 +369,11 @@ export default function SettingsPage() {
         <div className="p-2 bg-green-500/10 rounded-lg">
           <Store className="h-6 w-6 text-green-500" />
         </div>
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-white">{t.settings}</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-foreground">{t.settings}</h1>
       </div>
 
       {/* Store Profile Section */}
-      <Card className="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800">
+      <Card className="bg-white dark:bg-card border-gray-200 dark:border-border">
         <CardHeader>
           <CardTitle className="text-gray-900 dark:text-green-500 flex items-center gap-2">
             <Store className="h-5 w-5" />
@@ -388,9 +388,9 @@ export default function SettingsPage() {
                 name="storeName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-white">{t.storeName}</FormLabel>
+                    <FormLabel className="text-foreground">{t.storeName}</FormLabel>
                     <FormControl>
-                      <Input {...field} className="bg-gray-800 border-gray-700 text-white" />
+                      <Input {...field} className="bg-input border-border text-foreground" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -401,9 +401,9 @@ export default function SettingsPage() {
                 name="ownerName"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-white">{t.ownerName}</FormLabel>
+                    <FormLabel className="text-foreground">{t.ownerName}</FormLabel>
                     <FormControl>
-                      <Input {...field} className="bg-gray-800 border-gray-700 text-white" />
+                      <Input {...field} className="bg-input border-border text-foreground" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -414,9 +414,9 @@ export default function SettingsPage() {
                 name="address"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-white">{t.address}</FormLabel>
+                    <FormLabel className="text-foreground">{t.address}</FormLabel>
                     <FormControl>
-                      <Textarea {...field} className="bg-gray-800 border-gray-700 text-white" />
+                      <Textarea {...field} className="bg-input border-border text-foreground" />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -425,7 +425,7 @@ export default function SettingsPage() {
               <Button
                 type="submit"
                 disabled={storeProfileMutation.isPending}
-                className="bg-green-600 hover:bg-green-700 text-white"
+                className="bg-green-600 hover:bg-green-700 text-foreground"
               >
                 {storeProfileMutation.isPending ? t.saving : t.saveProfile}
               </Button>
@@ -435,7 +435,7 @@ export default function SettingsPage() {
       </Card>
 
       {/* M-Pesa Credentials Section */}
-      <Card className="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800">
+      <Card className="bg-white dark:bg-card border-gray-200 dark:border-border">
         <CardHeader>
           <CardTitle className="text-gray-900 dark:text-green-500 flex items-center gap-2">
             <Shield className="h-5 w-5" />
@@ -445,9 +445,9 @@ export default function SettingsPage() {
         <CardContent>
           <div className="space-y-6">
             {/* M-Pesa Toggle */}
-            <div className="flex items-center justify-between p-4 bg-gray-800 rounded-lg border border-gray-700">
+            <div className="flex items-center justify-between p-4 bg-input rounded-lg border border-border">
               <div className="flex-1">
-                <Label htmlFor="mpesa-toggle" className="text-white font-medium">
+                <Label htmlFor="mpesa-toggle" className="text-foreground font-medium">
                   {t.enableMpesa}
                 </Label>
                 <p className="text-sm text-gray-400 mt-1">
@@ -475,12 +475,12 @@ export default function SettingsPage() {
                 name="paybillTillNumber"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-white">{t.paybillTill}</FormLabel>
+                    <FormLabel className="text-foreground">{t.paybillTill}</FormLabel>
                     <FormControl>
                       <Input 
                         {...field} 
                         disabled={!mpesaEnabled}
-                        className="bg-gray-800 border-gray-700 text-white" 
+                        className="bg-input border-border text-foreground" 
                       />
                     </FormControl>
                     <FormMessage />
@@ -492,12 +492,12 @@ export default function SettingsPage() {
                 name="consumerKey"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-white">{t.consumerKey}</FormLabel>
+                    <FormLabel className="text-foreground">{t.consumerKey}</FormLabel>
                     <FormControl>
                       <Input 
                         {...field} 
                         disabled={!mpesaEnabled}
-                        className="bg-gray-800 border-gray-700 text-white" 
+                        className="bg-input border-border text-foreground" 
                       />
                     </FormControl>
                     <FormMessage />
@@ -509,13 +509,13 @@ export default function SettingsPage() {
                 name="consumerSecret"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-white">{t.consumerSecret}</FormLabel>
+                    <FormLabel className="text-foreground">{t.consumerSecret}</FormLabel>
                     <FormControl>
                       <Input 
                         {...field} 
                         type="password" 
                         disabled={!mpesaEnabled}
-                        className="bg-gray-800 border-gray-700 text-white" 
+                        className="bg-input border-border text-foreground" 
                       />
                     </FormControl>
                     <FormMessage />
@@ -525,7 +525,7 @@ export default function SettingsPage() {
               <Button
                 type="submit"
                 disabled={mpesaMutation.isPending || !mpesaEnabled}
-                className="bg-green-600 hover:bg-green-700 text-white"
+                className="bg-green-600 hover:bg-green-700 text-foreground"
               >
                 {mpesaMutation.isPending ? t.saving : t.saveMpesa}
               </Button>
@@ -537,7 +537,7 @@ export default function SettingsPage() {
       </Card>
 
       {/* Language Toggle Section */}
-      <Card className="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800">
+      <Card className="bg-white dark:bg-card border-gray-200 dark:border-border">
         <CardHeader>
           <CardTitle className="text-gray-900 dark:text-green-500 flex items-center gap-2">
             <Globe className="h-5 w-5" />
@@ -550,8 +550,8 @@ export default function SettingsPage() {
               variant={currentLanguage === 'en' ? 'default' : 'outline'}
               onClick={() => handleLanguageChange('en')}
               className={currentLanguage === 'en' 
-                ? 'bg-green-600 hover:bg-green-700 text-white' 
-                : 'border-gray-700 text-gray-300 hover:bg-gray-800'
+                ? 'bg-green-600 hover:bg-green-700 text-foreground' 
+                : 'border-border text-muted-foreground hover:bg-input'
               }
             >
               {t.english}
@@ -560,8 +560,8 @@ export default function SettingsPage() {
               variant={currentLanguage === 'sw' ? 'default' : 'outline'}
               onClick={() => handleLanguageChange('sw')}
               className={currentLanguage === 'sw' 
-                ? 'bg-green-600 hover:bg-green-700 text-white' 
-                : 'border-gray-700 text-gray-300 hover:bg-gray-800'
+                ? 'bg-green-600 hover:bg-green-700 text-foreground' 
+                : 'border-border text-muted-foreground hover:bg-input'
               }
             >
               {t.kiswahili}
@@ -571,7 +571,7 @@ export default function SettingsPage() {
       </Card>
 
       {/* Dark Mode Toggle Section */}
-      <Card className="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800">
+      <Card className="bg-white dark:bg-card border-gray-200 dark:border-border">
         <CardHeader>
           <CardTitle className="text-gray-900 dark:text-green-500 flex items-center gap-2">
             {theme === 'dark' ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />}
@@ -581,7 +581,7 @@ export default function SettingsPage() {
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-between">
-            <Label htmlFor="dark-mode-toggle" className="text-gray-700 dark:text-gray-300">
+            <Label htmlFor="dark-mode-toggle" className="text-gray-700 dark:text-muted-foreground">
               {theme === 'dark' ? t.darkMode : 'Light Mode'}
             </Label>
             <Switch
@@ -594,7 +594,7 @@ export default function SettingsPage() {
       </Card>
 
       {/* Manual Sync Section */}
-      <Card className="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800">
+      <Card className="bg-white dark:bg-card border-gray-200 dark:border-border">
         <CardHeader>
           <CardTitle className="text-gray-900 dark:text-green-500 flex items-center gap-2">
             <RotateCcw className="h-5 w-5" />
@@ -605,7 +605,7 @@ export default function SettingsPage() {
           <Button
             onClick={() => syncMutation.mutate()}
             disabled={syncMutation.isPending}
-            className="bg-green-600 hover:bg-green-700 text-white flex items-center gap-2"
+            className="bg-green-600 hover:bg-green-700 text-foreground flex items-center gap-2"
           >
             {syncMutation.isPending ? (
               <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
@@ -618,7 +618,7 @@ export default function SettingsPage() {
       </Card>
 
       {/* Data Backup Section */}
-      <Card className="bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-800">
+      <Card className="bg-white dark:bg-card border-gray-200 dark:border-border">
         <CardHeader>
           <CardTitle className="text-gray-900 dark:text-green-500 flex items-center gap-2">
             <Download className="h-5 w-5" />
@@ -629,7 +629,7 @@ export default function SettingsPage() {
           <div className="flex flex-col sm:flex-row gap-3">
             <Button
               onClick={handleExportAllData}
-              className="bg-green-600 hover:bg-green-700 text-white flex items-center gap-2 flex-1"
+              className="bg-green-600 hover:bg-green-700 text-foreground flex items-center gap-2 flex-1"
             >
               <Download className="h-4 w-4" />
               {t.exportAllData}
@@ -637,7 +637,7 @@ export default function SettingsPage() {
             <Button
               onClick={handleGoogleDriveBackup}
               disabled={googleDriveBackupMutation.isPending}
-              className="bg-green-600 hover:bg-green-700 text-white flex items-center gap-2 flex-1"
+              className="bg-green-600 hover:bg-green-700 text-foreground flex items-center gap-2 flex-1"
             >
               {googleDriveBackupMutation.isPending ? (
                 <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>

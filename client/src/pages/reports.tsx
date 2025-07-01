@@ -246,7 +246,7 @@ export default function Reports() {
           variant="outline" 
           size="sm" 
           disabled={disabled || isExporting}
-          className="bg-gray-800 border-gray-700 text-white hover:bg-gray-700"
+          className="bg-muted border-border text-foreground hover:bg-gray-700"
         >
           {isExporting ? (
             <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-500 mr-2"></div>
@@ -281,12 +281,12 @@ export default function Reports() {
 
   if (summaryLoading) {
     return (
-      <div className="p-6 bg-black text-white min-h-screen">
+      <div className="p-6 bg-background text-foreground min-h-screen">
         <div className="animate-pulse space-y-6">
-          <div className="h-8 bg-gray-800 rounded w-1/4"></div>
+          <div className="h-8 bg-muted rounded w-1/4"></div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {[...Array(6)].map((_, i) => (
-              <div key={i} className="h-32 bg-gray-800 rounded"></div>
+              <div key={i} className="h-32 bg-muted rounded"></div>
             ))}
           </div>
         </div>
@@ -295,10 +295,10 @@ export default function Reports() {
   }
 
   return (
-    <div className="p-6 space-y-6 bg-black text-white min-h-screen">
+    <div className="p-6 space-y-6 bg-background text-foreground min-h-screen">
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h1 className="text-3xl font-bold text-white">Reports</h1>
+        <h1 className="text-3xl font-bold text-foreground">Reports</h1>
         <div className="flex flex-wrap gap-2">
           <ShareButtons onExport={exportSummaryCSV} type="Summary" disabled={!summaryData} />
           <ShareButtons onExport={exportInventoryCSV} type="Inventory" />
@@ -307,73 +307,73 @@ export default function Reports() {
 
       {/* Summary Tiles */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <Card className="bg-gray-900 border-gray-800">
+        <Card className="">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-gray-400">Total Sales Today</CardTitle>
             <DollarSign className="h-4 w-4 text-green-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-white">
+            <div className="text-2xl font-bold text-foreground">
               {formatCurrency(summaryData?.totalSalesToday || "0")}
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-gray-900 border-gray-800">
+        <Card className="">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-gray-400">Total Sales This Week</CardTitle>
             <TrendingUp className="h-4 w-4 text-green-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-white">
+            <div className="text-2xl font-bold text-foreground">
               {formatCurrency(summaryData?.totalSalesWeek || "0")}
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-gray-900 border-gray-800">
+        <Card className="">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-gray-400">Total Sales This Month</CardTitle>
             <BarChart3 className="h-4 w-4 text-green-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-white">
+            <div className="text-2xl font-bold text-foreground">
               {formatCurrency(summaryData?.totalSalesMonth || "0")}
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-gray-900 border-gray-800">
+        <Card className="">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-gray-400">Cash Sales</CardTitle>
             <DollarSign className="h-4 w-4 text-green-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-white">
+            <div className="text-2xl font-bold text-foreground">
               {formatCurrency(summaryData?.paymentBreakdown.cash || "0")}
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-gray-900 border-gray-800">
+        <Card className="">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-gray-400">Credit Sales</CardTitle>
             <CreditCard className="h-4 w-4 text-green-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-white">
+            <div className="text-2xl font-bold text-foreground">
               {formatCurrency(summaryData?.paymentBreakdown.credit || "0")}
             </div>
           </CardContent>
         </Card>
 
-        <Card className="bg-gray-900 border-gray-800">
+        <Card className="">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-gray-400">Low Stock Items</CardTitle>
             <AlertTriangle className="h-4 w-4 text-red-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-white">
+            <div className="text-2xl font-bold text-foreground">
               {summaryData?.lowStockItems || 0}
             </div>
           </CardContent>
@@ -383,7 +383,7 @@ export default function Reports() {
       {/* Charts and Lists */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Hourly Sales Trend */}
-        <Card className="bg-gray-900 border-gray-800">
+        <Card className="">
           <CardHeader>
             <CardTitle className="text-lg font-semibold text-green-500">Hourly Sales Trend</CardTitle>
           </CardHeader>
@@ -417,7 +417,7 @@ export default function Reports() {
         </Card>
 
         {/* Customer Credit Ranking */}
-        <Card className="bg-gray-900 border-gray-800">
+        <Card className="">
           <CardHeader>
             <CardTitle className="text-lg font-semibold text-green-500">Customer Credit Ranking</CardTitle>
           </CardHeader>
@@ -429,18 +429,18 @@ export default function Reports() {
             ) : (
               <div className="space-y-3">
                 {customerCredits?.slice(0, 10).map((customer, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 bg-gray-800 rounded-lg">
+                  <div key={index} className="flex items-center justify-between p-3 bg-muted rounded-lg">
                     <div className="flex items-center gap-3">
                       <div className="w-8 h-8 bg-green-500/20 rounded-full flex items-center justify-center">
                         <Users className="h-4 w-4 text-green-500" />
                       </div>
                       <div>
-                        <p className="font-medium text-white">{customer.name}</p>
+                        <p className="font-medium text-foreground">{customer.name}</p>
                         <p className="text-sm text-gray-400">{customer.phone}</p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="font-semibold text-white">{formatCurrency(customer.balance)}</p>
+                      <p className="font-semibold text-foreground">{formatCurrency(customer.balance)}</p>
                     </div>
                   </div>
                 ))}
@@ -451,18 +451,18 @@ export default function Reports() {
       </div>
 
       {/* Top Selling Items */}
-      <Card className="bg-gray-900 border-gray-800">
+      <Card className="">
         <CardHeader className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <CardTitle className="text-lg font-semibold text-green-500">Top Selling Items</CardTitle>
           <div className="flex gap-2">
             <Select value={selectedPeriod} onValueChange={(value: 'today' | 'week' | 'month') => setSelectedPeriod(value)}>
-              <SelectTrigger className="w-32 bg-gray-800 border-gray-700 text-white">
+              <SelectTrigger className="w-32 bg-muted border-border text-foreground">
                 <SelectValue />
               </SelectTrigger>
-              <SelectContent className="bg-gray-800 border-gray-700">
-                <SelectItem value="today" className="text-white hover:bg-gray-700">Today</SelectItem>
-                <SelectItem value="week" className="text-white hover:bg-gray-700">This Week</SelectItem>
-                <SelectItem value="month" className="text-white hover:bg-gray-700">This Month</SelectItem>
+              <SelectContent className="bg-muted border-border">
+                <SelectItem value="today" className="text-foreground hover:bg-gray-700">Today</SelectItem>
+                <SelectItem value="week" className="text-foreground hover:bg-gray-700">This Week</SelectItem>
+                <SelectItem value="month" className="text-foreground hover:bg-gray-700">This Month</SelectItem>
               </SelectContent>
             </Select>
             <ShareButtons onExport={exportTopItemsCSV} type="Top Items" disabled={!topItems || topItems.length === 0} />
@@ -476,18 +476,18 @@ export default function Reports() {
           ) : (
             <div className="space-y-3">
               {topItems?.map((item, index) => (
-                <div key={index} className="flex items-center justify-between p-3 bg-gray-800 rounded-lg">
+                <div key={index} className="flex items-center justify-between p-3 bg-muted rounded-lg">
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 bg-green-500/20 rounded-full flex items-center justify-center text-sm font-bold text-green-500">
                       {index + 1}
                     </div>
                     <div>
-                      <p className="font-medium text-white">{item.name}</p>
+                      <p className="font-medium text-foreground">{item.name}</p>
                       <p className="text-sm text-gray-400">{item.unitsSold} units sold</p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="font-semibold text-white">{formatCurrency(item.revenue)}</p>
+                    <p className="font-semibold text-foreground">{formatCurrency(item.revenue)}</p>
                   </div>
                 </div>
               ))}

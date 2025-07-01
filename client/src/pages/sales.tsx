@@ -204,7 +204,7 @@ export default function Sales() {
         toast({
           title: "Customer Added",
           description: `${customer.name} has been added to customers list`,
-          className: "bg-blue-600 text-white border-blue-500",
+          className: "bg-blue-600 text-foreground border-blue-500",
         });
       } catch (error) {
         console.error("Failed to create customer:", error);
@@ -345,8 +345,8 @@ export default function Sales() {
                         onClick={() => setPaymentMethod('cash')}
                         className={`flex-1 py-2 px-4 rounded-full text-sm font-medium transition-colors ${
                           paymentMethod === 'cash'
-                            ? 'bg-[#00AA00] text-white'
-                            : 'bg-black text-white hover:bg-gray-800'
+                            ? 'bg-[#00AA00] text-foreground'
+                            : 'bg-background text-foreground hover:bg-muted'
                         }`}
                       >
                         Cash
@@ -357,8 +357,8 @@ export default function Sales() {
                           onClick={() => setPaymentMethod('mpesa')}
                           className={`flex-1 py-2 px-4 rounded-full text-sm font-medium transition-colors ${
                             paymentMethod === 'mpesa'
-                              ? 'bg-[#00AA00] text-white'
-                              : 'bg-black text-white hover:bg-gray-800'
+                              ? 'bg-[#00AA00] text-foreground'
+                              : 'bg-background text-foreground hover:bg-muted'
                           }`}
                         >
                           M-Pesa
@@ -368,8 +368,8 @@ export default function Sales() {
                         onClick={() => setPaymentMethod('credit')}
                         className={`flex-1 py-2 px-4 rounded-full text-sm font-medium transition-colors ${
                           paymentMethod === 'credit'
-                            ? 'bg-[#00AA00] text-white'
-                            : 'bg-black text-white hover:bg-gray-800'
+                            ? 'bg-[#00AA00] text-foreground'
+                            : 'bg-background text-foreground hover:bg-muted'
                         }`}
                       >
                         Credit
@@ -380,7 +380,7 @@ export default function Sales() {
                   <Button
                     onClick={handleSellClick}
                     disabled={!paymentMethod || createSaleMutation.isPending}
-                    className={`w-full h-12 text-white text-lg font-semibold ${
+                    className={`w-full h-12 text-foreground text-lg font-semibold ${
                       !paymentMethod || createSaleMutation.isPending
                         ? 'bg-gray-400 cursor-not-allowed'
                         : 'bg-[#00AA00] hover:bg-[#00AA00]/90'

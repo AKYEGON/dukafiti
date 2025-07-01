@@ -99,7 +99,7 @@ export default function Inventory() {
                 </div>
                 <Button
                   onClick={() => setShowProductForm(true)}
-                  className="bg-green-600 hover:bg-green-700 text-white"
+                  className="bg-green-600 hover:bg-green-700 text-foreground"
                 >
                   <Plus className="mr-2 h-4 w-4" />
                   + Add Product
@@ -129,13 +129,13 @@ export default function Inventory() {
                   filteredProducts.map((product) => (
                     <div
                       key={product.id}
-                      className={`p-4 mb-2 bg-gray-800 rounded flex items-center justify-between ${
+                      className={`p-4 mb-2 bg-card rounded flex items-center justify-between ${
                         product.stock <= product.lowStockThreshold ? 'border-2 border-yellow-500' : ''
                       }`}
                     >
                       <div className="flex-1">
                         <div className="flex items-center space-x-3 mb-2">
-                          <h3 className="text-lg font-semibold text-white">{product.name}</h3>
+                          <h3 className="text-lg font-semibold text-foreground">{product.name}</h3>
                           <div className="flex space-x-2">
                             <Button
                               variant="ghost"

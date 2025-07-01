@@ -47,7 +47,7 @@ export default function Customers() {
       toast({
         title: "Payment Recorded",
         description: data.message,
-        className: "bg-green-600 text-white",
+        className: "bg-green-600 text-foreground",
       });
     },
     onError: (error: any) => {
@@ -85,11 +85,11 @@ export default function Customers() {
         </div>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {[...Array(6)].map((_, i) => (
-            <Card key={i} className="bg-gray-800 border-gray-700 animate-pulse">
+            <Card key={i} className="bg-card border-border animate-pulse">
               <CardContent className="p-6">
-                <div className="h-4 bg-gray-700 rounded mb-2"></div>
-                <div className="h-3 bg-gray-700 rounded mb-4 w-2/3"></div>
-                <div className="h-6 bg-gray-700 rounded w-1/2"></div>
+                <div className="h-4 bg-muted rounded mb-2"></div>
+                <div className="h-3 bg-muted rounded mb-4 w-2/3"></div>
+                <div className="h-6 bg-muted rounded w-1/2"></div>
               </CardContent>
             </Card>
           ))}
@@ -107,7 +107,7 @@ export default function Customers() {
         </div>
         <Button 
           onClick={() => setShowNewCustomerForm(true)}
-          className="bg-green-600 hover:bg-green-700 text-white"
+          className="bg-green-600 hover:bg-green-700 text-foreground"
         >
           <Plus className="mr-2 h-4 w-4" />
           New Customer
@@ -115,16 +115,16 @@ export default function Customers() {
       </div>
 
       {customers && customers.length === 0 ? (
-        <Card className="bg-gray-800 border-gray-700">
+        <Card className="bg-card border-border">
           <CardContent className="p-12 text-center">
             <User className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-medium text-white mb-2">No customers yet</h3>
+            <h3 className="text-lg font-medium text-foreground mb-2">No customers yet</h3>
             <p className="text-muted-foreground mb-4">
               Start building your customer base by adding your first customer.
             </p>
             <Button 
               onClick={() => setShowNewCustomerForm(true)}
-              className="bg-green-600 hover:bg-green-700 text-white"
+              className="bg-green-600 hover:bg-green-700 text-foreground"
             >
               <Plus className="mr-2 h-4 w-4" />
               Add First Customer
@@ -136,16 +136,16 @@ export default function Customers() {
           {customers?.map((customer) => (
             <Card 
               key={customer.id} 
-              className="bg-gray-800 border-gray-700 hover:bg-gray-750 transition-colors cursor-pointer"
+              className="bg-card border-border hover:bg-gray-750 transition-colors cursor-pointer"
             >
               <CardContent className="p-6">
                 <div className="flex items-start justify-between mb-4">
                   <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-gray-700 rounded-full flex items-center justify-center">
+                    <div className="w-10 h-10 bg-muted rounded-full flex items-center justify-center">
                       <User className="h-5 w-5 text-gray-400" />
                     </div>
                     <div>
-                      <h3 className="font-semibold text-white text-lg">
+                      <h3 className="font-semibold text-foreground text-lg">
                         {customer.name}
                       </h3>
                     </div>
@@ -182,10 +182,10 @@ export default function Customers() {
 
       {/* Record Payment Section */}
       <Collapsible open={showPaymentPanel} onOpenChange={setShowPaymentPanel}>
-        <Card className="bg-gray-800 border-gray-700">
+        <Card className="bg-card border-border">
           <CollapsibleTrigger asChild>
             <CardHeader className="cursor-pointer hover:bg-gray-750 transition-colors">
-              <CardTitle className="flex items-center justify-between text-white">
+              <CardTitle className="flex items-center justify-between text-foreground">
                 <div className="flex items-center space-x-2">
                   <CreditCard className="h-5 w-5" />
                   <span>Record Payment</span>
@@ -199,12 +199,12 @@ export default function Customers() {
               <form onSubmit={handlePaymentSubmit} className="space-y-4">
                 <div className="grid gap-4 md:grid-cols-3">
                   <div>
-                    <Label htmlFor="customer" className="text-white">Customer</Label>
+                    <Label htmlFor="customer" className="text-foreground">Customer</Label>
                     <Select value={selectedCustomerId} onValueChange={setSelectedCustomerId}>
-                      <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
+                      <SelectTrigger className="bg-muted border-gray-600 text-foreground">
                         <SelectValue placeholder="Select customer" />
                       </SelectTrigger>
-                      <SelectContent className="bg-gray-700 border-gray-600">
+                      <SelectContent className="bg-muted border-gray-600">
                         {customers?.map((customer) => (
                           <SelectItem key={customer.id} value={customer.id.toString()}>
                             {customer.name} - {customer.phone}
@@ -214,7 +214,7 @@ export default function Customers() {
                     </Select>
                   </div>
                   <div>
-                    <Label htmlFor="amount" className="text-white">Amount (KES)</Label>
+                    <Label htmlFor="amount" className="text-foreground">Amount (KES)</Label>
                     <Input
                       id="amount"
                       type="number"
@@ -223,16 +223,16 @@ export default function Customers() {
                       value={paymentAmount}
                       onChange={(e) => setPaymentAmount(e.target.value)}
                       placeholder="0.00"
-                      className="bg-gray-700 border-gray-600 text-white placeholder-gray-400"
+                      className="bg-muted border-gray-600 text-foreground placeholder-muted-foreground"
                     />
                   </div>
                   <div>
-                    <Label htmlFor="method" className="text-white">Payment Method</Label>
+                    <Label htmlFor="method" className="text-foreground">Payment Method</Label>
                     <Select value={paymentMethod} onValueChange={setPaymentMethod}>
-                      <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
+                      <SelectTrigger className="bg-muted border-gray-600 text-foreground">
                         <SelectValue placeholder="Select method" />
                       </SelectTrigger>
-                      <SelectContent className="bg-gray-700 border-gray-600">
+                      <SelectContent className="bg-muted border-gray-600">
                         <SelectItem value="cash">Cash</SelectItem>
                         <SelectItem value="mpesa">M-Pesa</SelectItem>
                       </SelectContent>
@@ -241,12 +241,12 @@ export default function Customers() {
                 </div>
                 
                 {selectedCustomer && (
-                  <div className="p-3 bg-gray-700 rounded-lg">
+                  <div className="p-3 bg-muted rounded-lg">
                     <p className="text-sm text-gray-300">
-                      Recording payment for: <span className="text-white font-medium">{selectedCustomer.name}</span>
+                      Recording payment for: <span className="text-foreground font-medium">{selectedCustomer.name}</span>
                     </p>
                     <p className="text-sm text-gray-300">
-                      Current balance: <span className="text-white font-medium">{formatCurrency(selectedCustomer.balance)}</span>
+                      Current balance: <span className="text-foreground font-medium">{formatCurrency(selectedCustomer.balance)}</span>
                     </p>
                   </div>
                 )}
@@ -256,14 +256,14 @@ export default function Customers() {
                     type="button" 
                     variant="outline" 
                     onClick={() => setShowPaymentPanel(false)}
-                    className="border-gray-600 text-gray-300 hover:bg-gray-700"
+                    className="border-gray-600 text-gray-300 hover:bg-muted"
                   >
                     Cancel
                   </Button>
                   <Button 
                     type="submit" 
                     disabled={!isPaymentFormValid || recordPayment.isPending}
-                    className="bg-green-600 hover:bg-green-700 text-white disabled:opacity-50"
+                    className="bg-green-600 hover:bg-green-700 text-foreground disabled:opacity-50"
                   >
                     {recordPayment.isPending ? "Recording..." : "Save Payment"}
                   </Button>

@@ -145,6 +145,9 @@ Changelog:
 - July 1, 2025. Fixed dashboard hardcoded dark theme to use CSS variables
 - July 1, 2025. Improved MetricCard component contrast and theme support
 - July 1, 2025. Added comprehensive text visibility fixes for all UI elements
+- July 1, 2025. Systematically replaced hardcoded dark colors in all page components
+- July 1, 2025. Fixed Reports, Customers, Inventory, Sales, and Settings pages color schemes
+- July 1, 2025. Added global text color enforcement rules to prevent invisible text
 ```
 
 ## User Preferences
