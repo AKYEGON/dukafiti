@@ -74,6 +74,27 @@ export const payments = pgTable("payments", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+export const storeProfiles = pgTable("store_profiles", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  storeName: text("store_name"),
+  ownerName: text("owner_name"),
+  address: text("address"),
+  paybillTillNumber: text("paybill_till_number"),
+  consumerKey: text("consumer_key"),
+  consumerSecret: text("consumer_secret"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const userSettings = pgTable("user_settings", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  language: text("language").notNull().default("en"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // Relations
 export const customersRelations = relations(customers, ({ many }) => ({
   orders: many(orders),
@@ -145,6 +166,18 @@ export const insertPaymentSchema = createInsertSchema(payments).omit({
   createdAt: true,
 });
 
+export const insertStoreProfileSchema = createInsertSchema(storeProfiles).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertUserSettingsSchema = createInsertSchema(userSettings).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
 // Types
 export type Product = typeof products.$inferSelect;
 export type InsertProduct = z.infer<typeof insertProductSchema>;
@@ -166,6 +199,12 @@ export type InsertBusinessProfile = z.infer<typeof insertBusinessProfileSchema>;
 
 export type Payment = typeof payments.$inferSelect;
 export type InsertPayment = z.infer<typeof insertPaymentSchema>;
+
+export type StoreProfile = typeof storeProfiles.$inferSelect;
+export type InsertStoreProfile = z.infer<typeof insertStoreProfileSchema>;
+
+export type UserSettings = typeof userSettings.$inferSelect;
+export type InsertUserSettings = z.infer<typeof insertUserSettingsSchema>;
 
 // Dashboard metrics type
 export interface DashboardMetrics {

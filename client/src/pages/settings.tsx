@@ -1,118 +1,280 @@
-import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { RefreshCw, User, Database, Shield, Bell, RotateCcw } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useState, useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Switch } from "@/components/ui/switch";
+import { Textarea } from "@/components/ui/textarea";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/hooks/use-auth";
+import { apiRequest } from "@/lib/queryClient";
+import { Store, Download, Globe, RotateCcw, Shield } from "lucide-react";
 
-interface BusinessProfile {
-  businessName?: string;
-  businessPhone?: string;
-  businessEmail?: string;
-  businessAddress?: string;
-  taxId?: string;
+// Schema for store profile form
+const storeProfileSchema = z.object({
+  storeName: z.string().min(1, "Store name is required"),
+  ownerName: z.string().min(1, "Owner name is required"),
+  address: z.string().min(1, "Address is required"),
+});
+
+// Schema for M-Pesa credentials form
+const mpesaCredentialsSchema = z.object({
+  paybillTillNumber: z.string().regex(/^\d+$/, "Must be a valid number"),
+  consumerKey: z.string().min(1, "Consumer key is required"),
+  consumerSecret: z.string().min(1, "Consumer secret is required"),
+});
+
+type StoreProfileData = z.infer<typeof storeProfileSchema>;
+type MpesaCredentialsData = z.infer<typeof mpesaCredentialsSchema>;
+
+interface StoreData {
+  storeName?: string;
+  ownerName?: string;
+  address?: string;
+  paybillTillNumber?: string;
+  consumerKey?: string;
+  consumerSecret?: string;
 }
 
+interface UserSettingsData {
+  language?: 'en' | 'sw';
+}
+
+// Basic translations (stubbed)
+const translations = {
+  en: {
+    settings: "Settings",
+    storeProfile: "Store Profile",
+    mpesaCredentials: "M-Pesa Credentials",
+    languageToggle: "Language",
+    manualSync: "Manual Sync",
+    dataBackup: "Data Backup",
+    storeName: "Store Name",
+    ownerName: "Owner Name",
+    address: "Address",
+    paybillTill: "Paybill/Till Number",
+    consumerKey: "Consumer Key",
+    consumerSecret: "Consumer Secret",
+    saveProfile: "Save Profile",
+    saveMpesa: "Save M-Pesa Settings",
+    english: "English",
+    kiswahili: "Kiswahili",
+    syncNow: "Sync Now",
+    downloadBackup: "Download Backup",
+    saving: "Saving...",
+    syncing: "Syncing...",
+  },
+  sw: {
+    settings: "Mipangilio",
+    storeProfile: "Maelezo ya Duka",
+    mpesaCredentials: "Ufunguo wa M-Pesa",
+    languageToggle: "Lugha",
+    manualSync: "Sawazisha Mwenyewe",
+    dataBackup: "Hifadhi ya Data",
+    storeName: "Jina la Duka",
+    ownerName: "Jina la Mmiliki",
+    address: "Anwani",
+    paybillTill: "Nambari ya Paybill/Till",
+    consumerKey: "Ufunguo wa Mteja",
+    consumerSecret: "Siri ya Mteja",
+    saveProfile: "Hifadhi Maelezo",
+    saveMpesa: "Hifadhi Mipangilio ya M-Pesa",
+    english: "Kiingereza",
+    kiswahili: "Kiswahili",
+    syncNow: "Sawazisha Sasa",
+    downloadBackup: "Pakua Hifadhi",
+    saving: "Inahifadhi...",
+    syncing: "Inasawazisha...",
+  }
+};
+
 export default function Settings() {
-  const [isSyncing, setIsSyncing] = useState(false);
-  const [notifications, setNotifications] = useState(true);
-  const [autoBackup, setAutoBackup] = useState(true);
+  const [currentLanguage, setCurrentLanguage] = useState<'en' | 'sw'>('en');
   const { toast } = useToast();
-  const { user } = useAuth();
   const queryClient = useQueryClient();
 
-  // Fetch business profile
-  const { data: businessProfile, isLoading: profileLoading } = useQuery<BusinessProfile>({
-    queryKey: ['/api/business-profile'],
-    queryFn: async () => {
-      const response = await fetch('/api/business-profile');
-      if (!response.ok) {
-        if (response.status === 404) return {};
-        throw new Error('Failed to fetch business profile');
-      }
-      return response.json();
-    }
+  const t = translations[currentLanguage];
+
+  // Fetch store data
+  const { data: storeData, isLoading: storeLoading } = useQuery<StoreData>({
+    queryKey: ['/api/store'],
+    retry: false,
   });
 
-  // Update business profile mutation
-  const updateProfileMutation = useMutation({
-    mutationFn: async (data: BusinessProfile) => {
-      const response = await fetch('/api/business-profile', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
+  // Fetch user settings
+  const { data: userSettings } = useQuery<UserSettingsData>({
+    queryKey: ['/api/settings'],
+    retry: false,
+  });
+
+  // Initialize language from settings
+  useEffect(() => {
+    if (userSettings?.language) {
+      setCurrentLanguage(userSettings.language);
+    }
+  }, [userSettings]);
+
+  // Store profile form
+  const storeForm = useForm<StoreProfileData>({
+    resolver: zodResolver(storeProfileSchema),
+    defaultValues: {
+      storeName: "",
+      ownerName: "",
+      address: "",
+    },
+  });
+
+  // M-Pesa credentials form
+  const mpesaForm = useForm<MpesaCredentialsData>({
+    resolver: zodResolver(mpesaCredentialsSchema),
+    defaultValues: {
+      paybillTillNumber: "",
+      consumerKey: "",
+      consumerSecret: "",
+    },
+  });
+
+  // Update forms when store data loads
+  useEffect(() => {
+    if (storeData) {
+      storeForm.reset({
+        storeName: storeData.storeName || "",
+        ownerName: storeData.ownerName || "",
+        address: storeData.address || "",
       });
-      if (!response.ok) throw new Error('Failed to update profile');
+      mpesaForm.reset({
+        paybillTillNumber: storeData.paybillTillNumber || "",
+        consumerKey: storeData.consumerKey || "",
+        consumerSecret: storeData.consumerSecret || "",
+      });
+    }
+  }, [storeData, storeForm, mpesaForm]);
+
+  // Store profile mutation
+  const storeProfileMutation = useMutation({
+    mutationFn: async (data: StoreProfileData) => {
+      const response = await apiRequest("PUT", "/api/store", data);
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/business-profile'] });
-      toast({
-        title: "Profile Updated",
-        description: "Business profile saved successfully",
+      toast({ title: "Store profile updated successfully" });
+      queryClient.invalidateQueries({ queryKey: ['/api/store'] });
+    },
+    onError: (error: any) => {
+      toast({ 
+        title: "Failed to update store profile", 
+        description: error?.message || "Please try again",
+        variant: "destructive" 
       });
     },
-    onError: () => {
-      toast({
-        title: "Update Failed",
-        description: "Failed to update business profile",
-        variant: "destructive"
-      });
-    }
   });
 
-  // Force sync functionality
-  const handleForceSync = async () => {
-    setIsSyncing(true);
+  // M-Pesa credentials mutation
+  const mpesaMutation = useMutation({
+    mutationFn: async (data: MpesaCredentialsData) => {
+      const response = await apiRequest("PUT", "/api/store/mpesa", data);
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({ title: "M-Pesa settings updated successfully" });
+      queryClient.invalidateQueries({ queryKey: ['/api/store'] });
+    },
+    onError: (error: any) => {
+      toast({ 
+        title: "Failed to update M-Pesa settings", 
+        description: error?.message || "Please try again",
+        variant: "destructive" 
+      });
+    },
+  });
+
+  // Language change mutation
+  const languageMutation = useMutation({
+    mutationFn: async (language: 'en' | 'sw') => {
+      const response = await apiRequest("POST", "/api/settings/language", { language });
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({ title: "Language updated successfully" });
+      queryClient.invalidateQueries({ queryKey: ['/api/settings'] });
+    },
+    onError: (error: any) => {
+      toast({ 
+        title: "Failed to update language", 
+        description: error?.message || "Please try again",
+        variant: "destructive" 
+      });
+    },
+  });
+
+  // Manual sync mutation
+  const syncMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest("POST", "/api/sync");
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({ title: "Data synced successfully" });
+    },
+    onError: (error: any) => {
+      toast({ 
+        title: "Sync failed", 
+        description: error?.message || "Please try again",
+        variant: "destructive" 
+      });
+    },
+  });
+
+  // Data backup function
+  const handleDataBackup = async () => {
     try {
-      // Invalidate all queries to force fresh data fetch
-      await queryClient.invalidateQueries();
-      await queryClient.refetchQueries();
+      const response = await apiRequest("GET", "/api/backup");
+      const data = await response.json();
       
-      // Simulate sync time for user feedback
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      // Create and download backup file
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `dukasmart-backup-${new Date().toISOString().split('T')[0]}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
       
-      toast({
-        title: "Sync Complete",
-        description: "All data has been synchronized successfully",
-      });
+      toast({ title: "Backup downloaded successfully" });
     } catch (error) {
-      toast({
-        title: "Sync Failed",
-        description: "Failed to synchronize data",
-        variant: "destructive"
+      toast({ 
+        title: "Backup failed", 
+        description: "Please try again",
+        variant: "destructive" 
       });
-    } finally {
-      setIsSyncing(false);
     }
   };
 
-  const handleProfileSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-    const profileData = {
-      businessName: formData.get('businessName') as string,
-      businessPhone: formData.get('businessPhone') as string,
-      businessEmail: formData.get('businessEmail') as string,
-      businessAddress: formData.get('businessAddress') as string,
-      taxId: formData.get('taxId') as string,
-    };
-    updateProfileMutation.mutate(profileData);
+  const handleLanguageChange = (language: 'en' | 'sw') => {
+    setCurrentLanguage(language);
+    languageMutation.mutate(language);
   };
 
-  if (profileLoading) {
+  const onStoreSubmit = (data: StoreProfileData) => {
+    storeProfileMutation.mutate(data);
+  };
+
+  const onMpesaSubmit = (data: MpesaCredentialsData) => {
+    mpesaMutation.mutate(data);
+  };
+
+  if (storeLoading) {
     return (
-      <div className="p-6 bg-black text-white min-h-screen">
-        <div className="animate-pulse space-y-6">
-          <div className="h-8 bg-gray-800 rounded w-1/4"></div>
-          <div className="space-y-4">
-            {[...Array(3)].map((_, i) => (
-              <div key={i} className="h-32 bg-gray-800 rounded"></div>
-            ))}
+      <div className="container mx-auto p-6">
+        <div className="flex items-center justify-center min-h-[400px]">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500 mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Loading settings...</p>
           </div>
         </div>
       </div>
@@ -120,188 +282,213 @@ export default function Settings() {
   }
 
   return (
-    <div className="p-6 space-y-6 bg-black text-white min-h-screen">
+    <div className="container mx-auto p-6 space-y-8">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h1 className="text-3xl font-bold text-white">Settings</h1>
-        <Button 
-          onClick={handleForceSync} 
-          disabled={isSyncing}
-          className="bg-green-600 hover:bg-green-700 text-white"
-        >
-          {isSyncing ? (
-            <>
-              <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-              Syncing...
-            </>
-          ) : (
-            <>
-              <RotateCcw className="h-4 w-4 mr-2" />
-              Sync Now
-            </>
-          )}
-        </Button>
+      <div className="flex items-center gap-3 mb-8">
+        <div className="p-2 bg-green-500/10 rounded-lg">
+          <Store className="h-6 w-6 text-green-500" />
+        </div>
+        <h1 className="text-2xl font-bold text-white">{t.settings}</h1>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Business Profile */}
-        <Card className="bg-gray-900 border-gray-800">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-green-500">
-              <User className="h-5 w-5" />
-              Business Profile
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleProfileSubmit} className="space-y-4">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="businessName" className="text-gray-400">Business Name</Label>
-                  <Input
-                    id="businessName"
-                    name="businessName"
-                    defaultValue={businessProfile?.businessName || ''}
-                    className="bg-gray-800 border-gray-700 text-white"
-                    placeholder="Enter business name"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="businessPhone" className="text-gray-400">Business Phone</Label>
-                  <Input
-                    id="businessPhone"
-                    name="businessPhone"
-                    defaultValue={businessProfile?.businessPhone || ''}
-                    className="bg-gray-800 border-gray-700 text-white"
-                    placeholder="Enter phone number"
-                  />
-                </div>
-              </div>
-              
-              <div>
-                <Label htmlFor="businessEmail" className="text-gray-400">Business Email</Label>
-                <Input
-                  id="businessEmail"
-                  name="businessEmail"
-                  type="email"
-                  defaultValue={businessProfile?.businessEmail || ''}
-                  className="bg-gray-800 border-gray-700 text-white"
-                  placeholder="Enter email address"
-                />
-              </div>
-              
-              <div>
-                <Label htmlFor="businessAddress" className="text-gray-400">Business Address</Label>
-                <Input
-                  id="businessAddress"
-                  name="businessAddress"
-                  defaultValue={businessProfile?.businessAddress || ''}
-                  className="bg-gray-800 border-gray-700 text-white"
-                  placeholder="Enter business address"
-                />
-              </div>
-              
-              <div>
-                <Label htmlFor="taxId" className="text-gray-400">Tax ID / Registration Number</Label>
-                <Input
-                  id="taxId"
-                  name="taxId"
-                  defaultValue={businessProfile?.taxId || ''}
-                  className="bg-gray-800 border-gray-700 text-white"
-                  placeholder="Enter tax ID or registration number"
-                />
-              </div>
-              
-              <Button 
-                type="submit" 
-                className="bg-green-600 hover:bg-green-700 text-white"
-                disabled={updateProfileMutation.isPending}
-              >
-                {updateProfileMutation.isPending ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                    Saving...
-                  </>
-                ) : (
-                  'Save Profile'
+      {/* Store Profile Section */}
+      <Card className="bg-gray-900 border-gray-800">
+        <CardHeader>
+          <CardTitle className="text-green-500 flex items-center gap-2">
+            <Store className="h-5 w-5" />
+            {t.storeProfile}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Form {...storeForm}>
+            <form onSubmit={storeForm.handleSubmit(onStoreSubmit)} className="space-y-4">
+              <FormField
+                control={storeForm.control}
+                name="storeName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-white">{t.storeName}</FormLabel>
+                    <FormControl>
+                      <Input {...field} className="bg-gray-800 border-gray-700 text-white" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
                 )}
+              />
+              <FormField
+                control={storeForm.control}
+                name="ownerName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-white">{t.ownerName}</FormLabel>
+                    <FormControl>
+                      <Input {...field} className="bg-gray-800 border-gray-700 text-white" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={storeForm.control}
+                name="address"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-white">{t.address}</FormLabel>
+                    <FormControl>
+                      <Textarea {...field} className="bg-gray-800 border-gray-700 text-white" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <Button
+                type="submit"
+                disabled={storeProfileMutation.isPending}
+                className="bg-green-600 hover:bg-green-700 text-white"
+              >
+                {storeProfileMutation.isPending ? t.saving : t.saveProfile}
               </Button>
             </form>
-          </CardContent>
-        </Card>
+          </Form>
+        </CardContent>
+      </Card>
 
-        {/* System Settings */}
-        <Card className="bg-gray-900 border-gray-800">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-green-500">
-              <Database className="h-5 w-5" />
-              System Settings
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <Label className="text-white">Notifications</Label>
-                <p className="text-sm text-gray-400">Receive notifications for sales and updates</p>
-              </div>
-              <Switch
-                checked={notifications}
-                onCheckedChange={setNotifications}
-                className="data-[state=checked]:bg-green-600"
+      {/* M-Pesa Credentials Section */}
+      <Card className="bg-gray-900 border-gray-800">
+        <CardHeader>
+          <CardTitle className="text-green-500 flex items-center gap-2">
+            <Shield className="h-5 w-5" />
+            {t.mpesaCredentials}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Form {...mpesaForm}>
+            <form onSubmit={mpesaForm.handleSubmit(onMpesaSubmit)} className="space-y-4">
+              <FormField
+                control={mpesaForm.control}
+                name="paybillTillNumber"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-white">{t.paybillTill}</FormLabel>
+                    <FormControl>
+                      <Input {...field} className="bg-gray-800 border-gray-700 text-white" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-            </div>
-            
-            <div className="flex items-center justify-between">
-              <div>
-                <Label className="text-white">Auto Backup</Label>
-                <p className="text-sm text-gray-400">Automatically backup data daily</p>
-              </div>
-              <Switch
-                checked={autoBackup}
-                onCheckedChange={setAutoBackup}
-                className="data-[state=checked]:bg-green-600"
+              <FormField
+                control={mpesaForm.control}
+                name="consumerKey"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-white">{t.consumerKey}</FormLabel>
+                    <FormControl>
+                      <Input {...field} className="bg-gray-800 border-gray-700 text-white" />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
               />
-            </div>
-            
-            <div className="pt-4 border-t border-gray-800">
-              <h4 className="text-white font-medium mb-2">Current User</h4>
-              <p className="text-gray-400 text-sm">
-                Signed in as: {user?.email || user?.phone || 'Unknown User'}
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+              <FormField
+                control={mpesaForm.control}
+                name="consumerSecret"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-white">{t.consumerSecret}</FormLabel>
+                    <FormControl>
+                      <Input 
+                        {...field} 
+                        type="password" 
+                        className="bg-gray-800 border-gray-700 text-white" 
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <Button
+                type="submit"
+                disabled={mpesaMutation.isPending}
+                className="bg-green-600 hover:bg-green-700 text-white"
+              >
+                {mpesaMutation.isPending ? t.saving : t.saveMpesa}
+              </Button>
+            </form>
+          </Form>
+        </CardContent>
+      </Card>
 
-        {/* Data Management */}
-        <Card className="bg-gray-900 border-gray-800 lg:col-span-2">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-green-500">
-              <Shield className="h-5 w-5" />
-              Data Management
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="text-center p-4 bg-gray-800 rounded-lg">
-                <Database className="h-8 w-8 text-green-500 mx-auto mb-2" />
-                <h4 className="text-white font-medium">Database Status</h4>
-                <p className="text-green-500 text-sm">Connected</p>
-              </div>
-              
-              <div className="text-center p-4 bg-gray-800 rounded-lg">
-                <RefreshCw className="h-8 w-8 text-green-500 mx-auto mb-2" />
-                <h4 className="text-white font-medium">Last Sync</h4>
-                <p className="text-gray-400 text-sm">Just now</p>
-              </div>
-              
-              <div className="text-center p-4 bg-gray-800 rounded-lg">
-                <Bell className="h-8 w-8 text-green-500 mx-auto mb-2" />
-                <h4 className="text-white font-medium">Notifications</h4>
-                <p className="text-gray-400 text-sm">{notifications ? 'Enabled' : 'Disabled'}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
+      {/* Language Toggle Section */}
+      <Card className="bg-gray-900 border-gray-800">
+        <CardHeader>
+          <CardTitle className="text-green-500 flex items-center gap-2">
+            <Globe className="h-5 w-5" />
+            {t.languageToggle}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex gap-2">
+            <Button
+              variant={currentLanguage === 'en' ? 'default' : 'outline'}
+              onClick={() => handleLanguageChange('en')}
+              className={currentLanguage === 'en' 
+                ? 'bg-green-600 hover:bg-green-700 text-white' 
+                : 'border-gray-700 text-gray-300 hover:bg-gray-800'
+              }
+            >
+              {t.english}
+            </Button>
+            <Button
+              variant={currentLanguage === 'sw' ? 'default' : 'outline'}
+              onClick={() => handleLanguageChange('sw')}
+              className={currentLanguage === 'sw' 
+                ? 'bg-green-600 hover:bg-green-700 text-white' 
+                : 'border-gray-700 text-gray-300 hover:bg-gray-800'
+              }
+            >
+              {t.kiswahili}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Manual Sync Section */}
+      <Card className="bg-gray-900 border-gray-800">
+        <CardHeader>
+          <CardTitle className="text-green-500 flex items-center gap-2">
+            <RotateCcw className="h-5 w-5" />
+            {t.manualSync}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Button
+            onClick={() => syncMutation.mutate()}
+            disabled={syncMutation.isPending}
+            className="bg-green-600 hover:bg-green-700 text-white"
+          >
+            {syncMutation.isPending ? t.syncing : t.syncNow}
+          </Button>
+        </CardContent>
+      </Card>
+
+      {/* Data Backup Section */}
+      <Card className="bg-gray-900 border-gray-800">
+        <CardHeader>
+          <CardTitle className="text-green-500 flex items-center gap-2">
+            <Download className="h-5 w-5" />
+            {t.dataBackup}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Button
+            onClick={handleDataBackup}
+            className="bg-green-600 hover:bg-green-700 text-white"
+          >
+            {t.downloadBackup}
+          </Button>
+        </CardContent>
+      </Card>
     </div>
   );
 }

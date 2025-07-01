@@ -13,6 +13,10 @@ import {
   InsertBusinessProfile,
   Payment,
   InsertPayment,
+  StoreProfile,
+  InsertStoreProfile,
+  UserSettings,
+  InsertUserSettings,
   DashboardMetrics,
   products,
   customers,
@@ -20,7 +24,9 @@ import {
   orderItems,
   users,
   businessProfiles,
-  payments
+  payments,
+  storeProfiles,
+  userSettings
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, like, sql, or, ilike } from "drizzle-orm";
@@ -76,6 +82,16 @@ export interface IStorage {
   // Business Profile
   saveBusinessProfile(userId: number, profile: Omit<InsertBusinessProfile, 'userId'>): Promise<void>;
   getBusinessProfile(userId: number): Promise<BusinessProfile | undefined>;
+
+  // Store Profile
+  getStoreProfile(userId: number): Promise<StoreProfile | undefined>;
+  saveStoreProfile(userId: number, profile: Omit<InsertStoreProfile, 'userId'>): Promise<StoreProfile>;
+  updateStoreProfile(userId: number, profile: Partial<Omit<InsertStoreProfile, 'userId'>>): Promise<StoreProfile | undefined>;
+
+  // User Settings
+  getUserSettings(userId: number): Promise<UserSettings | undefined>;
+  saveUserSettings(userId: number, settings: Omit<InsertUserSettings, 'userId'>): Promise<UserSettings>;
+  updateUserSettings(userId: number, settings: Partial<Omit<InsertUserSettings, 'userId'>>): Promise<UserSettings | undefined>;
 }
 
 export class MemStorage implements IStorage {
@@ -702,6 +718,58 @@ export class DatabaseStorage implements IStorage {
       })
       .where(eq(customers.id, insertPayment.customerId));
     
+    return result;
+  }
+
+  // Store Profile methods
+  async getStoreProfile(userId: number): Promise<StoreProfile | undefined> {
+    const [result] = await db.select().from(storeProfiles).where(eq(storeProfiles.userId, userId));
+    return result;
+  }
+
+  async saveStoreProfile(userId: number, profile: Omit<InsertStoreProfile, 'userId'>): Promise<StoreProfile> {
+    const [result] = await db.insert(storeProfiles).values({
+      ...profile,
+      userId
+    }).returning();
+    return result;
+  }
+
+  async updateStoreProfile(userId: number, profile: Partial<Omit<InsertStoreProfile, 'userId'>>): Promise<StoreProfile | undefined> {
+    const [result] = await db
+      .update(storeProfiles)
+      .set({
+        ...profile,
+        updatedAt: new Date()
+      })
+      .where(eq(storeProfiles.userId, userId))
+      .returning();
+    return result;
+  }
+
+  // User Settings methods
+  async getUserSettings(userId: number): Promise<UserSettings | undefined> {
+    const [result] = await db.select().from(userSettings).where(eq(userSettings.userId, userId));
+    return result;
+  }
+
+  async saveUserSettings(userId: number, settings: Omit<InsertUserSettings, 'userId'>): Promise<UserSettings> {
+    const [result] = await db.insert(userSettings).values({
+      ...settings,
+      userId
+    }).returning();
+    return result;
+  }
+
+  async updateUserSettings(userId: number, settings: Partial<Omit<InsertUserSettings, 'userId'>>): Promise<UserSettings | undefined> {
+    const [result] = await db
+      .update(userSettings)
+      .set({
+        ...settings,
+        updatedAt: new Date()
+      })
+      .where(eq(userSettings.userId, userId))
+      .returning();
     return result;
   }
 }

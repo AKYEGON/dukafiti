@@ -858,5 +858,176 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Store profile endpoints
+  app.get('/api/store', requireAuth, async (req: any, res: any) => {
+    try {
+      const user = await storage.getUserByPhone(req.session.user.phone);
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+      
+      const profile = await storage.getStoreProfile(user.id);
+      res.json(profile || {});
+    } catch (error) {
+      console.error('Store profile fetch error:', error);
+      res.status(500).json({ error: 'Failed to fetch store profile' });
+    }
+  });
+
+  app.put('/api/store', requireAuth, async (req: any, res: any) => {
+    try {
+      const user = await storage.getUserByPhone(req.session.user.phone);
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+      
+      const existingProfile = await storage.getStoreProfile(user.id);
+      let profile;
+      
+      if (existingProfile) {
+        profile = await storage.updateStoreProfile(user.id, req.body);
+      } else {
+        profile = await storage.saveStoreProfile(user.id, req.body);
+      }
+      
+      res.json(profile);
+    } catch (error) {
+      console.error('Store profile save error:', error);
+      res.status(500).json({ error: 'Failed to save store profile' });
+    }
+  });
+
+  app.put('/api/store/mpesa', requireAuth, async (req: any, res: any) => {
+    try {
+      const user = await storage.getUserByPhone(req.session.user.phone);
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+      
+      const { paybillTillNumber, consumerKey, consumerSecret } = req.body;
+      
+      const existingProfile = await storage.getStoreProfile(user.id);
+      let profile;
+      
+      if (existingProfile) {
+        profile = await storage.updateStoreProfile(user.id, {
+          paybillTillNumber,
+          consumerKey,
+          consumerSecret
+        });
+      } else {
+        profile = await storage.saveStoreProfile(user.id, {
+          paybillTillNumber,
+          consumerKey,
+          consumerSecret
+        });
+      }
+      
+      res.json(profile);
+    } catch (error) {
+      console.error('M-Pesa settings save error:', error);
+      res.status(500).json({ error: 'Failed to save M-Pesa settings' });
+    }
+  });
+
+  // User settings endpoints
+  app.get('/api/settings', requireAuth, async (req: any, res: any) => {
+    try {
+      const user = await storage.getUserByPhone(req.session.user.phone);
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+      
+      const settings = await storage.getUserSettings(user.id);
+      res.json(settings || { language: 'en' });
+    } catch (error) {
+      console.error('User settings fetch error:', error);
+      res.status(500).json({ error: 'Failed to fetch user settings' });
+    }
+  });
+
+  app.post('/api/settings/language', requireAuth, async (req: any, res: any) => {
+    try {
+      const user = await storage.getUserByPhone(req.session.user.phone);
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+      
+      const { language } = req.body;
+      
+      if (!['en', 'sw'].includes(language)) {
+        return res.status(400).json({ error: 'Invalid language' });
+      }
+      
+      const existingSettings = await storage.getUserSettings(user.id);
+      let settings;
+      
+      if (existingSettings) {
+        settings = await storage.updateUserSettings(user.id, { language });
+      } else {
+        settings = await storage.saveUserSettings(user.id, { language });
+      }
+      
+      res.json(settings);
+    } catch (error) {
+      console.error('Language settings save error:', error);
+      res.status(500).json({ error: 'Failed to save language settings' });
+    }
+  });
+
+  // Manual sync endpoint
+  app.post('/api/sync', requireAuth, async (req: any, res: any) => {
+    try {
+      // For now, this is a placeholder that simulates a sync process
+      // In a real implementation, this would sync with external services or databases
+      
+      // Simulate some processing time
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      res.json({ success: true, message: 'Data synchronized successfully' });
+    } catch (error) {
+      console.error('Manual sync error:', error);
+      res.status(500).json({ error: 'Failed to sync data' });
+    }
+  });
+
+  // Data backup endpoint
+  app.get('/api/backup', requireAuth, async (req: any, res: any) => {
+    try {
+      const user = await storage.getUserByPhone(req.session.user.phone);
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+      
+      // Gather all user data
+      const products = await storage.getProducts();
+      const customers = await storage.getCustomers();
+      const orders = await storage.getOrders();
+      const storeProfile = await storage.getStoreProfile(user.id);
+      const userSettings = await storage.getUserSettings(user.id);
+      
+      const backupData = {
+        timestamp: new Date().toISOString(),
+        user: {
+          id: user.id,
+          phone: user.phone,
+          email: user.email
+        },
+        storeProfile,
+        userSettings,
+        data: {
+          products,
+          customers,
+          orders: orders.slice(0, 100) // Limit to last 100 orders for backup size
+        }
+      };
+      
+      res.json(backupData);
+    } catch (error) {
+      console.error('Data backup error:', error);
+      res.status(500).json({ error: 'Failed to create backup' });
+    }
+  });
+
   return httpServer;
 }
