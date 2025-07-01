@@ -1,14 +1,6 @@
 import { createRoot } from "react-dom/client";
-
-// Simple test to verify React is working
-function TestApp() {
-  return (
-    <div style={{ padding: "20px", fontFamily: "Arial", background: "white" }}>
-      <h1>DukaSmart Loading Test</h1>
-      <p>If you see this, React is working and we can debug further!</p>
-    </div>
-  );
-}
+import App from "./App-simple";
+import "./index.css";
 
 // Register service worker for PWA functionality
 if ('serviceWorker' in navigator) {
@@ -72,4 +64,4 @@ if ('serviceWorker' in navigator) {
   });
 }
 
-createRoot(document.getElementById("root")!).render(<TestApp />);
+createRoot(document.getElementById("root")!).render(<App />);
