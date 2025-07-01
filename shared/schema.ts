@@ -21,6 +21,7 @@ export const customers = pgTable("customers", {
   email: text("email"),
   phone: text("phone"),
   address: text("address"),
+  balance: decimal("balance", { precision: 10, scale: 2 }).notNull().default("0.00"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -29,6 +30,7 @@ export const orders = pgTable("orders", {
   customerId: integer("customer_id").references(() => customers.id),
   customerName: text("customer_name").notNull(),
   total: decimal("total", { precision: 10, scale: 2 }).notNull(),
+  paymentMethod: text("payment_method").notNull().default("cash"), // cash, mpesa, credit
   status: text("status").notNull().default("pending"), // pending, processing, shipped, completed, cancelled
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });

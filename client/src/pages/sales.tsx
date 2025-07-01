@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { ProductSearch } from "@/components/sales/product-search";
 import { MiniCart } from "@/components/sales/mini-cart";
+import { PaymentMethodSelector } from "@/components/sales/payment-method-selector";
 import { type SaleLineItem } from "@/components/sales/sale-line-item";
 import { type Product, type InsertOrder, type InsertOrderItem } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
@@ -17,25 +18,20 @@ export default function Sales() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const createOrderMutation = useMutation({
-    mutationFn: async (orderData: { order: InsertOrder; items: Omit<InsertOrderItem, 'orderId'>[] }) => {
-      // Create the order first
-      const orderResponse = await apiRequest("POST", "/api/orders", orderData.order);
-      const order = await orderResponse.json();
-      
-      // Create order items
-      const itemPromises = orderData.items.map(async (item) => {
-        const response = await apiRequest("POST", `/api/orders/${order.id}/items`, item);
-        return response.json();
-      });
-      await Promise.all(itemPromises);
-      
-      return order;
+  const createSaleMutation = useMutation({
+    mutationFn: async (saleData: { 
+      items: any[]; 
+      paymentMethod: string; 
+      customerInfo?: { name: string; phone?: string }; 
+      customerName?: string;
+    }) => {
+      const response = await apiRequest("POST", "/api/sales", saleData);
+      return response.json();
     },
-    onSuccess: (order: any) => {
+    onSuccess: (result: any) => {
       toast({ 
-        title: "Sale completed successfully!", 
-        description: `Order #${order.id} for ${formatCurrency(order.total)} has been created.`
+        title: result.message || "Sale completed successfully!", 
+        description: `Order #${result.order.id} for ${formatCurrency(result.order.total)}`
       });
       setCartItems([]);
       setCustomerName("");
@@ -87,7 +83,7 @@ export default function Sales() {
     setCustomerName("");
   };
 
-  const handleCheckout = () => {
+  const handlePaymentSelected = (method: 'cash' | 'mpesa' | 'credit', customerInfo?: { name: string; phone?: string }) => {
     if (cartItems.length === 0) {
       toast({ title: "Cart is empty", variant: "destructive" });
       return;
@@ -104,23 +100,19 @@ export default function Sales() {
       return;
     }
 
-    const totalAmount = cartItems.reduce((sum, item) => sum + parseFloat(item.total), 0);
-    
-    const orderData = {
-      order: {
-        customerName: customerName || "Walk-in Customer",
-        total: totalAmount.toFixed(2),
-        status: "completed" as const,
-      },
+    const saleData = {
       items: cartItems.map(item => ({
         productId: item.product.id,
         productName: item.product.name,
         quantity: item.quantity,
         price: item.unitPrice,
       })),
+      paymentMethod: method,
+      customerInfo,
+      customerName: customerName || "Walk-in Customer",
     };
 
-    createOrderMutation.mutate(orderData);
+    createSaleMutation.mutate(saleData);
   };
 
   const cartTotal = cartItems.reduce((sum, item) => sum + parseFloat(item.total), 0);
@@ -231,16 +223,24 @@ export default function Sales() {
           </Card>
         </div>
 
-        {/* Right Column - Mini Cart */}
-        <div>
+        {/* Right Column - Cart and Payment */}
+        <div className="space-y-6">
           <MiniCart
             items={cartItems}
             onQuantityChange={handleQuantityChange}
             onRemoveItem={handleRemoveItem}
             onClearCart={handleClearCart}
-            onCheckout={handleCheckout}
-            isProcessing={createOrderMutation.isPending}
+            onCheckout={() => {}} // Disabled - payment method selector handles this
+            isProcessing={createSaleMutation.isPending}
           />
+          
+          {cartItems.length > 0 && (
+            <PaymentMethodSelector
+              total={cartTotal}
+              onPaymentSelected={handlePaymentSelected}
+              isProcessing={createSaleMutation.isPending}
+            />
+          )}
         </div>
       </div>
     </div>

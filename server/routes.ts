@@ -241,6 +241,96 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Sales endpoint with payment method handling
+  app.post("/api/sales", requireAuth, async (req, res) => {
+    try {
+      const { items, paymentMethod, customerInfo, customerName } = req.body;
+      
+      if (!items || !Array.isArray(items) || items.length === 0) {
+        return res.status(400).json({ message: "Items are required" });
+      }
+      
+      if (!paymentMethod || !['cash', 'mpesa', 'credit'].includes(paymentMethod)) {
+        return res.status(400).json({ message: "Valid payment method is required (cash, mpesa, or credit)" });
+      }
+
+      // Calculate total
+      const total = items.reduce((sum: number, item: any) => sum + (parseFloat(item.price) * item.quantity), 0);
+      
+      let customerId = null;
+      let finalCustomerName = customerName || "Walk-in Customer";
+      
+      // Handle credit sales - create or find customer
+      if (paymentMethod === 'credit') {
+        if (!customerInfo?.name && !customerName) {
+          return res.status(400).json({ message: "Customer information is required for credit sales" });
+        }
+        
+        finalCustomerName = customerInfo?.name || customerName;
+        
+        // Try to find existing customer by name and phone
+        const existingCustomer = await storage.getCustomerByNameOrPhone(finalCustomerName, customerInfo?.phone);
+        
+        if (existingCustomer) {
+          customerId = existingCustomer.id;
+          // Update customer balance
+          await storage.updateCustomerBalance(customerId, total);
+        } else {
+          // Create new customer
+          const newCustomer = await storage.createCustomer({
+            name: finalCustomerName,
+            phone: customerInfo?.phone || null,
+            email: null,
+            address: null,
+            balance: total.toFixed(2)
+          });
+          customerId = newCustomer.id;
+        }
+      }
+      
+      // Create the order
+      const orderData = {
+        customerId,
+        customerName: finalCustomerName,
+        total: total.toFixed(2),
+        paymentMethod,
+        status: 'completed'
+      };
+      
+      const order = await storage.createOrder(orderData);
+      
+      // Create order items and update inventory
+      for (const item of items) {
+        // Create order item
+        await storage.createOrderItem({
+          orderId: order.id,
+          productId: item.productId,
+          productName: item.productName,
+          quantity: item.quantity,
+          price: item.price
+        });
+        
+        // Update product stock
+        await storage.updateProductStock(item.productId, -item.quantity);
+      }
+      
+      res.status(201).json({
+        success: true,
+        order,
+        message: paymentMethod === 'credit' 
+          ? `Credit sale recorded for ${finalCustomerName}` 
+          : `${paymentMethod.toUpperCase()} sale completed successfully`
+      });
+      
+    } catch (error: any) {
+      console.error("Sales processing error:", error);
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid sale data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to process sale" });
+    }
+  });
+
   // Onboarding route
   app.post("/api/onboarding", requireAuth, async (req, res) => {
     try {

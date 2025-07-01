@@ -16,6 +16,8 @@ import {
   orderItems,
   users
 } from "@shared/schema";
+import { db } from "./db";
+import { eq, desc, like, sql, or, ilike } from "drizzle-orm";
 
 export interface BusinessProfile {
   businessName: string;
@@ -39,14 +41,17 @@ export interface IStorage {
   getProduct(id: number): Promise<Product | undefined>;
   createProduct(product: InsertProduct): Promise<Product>;
   updateProduct(id: number, product: Partial<InsertProduct>): Promise<Product | undefined>;
+  updateProductStock(id: number, stockChange: number): Promise<Product | undefined>;
   deleteProduct(id: number): Promise<boolean>;
   searchProducts(query: string): Promise<Product[]>;
 
   // Customers
   getCustomers(): Promise<Customer[]>;
   getCustomer(id: number): Promise<Customer | undefined>;
+  getCustomerByNameOrPhone(name: string, phone?: string): Promise<Customer | undefined>;
   createCustomer(customer: InsertCustomer): Promise<Customer>;
   updateCustomer(id: number, customer: Partial<InsertCustomer>): Promise<Customer | undefined>;
+  updateCustomerBalance(id: number, amount: number): Promise<Customer | undefined>;
   deleteCustomer(id: number): Promise<boolean>;
 
   // Orders
@@ -447,6 +452,15 @@ export class DatabaseStorage implements IStorage {
     return product || undefined;
   }
 
+  async updateProductStock(id: number, stockChange: number): Promise<Product | undefined> {
+    const [product] = await db
+      .update(products)
+      .set({ stock: sql`${products.stock} + ${stockChange}` })
+      .where(eq(products.id, id))
+      .returning();
+    return product || undefined;
+  }
+
   async deleteProduct(id: number): Promise<boolean> {
     const result = await db.delete(products).where(eq(products.id, id));
     return (result.rowCount ?? 0) > 0;
@@ -474,6 +488,19 @@ export class DatabaseStorage implements IStorage {
     return customer || undefined;
   }
 
+  async getCustomerByNameOrPhone(name: string, phone?: string): Promise<Customer | undefined> {
+    let query = db.select().from(customers).where(eq(customers.name, name));
+    
+    if (phone) {
+      query = db.select().from(customers).where(
+        or(eq(customers.name, name), eq(customers.phone, phone))
+      );
+    }
+    
+    const [customer] = await query;
+    return customer || undefined;
+  }
+
   async createCustomer(insertCustomer: InsertCustomer): Promise<Customer> {
     const [customer] = await db
       .insert(customers)
@@ -486,6 +513,15 @@ export class DatabaseStorage implements IStorage {
     const [customer] = await db
       .update(customers)
       .set(customerUpdate)
+      .where(eq(customers.id, id))
+      .returning();
+    return customer || undefined;
+  }
+
+  async updateCustomerBalance(id: number, amount: number): Promise<Customer | undefined> {
+    const [customer] = await db
+      .update(customers)
+      .set({ balance: sql`${customers.balance} + ${amount.toFixed(2)}` })
       .where(eq(customers.id, id))
       .returning();
     return customer || undefined;
