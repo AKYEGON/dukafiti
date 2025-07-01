@@ -21,25 +21,24 @@ export default function Sales() {
   const createSaleMutation = useMutation({
     mutationFn: async (saleData: { 
       items: any[]; 
-      paymentMethod: string; 
-      customerInfo?: { name: string; phone?: string }; 
-      customerName?: string;
-      paymentReference?: string;
+      paymentType: string; 
     }) => {
       const response = await apiRequest("POST", "/api/sales", saleData);
       return response.json();
     },
     onSuccess: (result: any) => {
-      if (result.order.paymentMethod === 'mpesa') {
+      const paymentType = result.order.paymentMethod;
+      if (paymentType === 'cash') {
         toast({ 
-          title: "M-Pesa Payment Initiated", 
-          description: "Waiting for customer to complete payment...",
-          duration: 5000
+          title: "Cash sale recorded", 
+          description: `Order #${result.order.id} for ${formatCurrency(result.order.total)}`,
+          className: "bg-green-50 border-green-200 text-green-800"
         });
-      } else {
+      } else if (paymentType === 'credit') {
         toast({ 
-          title: result.message || "Sale completed successfully!", 
-          description: `Order #${result.order.id} for ${formatCurrency(result.order.total)}`
+          title: "Credit sale saved", 
+          description: `Order #${result.order.id} for ${formatCurrency(result.order.total)}`,
+          className: "bg-blue-50 border-blue-200 text-blue-800"
         });
       }
       setCartItems([]);
@@ -92,7 +91,7 @@ export default function Sales() {
     setCustomerName("");
   };
 
-  const handlePaymentSelected = (method: 'cash' | 'mpesa' | 'credit', customerInfo?: { name: string; phone?: string }, paymentReference?: string) => {
+  const handlePaymentSelected = (method: 'cash' | 'credit') => {
     if (cartItems.length === 0) {
       toast({ title: "Cart is empty", variant: "destructive" });
       return;
@@ -116,10 +115,7 @@ export default function Sales() {
         quantity: item.quantity,
         price: item.unitPrice,
       })),
-      paymentMethod: method,
-      customerInfo,
-      customerName: customerName || "Walk-in Customer",
-      paymentReference,
+      paymentType: method,
     };
 
     createSaleMutation.mutate(saleData);

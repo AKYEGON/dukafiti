@@ -244,58 +244,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Sales endpoint with payment method handling
   app.post("/api/sales", requireAuth, async (req, res) => {
     try {
-      const { items, paymentMethod, customerInfo, customerName, paymentReference } = req.body;
+      const { items, paymentType } = req.body;
       
       if (!items || !Array.isArray(items) || items.length === 0) {
         return res.status(400).json({ message: "Items are required" });
       }
       
-      if (!paymentMethod || !['cash', 'mpesa', 'credit'].includes(paymentMethod)) {
-        return res.status(400).json({ message: "Valid payment method is required (cash, mpesa, or credit)" });
+      if (!paymentType || !['cash', 'credit'].includes(paymentType)) {
+        return res.status(400).json({ message: "Valid payment type is required (cash or credit)" });
       }
 
       // Calculate total
       const total = items.reduce((sum: number, item: any) => sum + (parseFloat(item.price) * item.quantity), 0);
       
-      let customerId = null;
-      let finalCustomerName = customerName || "Walk-in Customer";
-      
-      // Handle credit sales - create or find customer
-      if (paymentMethod === 'credit') {
-        if (!customerInfo?.name && !customerName) {
-          return res.status(400).json({ message: "Customer information is required for credit sales" });
-        }
-        
-        finalCustomerName = customerInfo?.name || customerName;
-        
-        // Try to find existing customer by name and phone
-        const existingCustomer = await storage.getCustomerByNameOrPhone(finalCustomerName, customerInfo?.phone);
-        
-        if (existingCustomer) {
-          customerId = existingCustomer.id;
-          // Update customer balance
-          await storage.updateCustomerBalance(customerId, total);
-        } else {
-          // Create new customer
-          const newCustomer = await storage.createCustomer({
-            name: finalCustomerName,
-            phone: customerInfo?.phone || null,
-            email: null,
-            address: null,
-            balance: total.toFixed(2)
-          });
-          customerId = newCustomer.id;
-        }
-      }
-      
-      // Create the order with appropriate status
-      const orderStatus = paymentMethod === 'mpesa' ? 'awaiting_payment' : 'completed';
+      // Create the order
       const orderData = {
-        customerId,
-        customerName: finalCustomerName,
+        customerId: null,
+        customerName: "Walk-in Customer",
         total: total.toFixed(2),
-        paymentMethod,
-        status: orderStatus
+        paymentMethod: paymentType,
+        status: paymentType === 'credit' ? 'credit' : 'completed'
       };
       
       const order = await storage.createOrder(orderData);
@@ -318,11 +286,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(201).json({
         success: true,
         order,
-        message: paymentMethod === 'mpesa' 
-          ? `M-Pesa payment request initiated. Waiting for customer confirmation...`
-          : paymentMethod === 'credit' 
-          ? `Credit sale recorded for ${finalCustomerName}` 
-          : `${paymentMethod.toUpperCase()} sale completed successfully`
+        message: paymentType === 'credit' 
+          ? "Credit sale saved" 
+          : "Cash sale recorded"
       });
       
     } catch (error: any) {
