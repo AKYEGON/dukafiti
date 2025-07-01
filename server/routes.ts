@@ -274,10 +274,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Sales endpoint with payment method handling
+  // Sales endpoint with simplified payload
   app.post("/api/sales", requireAuth, async (req, res) => {
     try {
-      const { items, paymentType, reference } = req.body;
+      const { items, paymentType } = req.body;
       
       if (!items || !Array.isArray(items) || items.length === 0) {
         return res.status(400).json({ message: "Items are required" });
@@ -287,8 +287,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: "Valid payment type is required (cash, credit, or mpesa)" });
       }
 
-      // Calculate total
-      const total = items.reduce((sum: number, item: any) => sum + (parseFloat(item.price) * item.quantity), 0);
+      // Get product details and calculate total
+      let total = 0;
+      const enrichedItems = [];
+      
+      for (const item of items) {
+        const product = await storage.getProduct(item.productId);
+        if (!product) {
+          return res.status(400).json({ message: `Product with ID ${item.productId} not found` });
+        }
+        
+        if (item.qty > product.stock) {
+          return res.status(400).json({ message: `Insufficient stock for ${product.name}. Available: ${product.stock}, Requested: ${item.qty}` });
+        }
+        
+        const lineTotal = parseFloat(product.price) * item.qty;
+        total += lineTotal;
+        
+        enrichedItems.push({
+          productId: product.id,
+          productName: product.name,
+          quantity: item.qty,
+          price: product.price
+        });
+      }
+      
+      // Determine order status based on payment type
+      let status;
+      if (paymentType === 'cash') {
+        status = 'paid';
+      } else if (paymentType === 'mpesa') {
+        status = 'pending';
+      } else if (paymentType === 'credit') {
+        status = 'credit';
+      }
       
       // Create the order
       const orderData = {
@@ -296,14 +328,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         customerName: "Walk-in Customer",
         total: total.toFixed(2),
         paymentMethod: paymentType,
-        status: paymentType === 'credit' ? 'credit' : paymentType === 'mpesa' ? 'pending' : 'completed',
-        reference: paymentType === 'mpesa' ? reference : null
+        status,
+        reference: null
       };
       
       const order = await storage.createOrder(orderData);
       
-      // Create order items and update inventory
-      for (const item of items) {
+      // Create order items and update inventory for all payment types
+      for (const item of enrichedItems) {
         // Create order item
         await storage.createOrderItem({
           orderId: order.id,
@@ -313,7 +345,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           price: item.price
         });
         
-        // Update product stock
+        // Update product stock (decrement for all payment types)
         await storage.updateProductStock(item.productId, -item.quantity);
       }
       
@@ -322,25 +354,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         type: 'saleUpdate',
         paymentType,
         saleId: order.id,
-        reference: reference || null,
         total: total.toFixed(2),
-        message: paymentType === 'credit' 
-          ? "Credit sale saved" 
-          : paymentType === 'mpesa'
-          ? "M-Pesa payment request sent"
-          : "Cash sale recorded"
+        status
       };
       
       broadcastToClients(notificationData);
       
       res.status(201).json({
         success: true,
-        order,
-        message: paymentType === 'credit' 
-          ? "Credit sale saved" 
-          : paymentType === 'mpesa'
-          ? "M-Pesa payment request sent"
-          : "Cash sale recorded"
+        saleId: order.id,
+        status
       });
       
     } catch (error: any) {
@@ -352,44 +375,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // M-Pesa payment initiation route
-  app.post("/api/sales/mpesa/initiate", requireAuth, async (req, res) => {
-    try {
-      const { amount, phone, reference, orderId } = req.body;
-      
-      if (!amount || !phone || !reference) {
-        return res.status(400).json({ message: "Amount, phone, and reference are required" });
-      }
-      
-      // Get user's business profile for M-Pesa credentials
-      const userPhone = req.session.user?.phone;
-      if (!userPhone) {
-        return res.status(401).json({ message: "User session not found" });
-      }
-      
-      // For now, we'll simulate the M-Pesa API call
-      // In production, you would call Safaricom's Daraja API here
-      console.log("M-Pesa payment initiation:", {
-        amount,
-        phone,
-        reference,
-        orderId,
-        userPhone
-      });
-      
-      // Simulate API response
-      res.json({
-        success: true,
-        message: "M-Pesa payment request sent to customer",
-        transactionId: `MPESA${Date.now()}`,
-        reference
-      });
-      
-    } catch (error: any) {
-      console.error("M-Pesa initiation error:", error);
-      res.status(500).json({ message: "Failed to initiate M-Pesa payment" });
-    }
-  });
+
 
   // Onboarding route
   app.post("/api/onboarding", requireAuth, async (req, res) => {

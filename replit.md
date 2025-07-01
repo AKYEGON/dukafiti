@@ -113,6 +113,12 @@ Changelog:
 - June 30, 2025. Set up PostgreSQL database with Drizzle ORM schema deployment
 - June 30, 2025. Updated inventory page with card-based layout and KES currency formatting
 - June 30, 2025. Implemented complete CRUD operations for product management
+- July 1, 2025. Successfully migrated from Replit Agent to standard Replit environment
+- July 1, 2025. Set up real-time WebSocket notifications for sales transactions
+- July 1, 2025. Refactored Sales page with single "Sell" button and confirmation modal
+- July 1, 2025. Updated backend API to handle simplified sale payload structure
+- July 1, 2025. Integrated real-time toast notifications with status-based messaging
+- July 1, 2025. Removed legacy M-Pesa initiation endpoints for cleaner API
 ```
 
 ## User Preferences

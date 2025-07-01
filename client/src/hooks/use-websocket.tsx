@@ -23,26 +23,26 @@ export function useWebSocket() {
         const data = JSON.parse(event.data);
         
         if (data.type === 'saleUpdate') {
-          // Handle sale completion notifications
-          if (data.paymentType === 'cash') {
+          // Handle sale completion notifications based on status
+          if (data.status === 'paid') {
             toast({
-              title: "Cash sale recorded",
-              description: `Sale completed for ${formatCurrency(data.total)}`,
+              title: "Sale recorded – paid",
+              description: `Sale #${data.saleId} completed successfully`,
               className: "bg-green-50 border-green-200 text-green-800",
               duration: 3000,
             });
-          } else if (data.paymentType === 'credit') {
+          } else if (data.status === 'pending') {
             toast({
-              title: "Credit sale saved",
-              description: `Credit sale recorded for ${formatCurrency(data.total)}`,
-              className: "bg-blue-50 border-blue-200 text-blue-800",
+              title: "Sale recorded – awaiting M-Pesa",
+              description: `Sale #${data.saleId} pending payment confirmation`,
+              className: "bg-yellow-50 border-yellow-200 text-yellow-800",
               duration: 3000,
             });
-          } else if (data.paymentType === 'mpesa') {
+          } else if (data.status === 'credit') {
             toast({
-              title: "M-Pesa payment initiated",
-              description: `Payment request sent for ${data.reference}`,
-              className: "bg-yellow-50 border-yellow-200 text-yellow-800",
+              title: "Sale recorded – on credit",
+              description: `Sale #${data.saleId} saved as credit sale`,
+              className: "bg-blue-50 border-blue-200 text-blue-800",
               duration: 3000,
             });
           }

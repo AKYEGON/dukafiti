@@ -6,53 +6,58 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { ProductSearch } from "@/components/sales/product-search";
 import { MiniCart } from "@/components/sales/mini-cart";
-import { PaymentMethodSelector } from "@/components/sales/payment-method-selector";
+import { SaleConfirmationModal } from "@/components/sales/sale-confirmation-modal";
 import { type SaleLineItem } from "@/components/sales/sale-line-item";
-import { type Product, type InsertOrder, type InsertOrderItem } from "@shared/schema";
+import { type Product } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { formatCurrency } from "@/lib/utils";
 
 export default function Sales() {
   const [cartItems, setCartItems] = useState<SaleLineItem[]>([]);
-  const [customerName, setCustomerName] = useState("");
+  const [showConfirmationModal, setShowConfirmationModal] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
   const createSaleMutation = useMutation({
     mutationFn: async (saleData: { 
-      items: any[]; 
-      paymentType: string; 
-      reference?: string;
+      items: Array<{ productId: number; qty: number }>;
+      paymentType: 'cash' | 'mpesa' | 'credit';
     }) => {
       const response = await apiRequest("POST", "/api/sales", saleData);
       return response.json();
     },
     onSuccess: (result: any) => {
-      const paymentType = result.order.paymentMethod;
-      if (paymentType === 'cash') {
+      // Close modal and clear cart
+      setShowConfirmationModal(false);
+      setCartItems([]);
+      
+      // Invalidate products query to refresh stock levels
+      queryClient.invalidateQueries({ queryKey: ["/api/products"] });
+      
+      // Show appropriate toast based on status
+      const status = result.status;
+      if (status === 'paid') {
         toast({ 
-          title: "Cash sale recorded", 
-          description: `Order #${result.order.id} for ${formatCurrency(result.order.total)}`,
-          className: "bg-green-50 border-green-200 text-green-800"
+          title: "Sale recorded – paid", 
+          description: `Sale #${result.saleId} completed successfully`,
+          className: "bg-green-50 border-green-200 text-green-800",
+          duration: 3000
         });
-      } else if (paymentType === 'mpesa') {
+      } else if (status === 'pending') {
         toast({ 
-          title: "Awaiting M-Pesa payment", 
-          description: `Order #${result.order.id} for ${formatCurrency(result.order.total)}`,
-          className: "bg-yellow-50 border-yellow-200 text-yellow-800"
+          title: "Sale recorded – awaiting M-Pesa", 
+          description: `Sale #${result.saleId} pending payment confirmation`,
+          className: "bg-yellow-50 border-yellow-200 text-yellow-800",
+          duration: 3000
         });
-      } else if (paymentType === 'credit') {
+      } else if (status === 'credit') {
         toast({ 
-          title: "Credit sale saved", 
-          description: `Order #${result.order.id} for ${formatCurrency(result.order.total)}`,
-          className: "bg-blue-50 border-blue-200 text-blue-800"
+          title: "Sale recorded – on credit", 
+          description: `Sale #${result.saleId} saved as credit sale`,
+          className: "bg-blue-50 border-blue-200 text-blue-800",
+          duration: 3000
         });
       }
-      setCartItems([]);
-      setCustomerName("");
-      queryClient.invalidateQueries({ queryKey: ["/api/orders"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/dashboard/metrics"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/products"] });
     },
     onError: (error: any) => {
       const errorMessage = error?.response?.data?.message || "Failed to complete sale";
@@ -95,10 +100,9 @@ export default function Sales() {
 
   const handleClearCart = () => {
     setCartItems([]);
-    setCustomerName("");
   };
 
-  const handlePaymentSelected = (method: 'cash' | 'credit' | 'mpesa', reference?: string) => {
+  const handleSellClick = () => {
     if (cartItems.length === 0) {
       toast({ title: "Cart is empty", variant: "destructive" });
       return;
@@ -115,15 +119,16 @@ export default function Sales() {
       return;
     }
 
+    setShowConfirmationModal(true);
+  };
+
+  const handleConfirmSale = (paymentType: 'cash' | 'mpesa' | 'credit') => {
     const saleData = {
       items: cartItems.map(item => ({
         productId: item.product.id,
-        productName: item.product.name,
-        quantity: item.quantity,
-        price: item.unitPrice,
+        qty: item.quantity,
       })),
-      paymentType: method,
-      reference: reference,
+      paymentType,
     };
 
     createSaleMutation.mutate(saleData);
@@ -197,29 +202,7 @@ export default function Sales() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Left Column - Product Search and Customer */}
         <div className="space-y-6">
-          {/* Customer Info */}
-          <Card className="border-2 border-[#00AA00]/20">
-            <CardHeader>
-              <CardTitle className="text-lg">Customer Information</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <div>
-                  <label htmlFor="customerName" className="block text-sm font-medium text-gray-700 mb-2">
-                    Customer Name (Optional)
-                  </label>
-                  <input
-                    id="customerName"
-                    type="text"
-                    value={customerName}
-                    onChange={(e) => setCustomerName(e.target.value)}
-                    placeholder="Enter customer name or leave blank for walk-in"
-                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:border-[#00AA00] focus:ring-[#00AA00]/20 focus:outline-none"
-                  />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+
 
           {/* Product Search */}
           <Card className="border-2 border-[#00AA00]/20">
@@ -244,17 +227,41 @@ export default function Sales() {
             onQuantityChange={handleQuantityChange}
             onRemoveItem={handleRemoveItem}
             onClearCart={handleClearCart}
-            onCheckout={() => {}} // Disabled - payment method selector handles this
+            onCheckout={handleSellClick}
             isProcessing={createSaleMutation.isPending}
           />
           
+          {/* Single Sell Button */}
           {cartItems.length > 0 && (
-            <PaymentMethodSelector
-              total={cartTotal}
-              onPaymentSelected={handlePaymentSelected}
-              isProcessing={createSaleMutation.isPending}
-            />
+            <Card className="border-2 border-[#00AA00]/20">
+              <CardContent className="p-6">
+                <div className="space-y-4">
+                  <div className="text-center">
+                    <div className="text-sm text-gray-600 mb-2">Total Amount</div>
+                    <div className="text-3xl font-bold text-[#00AA00]">
+                      {formatCurrency(cartTotal.toFixed(2))}
+                    </div>
+                  </div>
+                  <Button
+                    onClick={handleSellClick}
+                    disabled={createSaleMutation.isPending}
+                    className="w-full h-12 bg-[#00AA00] hover:bg-[#00AA00]/90 text-white text-lg font-semibold"
+                  >
+                    {createSaleMutation.isPending ? "Processing..." : "Sell"}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
           )}
+
+          {/* Confirmation Modal */}
+          <SaleConfirmationModal
+            open={showConfirmationModal}
+            onOpenChange={setShowConfirmationModal}
+            items={cartItems}
+            onConfirm={handleConfirmSale}
+            isProcessing={createSaleMutation.isPending}
+          />
         </div>
       </div>
     </div>
