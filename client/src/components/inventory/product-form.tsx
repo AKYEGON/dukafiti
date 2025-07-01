@@ -1,6 +1,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
 import { insertProductSchema, type InsertProduct, type Product } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -35,15 +36,41 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
   const form = useForm<InsertProduct>({
     resolver: zodResolver(insertProductSchema),
     defaultValues: {
-      name: product?.name || "",
-      sku: product?.sku || "",
-      description: product?.description || "",
-      price: product?.price || "0",
-      stock: product?.stock || 0,
-      category: product?.category || "",
-      lowStockThreshold: product?.lowStockThreshold || 10,
+      name: "",
+      sku: "",
+      description: "",
+      price: "0",
+      stock: 0,
+      category: "",
+      lowStockThreshold: 10,
     },
   });
+
+  // Reset form with product data when editing
+  useEffect(() => {
+    if (product) {
+      form.reset({
+        name: product.name || "",
+        sku: product.sku || "",
+        description: product.description || "",
+        price: product.price || "0",
+        stock: product.stock || 0,
+        category: product.category || "",
+        lowStockThreshold: product.lowStockThreshold || 10,
+      });
+    } else {
+      // Reset to empty form when creating new product
+      form.reset({
+        name: "",
+        sku: "",
+        description: "",
+        price: "0",
+        stock: 0,
+        category: "",
+        lowStockThreshold: 10,
+      });
+    }
+  }, [product, form]);
 
   const createMutation = useMutation({
     mutationFn: async (data: InsertProduct) => {
