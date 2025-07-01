@@ -1,17 +1,21 @@
-import { useState } from "react";
-import { CreditCard, Banknote, Smartphone, User } from "lucide-react";
+import { useState, useEffect } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { CreditCard, Banknote, Smartphone, User, Check, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { formatCurrency } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from "@/lib/queryClient";
 import { type SaleLineItem } from "@/components/sales/sale-line-item";
+import { type Customer } from "@shared/schema";
 
 interface SaleConfirmationModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   items: SaleLineItem[];
   paymentMethod: 'cash' | 'mpesa' | 'credit' | '';
-  onConfirm: (customer?: string) => void;
+  onConfirm: (customer?: { name: string; phone?: string; isNew?: boolean }) => void;
   isProcessing?: boolean;
 }
 
@@ -23,24 +27,69 @@ export function SaleConfirmationModal({
   onConfirm, 
   isProcessing 
 }: SaleConfirmationModalProps) {
+  const [selectedCustomerId, setSelectedCustomerId] = useState<string>('');
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
+  const [isNewCustomer, setIsNewCustomer] = useState(false);
+  
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  // Fetch existing customers
+  const { data: customers = [] } = useQuery<Customer[]>({
+    queryKey: ["/api/customers"],
+    enabled: paymentMethod === 'credit' && open,
+  });
 
   const total = items.reduce((sum, item) => sum + parseFloat(item.total), 0);
+
+  // Handle customer selection
+  const handleCustomerSelect = (customerId: string) => {
+    if (customerId === 'new') {
+      setIsNewCustomer(true);
+      setSelectedCustomerId('');
+      setCustomerName('');
+      setCustomerPhone('');
+    } else {
+      const customer = customers.find(c => c.id.toString() === customerId);
+      if (customer) {
+        setIsNewCustomer(false);
+        setSelectedCustomerId(customerId);
+        setCustomerName(customer.name);
+        setCustomerPhone(customer.phone || '');
+      }
+    }
+  };
+
+  // Reset form when modal opens/closes
+  useEffect(() => {
+    if (!open) {
+      setSelectedCustomerId('');
+      setCustomerName('');
+      setCustomerPhone('');
+      setIsNewCustomer(false);
+    }
+  }, [open]);
 
   const handleConfirm = () => {
     if (paymentMethod === 'credit' && !customerName.trim()) {
       return; // Validation handled by button disabled state
     }
-    onConfirm(paymentMethod === 'credit' ? customerName : undefined);
+    
+    if (paymentMethod === 'credit') {
+      onConfirm({
+        name: customerName.trim(),
+        phone: customerPhone.trim() || undefined,
+        isNew: isNewCustomer
+      });
+    } else {
+      onConfirm();
+    }
+    
     onOpenChange(false);
-    setCustomerName('');
-    setCustomerPhone('');
   };
 
   const handleCancel = () => {
-    setCustomerName('');
-    setCustomerPhone('');
     onOpenChange(false);
   };
 
@@ -108,29 +157,58 @@ export function SaleConfirmationModal({
               <div className="space-y-3">
                 <div>
                   <label className="block text-sm font-medium text-blue-700 mb-1">
-                    Customer Name *
+                    Select Customer *
                   </label>
-                  <input
-                    type="text"
-                    value={customerName}
-                    onChange={(e) => setCustomerName(e.target.value)}
-                    placeholder="Enter customer name"
-                    className="w-full px-3 py-2 border border-blue-300 rounded-md focus:border-blue-500 focus:ring-blue-500/20 focus:outline-none"
-                    required
-                  />
+                  <Select 
+                    value={selectedCustomerId || (isNewCustomer ? 'new' : '')} 
+                    onValueChange={handleCustomerSelect}
+                  >
+                    <SelectTrigger className="w-full border-blue-300 focus:border-blue-500">
+                      <SelectValue placeholder="Choose existing customer or add new" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="new">+ Add New Customer</SelectItem>
+                      {customers.map((customer) => (
+                        <SelectItem key={customer.id} value={customer.id.toString()}>
+                          {customer.name} {customer.phone && `(${customer.phone})`}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-blue-700 mb-1">
-                    Customer Phone (Optional)
-                  </label>
-                  <input
-                    type="tel"
-                    value={customerPhone}
-                    onChange={(e) => setCustomerPhone(e.target.value)}
-                    placeholder="Enter phone number"
-                    className="w-full px-3 py-2 border border-blue-300 rounded-md focus:border-blue-500 focus:ring-blue-500/20 focus:outline-none"
-                  />
-                </div>
+
+                {/* Show input fields when adding new customer or if selected customer needs editing */}
+                {(isNewCustomer || selectedCustomerId) && (
+                  <>
+                    <div>
+                      <label className="block text-sm font-medium text-blue-700 mb-1">
+                        Customer Name *
+                      </label>
+                      <input
+                        type="text"
+                        value={customerName}
+                        onChange={(e) => setCustomerName(e.target.value)}
+                        placeholder="Enter customer name"
+                        className="w-full px-3 py-2 border border-blue-300 rounded-md focus:border-blue-500 focus:ring-blue-500/20 focus:outline-none"
+                        required
+                        disabled={!isNewCustomer}
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-blue-700 mb-1">
+                        Customer Phone (Optional)
+                      </label>
+                      <input
+                        type="tel"
+                        value={customerPhone}
+                        onChange={(e) => setCustomerPhone(e.target.value)}
+                        placeholder="Enter phone number"
+                        className="w-full px-3 py-2 border border-blue-300 rounded-md focus:border-blue-500 focus:ring-blue-500/20 focus:outline-none"
+                        disabled={!isNewCustomer}
+                      />
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           )}

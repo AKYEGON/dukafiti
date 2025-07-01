@@ -131,8 +131,43 @@ export default function Sales() {
     setShowConfirmationModal(true);
   };
 
-  const handleConfirmSale = (customer?: string) => {
+  const handleConfirmSale = async (customer?: { name: string; phone?: string; isNew?: boolean }) => {
     if (!paymentMethod) return; // Safety check
+    
+    let customerName = customer?.name;
+    
+    // If this is a new customer, save them to the database first
+    if (customer?.isNew && customer.name) {
+      try {
+        const newCustomer = await apiRequest({
+          url: "/api/customers",
+          method: "POST",
+          body: {
+            name: customer.name,
+            phone: customer.phone || null,
+            email: null,
+            address: null,
+            balance: "0.00"
+          }
+        });
+        
+        // Invalidate customers cache to refresh the list
+        queryClient.invalidateQueries({ queryKey: ["/api/customers"] });
+        
+        toast({
+          title: "Customer Added",
+          description: `${customer.name} has been added to customers list`,
+          className: "bg-blue-600 text-white border-blue-500",
+        });
+      } catch (error) {
+        console.error("Failed to create customer:", error);
+        toast({
+          title: "Warning",
+          description: "Customer could not be saved, but sale will continue",
+          variant: "destructive",
+        });
+      }
+    }
     
     const saleData = {
       items: cartItems.map(item => ({
@@ -140,7 +175,7 @@ export default function Sales() {
         qty: item.quantity,
       })),
       paymentType: paymentMethod as 'cash' | 'mpesa' | 'credit',
-      customer,
+      customer: customerName,
     };
 
     createSaleMutation.mutate(saleData);
