@@ -601,5 +601,187 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Reports API endpoints
+  app.get('/api/reports/summary', requireAuth, async (req: any, res: any) => {
+    try {
+      const today = new Date();
+      const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+      const startOfWeek = new Date(today);
+      startOfWeek.setDate(today.getDate() - today.getDay());
+      const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+
+      // Get all orders for calculations
+      const allOrders = await storage.getOrders();
+      
+      // Calculate totals
+      const todayOrders = allOrders.filter(order => 
+        new Date(order.createdAt) >= startOfDay
+      );
+      const weekOrders = allOrders.filter(order => 
+        new Date(order.createdAt) >= startOfWeek
+      );
+      const monthOrders = allOrders.filter(order => 
+        new Date(order.createdAt) >= startOfMonth
+      );
+
+      const totalSalesToday = todayOrders.reduce((sum, order) => 
+        sum + parseFloat(order.total), 0
+      ).toFixed(2);
+      
+      const totalSalesWeek = weekOrders.reduce((sum, order) => 
+        sum + parseFloat(order.total), 0
+      ).toFixed(2);
+      
+      const totalSalesMonth = monthOrders.reduce((sum, order) => 
+        sum + parseFloat(order.total), 0
+      ).toFixed(2);
+
+      // Payment breakdown for today
+      const paymentBreakdown = todayOrders.reduce((acc, order) => {
+        const amount = parseFloat(order.total);
+        if (order.paymentMethod === 'cash') acc.cash += amount;
+        else if (order.paymentMethod === 'mpesa') acc.mpesa += amount;
+        else if (order.paymentMethod === 'credit') acc.credit += amount;
+        return acc;
+      }, { cash: 0, mpesa: 0, credit: 0 });
+
+      // Count pending M-Pesa payments
+      const pendingMpesa = allOrders.filter(order => 
+        order.status === 'pending' && order.paymentMethod === 'mpesa'
+      ).length;
+
+      // Count low stock items (threshold: 10)
+      const products = await storage.getProducts();
+      const lowStockItems = products.filter(product => product.stock < 10).length;
+
+      const summary = {
+        totalSalesToday,
+        totalSalesWeek,
+        totalSalesMonth,
+        paymentBreakdown: {
+          cash: paymentBreakdown.cash.toFixed(2),
+          mpesa: paymentBreakdown.mpesa.toFixed(2),
+          credit: paymentBreakdown.credit.toFixed(2)
+        },
+        pendingMpesa,
+        lowStockItems
+      };
+
+      res.json(summary);
+    } catch (error) {
+      console.error('Reports summary error:', error);
+      res.status(500).json({ message: 'Failed to fetch summary data' });
+    }
+  });
+
+  app.get('/api/reports/hourly', requireAuth, async (req: any, res: any) => {
+    try {
+      const today = new Date();
+      const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+      
+      const allOrders = await storage.getOrders();
+      const todayOrders = allOrders.filter(order => 
+        new Date(order.createdAt) >= startOfDay
+      );
+
+      // Initialize 24 hours with zero sales
+      const hourlyData = Array.from({ length: 24 }, (_, i) => ({
+        hour: `${i.toString().padStart(2, '0')}:00`,
+        sales: 0
+      }));
+
+      // Aggregate sales by hour
+      todayOrders.forEach(order => {
+        const hour = new Date(order.createdAt).getHours();
+        hourlyData[hour].sales += parseFloat(order.total);
+      });
+
+      res.json(hourlyData);
+    } catch (error) {
+      console.error('Hourly reports error:', error);
+      res.status(500).json({ message: 'Failed to fetch hourly data' });
+    }
+  });
+
+  app.get('/api/reports/top-items', requireAuth, async (req: any, res: any) => {
+    try {
+      const period = req.query.period || 'today';
+      const today = new Date();
+      let startDate: Date;
+
+      switch (period) {
+        case 'week':
+          startDate = new Date(today);
+          startDate.setDate(today.getDate() - today.getDay());
+          break;
+        case 'month':
+          startDate = new Date(today.getFullYear(), today.getMonth(), 1);
+          break;
+        default: // today
+          startDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+      }
+
+      const allOrders = await storage.getOrders();
+      const periodOrders = allOrders.filter(order => 
+        new Date(order.createdAt) >= startDate
+      );
+
+      // Get all order items for the period
+      const itemSales: { [key: number]: { name: string; unitsSold: number; revenue: number } } = {};
+      
+      for (const order of periodOrders) {
+        const orderItems = await storage.getOrderItems(order.id);
+        for (const item of orderItems) {
+          if (!itemSales[item.productId]) {
+            const product = await storage.getProduct(item.productId);
+            itemSales[item.productId] = {
+              name: product?.name || 'Unknown Product',
+              unitsSold: 0,
+              revenue: 0
+            };
+          }
+          itemSales[item.productId].unitsSold += item.quantity;
+          itemSales[item.productId].revenue += parseFloat(item.price) * item.quantity;
+        }
+      }
+
+      // Convert to array and sort by units sold
+      const topItems = Object.values(itemSales)
+        .sort((a, b) => b.unitsSold - a.unitsSold)
+        .slice(0, 10)
+        .map(item => ({
+          name: item.name,
+          unitsSold: item.unitsSold,
+          revenue: item.revenue.toFixed(2)
+        }));
+
+      res.json(topItems);
+    } catch (error) {
+      console.error('Top items reports error:', error);
+      res.status(500).json({ message: 'Failed to fetch top items' });
+    }
+  });
+
+  app.get('/api/reports/credits', requireAuth, async (req: any, res: any) => {
+    try {
+      const customers = await storage.getCustomers();
+      
+      // Filter customers with credit balance and sort by balance descending
+      const customerCredits = customers
+        .filter(customer => parseFloat(customer.balance) > 0)
+        .sort((a, b) => parseFloat(b.balance) - parseFloat(a.balance))
+        .map(customer => ({
+          name: customer.name,
+          phone: customer.phone || 'N/A',
+          balance: customer.balance
+        }));
+
+      res.json(customerCredits);
+    } catch (error) {
+      console.error('Customer credits reports error:', error);
+      res.status(500).json({ message: 'Failed to fetch customer credits' });
+    }
+  });
+
   return httpServer;
 }
