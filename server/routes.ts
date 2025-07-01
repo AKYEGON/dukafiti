@@ -277,7 +277,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Sales endpoint with simplified payload
   app.post("/api/sales", requireAuth, async (req, res) => {
     try {
-      const { items, paymentType, customerName, customerPhone } = req.body;
+      const { items, paymentType, customer } = req.body;
       
       if (!items || !Array.isArray(items) || items.length === 0) {
         return res.status(400).json({ message: "Items are required" });
@@ -285,6 +285,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (!paymentType || !['cash', 'credit', 'mpesa'].includes(paymentType)) {
         return res.status(400).json({ message: "Valid payment type is required (cash, credit, or mpesa)" });
+      }
+
+      // For credit sales, require customer information
+      if (paymentType === 'credit' && (!customer || !customer.trim())) {
+        return res.status(400).json({ message: "Customer required for credit sales" });
       }
 
       // Get product details and calculate total
@@ -325,11 +330,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Create the order
       const orderData = {
         customerId: null,
-        customerName: customerName || "Walk-in Customer",
+        customerName: paymentType === 'credit' ? customer : "Walk-in Customer",
         total: total.toFixed(2),
         paymentMethod: paymentType,
         status,
-        reference: customerPhone || null
+        reference: null
       };
       
       const order = await storage.createOrder(orderData);

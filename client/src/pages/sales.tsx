@@ -15,6 +15,7 @@ import { formatCurrency } from "@/lib/utils";
 export default function Sales() {
   const [cartItems, setCartItems] = useState<SaleLineItem[]>([]);
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
+  const [paymentMethod, setPaymentMethod] = useState<'cash' | 'mpesa' | 'credit' | ''>('');
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -30,15 +31,18 @@ export default function Sales() {
       // Close modal and clear cart
       setShowConfirmationModal(false);
       setCartItems([]);
+      setPaymentMethod('');
       
       // Invalidate products query to refresh stock levels
+      queryClient.invalidateQueries({ queryKey: ["/api/orders"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/dashboard/metrics"] });
       queryClient.invalidateQueries({ queryKey: ["/api/products"] });
       
       // Show appropriate toast based on status
       const status = result.status;
       if (status === 'paid') {
         toast({ 
-          title: "Sale recorded – paid", 
+          title: "Sale recorded (Cash)", 
           description: `Sale #${result.saleId} completed successfully`,
           className: "bg-green-50 border-green-200 text-green-800",
           duration: 3000
@@ -52,9 +56,9 @@ export default function Sales() {
         });
       } else if (status === 'credit') {
         toast({ 
-          title: "Sale recorded – on credit", 
+          title: "Sale recorded (Credit)", 
           description: `Sale #${result.saleId} saved as credit sale`,
-          className: "bg-blue-50 border-blue-200 text-blue-800",
+          className: "bg-green-50 border-green-200 text-green-800",
           duration: 3000
         });
       }
@@ -108,6 +112,11 @@ export default function Sales() {
       return;
     }
 
+    if (!paymentMethod) {
+      toast({ title: "Please select a payment method", variant: "destructive" });
+      return;
+    }
+
     // Check for stock issues
     const stockIssues = cartItems.filter(item => item.quantity > item.product.stock);
     if (stockIssues.length > 0) {
@@ -122,15 +131,16 @@ export default function Sales() {
     setShowConfirmationModal(true);
   };
 
-  const handleConfirmSale = (paymentType: 'cash' | 'mpesa' | 'credit', customerName?: string, customerPhone?: string) => {
+  const handleConfirmSale = (customer?: string) => {
+    if (!paymentMethod) return; // Safety check
+    
     const saleData = {
       items: cartItems.map(item => ({
         productId: item.product.id,
         qty: item.quantity,
       })),
-      paymentType,
-      customerName,
-      customerPhone,
+      paymentType: paymentMethod as 'cash' | 'mpesa' | 'credit',
+      customer,
     };
 
     createSaleMutation.mutate(saleData);
@@ -233,7 +243,7 @@ export default function Sales() {
             isProcessing={createSaleMutation.isPending}
           />
           
-          {/* Single Sell Button */}
+          {/* Payment Method and Sell Button */}
           {cartItems.length > 0 && (
             <Card className="border-2 border-[#00AA00]/20">
               <CardContent className="p-6">
@@ -244,10 +254,52 @@ export default function Sales() {
                       {formatCurrency(cartTotal.toFixed(2))}
                     </div>
                   </div>
+                  
+                  {/* Payment Method Buttons */}
+                  <div className="space-y-3">
+                    <div className="text-sm font-medium text-gray-700 text-center">Payment Method</div>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => setPaymentMethod('cash')}
+                        className={`flex-1 py-2 px-4 rounded-full text-sm font-medium transition-colors ${
+                          paymentMethod === 'cash'
+                            ? 'bg-[#00AA00] text-white'
+                            : 'bg-black text-white hover:bg-gray-800'
+                        }`}
+                      >
+                        Cash
+                      </button>
+                      <button
+                        onClick={() => setPaymentMethod('mpesa')}
+                        className={`flex-1 py-2 px-4 rounded-full text-sm font-medium transition-colors ${
+                          paymentMethod === 'mpesa'
+                            ? 'bg-[#00AA00] text-white'
+                            : 'bg-black text-white hover:bg-gray-800'
+                        }`}
+                      >
+                        M-Pesa
+                      </button>
+                      <button
+                        onClick={() => setPaymentMethod('credit')}
+                        className={`flex-1 py-2 px-4 rounded-full text-sm font-medium transition-colors ${
+                          paymentMethod === 'credit'
+                            ? 'bg-[#00AA00] text-white'
+                            : 'bg-black text-white hover:bg-gray-800'
+                        }`}
+                      >
+                        Credit
+                      </button>
+                    </div>
+                  </div>
+                  
                   <Button
                     onClick={handleSellClick}
-                    disabled={createSaleMutation.isPending}
-                    className="w-full h-12 bg-[#00AA00] hover:bg-[#00AA00]/90 text-white text-lg font-semibold"
+                    disabled={!paymentMethod || createSaleMutation.isPending}
+                    className={`w-full h-12 text-white text-lg font-semibold ${
+                      !paymentMethod || createSaleMutation.isPending
+                        ? 'bg-gray-400 cursor-not-allowed'
+                        : 'bg-[#00AA00] hover:bg-[#00AA00]/90'
+                    }`}
                   >
                     {createSaleMutation.isPending ? "Processing..." : "Sell"}
                   </Button>
@@ -261,6 +313,7 @@ export default function Sales() {
             open={showConfirmationModal}
             onOpenChange={setShowConfirmationModal}
             items={cartItems}
+            paymentMethod={paymentMethod}
             onConfirm={handleConfirmSale}
             isProcessing={createSaleMutation.isPending}
           />

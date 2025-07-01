@@ -10,7 +10,8 @@ interface SaleConfirmationModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   items: SaleLineItem[];
-  onConfirm: (paymentType: 'cash' | 'mpesa' | 'credit', customerName?: string, customerPhone?: string) => void;
+  paymentMethod: 'cash' | 'mpesa' | 'credit' | '';
+  onConfirm: (customer?: string) => void;
   isProcessing?: boolean;
 }
 
@@ -18,28 +19,25 @@ export function SaleConfirmationModal({
   open, 
   onOpenChange, 
   items, 
+  paymentMethod,
   onConfirm, 
   isProcessing 
 }: SaleConfirmationModalProps) {
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState<'cash' | 'mpesa' | 'credit' | ''>('');
-  const [customerName, setCustomerName] = useState('');
-  const [customerPhone, setCustomerPhone] = useState('');
+  const [customer, setCustomer] = useState('');
 
   const total = items.reduce((sum, item) => sum + parseFloat(item.total), 0);
 
   const handleConfirm = () => {
-    if (selectedPaymentMethod) {
-      onConfirm(selectedPaymentMethod, customerName || undefined, customerPhone || undefined);
-      onOpenChange(false);
-      // Reset form
-      setSelectedPaymentMethod('');
-      setCustomerName('');
-      setCustomerPhone('');
+    if (paymentMethod === 'credit' && !customer.trim()) {
+      return; // Validation handled by button disabled state
     }
+    onConfirm(paymentMethod === 'credit' ? customer : undefined);
+    onOpenChange(false);
+    setCustomer('');
   };
 
   const handleCancel = () => {
-    setSelectedPaymentMethod('');
+    setCustomer('');
     onOpenChange(false);
   };
 
@@ -91,73 +89,31 @@ export function SaleConfirmationModal({
             </div>
           </div>
 
-          {/* Payment Method Selection */}
+          {/* Payment Method Display */}
           <div className="space-y-2">
             <label className="text-sm font-medium text-gray-700">Payment Method:</label>
-            <Select value={selectedPaymentMethod} onValueChange={(value) => setSelectedPaymentMethod(value as 'cash' | 'mpesa' | 'credit' | '')}>
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select payment method">
-                  {selectedPaymentMethod && (
-                    <div className="flex items-center gap-2">
-                      {getPaymentMethodIcon(selectedPaymentMethod)}
-                      <span className="capitalize">{selectedPaymentMethod === 'mpesa' ? 'M-Pesa' : selectedPaymentMethod}</span>
-                    </div>
-                  )}
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="cash">
-                  <div className="flex items-center gap-2">
-                    <Banknote className="w-4 h-4" />
-                    Cash
-                  </div>
-                </SelectItem>
-                <SelectItem value="mpesa">
-                  <div className="flex items-center gap-2">
-                    <Smartphone className="w-4 h-4" />
-                    M-Pesa
-                  </div>
-                </SelectItem>
-                <SelectItem value="credit">
-                  <div className="flex items-center gap-2">
-                    <User className="w-4 h-4" />
-                    Credit
-                  </div>
-                </SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
+              {getPaymentMethodIcon(paymentMethod)}
+              <span className="capitalize font-medium">{paymentMethod === 'mpesa' ? 'M-Pesa' : paymentMethod}</span>
+            </div>
           </div>
 
           {/* Customer Information for Credit Sales */}
-          {selectedPaymentMethod === 'credit' && (
+          {paymentMethod === 'credit' && (
             <div className="space-y-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
-              <h4 className="font-medium text-blue-900">Customer Information (Credit Sale)</h4>
-              <div className="space-y-3">
-                <div>
-                  <label className="block text-sm font-medium text-blue-700 mb-1">
-                    Customer Name *
-                  </label>
-                  <input
-                    type="text"
-                    value={customerName}
-                    onChange={(e) => setCustomerName(e.target.value)}
-                    placeholder="Enter customer name"
-                    className="w-full px-3 py-2 border border-blue-300 rounded-md focus:border-blue-500 focus:ring-blue-500/20 focus:outline-none"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-blue-700 mb-1">
-                    Phone Number (Optional)
-                  </label>
-                  <input
-                    type="tel"
-                    value={customerPhone}
-                    onChange={(e) => setCustomerPhone(e.target.value)}
-                    placeholder="Enter phone number"
-                    className="w-full px-3 py-2 border border-blue-300 rounded-md focus:border-blue-500 focus:ring-blue-500/20 focus:outline-none"
-                  />
-                </div>
+              <h4 className="font-medium text-blue-900">Customer Information</h4>
+              <div>
+                <label className="block text-sm font-medium text-blue-700 mb-1">
+                  Customer Name or Phone *
+                </label>
+                <input
+                  type="text"
+                  value={customer}
+                  onChange={(e) => setCustomer(e.target.value)}
+                  placeholder="Enter customer name or phone"
+                  className="w-full px-3 py-2 border border-blue-300 rounded-md focus:border-blue-500 focus:ring-blue-500/20 focus:outline-none"
+                  required
+                />
               </div>
             </div>
           )}
@@ -175,7 +131,7 @@ export function SaleConfirmationModal({
             <Button
               className="flex-1 bg-[#00AA00] hover:bg-[#00AA00]/90"
               onClick={handleConfirm}
-              disabled={!selectedPaymentMethod || (selectedPaymentMethod === 'credit' && !customerName.trim()) || isProcessing}
+              disabled={(paymentMethod === 'credit' && !customer.trim()) || isProcessing}
             >
               {isProcessing ? "Processing..." : "Confirm Sale"}
             </Button>
