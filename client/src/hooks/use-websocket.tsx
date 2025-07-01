@@ -1,9 +1,11 @@
 import { useEffect, useRef } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { formatCurrency } from "@/lib/utils";
 
 export function useWebSocket() {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const wsRef = useRef<WebSocket | null>(null);
 
   useEffect(() => {
@@ -60,6 +62,17 @@ export function useWebSocket() {
             variant: "destructive",
             duration: 3000,
           });
+        } else if (data.type === 'paymentRecorded') {
+          // Handle credit payment recording notifications
+          toast({
+            title: "Payment Recorded",
+            description: `Payment of ${formatCurrency(data.data.amount)} for ${data.data.customerName} recorded`,
+            className: "bg-green-600 text-white border-green-500",
+            duration: 4000,
+          });
+          
+          // Refresh customer data to show updated balances
+          queryClient.invalidateQueries({ queryKey: ["/api/customers"] });
         }
       } catch (error) {
         console.error("Error parsing WebSocket message:", error);
@@ -80,7 +93,7 @@ export function useWebSocket() {
         wsRef.current.close();
       }
     };
-  }, [toast]);
+  }, [toast, queryClient]);
 
   return wsRef.current;
 }

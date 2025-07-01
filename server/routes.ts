@@ -268,6 +268,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get updated customer to return current balance
       const updatedCustomer = await storage.getCustomer(customerId);
       
+      // Broadcast real-time payment notification
+      broadcastToClients({
+        type: 'paymentRecorded',
+        data: {
+          customerId,
+          customerName: customer.name,
+          amount: parseFloat(amount).toFixed(2),
+          paymentMethod: method,
+          timestamp: new Date().toISOString()
+        }
+      });
+      
       res.status(201).json({ 
         payment, 
         customer: updatedCustomer,
