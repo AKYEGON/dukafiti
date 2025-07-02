@@ -37,6 +37,7 @@ import { ProductForm } from "@/components/inventory/product-form";
 import { CustomerForm } from "@/components/customers/customer-form";
 
 export default function Dashboard() {
+  console.log("Dashboard component is mounting");
   const [, setLocation] = useLocation();
   const [showProductForm, setShowProductForm] = useState(false);
   const [showCustomerForm, setShowCustomerForm] = useState(false);

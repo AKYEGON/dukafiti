@@ -27,23 +27,25 @@ function AuthenticatedApp() {
   useWebSocket();
   
   return (
-    <div className="min-h-screen flex bg-background text-foreground">
-      <Sidebar />
-      <main className="flex-1 flex flex-col min-h-screen lg:ml-0">
-        <UniversalSearch />
-        <div className="flex-1 w-full">
-          <Switch>
-            <Route path="/" component={Dashboard} />
-            <Route path="/dashboard" component={Dashboard} />
-            <Route path="/inventory" component={Inventory} />
-            <Route path="/sales" component={Sales} />
-            <Route path="/customers" component={Customers} />
-            <Route path="/reports" component={Reports} />
-            <Route path="/settings" component={SettingsPage} />
-            <Route component={NotFound} />
-          </Switch>
-        </div>
-      </main>
+    <div className="min-h-screen bg-background text-foreground">
+      <div className="flex min-h-screen">
+        <Sidebar />
+        <main className="flex-1 flex flex-col">
+          <UniversalSearch />
+          <div className="flex-1 overflow-auto bg-background">
+            <Switch>
+              <Route path="/" component={Dashboard} />
+              <Route path="/dashboard" component={Dashboard} />
+              <Route path="/inventory" component={Inventory} />
+              <Route path="/sales" component={Sales} />
+              <Route path="/customers" component={Customers} />
+              <Route path="/reports" component={Reports} />
+              <Route path="/settings" component={SettingsPage} />
+              <Route component={NotFound} />
+            </Switch>
+          </div>
+        </main>
+      </div>
     </div>
   );
 }
@@ -63,6 +65,8 @@ function UnauthenticatedApp() {
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
   const [location, setLocation] = useLocation();
+  
+  console.log("Router state:", { isAuthenticated, isLoading, location });
 
   // Show loading spinner while checking auth
   if (isLoading) {
