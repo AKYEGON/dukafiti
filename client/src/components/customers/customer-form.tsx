@@ -117,6 +117,34 @@ export function CustomerForm({ open, onOpenChange, customer }: CustomerFormProps
     },
   });
 
+  const deleteCustomer = useMutation({
+    mutationFn: async () => {
+      const response = await fetch(`/api/customers/${customer!.id}`, {
+        method: "DELETE",
+      });
+      if (!response.ok) {
+        throw new Error("Failed to delete customer");
+      }
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["/api/customers"] });
+      toast({
+        title: "Success",
+        description: "Customer deleted successfully",
+      });
+      onOpenChange(false);
+      form.reset();
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete customer",
+        variant: "destructive",
+      });
+    },
+  });
+
   const onSubmit = (data: CustomerFormData) => {
     // Process balance field - only include if it has a value
     const processedData = {
