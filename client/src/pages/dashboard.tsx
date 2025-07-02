@@ -94,7 +94,7 @@ export default function Dashboard() {
   // Debug percentage calculations when metrics change
   useEffect(() => {
     if (detailedMetrics) {
-      console.log('Dashboard Metrics Debug:', {
+      console.log('Dashboard Metrics Debug (Updated):', {
         revenue: {
           today: detailedMetrics.revenue.today,
           yesterday: detailedMetrics.revenue.yesterday,
