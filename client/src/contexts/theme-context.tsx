@@ -17,9 +17,11 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const queryClient = useQueryClient();
 
   // Fetch user theme preference
-  const { data: themeData, isLoading } = useQuery<{ theme: Theme }>({
+  const { data: themeData, isLoading, error } = useQuery<{ theme: Theme }>({
     queryKey: ['/api/settings/theme'],
     retry: false,
+    throwOnError: false,
+    enabled: false, // Disable automatic fetching for now
   });
 
   // Update theme mutation

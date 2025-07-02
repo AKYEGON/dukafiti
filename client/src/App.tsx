@@ -10,6 +10,7 @@ import { useWebSocket } from "@/hooks/use-websocket";
 import { ThemeProvider } from "@/contexts/theme-context";
 import { OfflineIndicator } from "@/components/offline-indicator";
 import { ErrorBoundary } from "@/components/error-boundary";
+import { DebugComponent } from "@/components/../debug-component";
 import Dashboard from "@/pages/dashboard";
 import Inventory from "@/pages/inventory";
 import Sales from "@/pages/sales";
@@ -24,7 +25,7 @@ import SettingsPage from "@/pages/settings";
 
 function AuthenticatedApp() {
   // Initialize WebSocket connection for real-time notifications
-  useWebSocket();
+  // useWebSocket(); // Temporarily disabled for debugging
   
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -107,6 +108,7 @@ function Router() {
 function App() {
   return (
     <ErrorBoundary>
+      <DebugComponent />
       <QueryClientProvider client={queryClient}>
         <ThemeProvider>
           <AuthProvider>
