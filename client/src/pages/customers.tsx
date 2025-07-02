@@ -1,274 +1,287 @@
-import { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Plus, User, Phone, DollarSign, CreditCard, ChevronDown, ChevronUp } from "lucide-react";
+import { useState, useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { Plus, User, Phone, Search, Filter, CreditCard, Eye, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { formatCurrency } from "@/lib/utils";
 import { CustomerForm } from "@/components/customers/customer-form";
-import { useToast } from "@/hooks/use-toast";
+import { RecordRepaymentModal } from "@/components/customers/record-repayment-modal";
+import { MobilePageWrapper } from "@/components/layout/mobile-page-wrapper";
+import { motion, AnimatePresence } from "framer-motion";
 import type { Customer } from "@shared/schema";
 
 export default function Customers() {
   const { data: customers, isLoading } = useQuery<Customer[]>({
     queryKey: ["/api/customers"],
   });
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
 
   const [showNewCustomerForm, setShowNewCustomerForm] = useState(false);
-  const [showPaymentPanel, setShowPaymentPanel] = useState(false);
-  const [selectedCustomerId, setSelectedCustomerId] = useState("");
-  const [paymentAmount, setPaymentAmount] = useState("");
-  const [paymentMethod, setPaymentMethod] = useState("");
+  const [showRepaymentModal, setShowRepaymentModal] = useState(false);
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterType, setFilterType] = useState<"all" | "withDebt" | "noDebt">("all");
 
-  const recordPayment = useMutation({
-    mutationFn: async (data: { customerId: number; amount: string; method: string }) => {
-      const response = await fetch("/api/payments", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      });
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || "Failed to record payment");
-      }
-      return response.json();
-    },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/customers"] });
-      setShowPaymentPanel(false);
-      setSelectedCustomerId("");
-      setPaymentAmount("");
-      setPaymentMethod("");
-      toast({
-        title: "Payment Recorded",
-        description: data.message,
-        className: "bg-green-600 text-foreground",
-      });
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to record payment",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const handlePaymentSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!selectedCustomerId || !paymentAmount || !paymentMethod) {
-      return;
-    }
-    recordPayment.mutate({
-      customerId: parseInt(selectedCustomerId),
-      amount: paymentAmount,
-      method: paymentMethod,
+  // Filter and search customers
+  const filteredCustomers = useMemo(() => {
+    if (!customers) return [];
+    
+    let filtered = customers.filter(customer => {
+      const matchesSearch = 
+        customer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (customer.phone && customer.phone.includes(searchQuery));
+      
+      const balance = parseFloat(customer.balance || "0");
+      const matchesFilter = 
+        filterType === "all" ||
+        (filterType === "withDebt" && balance > 0) ||
+        (filterType === "noDebt" && balance <= 0);
+      
+      return matchesSearch && matchesFilter;
     });
+    
+    // Sort by debt status (with debt first), then by name
+    return filtered.sort((a, b) => {
+      const aBalance = parseFloat(a.balance || "0");
+      const bBalance = parseFloat(b.balance || "0");
+      
+      if (aBalance > 0 && bBalance <= 0) return -1;
+      if (aBalance <= 0 && bBalance > 0) return 1;
+      return a.name.localeCompare(b.name);
+    });
+  }, [customers, searchQuery, filterType]);
+
+  const handleRecordRepayment = (customer: Customer) => {
+    setSelectedCustomer(customer);
+    setShowRepaymentModal(true);
   };
 
-  const selectedCustomer = customers?.find(c => c.id.toString() === selectedCustomerId);
-  const isPaymentFormValid = selectedCustomerId && paymentAmount && paymentMethod;
+  const handleCloseRepaymentModal = () => {
+    setShowRepaymentModal(false);
+    setSelectedCustomer(null);
+  };
 
   if (isLoading) {
     return (
-      <div className="space-y-6">
-        
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {[...Array(6)].map((_, i) => (
-            <Card key={i} className="bg-card border-border animate-pulse">
-              <CardContent className="p-6">
-                <div className="h-4 bg-muted rounded mb-2"></div>
-                <div className="h-3 bg-muted rounded mb-4 w-2/3"></div>
-                <div className="h-6 bg-muted rounded w-1/2"></div>
-              </CardContent>
-            </Card>
-          ))}
+      <MobilePageWrapper title="Customers">
+        <div className="space-y-6">
+          {/* Loading Header */}
+          <div className="animate-pulse">
+            <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded mb-4 w-48"></div>
+            <div className="h-12 bg-gray-200 dark:bg-gray-700 rounded"></div>
+          </div>
+          
+          {/* Loading Cards */}
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {[...Array(6)].map((_, i) => (
+              <Card key={i} className="animate-pulse bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+                <CardContent className="p-6">
+                  <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded mb-2"></div>
+                  <div className="h-3 bg-gray-200 dark:bg-gray-700 rounded mb-4 w-2/3"></div>
+                  <div className="h-6 bg-gray-200 dark:bg-gray-700 rounded w-1/2"></div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         </div>
-      </div>
+      </MobilePageWrapper>
     );
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-end">
-        <Button 
-          onClick={() => setShowNewCustomerForm(true)}
-          className="btn-purple"
-        >
-          <Plus className="mr-2 h-4 w-4" />
-          New Customer
-        </Button>
-      </div>
-
-      {customers && customers.length === 0 ? (
-        <Card className="bg-card border-border">
-          <CardContent className="p-12 text-center">
-            <User className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-            <h3 className="text-lg font-medium text-foreground mb-2">No customers yet</h3>
-            <p className="text-muted-foreground mb-4">
-              Start building your customer base by adding your first customer.
-            </p>
+    <MobilePageWrapper title="Customers">
+      <div className="space-y-6">
+        {/* Enhanced Header */}
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <div className="flex flex-col">
+              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Customers</h1>
+              <div className="h-1 w-20 bg-green-600 rounded-full"></div>
+            </div>
             <Button 
               onClick={() => setShowNewCustomerForm(true)}
-              className="bg-green-600 hover:bg-green-700 text-foreground"
+              className="bg-purple-600 hover:bg-purple-700 text-white min-h-[48px] px-6"
+              aria-label="Add new customer"
             >
-              <Plus className="mr-2 h-4 w-4" />
-              Add First Customer
+              <Plus className="mr-2 h-5 w-5" />
+              Add Customer
             </Button>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {customers?.map((customer) => (
-            <Card 
-              key={customer.id} 
-              className="bg-card border-border hover:bg-gray-750 transition-colors cursor-pointer"
-            >
-              <CardContent className="p-6">
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-10 h-10 bg-muted rounded-full flex items-center justify-center">
-                      <User className="h-5 w-5 text-gray-400" />
-                    </div>
-                    <div>
-                      <h3 className="font-semibold text-foreground text-lg">
-                        {customer.name}
-                      </h3>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="space-y-3">
-                  <div className="flex items-center space-x-2 text-gray-300">
-                    <Phone className="h-4 w-4" />
-                    <span className="text-sm">{customer.phone}</span>
-                  </div>
-                  
-                  <div className="flex items-center space-x-2">
-                    <DollarSign className="h-4 w-4 text-gray-400" />
-                    <span className="text-sm text-gray-400">Outstanding Balance:</span>
-                  </div>
-                  <div className="text-right">
-                    <span 
-                      className={`text-lg font-bold ${
-                        Number(customer.balance) > 0 
-                          ? 'text-green-400' 
-                          : 'text-gray-300'
-                      }`}
-                    >
-                      {formatCurrency(customer.balance)}
-                    </span>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
+          </div>
+          
+          {/* Search and Filter Bar */}
+          <div className="flex flex-col sm:flex-row gap-4">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Input
+                type="text"
+                placeholder="Search by name or phone..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 min-h-[48px] border-gray-300 dark:border-gray-600 focus:border-green-500 focus:ring-green-500"
+                aria-label="Search customers"
+              />
+            </div>
+            <div className="flex items-center gap-2">
+              <Filter className="h-4 w-4 text-gray-500" />
+              <Select value={filterType} onValueChange={(value: "all" | "withDebt" | "noDebt") => setFilterType(value)}>
+                <SelectTrigger className="w-40 min-h-[48px] border-gray-300 dark:border-gray-600 focus:border-green-500 focus:ring-green-500">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Customers</SelectItem>
+                  <SelectItem value="withDebt">With Debt</SelectItem>
+                  <SelectItem value="noDebt">No Debt</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
         </div>
-      )}
 
-      {/* Record Payment Section */}
-      <Collapsible open={showPaymentPanel} onOpenChange={setShowPaymentPanel}>
-        <Card className="bg-card border-border">
-          <CollapsibleTrigger asChild>
-            <CardHeader className="cursor-pointer hover:bg-gray-750 transition-colors">
-              <CardTitle className="flex items-center justify-between text-foreground">
-                <div className="flex items-center space-x-2">
-                  <CreditCard className="h-5 w-5" />
-                  <span>Record Payment</span>
-                </div>
-                {showPaymentPanel ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-              </CardTitle>
-            </CardHeader>
-          </CollapsibleTrigger>
-          <CollapsibleContent>
-            <CardContent className="pt-0">
-              <form onSubmit={handlePaymentSubmit} className="space-y-4">
-                <div className="grid gap-4 md:grid-cols-3">
-                  <div>
-                    <Label htmlFor="customer" className="text-foreground">Customer</Label>
-                    <Select value={selectedCustomerId} onValueChange={setSelectedCustomerId}>
-                      <SelectTrigger className="bg-muted border-gray-600 text-foreground">
-                        <SelectValue placeholder="Select customer" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-muted border-gray-600">
-                        {customers?.map((customer) => (
-                          <SelectItem key={customer.id} value={customer.id.toString()}>
-                            {customer.name} - {customer.phone}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label htmlFor="amount" className="text-foreground">Amount (KES)</Label>
-                    <Input
-                      id="amount"
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      value={paymentAmount}
-                      onChange={(e) => setPaymentAmount(e.target.value)}
-                      placeholder="0.00"
-                      className="bg-muted border-gray-600 text-foreground placeholder-muted-foreground"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="method" className="text-foreground">Payment Method</Label>
-                    <Select value={paymentMethod} onValueChange={setPaymentMethod}>
-                      <SelectTrigger className="bg-muted border-gray-600 text-foreground">
-                        <SelectValue placeholder="Select method" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-muted border-gray-600">
-                        <SelectItem value="cash">Cash</SelectItem>
-                        <SelectItem value="mobileMoney">Mobile Money</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                
-                {selectedCustomer && (
-                  <div className="p-3 bg-muted rounded-lg">
-                    <p className="text-sm text-gray-300">
-                      Recording payment for: <span className="text-foreground font-medium">{selectedCustomer.name}</span>
-                    </p>
-                    <p className="text-sm text-gray-300">
-                      Current balance: <span className="text-foreground font-medium">{formatCurrency(selectedCustomer.balance)}</span>
-                    </p>
-                  </div>
-                )}
-
-                <div className="flex justify-end space-x-2">
-                  <Button 
-                    type="button" 
-                    variant="outline" 
-                    onClick={() => setShowPaymentPanel(false)}
-                    className="border-gray-600 text-gray-300 hover:bg-muted"
-                  >
-                    Cancel
-                  </Button>
-                  <Button 
-                    type="submit" 
-                    disabled={!isPaymentFormValid || recordPayment.isPending}
-                    className="bg-green-600 hover:bg-green-700 text-foreground disabled:opacity-50"
-                  >
-                    {recordPayment.isPending ? "Recording..." : "Save Payment"}
-                  </Button>
-                </div>
-              </form>
+        {/* Empty State */}
+        {filteredCustomers.length === 0 && !isLoading ? (
+          <Card className="bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
+            <CardContent className="p-12 text-center">
+              <User className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 dark:text-white mb-2">
+                {customers?.length === 0 ? "No customers yet" : "No customers found"}
+              </h3>
+              <p className="text-gray-600 dark:text-gray-400 mb-4">
+                {customers?.length === 0 
+                  ? "Start building your customer base by adding your first customer."
+                  : "Try adjusting your search or filter criteria."
+                }
+              </p>
+              {customers?.length === 0 && (
+                <Button 
+                  onClick={() => setShowNewCustomerForm(true)}
+                  className="bg-green-600 hover:bg-green-700 text-white min-h-[48px]"
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add First Customer
+                </Button>
+              )}
             </CardContent>
-          </CollapsibleContent>
-        </Card>
-      </Collapsible>
+          </Card>
+        ) : (
+          /* Customer Cards Grid */
+          <AnimatePresence>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {filteredCustomers.map((customer, index) => {
+                const balance = parseFloat(customer.balance || "0");
+                const hasDebt = balance > 0;
+                
+                return (
+                  <motion.div
+                    key={customer.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: -20 }}
+                    transition={{ duration: 0.3, delay: index * 0.1 }}
+                  >
+                    <Card 
+                      className={`
+                        bg-white dark:bg-gray-800 
+                        border-2 transition-all duration-300 cursor-pointer
+                        hover:shadow-xl hover:-translate-y-1 hover:shadow-purple-500/20
+                        ${hasDebt 
+                          ? "border-green-500 shadow-lg shadow-green-500/10" 
+                          : "border-gray-200 dark:border-gray-700"
+                        }
+                      `}
+                    >
+                      <CardContent className="p-6">
+                        {/* Customer Header */}
+                        <div className="flex items-start justify-between mb-4">
+                          <div className="flex items-center space-x-3">
+                            <div className={`
+                              w-12 h-12 rounded-full flex items-center justify-center
+                              ${hasDebt 
+                                ? "bg-green-100 dark:bg-green-900/30" 
+                                : "bg-gray-100 dark:bg-gray-700"
+                              }
+                            `}>
+                              <User className={`h-6 w-6 ${hasDebt ? "text-green-600" : "text-gray-400"}`} />
+                            </div>
+                            <div>
+                              <h3 className="font-bold text-lg text-gray-900 dark:text-white">
+                                {customer.name}
+                              </h3>
+                              {hasDebt && (
+                                <div className="flex items-center gap-1">
+                                  <AlertCircle className="h-3 w-3 text-red-500" />
+                                  <span className="text-xs text-red-600 dark:text-red-400 font-medium">
+                                    Outstanding Debt
+                                  </span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                        
+                        {/* Customer Details */}
+                        <div className="space-y-3 mb-6">
+                          <div className="flex items-center space-x-2 text-gray-600 dark:text-gray-300">
+                            <Phone className="h-4 w-4" />
+                            <span className="text-sm">{customer.phone || "No phone"}</span>
+                          </div>
+                          
+                          <div className="flex items-center space-x-2">
+                            <CreditCard className={`h-4 w-4 ${hasDebt ? "text-red-500" : "text-green-500"}`} />
+                            <span className={`font-semibold ${hasDebt ? "text-red-600 dark:text-red-400" : "text-green-600 dark:text-green-400"}`}>
+                              {hasDebt ? formatCurrency(balance) : "No debt"}
+                            </span>
+                          </div>
+                        </div>
+                        
+                        {/* Action Buttons */}
+                        <div className="flex gap-2">
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            className="flex-1 min-h-[40px] border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+                            aria-label={`View ${customer.name} details`}
+                          >
+                            <Eye className="mr-2 h-4 w-4" />
+                            View
+                          </Button>
+                          
+                          {hasDebt && (
+                            <Button 
+                              onClick={() => handleRecordRepayment(customer)}
+                              size="sm"
+                              className="flex-1 min-h-[40px] bg-green-600 hover:bg-green-700 text-white"
+                              aria-label={`Record repayment for ${customer.name}`}
+                            >
+                              <CreditCard className="mr-2 h-4 w-4" />
+                              Record Repayment
+                            </Button>
+                          )}
+                        </div>
+                      </CardContent>
+                    </Card>
+                  </motion.div>
+                );
+              })}
+            </div>
+          </AnimatePresence>
+        )}
 
-      <CustomerForm 
-        open={showNewCustomerForm} 
-        onOpenChange={setShowNewCustomerForm} 
-      />
-    </div>
+        {/* Customer Form Modal */}
+        <CustomerForm
+          open={showNewCustomerForm}
+          onOpenChange={setShowNewCustomerForm}
+        />
+
+        {/* Record Repayment Modal */}
+        {selectedCustomer && (
+          <RecordRepaymentModal
+            isOpen={showRepaymentModal}
+            onClose={handleCloseRepaymentModal}
+            customer={selectedCustomer}
+          />
+        )}
+      </div>
+    </MobilePageWrapper>
   );
 }

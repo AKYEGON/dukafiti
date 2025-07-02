@@ -257,6 +257,71 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Customer repayment endpoint
+  app.post("/api/customers/:id/payments", requireAuth, async (req, res) => {
+    try {
+      const customerId = parseInt(req.params.id);
+      const { amount, method, note } = req.body;
+      
+      if (!amount || !method) {
+        return res.status(400).json({ message: "Amount and payment method are required" });
+      }
+
+      // Validate customer exists
+      const customer = await storage.getCustomer(customerId);
+      if (!customer) {
+        return res.status(404).json({ message: "Customer not found" });
+      }
+
+      // Validate payment amount
+      const paymentAmount = parseFloat(amount);
+      const currentBalance = parseFloat(customer.balance || "0");
+      
+      if (paymentAmount <= 0) {
+        return res.status(400).json({ message: "Payment amount must be greater than zero" });
+      }
+      
+      if (paymentAmount > currentBalance) {
+        return res.status(400).json({ message: "Payment amount cannot exceed outstanding debt" });
+      }
+
+      // Create payment record
+      const paymentData = {
+        customerId: customerId,
+        amount: paymentAmount.toFixed(2),
+        method: method,
+        reference: note || null
+      };
+
+      const payment = await storage.createPayment(paymentData);
+      
+      // Get updated customer
+      const updatedCustomer = await storage.getCustomer(customerId);
+      
+      // Broadcast real-time payment notification
+      broadcastToClients({
+        type: 'customerPaymentRecorded',
+        data: {
+          customerId,
+          customerName: customer.name,
+          amount: paymentAmount.toFixed(2),
+          paymentMethod: method,
+          note: note || null,
+          timestamp: new Date().toISOString()
+        }
+      });
+      
+      res.status(201).json({ 
+        payment, 
+        customer: updatedCustomer,
+        message: `Repayment of KES ${paymentAmount.toFixed(2)} recorded for ${customer.name}` 
+      });
+    } catch (error) {
+      console.error("Customer payment error:", error);
+      res.status(500).json({ message: "Failed to record payment" });
+    }
+  });
+
   // Payment routes
   app.get("/api/payments", requireAuth, async (req, res) => {
     try {
