@@ -297,6 +297,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.delete("/api/customers/:id", requireAuth, async (req, res) => {
+    try {
+      const customerId = parseInt(req.params.id);
+      await storage.deleteCustomer(customerId);
+      res.status(204).send();
+    } catch (error) {
+      console.error("Customer deletion error:", error);
+      res.status(500).json({ message: "Failed to delete customer" });
+    }
+  });
+
   // Customer repayment endpoint
   app.post("/api/customers/:id/payments", requireAuth, async (req, res) => {
     try {

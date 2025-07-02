@@ -8,6 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
+import { Trash2 } from "lucide-react";
 import type { Customer } from "@shared/schema";
 
 const customerFormSchema = z.object({
@@ -243,22 +244,41 @@ export function CustomerForm({ open, onOpenChange, customer }: CustomerFormProps
               />
             )}
 
-            <div className="flex justify-end space-x-2 pt-4">
-              <Button 
-                type="button" 
-                variant="outline" 
-                onClick={() => onOpenChange(false)}
-                className="border-border text-muted-foreground hover:bg-input"
-              >
-                Cancel
-              </Button>
-              <Button 
-                type="submit" 
-                disabled={createCustomer.isPending || updateCustomer.isPending}
-                className="bg-green-600 hover:bg-green-700 text-foreground"
-              >
-                {createCustomer.isPending || updateCustomer.isPending ? "Saving..." : customer ? "Update Customer" : "Add Customer"}
-              </Button>
+            <div className="flex justify-between space-x-2 pt-4">
+              {customer && (
+                <Button 
+                  type="button" 
+                  variant="destructive"
+                  onClick={() => {
+                    if (confirm(`Are you sure you want to delete ${customer.name}? This action cannot be undone.`)) {
+                      deleteCustomer.mutate();
+                    }
+                  }}
+                  disabled={deleteCustomer.isPending}
+                  className="bg-red-600 hover:bg-red-700 text-white"
+                >
+                  <Trash2 className="mr-2 h-4 w-4" />
+                  {deleteCustomer.isPending ? "Deleting..." : "Delete"}
+                </Button>
+              )}
+              
+              <div className="flex space-x-2 ml-auto">
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  onClick={() => onOpenChange(false)}
+                  className="border-border text-muted-foreground hover:bg-input"
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  type="submit" 
+                  disabled={createCustomer.isPending || updateCustomer.isPending}
+                  className="bg-green-600 hover:bg-green-700 text-foreground"
+                >
+                  {createCustomer.isPending || updateCustomer.isPending ? "Saving..." : customer ? "Update Customer" : "Add Customer"}
+                </Button>
+              </div>
             </div>
           </form>
         </Form>
