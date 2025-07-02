@@ -102,7 +102,6 @@ export default function Customers() {
         <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex flex-col">
-              <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Customers</h1>
               <div className="h-1 w-20 bg-green-600 rounded-full"></div>
             </div>
             <Button 
