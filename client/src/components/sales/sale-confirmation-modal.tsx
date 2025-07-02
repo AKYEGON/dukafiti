@@ -14,7 +14,7 @@ interface SaleConfirmationModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   items: SaleLineItem[];
-  paymentMethod: 'cash' | 'mpesa' | 'credit' | '';
+  paymentMethod: 'cash' | 'mpesa' | 'credit' | 'mobileMoney' | '';
   onConfirm: (customer?: { name: string; phone?: string; isNew?: boolean }) => void;
   isProcessing?: boolean;
 }
@@ -94,6 +94,7 @@ export function SaleConfirmationModal({
     switch (method) {
       case 'cash': return <Banknote className="w-4 h-4" />;
       case 'mpesa': return <Smartphone className="w-4 h-4" />;
+      case 'mobileMoney': return <Smartphone className="w-4 h-4" />;
       case 'credit': return <User className="w-4 h-4" />;
       default: return <CreditCard className="w-4 h-4" />;
     }
@@ -143,7 +144,11 @@ export function SaleConfirmationModal({
             <label className="text-sm font-medium text-gray-700">Payment Method:</label>
             <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
               {getPaymentMethodIcon(paymentMethod)}
-              <span className="capitalize font-medium">{paymentMethod === 'mpesa' ? 'M-Pesa' : paymentMethod}</span>
+              <span className="capitalize font-medium">
+                {paymentMethod === 'mpesa' ? 'M-Pesa' : 
+                 paymentMethod === 'mobileMoney' ? 'Mobile Money' : 
+                 paymentMethod}
+              </span>
             </div>
           </div>
 

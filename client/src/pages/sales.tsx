@@ -18,7 +18,7 @@ import { MobilePageWrapper } from "@/components/layout/mobile-page-wrapper";
 export default function Sales() {
   const [cartItems, setCartItems] = useState<SaleLineItem[]>([]);
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState<'cash' | 'mpesa' | 'credit' | ''>('');
+  const [paymentMethod, setPaymentMethod] = useState<'cash' | 'mpesa' | 'credit' | 'mobileMoney' | ''>('');
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -36,7 +36,7 @@ export default function Sales() {
   const createSaleMutation = useMutation({
     mutationFn: async (saleData: { 
       items: Array<{ productId: number; qty: number }>;
-      paymentType: 'cash' | 'mpesa' | 'credit';
+      paymentType: 'cash' | 'mpesa' | 'credit' | 'mobileMoney';
       customerName?: string;
       customerPhone?: string;
     }) => {
@@ -49,7 +49,7 @@ export default function Sales() {
             quantity: item.qty,
             price: cartItems.find(cartItem => cartItem.product.id === item.productId)?.unitPrice || "0"
           })),
-          paymentType: saleData.paymentType as 'cash' | 'credit',
+          paymentType: saleData.paymentType as 'cash' | 'credit' | 'mobileMoney',
           customerName: saleData.customerName,
           customerPhone: saleData.customerPhone,
         });
@@ -99,8 +99,9 @@ export default function Sales() {
           duration: 5000
         });
       } else if (status === 'paid') {
+        const paymentLabel = paymentMethod === 'mobileMoney' ? 'Mobile Money' : 'Cash';
         toast({ 
-          title: "Sale recorded (Cash)", 
+          title: `Sale recorded (${paymentLabel})`, 
           description: `Sale #${result.saleId} completed successfully`,
           className: "bg-green-50 border-green-200 text-green-800",
           duration: 3000
@@ -241,7 +242,7 @@ export default function Sales() {
         productId: item.product.id,
         qty: item.quantity,
       })),
-      paymentType: paymentMethod as 'cash' | 'mpesa' | 'credit',
+      paymentType: paymentMethod as 'cash' | 'mpesa' | 'credit' | 'mobileMoney',
       customer: customerName,
     };
 
@@ -385,6 +386,16 @@ export default function Sales() {
                           M-Pesa
                         </button>
                       )}
+                      <button
+                        onClick={() => setPaymentMethod('mobileMoney')}
+                        className={`flex-1 py-2 px-4 rounded-full text-sm font-medium transition-colors ${
+                          paymentMethod === 'mobileMoney'
+                            ? 'bg-[#00AA00] text-foreground'
+                            : 'bg-background text-foreground hover:bg-muted'
+                        }`}
+                      >
+                        Mobile Money
+                      </button>
                       <button
                         onClick={() => setPaymentMethod('credit')}
                         className={`flex-1 py-2 px-4 rounded-full text-sm font-medium transition-colors ${

@@ -7,7 +7,7 @@ export interface PendingSale {
     quantity: number;
     price: string;
   }>;
-  paymentType: 'cash' | 'credit';
+  paymentType: 'cash' | 'credit' | 'mobileMoney';
   reference?: string;
   customerName?: string;
   customerPhone?: string;

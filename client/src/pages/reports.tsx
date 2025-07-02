@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { BarChart3, DollarSign, CreditCard, AlertTriangle, TrendingUp, Users, Download, MessageCircle, Mail, Search, ChevronLeft, ChevronRight } from "lucide-react";
+import { BarChart3, DollarSign, CreditCard, AlertTriangle, TrendingUp, Users, Download, MessageCircle, Mail, Search, ChevronLeft, ChevronRight, Smartphone } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -16,6 +16,7 @@ interface SummaryData {
     cash: string;
     mpesa: string;
     credit: string;
+    mobileMoney: string;
   };
   pendingMpesa: number;
   lowStockItems: number;
@@ -241,6 +242,7 @@ export default function Reports() {
       { metric: 'Total Sales This Week', value: summaryData.totalSalesWeek },
       { metric: 'Total Sales This Month', value: summaryData.totalSalesMonth },
       { metric: 'Cash Sales', value: summaryData.paymentBreakdown.cash },
+      { metric: 'Mobile Money Sales', value: summaryData.paymentBreakdown.mobileMoney },
       { metric: 'M-Pesa Sales', value: summaryData.paymentBreakdown.mpesa },
       { metric: 'Credit Sales', value: summaryData.paymentBreakdown.credit },
       { metric: 'Pending M-Pesa Payments', value: summaryData.pendingMpesa.toString() },
@@ -401,6 +403,18 @@ export default function Reports() {
           <CardContent>
             <div className="text-2xl font-bold text-foreground">
               {formatCurrency(summaryData?.paymentBreakdown.cash || "0")}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-gray-400">Mobile Money</CardTitle>
+            <Smartphone className="h-4 w-4 text-green-500" />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-foreground">
+              {formatCurrency(summaryData?.paymentBreakdown.mobileMoney || "0")}
             </div>
           </CardContent>
         </Card>
