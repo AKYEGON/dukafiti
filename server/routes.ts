@@ -234,6 +234,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Product search endpoint
+  app.get("/api/products/search", requireAuth, async (req, res) => {
+    try {
+      const query = req.query.q as string;
+      if (!query || query.trim().length < 1) {
+        return res.json([]);
+      }
+      
+      const searchResults = await storage.searchProducts(query.trim());
+      // Limit to 8 results as requested
+      res.json(searchResults.slice(0, 8));
+    } catch (error) {
+      console.error("Error searching products:", error);
+      res.status(500).json({ message: "Failed to search products" });
+    }
+  });
+
   // Customer routes
   app.get("/api/customers", requireAuth, async (req, res) => {
     try {

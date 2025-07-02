@@ -1,22 +1,16 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
-import { ShoppingCart, CreditCard, Smartphone, Banknote } from "lucide-react";
+import { ShoppingCart, CreditCard, Smartphone, Banknote, Search, ChevronDown, ChevronUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { type Product } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
+import { type SaleLineItem } from "@/components/sales/sale-line-item";
 import { formatCurrency } from "@/lib/utils";
 import { offlineQueue, isOnline } from "@/lib/offline-queue";
 import { Skeleton } from "@/components/ui/skeleton";
 
-// Cart item interface
-interface CartItem {
-  id: string;
-  product: Product;
-  quantity: number;
-  unitPrice: string;
-  total: string;
-}
+// Use SaleLineItem from the components instead of local CartItem
 
 // Confirmation modal component
 const ConfirmationModal = ({ 
@@ -29,7 +23,7 @@ const ConfirmationModal = ({
 }: {
   isOpen: boolean;
   onClose: () => void;
-  cartItems: CartItem[];
+  cartItems: SaleLineItem[];
   paymentMethod: 'cash' | 'credit' | 'mobileMoney';
   onConfirm: (customer?: { name: string; phone?: string }) => void;
   isProcessing: boolean;
@@ -138,12 +132,21 @@ const ConfirmationModal = ({
 };
 
 export default function Sales() {
-  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [cartItems, setCartItems] = useState<SaleLineItem[]>([]);
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<'cash' | 'credit' | 'mobileMoney' | ''>('');
+  
+  // Smart search state
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<Product[]>([]);
+  const [showSearchDropdown, setShowSearchDropdown] = useState(false);
+  const [selectedSearchIndex, setSelectedSearchIndex] = useState(-1);
+  const [searchLoading, setSearchLoading] = useState(false);
+  
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const buttonRef = useRef<HTMLButtonElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   // Fetch all products for quick select functionality
   const { data: products = [], isLoading: productsLoading } = useQuery<Product[]>({
@@ -158,6 +161,90 @@ export default function Sales() {
   const quickSelectProducts = frequentProducts.length > 0 
     ? frequentProducts.slice(0, 6) 
     : products.slice(0, 6);
+
+  // Debounced search function
+  const debouncedSearch = useCallback(
+    async (query: string) => {
+      if (query.trim().length < 1) {
+        setSearchResults([]);
+        setShowSearchDropdown(false);
+        return;
+      }
+
+      setSearchLoading(true);
+      try {
+        const response = await fetch(`/api/products/search?q=${encodeURIComponent(query)}`, {
+          credentials: 'include'
+        });
+        if (response.ok) {
+          const results = await response.json();
+          setSearchResults(results);
+          setShowSearchDropdown(results.length > 0);
+          setSelectedSearchIndex(-1);
+        }
+      } catch (error) {
+        console.error('Search error:', error);
+        setSearchResults([]);
+        setShowSearchDropdown(false);
+      } finally {
+        setSearchLoading(false);
+      }
+    },
+    []
+  );
+
+  // Search debounce effect
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      debouncedSearch(searchQuery);
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+  }, [searchQuery, debouncedSearch]);
+
+  // Handle search input
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+  };
+
+  // Handle search keyboard navigation
+  const handleSearchKeyDown = (e: React.KeyboardEvent) => {
+    if (!showSearchDropdown || searchResults.length === 0) return;
+
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault();
+        setSelectedSearchIndex(prev => 
+          prev < searchResults.length - 1 ? prev + 1 : 0
+        );
+        break;
+      case 'ArrowUp':
+        e.preventDefault();
+        setSelectedSearchIndex(prev => 
+          prev > 0 ? prev - 1 : searchResults.length - 1
+        );
+        break;
+      case 'Enter':
+        e.preventDefault();
+        if (selectedSearchIndex >= 0 && selectedSearchIndex < searchResults.length) {
+          const selectedProduct = searchResults[selectedSearchIndex];
+          handleProductSelect(selectedProduct);
+        }
+        break;
+      case 'Escape':
+        setShowSearchDropdown(false);
+        setSelectedSearchIndex(-1);
+        break;
+    }
+  };
+
+  // Handle search result selection
+  const handleSearchResultSelect = (product: Product) => {
+    handleProductSelect(product);
+    setSearchQuery('');
+    setShowSearchDropdown(false);
+    setSelectedSearchIndex(-1);
+  };
 
   const createSaleMutation = useMutation({
     mutationFn: async (saleData: { 
@@ -423,26 +510,28 @@ export default function Sales() {
       {/* Mobile-First Single-Column Flow */}
       <div className="px-4 py-3 space-y-4 pb-24">{/* pb-24 for sticky button space */}
         
-        {/* 1. Quick-Select Panel */}
-        <div className="bg-white dark:bg-[#1F1F1F] rounded-lg p-2 shadow-sm">
-          <h3 className="text-sm font-medium text-muted-foreground mb-2 px-2">Quick Select</h3>
+        {/* 1. Quick-Select Panel (Top 6) */}
+        <div className="bg-white dark:bg-[#1F1F1F] rounded-lg p-4 shadow-sm">
+          <h3 className="text-sm font-medium text-muted-foreground mb-3">Quick Select</h3>
           {productsLoading ? (
             <div className="flex gap-2 overflow-x-auto">
               {[...Array(6)].map((_, i) => (
-                <Skeleton key={i} className="w-24 h-12 flex-shrink-0 rounded" />
+                <Skeleton key={i} className="min-w-24 h-12 flex-shrink-0 rounded" />
               ))}
             </div>
           ) : quickSelectProducts.length > 0 ? (
-            <div className="flex gap-2 overflow-x-auto pb-2">
+            <div className="flex gap-2 overflow-x-auto pb-1">
               {quickSelectProducts.map((product) => (
                 <button
                   key={product.id}
                   onClick={() => handleProductSelect(product)}
-                  className="w-24 h-12 flex-shrink-0 bg-gray-50 dark:bg-gray-800 hover:bg-green-50 dark:hover:bg-green-900/20 border border-gray-200 dark:border-gray-600 rounded text-xs p-1 transition-all duration-200 transform active:scale-95 focus:outline-none focus:ring-2 focus:ring-green-600"
+                  aria-label={`Add ${product.name} to cart`}
+                  className="min-w-24 h-12 flex-shrink-0 bg-gray-50 dark:bg-gray-800 hover:bg-purple-50 dark:hover:bg-purple-900/20 border border-gray-200 dark:border-gray-600 rounded text-xs p-2 transition-all duration-200 transform active:scale-95 focus:outline-none focus:ring-2 focus:ring-purple-600"
+                  style={{ minHeight: '48px' }}
                 >
                   <div className="text-center">
-                    <div className="font-medium truncate">{product.name}</div>
-                    <div className="text-green-600">{formatCurrency(product.price)}</div>
+                    <div className="font-medium truncate leading-tight">{product.name}</div>
+                    <div className="text-purple-600 font-semibold">{formatCurrency(product.price)}</div>
                   </div>
                 </button>
               ))}
@@ -452,9 +541,58 @@ export default function Sales() {
               No products available for quick select
             </div>
           )}
+          
+          {/* Subtle divider */}
+          <div className="border-t border-gray-200 dark:border-gray-700 mt-4 mb-4"></div>
+          
+          {/* 2. Smart Product Search Bar */}
+          <div className="relative">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+              <input
+                ref={searchInputRef}
+                type="text"
+                value={searchQuery}
+                onChange={handleSearchChange}
+                onKeyDown={handleSearchKeyDown}
+                onFocus={() => searchQuery.length > 0 && setShowSearchDropdown(true)}
+                onBlur={() => setTimeout(() => setShowSearchDropdown(false), 200)}
+                placeholder="Search products..."
+                aria-label="Search products to add to cart"
+                className="w-full h-12 pl-10 pr-4 border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent transition-all duration-200"
+                style={{ minHeight: '48px' }}
+              />
+              {searchLoading && (
+                <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                  <div className="animate-spin h-4 w-4 border-2 border-purple-600 border-t-transparent rounded-full"></div>
+                </div>
+              )}
+            </div>
+            
+            {/* Search Dropdown */}
+            {showSearchDropdown && searchResults.length > 0 && (
+              <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg max-h-64 overflow-y-auto">
+                {searchResults.map((product, index) => (
+                  <button
+                    key={product.id}
+                    onClick={() => handleSearchResultSelect(product)}
+                    className={`w-full px-4 py-3 text-left hover:bg-gray-50 dark:hover:bg-gray-700 border-b border-gray-100 dark:border-gray-700 last:border-b-0 transition-colors ${
+                      index === selectedSearchIndex ? 'bg-purple-50 dark:bg-purple-900/20' : ''
+                    }`}
+                    style={{ minHeight: '48px' }}
+                  >
+                    <div className="flex justify-between items-center">
+                      <span className="font-medium text-foreground">{product.name}</span>
+                      <span className="text-purple-600 font-semibold">{formatCurrency(product.price)}</span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
-        {/* 2. Mini-Cart Summary */}
+        {/* 3. Mini-Cart Summary */}
         <div className="bg-white dark:bg-[#1F1F1F] rounded-lg p-4 shadow-md">
           <h3 className="text-lg font-semibold mb-3">Cart</h3>
           
