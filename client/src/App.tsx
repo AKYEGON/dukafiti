@@ -30,15 +30,22 @@ function AuthenticatedApp() {
   // Initialize WebSocket connection for real-time notifications
   useWebSocket();
   
+  // Sidebar collapse state
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  
+  const toggleSidebar = () => {
+    setSidebarCollapsed(prev => !prev);
+  };
+  
   return (
     <div className="flex h-screen bg-background text-foreground overflow-hidden">
       {/* Desktop Sidebar - hidden on mobile */}
       <div className="hidden sm:block">
-        <Sidebar />
+        <Sidebar collapsed={sidebarCollapsed} />
       </div>
       
       <div className="flex-1 flex flex-col main-content min-w-0">
-        <TopBar />
+        <TopBar onToggleSidebar={toggleSidebar} isSidebarCollapsed={sidebarCollapsed} />
         <main className="flex-1 overflow-y-auto bg-background pb-16 sm:pb-0">
           <Switch>
             <Route path="/" component={Dashboard} />

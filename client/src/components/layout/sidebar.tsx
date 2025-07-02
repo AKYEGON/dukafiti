@@ -22,12 +22,12 @@ const getPageTitle = (location: string) => {
 
 interface SidebarProps {
   className?: string;
+  collapsed?: boolean;
 }
 
-export function Sidebar({ className }: SidebarProps) {
+export function Sidebar({ className, collapsed = false }: SidebarProps) {
   const [location] = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isDesktopCollapsed, setIsDesktopCollapsed] = useState(false);
   const pageTitle = getPageTitle(location);
 
   // Handle escape key to close mobile menu
@@ -79,17 +79,7 @@ export function Sidebar({ className }: SidebarProps) {
             </div>
           </div>
           
-          {/* Desktop collapse button */}
-          {!isMobile && (
-            <Button
-              variant="ghost"
-              size="sm"
-              className="hidden lg:flex text-sidebar-foreground hover:bg-sidebar-accent h-10 w-10"
-              onClick={() => setIsDesktopCollapsed(!isDesktopCollapsed)}
-            >
-              {isDesktopCollapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
-            </Button>
-          )}
+
           
           {/* Mobile close button */}
           {isMobile && (
@@ -169,10 +159,10 @@ export function Sidebar({ className }: SidebarProps) {
       {/* Desktop sidebar with collapsible animation */}
       <aside className={cn(
         "hidden lg:flex flex-col bg-sidebar text-sidebar-foreground transition-all duration-300 ease-in-out flex-shrink-0 h-full overflow-hidden border-r border-sidebar-border",
-        isDesktopCollapsed ? "w-16" : "w-64",
+        collapsed ? "w-16" : "w-64",
         className
       )}>
-        <SidebarContent isCollapsed={isDesktopCollapsed} />
+        <SidebarContent isCollapsed={collapsed} />
       </aside>
 
       {/* Mobile sidebar overlay with slide animation */}
