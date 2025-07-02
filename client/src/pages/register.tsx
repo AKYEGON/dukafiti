@@ -98,7 +98,7 @@ export default function Register() {
                   <FormControl>
                     <Input 
                       type="text"
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-green-600 bg-white dark:bg-[#1F1F1F] text-gray-900 dark:text-white min-h-[44px]"
+                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-green-600 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white min-h-[44px]"
                       {...field} 
                     />
                   </FormControl>
@@ -118,7 +118,7 @@ export default function Register() {
                   <FormControl>
                     <Input 
                       type="email"
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-green-600 bg-white dark:bg-[#1F1F1F] text-gray-900 dark:text-white min-h-[44px]"
+                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-green-600 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white min-h-[44px]"
                       {...field} 
                     />
                   </FormControl>
@@ -139,7 +139,7 @@ export default function Register() {
                     <div className="relative">
                       <Input 
                         type={showPassword ? "text" : "password"}
-                        className="w-full px-4 py-3 pr-12 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-green-600 bg-white dark:bg-[#1F1F1F] text-gray-900 dark:text-white min-h-[44px]"
+                        className="w-full px-4 py-3 pr-12 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-green-600 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white min-h-[44px]"
                         {...field} 
                       />
                       <button
@@ -172,7 +172,7 @@ export default function Register() {
                     <div className="relative">
                       <Input 
                         type={showConfirmPassword ? "text" : "password"}
-                        className="w-full px-4 py-3 pr-12 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-green-600 bg-white dark:bg-[#1F1F1F] text-gray-900 dark:text-white min-h-[44px]"
+                        className="w-full px-4 py-3 pr-12 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-green-600 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white min-h-[44px]"
                         {...field} 
                       />
                       <button
