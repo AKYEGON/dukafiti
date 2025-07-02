@@ -197,6 +197,11 @@ export function CustomerForm({ open, onOpenChange, customer }: CustomerFormProps
                           min="0"
                           placeholder="0.00" 
                           {...field} 
+                          value={field.value || ''}
+                          onChange={(e) => {
+                            console.log("Balance field changed:", e.target.value);
+                            field.onChange(e.target.value);
+                          }}
                           className="bg-input border-border text-foreground placeholder-muted-foreground pl-12"
                         />
                       </div>
