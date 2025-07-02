@@ -1,12 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { useToast } from '@/hooks/use-toast';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { Download, Share2, Search, ChevronLeft, ChevronRight } from 'lucide-react';
-import { MobilePageWrapper } from '@/components/layout/mobile-page-wrapper';
+import { Download, ExternalLink } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
+import { formatCurrency } from '@/lib/utils';
 
 // Types
 interface SummaryData {
@@ -87,21 +86,9 @@ export default function Reports() {
   
   // Orders Record state
   const [ordersPeriod, setOrdersPeriod] = useState<'daily' | 'weekly' | 'monthly'>('daily');
-  const [ordersSearchQuery, setOrdersSearchQuery] = useState('');
   const [ordersPage, setOrdersPage] = useState(1);
-  const [debouncedOrdersQuery, setDebouncedOrdersQuery] = useState('');
   
   const [exportingCSV, setExportingCSV] = useState<string | null>(null);
-  const { toast } = useToast();
-
-  // Debounce search query
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setDebouncedOrdersQuery(ordersSearchQuery);
-      setOrdersPage(1);
-    }, 300);
-    return () => clearTimeout(timer);
-  }, [ordersSearchQuery]);
 
   // Fetch summary data
   const { data: summaryData, isLoading: summaryLoading, error: summaryError } = useQuery<SummaryData>({
@@ -145,679 +132,267 @@ export default function Reports() {
 
   // Fetch orders data
   const { data: ordersData, isLoading: ordersLoading, error: ordersError } = useQuery<OrdersResponse>({
-    queryKey: ['/api/reports/orders', ordersPeriod, debouncedOrdersQuery, ordersPage],
+    queryKey: ['/api/reports/orders', ordersPeriod, ordersPage],
     queryFn: async () => {
       const params = new URLSearchParams({
         period: ordersPeriod,
         page: ordersPage.toString(),
-        limit: '20'
+        limit: '10'
       });
-      
-      if (debouncedOrdersQuery) {
-        params.set('q', debouncedOrdersQuery);
-      }
-      
       const response = await fetch(`/api/reports/orders?${params}`);
       if (!response.ok) throw new Error('Failed to fetch orders');
       return response.json();
     }
   });
 
-  // Upload CSV to server and get shareable URL
-  const uploadCSVToServer = async (csvContent: string, filename: string): Promise<string | null> => {
+  // CSV Export Functions
+  const exportSummaryCSV = async () => {
+    if (!summaryData) return;
+    
+    setExportingCSV('summary');
     try {
-      const response = await fetch('/api/exports', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ filename, content: csvContent })
-      });
+      const csvData = [
+        { type: 'Total Sales', amount: summaryData.totalSales },
+        { type: 'Cash Sales', amount: summaryData.cashSales },
+        { type: 'Mobile Money Sales', amount: summaryData.mobileMoneySales },
+        { type: 'Credit Sales', amount: summaryData.creditSales }
+      ];
       
-      if (!response.ok) throw new Error('Failed to upload CSV');
-      
-      const { url } = await response.json();
-      return window.location.origin + url;
-    } catch (error) {
-      console.error('CSV upload error:', error);
-      return null;
-    }
-  };
-
-  // Share via WhatsApp
-  const shareViaWhatsApp = (csvUrl: string, type: string) => {
-    const message = `Check out this ${type} report from DukaSmart: ${csvUrl}`;
-    const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
-    window.open(whatsappUrl, '_blank');
-  };
-
-  // Share via Email
-  const shareViaEmail = (csvUrl: string, type: string) => {
-    const subject = `DukaSmart ${type} Report`;
-    const body = `Hi,\n\nPlease find attached the ${type} report from DukaSmart.\n\nReport Link: ${csvUrl}\n\nBest regards`;
-    const mailtoUrl = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    window.open(mailtoUrl);
-  };
-
-  // Enhanced CSV Export Functions
-  const exportAndShareCSV = async (type: 'summary' | 'top-items' | 'inventory' | 'orders', data: any[], headers: string[], filename: string): Promise<string | null> => {
-    setExportingCSV(type);
-    try {
-      const csv = convertToCSV(data, headers);
-      
-      // Download locally
-      downloadCSV(csv, filename);
-      
-      // Upload for sharing
-      const csvUrl = await uploadCSVToServer(csv, filename);
-      
-      if (csvUrl) {
-        toast({
-          title: "Export Successful",
-          description: "CSV downloaded and ready for sharing",
-        });
-        return csvUrl;
-      }
-      return null;
-    } catch (error) {
-      toast({
-        title: "Export Failed",
-        description: "Failed to export CSV",
-        variant: "destructive"
-      });
-      return null;
+      const csv = convertToCSV(csvData, ['type', 'amount']);
+      downloadCSV(csv, `sales-summary-${summaryPeriod}-${new Date().toISOString().split('T')[0]}.csv`);
     } finally {
       setExportingCSV(null);
     }
-  };
-
-  const exportSummaryCSV = async (): Promise<string | null> => {
-    if (!summaryData) return null;
-    
-    const data = [{
-      metric: 'Total Sales',
-      amount: summaryData.totalSales
-    }, {
-      metric: 'Cash Sales',
-      amount: summaryData.cashSales
-    }, {
-      metric: 'Mobile Money Sales',
-      amount: summaryData.mobileMoneySales
-    }, {
-      metric: 'Credit Sales',
-      amount: summaryData.creditSales
-    }];
-    
-    return await exportAndShareCSV('summary', data, ['Metric', 'Amount'], 'summary.csv');
-  };
-
-  const exportTopItemsCSV = async (): Promise<string | null> => {
-    if (!topItemsData) return null;
-    return await exportAndShareCSV('top-items', topItemsData, ['Name', 'Units Sold', 'Revenue'], 'top-items.csv');
-  };
-
-  const exportInventoryCSV = async (): Promise<string | null> => {
-    try {
-      const response = await fetch('/api/products');
-      if (!response.ok) throw new Error('Failed to fetch inventory');
-      const products = await response.json();
-      
-      return await exportAndShareCSV('inventory', products, ['Name', 'SKU', 'Price', 'Stock', 'Category'], 'inventory.csv');
-    } catch (error) {
-      console.error('Failed to export inventory:', error);
-      toast({
-        title: "Export Failed",
-        description: "Failed to fetch inventory data",
-        variant: "destructive"
-      });
-      return null;
-    }
-  };
-
-  const exportOrdersCSV = async (): Promise<string | null> => {
-    if (!ordersData) return null;
-    
-    setExportingCSV('orders');
-    try {
-      const data = ordersData.orders.map(order => ({
-        orderId: order.orderId,
-        date: order.date,
-        customerName: order.customerName,
-        totalAmount: order.totalAmount,
-        status: order.status,
-        items: order.items.map(item => `${item.productName} x${item.qty}`).join('; ')
-      }));
-      
-      const csv = convertToCSV(data, ['Order ID', 'Date', 'Customer Name', 'Total Amount', 'Status', 'Items']);
-      
-      // Download locally
-      downloadCSV(csv, 'orders.csv');
-      
-      // Upload for sharing
-      const csvUrl = await uploadCSVToServer(csv, 'orders.csv');
-      
-      if (csvUrl) {
-        toast({
-          title: "Export Successful",
-          description: "CSV downloaded and ready for sharing",
-        });
-        return csvUrl;
-      }
-      return null;
-    } catch (error) {
-      toast({
-        title: "Export Failed",
-        description: "Failed to export orders CSV",
-        variant: "destructive"
-      });
-      return null;
-    } finally {
-      setExportingCSV(null);
-    }
-  };
-
-  // Share button component
-  const ShareButtons = ({ onExport, type, disabled }: { onExport: () => Promise<string | null>, type: string, disabled?: boolean }) => {
-    const [csvUrl, setCsvUrl] = useState<string | null>(null);
-    const isExporting = exportingCSV === type;
-
-    const handleExport = async () => {
-      const url = await onExport();
-      setCsvUrl(url);
-    };
-
-    return (
-      <div className="flex items-center gap-2">
-        <Button
-          onClick={handleExport}
-          disabled={disabled || isExporting}
-          size="sm"
-          className="bg-green-600 hover:bg-green-700 text-white"
-        >
-          {isExporting ? (
-            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-          ) : (
-            <Download className="h-4 w-4" />
-          )}
-          {isExporting ? 'Exporting...' : 'Export CSV'}
-        </Button>
-        
-        {csvUrl && (
-          <div className="flex gap-1">
-            <Button
-              onClick={() => shareViaWhatsApp(csvUrl, type)}
-              size="sm"
-              variant="outline"
-              className="text-green-600 border-green-600 hover:bg-green-50"
-            >
-              WhatsApp
-            </Button>
-            <Button
-              onClick={() => shareViaEmail(csvUrl, type)}
-              size="sm"
-              variant="outline"
-              className="text-green-600 border-green-600 hover:bg-green-50"
-            >
-              Email
-            </Button>
-          </div>
-        )}
-      </div>
-    );
   };
 
   return (
-    <MobilePageWrapper title="Reports">
-      <div className="space-y-6">
-        {/* Sticky Header with Timeframe Selector */}
-        <div className="sticky top-0 bg-background z-10 pb-4 border-b border-border">
-          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-            <div className="flex items-center gap-2">
-              <label className="text-sm font-medium text-foreground">
-                Summary Timeframe:
-              </label>
+    <div className="min-h-screen bg-background p-6 lg:p-12">
+      <div className="space-y-8">
+        {/* Header */}
+        <div>
+          <h1 className="text-2xl font-bold text-neutral-900 dark:text-neutral-100 mb-2">Reports</h1>
+          <p className="text-neutral-600 dark:text-neutral-400">View your business analytics and performance</p>
+        </div>
+
+        {/* Desktop: Two Column Layout / Mobile: Single Column */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Left Column: Summary & Trend */}
+          <div className="lg:col-span-2 space-y-8">
+            
+            {/* Timeframe Selector */}
+            <div className="flex items-center gap-4">
+              <label className="text-sm font-medium text-neutral-900 dark:text-neutral-100">Timeframe:</label>
               <Select value={summaryPeriod} onValueChange={(value: 'today' | 'weekly' | 'monthly') => setSummaryPeriod(value)}>
-                <SelectTrigger className="w-32 border-emerald focus:ring-emerald">
+                <SelectTrigger className="w-40 bg-gray-50 dark:bg-gray-800 border rounded px-3 py-2 focus:ring-2 focus:ring-emerald-500">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="today">Today</SelectItem>
-                  <SelectItem value="weekly">This Week</SelectItem>
-                  <SelectItem value="monthly">This Month</SelectItem>
+                  <SelectItem value="weekly">Week</SelectItem>
+                  <SelectItem value="monthly">Month</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-            
-            <ShareButtons onExport={exportSummaryCSV} type="summary" disabled={!summaryData} />
-          </div>
-        </div>
 
-        {/* Unified Summary Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card className="bg-black border-gray-700 hover:scale-105 transition-transform">
-            <CardContent className="p-4">
-              <div className="text-center">
-                <p className="text-sm text-gray-400 mb-1">Total Sales</p>
+            {/* Summary Cards */}
+            <div className="flex gap-4 overflow-x-auto pb-4">
+              {/* Total Sales Card */}
+              <div className="bg-white dark:bg-[#1F1F1F] border border-gray-200 dark:border-gray-700 rounded-lg p-4 shadow-sm min-w-[200px]">
+                <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Total Sales</p>
                 {summaryLoading ? (
-                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-green-600 mx-auto"></div>
-                ) : summaryError ? (
-                  <p className="text-red-400 text-xs">Error loading</p>
+                  <Skeleton className="h-6 w-24" />
                 ) : (
-                  <p className="text-2xl font-bold text-green-600">
-                    KES {summaryData?.totalSales || '0.00'}
+                  <p className="text-xl font-bold text-neutral-900 dark:text-neutral-100">
+                    {formatCurrency(summaryData?.totalSales || '0')}
                   </p>
                 )}
               </div>
-            </CardContent>
-          </Card>
 
-          <Card className="bg-black border-gray-700 hover:scale-105 transition-transform">
-            <CardContent className="p-4">
-              <div className="text-center">
-                <p className="text-sm text-gray-400 mb-1">Cash Sales</p>
+              {/* Cash Sales Card */}
+              <div className="bg-white dark:bg-[#1F1F1F] border border-gray-200 dark:border-gray-700 rounded-lg p-4 shadow-sm min-w-[200px]">
+                <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Cash</p>
                 {summaryLoading ? (
-                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-green-600 mx-auto"></div>
-                ) : summaryError ? (
-                  <p className="text-red-400 text-xs">Error loading</p>
+                  <Skeleton className="h-6 w-24" />
                 ) : (
-                  <p className="text-2xl font-bold text-green-600">
-                    KES {summaryData?.cashSales || '0.00'}
+                  <p className="text-xl font-bold text-neutral-900 dark:text-neutral-100">
+                    {formatCurrency(summaryData?.cashSales || '0')}
                   </p>
                 )}
               </div>
-            </CardContent>
-          </Card>
 
-          <Card className="bg-black border-gray-700 hover:scale-105 transition-transform">
-            <CardContent className="p-4">
-              <div className="text-center">
-                <p className="text-sm text-gray-400 mb-1">Mobile Money</p>
+              {/* Mobile Money Card */}
+              <div className="bg-white dark:bg-[#1F1F1F] border border-gray-200 dark:border-gray-700 rounded-lg p-4 shadow-sm min-w-[200px]">
+                <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Mobile Money</p>
                 {summaryLoading ? (
-                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-green-600 mx-auto"></div>
-                ) : summaryError ? (
-                  <p className="text-red-400 text-xs">Error loading</p>
+                  <Skeleton className="h-6 w-24" />
                 ) : (
-                  <p className="text-2xl font-bold text-green-600">
-                    KES {summaryData?.mobileMoneySales || '0.00'}
+                  <p className="text-xl font-bold text-neutral-900 dark:text-neutral-100">
+                    {formatCurrency(summaryData?.mobileMoneySales || '0')}
                   </p>
                 )}
               </div>
-            </CardContent>
-          </Card>
 
-          <Card className="bg-black border-gray-700 hover:scale-105 transition-transform">
-            <CardContent className="p-4">
-              <div className="text-center">
-                <p className="text-sm text-gray-400 mb-1">Credit Sales</p>
+              {/* Credit Sales Card */}
+              <div className="bg-white dark:bg-[#1F1F1F] border border-gray-200 dark:border-gray-700 rounded-lg p-4 shadow-sm min-w-[200px]">
+                <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Credit</p>
                 {summaryLoading ? (
-                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-green-600 mx-auto"></div>
-                ) : summaryError ? (
-                  <p className="text-red-400 text-xs">Error loading</p>
+                  <Skeleton className="h-6 w-24" />
                 ) : (
-                  <p className="text-2xl font-bold text-green-600">
-                    KES {summaryData?.creditSales || '0.00'}
+                  <p className="text-xl font-bold text-neutral-900 dark:text-neutral-100">
+                    {formatCurrency(summaryData?.creditSales || '0')}
                   </p>
                 )}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Sales Trend Chart */}
-        <div className="space-y-4">
-          {/* Graph View Selector */}
-          <div className="flex items-center gap-2">
-            <label className="text-sm font-medium text-foreground">
-              Graph View:
-            </label>
-            <Select value={trendPeriod} onValueChange={(value: 'daily' | 'weekly' | 'monthly') => setTrendPeriod(value)}>
-              <SelectTrigger className="w-28 border-emerald focus:ring-emerald">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="daily">Daily</SelectItem>
-                <SelectItem value="weekly">Weekly</SelectItem>
-                <SelectItem value="monthly">Monthly</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-          
-          <Card className="brand-card-featured">
-            <CardHeader>
-              <CardTitle className="text-foreground">Sales Trend</CardTitle>
-            </CardHeader>
-          <CardContent>
-            {trendLoading ? (
-              <div className="h-64 flex items-center justify-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald"></div>
-              </div>
-            ) : trendError ? (
-              <div className="text-center py-8">
-                <p className="text-destructive mb-4">No data for this period.</p>
-              </div>
-            ) : !trendData || trendData.length === 0 ? (
-              <div className="text-center py-8">
-                <p className="text-muted-foreground">No data for this period.</p>
-              </div>
-            ) : (
-              <div className="h-64">
-                <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={trendData}>
-                    <CartesianGrid 
-                      strokeDasharray="3 3" 
-                      stroke="hsl(var(--muted-foreground))" 
-                      opacity={0.3}
-                    />
-                    <XAxis 
-                      dataKey="label" 
-                      stroke="hsl(var(--muted-foreground))"
-                      fontSize={12}
-                      tickLine={false}
-                    />
-                    <YAxis 
-                      stroke="hsl(var(--muted-foreground))"
-                      fontSize={12}
-                      tickLine={false}
-                    />
-                    <Tooltip 
-                      contentStyle={{ 
-                        backgroundColor: 'hsl(var(--card))', 
-                        border: '1px solid hsl(var(--border))',
-                        borderRadius: '8px',
-                        color: 'hsl(var(--card-foreground))',
-                        boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
-                      }}
-                      formatter={(value) => [`KES ${value}`, 'Sales']}
-                      labelStyle={{ color: 'hsl(var(--muted-foreground))' }}
-                    />
-                    <Line 
-                      type="monotone" 
-                      dataKey="value" 
-                      stroke="hsl(var(--chart-1))" 
-                      strokeWidth={3}
-                      dot={{ fill: 'hsl(var(--chart-1))', strokeWidth: 2, r: 4 }}
-                      activeDot={{ 
-                        r: 6, 
-                        stroke: 'hsl(var(--chart-1))', 
-                        strokeWidth: 2,
-                        fill: 'hsl(var(--background))'
-                      }}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-        </div>
-
-        {/* Top Selling Items */}
-        <Card className="bg-black border-gray-700">
-          <CardHeader className="flex flex-row items-center justify-between">
-            <CardTitle className="text-white">Top Selling Items</CardTitle>
-            <ShareButtons onExport={exportTopItemsCSV} type="top-items" disabled={!topItemsData?.length} />
-          </CardHeader>
-          <CardContent>
-            {topItemsLoading ? (
-              <div className="h-32 flex items-center justify-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
-              </div>
-            ) : !topItemsData || topItemsData.length === 0 ? (
-              <p className="text-gray-400 text-center py-4">No sales data available.</p>
-            ) : (
-              <div className="space-y-3">
-                {topItemsData.slice(0, 5).map((item, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 bg-gray-800 rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
-                        {index + 1}
-                      </div>
-                      <div>
-                        <p className="text-white font-medium">{item.name}</p>
-                        <p className="text-gray-400 text-sm">{item.unitsSold} units sold</p>
-                      </div>
-                    </div>
-                    <p className="text-green-400 font-bold">KES {item.revenue}</p>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Customer Credits */}
-        <Card className="bg-black border-gray-700">
-          <CardHeader>
-            <CardTitle className="text-white">Customer Credits</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {customerCreditsLoading ? (
-              <div className="h-32 flex items-center justify-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
-              </div>
-            ) : !customerCreditsData || customerCreditsData.length === 0 ? (
-              <p className="text-gray-400 text-center py-4">No customer credits.</p>
-            ) : (
-              <div className="space-y-3">
-                {customerCreditsData.slice(0, 5).map((customer, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 bg-gray-800 rounded-lg">
-                    <div>
-                      <p className="text-white font-medium">{customer.name}</p>
-                      <p className="text-gray-400 text-sm">{customer.phone}</p>
-                    </div>
-                    <p className="text-orange-400 font-bold">KES {customer.balance}</p>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Orders Record */}
-        <Card className="bg-black border-gray-700">
-          <CardHeader>
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-              <CardTitle className="text-white">Orders Record</CardTitle>
-              
-              {/* Filters and Search Toolbar */}
-              <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-                {/* Period Filter Pills */}
-                <div className="flex bg-gray-800 rounded-lg p-1">
-                  {(['daily', 'weekly', 'monthly'] as const).map((period) => (
-                    <button
-                      key={period}
-                      onClick={() => {
-                        setOrdersPeriod(period);
-                        setOrdersPage(1);
-                      }}
-                      className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
-                        ordersPeriod === period
-                          ? 'bg-green-600 text-white'
-                          : 'text-gray-300 hover:bg-gray-700'
-                      }`}
-                    >
-                      {period.charAt(0).toUpperCase() + period.slice(1)}
-                    </button>
-                  ))}
-                </div>
-                
-                {/* Search Input */}
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                  <input
-                    type="text"
-                    placeholder="Search orders..."
-                    value={ordersSearchQuery}
-                    onChange={(e) => setOrdersSearchQuery(e.target.value)}
-                    className="pl-10 pr-4 py-2 border border-gray-600 rounded-lg focus:ring-2 focus:ring-green-600 focus:border-transparent bg-gray-800 text-gray-100 text-sm min-w-[200px]"
-                  />
-                </div>
-
-                {/* Export Button */}
-                <ShareButtons onExport={exportOrdersCSV} type="orders" disabled={!ordersData?.orders?.length} />
               </div>
             </div>
-          </CardHeader>
-          
-          <CardContent>
-            {ordersLoading ? (
-              <div className="h-64 flex items-center justify-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
+
+            {/* Trend Chart */}
+            <div className="bg-white dark:bg-[#1F1F1F] border border-gray-200 dark:border-gray-700 rounded-lg p-4 shadow-sm">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">Sales Trend</h3>
+                <Select value={trendPeriod} onValueChange={(value: 'daily' | 'weekly' | 'monthly') => setTrendPeriod(value)}>
+                  <SelectTrigger className="w-32 bg-gray-50 dark:bg-gray-800 border rounded px-3 py-2 focus:ring-2 focus:ring-emerald-500">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="daily">Daily</SelectItem>
+                    <SelectItem value="weekly">Weekly</SelectItem>
+                    <SelectItem value="monthly">Monthly</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
-            ) : ordersError ? (
-              <div className="text-center py-8">
-                <p className="text-red-400 mb-4">Couldn't load orders. Retry.</p>
-                <Button 
-                  onClick={() => window.location.reload()} 
-                  variant="outline"
-                  size="sm"
-                  className="border-green-600 text-green-600 hover:bg-green-50"
-                >
-                  Retry
+              
+              {trendLoading ? (
+                <div className="h-64 flex items-center justify-center">
+                  <Skeleton className="h-full w-full" />
+                </div>
+              ) : trendData && trendData.length > 0 ? (
+                <div className="h-64">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={trendData}>
+                      <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" className="dark:stroke-[#374151]" />
+                      <XAxis 
+                        dataKey="label" 
+                        stroke="#6B7280" 
+                        fontSize={12}
+                        className="dark:stroke-[#9CA3AF]"
+                      />
+                      <YAxis 
+                        stroke="#6B7280" 
+                        fontSize={12}
+                        className="dark:stroke-[#9CA3AF]"
+                      />
+                      <Tooltip 
+                        contentStyle={{
+                          backgroundColor: 'white',
+                          border: '1px solid #E5E7EB',
+                          borderRadius: '8px',
+                          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                        }}
+                      />
+                      <Line 
+                        type="monotone" 
+                        dataKey="value" 
+                        stroke="#00AA00" 
+                        strokeWidth={3}
+                        dot={{ fill: '#00AA00', strokeWidth: 2 }}
+                        className="dark:stroke-[#6B46C1]"
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </div>
+              ) : (
+                <div className="h-64 flex items-center justify-center text-gray-500 dark:text-gray-400">
+                  No data available for this period.
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Right Column: Orders Record */}
+          <div className="space-y-6">
+            <div className="bg-white dark:bg-[#1F1F1F] border border-gray-200 dark:border-gray-700 rounded-lg p-4 shadow-sm">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">Orders Record</h3>
+                <Button variant="ghost" size="sm" className="text-emerald-600 hover:text-emerald-700 focus:ring-2 focus:ring-emerald-500">
+                  <ExternalLink className="h-4 w-4 mr-1" />
+                  View All
                 </Button>
               </div>
-            ) : !ordersData?.orders?.length ? (
-              <div className="text-center py-8">
-                <p className="text-gray-400">No orders found for this period.</p>
-              </div>
-            ) : (
-              <>
-                {/* Desktop Table View */}
-                <div className="hidden md:block">
-                  <div className="bg-gray-800 rounded-lg border border-gray-700 overflow-hidden">
-                    <table className="w-full">
-                      <thead className="bg-gray-700">
-                        <tr>
-                          <th className="px-4 py-3 text-left text-sm font-medium text-gray-300">Order</th>
-                          <th className="px-4 py-3 text-left text-sm font-medium text-gray-300">Customer</th>
-                          <th className="px-4 py-3 text-left text-sm font-medium text-gray-300">Date</th>
-                          <th className="px-4 py-3 text-right text-sm font-medium text-gray-300">Amount (KES)</th>
-                          <th className="px-4 py-3 text-left text-sm font-medium text-gray-300">Products</th>
-                          <th className="px-4 py-3 text-center text-sm font-medium text-gray-300">Status</th>
+
+              {ordersLoading ? (
+                <div className="space-y-3">
+                  {[...Array(5)].map((_, i) => (
+                    <Skeleton key={i} className="h-16 w-full" />
+                  ))}
+                </div>
+              ) : ordersData && ordersData.orders.length > 0 ? (
+                <>
+                  {/* Desktop Table */}
+                  <div className="hidden md:block">
+                    <table className="table-auto w-full text-sm">
+                      <thead>
+                        <tr className="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200">
+                          <th className="px-3 py-2 text-left">Order ID</th>
+                          <th className="px-3 py-2 text-left">Customer</th>
+                          <th className="px-3 py-2 text-right">Amount</th>
+                          <th className="px-3 py-2 text-left">Status</th>
                         </tr>
                       </thead>
-                      <tbody className="divide-y divide-gray-700">
-                        {ordersData.orders.map((order) => {
-                          const displayItems = order.items.slice(0, 3);
-                          const remainingCount = order.items.length - 3;
-                          const itemsText = displayItems.map(item => `${item.productName} x${item.qty}`).join(', ');
-                          const productsDisplay = remainingCount > 0 ? `${itemsText} +${remainingCount} more` : itemsText;
-                          
-                          return (
-                            <tr key={order.orderId} className="hover:bg-gray-750">
-                              <td className="px-4 py-3 text-sm text-white font-medium">#{order.orderId}</td>
-                              <td className="px-4 py-3 text-sm text-gray-300">{order.customerName}</td>
-                              <td className="px-4 py-3 text-sm text-gray-300">{order.date}</td>
-                              <td className={`px-4 py-3 text-sm font-bold text-right ${
-                                order.status === 'completed' ? 'text-green-400' : 'text-yellow-400'
-                              }`}>
-                                {parseFloat(order.totalAmount).toLocaleString('en-KE', { 
-                                  minimumFractionDigits: 2, 
-                                  maximumFractionDigits: 2 
-                                })}
-                              </td>
-                              <td className="px-4 py-3 text-sm text-gray-300 max-w-xs truncate" title={productsDisplay}>
-                                {productsDisplay}
-                              </td>
-                              <td className="px-4 py-3 text-center">
-                                <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                  order.status === 'completed' 
-                                    ? 'bg-green-100 text-green-800' 
-                                    : order.status === 'pending'
-                                    ? 'bg-yellow-100 text-yellow-800'
-                                    : 'bg-red-100 text-red-800'
-                                }`}>
-                                  {order.status}
-                                </span>
-                              </td>
-                            </tr>
-                          );
-                        })}
+                      <tbody>
+                        {ordersData.orders.map((order, index) => (
+                          <tr key={order.orderId} className={index % 2 === 0 ? 'bg-white dark:bg-[#1F1F1F]' : 'bg-gray-50 dark:bg-[#2A2A2A]'}>
+                            <td className="px-3 py-3 font-medium">#{order.orderId}</td>
+                            <td className="px-3 py-3">{order.customerName}</td>
+                            <td className="px-3 py-3 text-right font-semibold">{formatCurrency(order.totalAmount)}</td>
+                            <td className="px-3 py-3">
+                              <span className="inline-flex px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">
+                                {order.status}
+                              </span>
+                            </td>
+                          </tr>
+                        ))}
                       </tbody>
                     </table>
                   </div>
-                </div>
 
-                {/* Mobile Cards View */}
-                <div className="md:hidden space-y-3 mb-6">
-                  {ordersData.orders.map((order) => {
-                    const displayItems = order.items.slice(0, 3);
-                    const remainingCount = order.items.length - 3;
-                    const itemsText = displayItems.map(item => `${item.productName} x${item.qty}`).join(', ');
-                    const productsDisplay = remainingCount > 0 ? `${itemsText} +${remainingCount} more` : itemsText;
-                    const truncatedItems = productsDisplay.length > 50 ? productsDisplay.substring(0, 50) + '...' : productsDisplay;
-                    
-                    return (
-                      <div key={order.orderId} className="p-4 mb-2 bg-gray-800 rounded border border-gray-700">
-                        <div className="flex items-center justify-between mb-3">
-                          <h3 className="font-semibold text-white">Order #{order.orderId}</h3>
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            order.status === 'completed' 
-                              ? 'bg-green-100 text-green-800' 
-                              : order.status === 'pending'
-                              ? 'bg-yellow-100 text-yellow-800'
-                              : 'bg-red-100 text-red-800'
-                          }`}>
+                  {/* Mobile Cards */}
+                  <div className="md:hidden space-y-4">
+                    {ordersData.orders.map((order) => (
+                      <div key={order.orderId} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 shadow-none">
+                        <div className="flex justify-between items-start mb-2">
+                          <span className="font-medium">#{order.orderId}</span>
+                          <span className="inline-flex px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">
                             {order.status}
                           </span>
                         </div>
-                        
-                        <div className="space-y-2 text-sm">
-                          <p className="text-gray-400">Customer: <span className="text-white">{order.customerName}</span></p>
-                          <p className="text-gray-400">Date: <span className="text-white">{order.date}</span></p>
-                          <p className="text-gray-400">
-                            Amount: <span className={`font-bold ${
-                              order.status === 'completed' ? 'text-green-400' : 'text-yellow-400'
-                            }`}>
-                              KES {parseFloat(order.totalAmount).toLocaleString('en-KE', { 
-                                minimumFractionDigits: 2, 
-                                maximumFractionDigits: 2 
-                              })}
-                            </span>
-                          </p>
-                          <p className="text-gray-400">Items: <span className="text-gray-300">{truncatedItems}</span></p>
-                          {order.reference && (
-                            <p className="text-gray-400">Ref: <span className="text-white">{order.reference}</span></p>
-                          )}
-                        </div>
+                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">{order.customerName}</p>
+                        <p className="text-lg font-semibold">{formatCurrency(order.totalAmount)}</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-500 mt-2">
+                          {order.items.map(item => `${item.productName} (${item.qty})`).join(', ')}
+                        </p>
                       </div>
-                    );
-                  })}
-                </div>
-
-                {/* Pagination */}
-                {ordersData.totalPages > 1 && (
-                  <div className="flex items-center justify-between">
-                    <p className="text-sm text-gray-400">
-                      Showing page {ordersData.page} of {ordersData.totalPages} ({ordersData.total} total orders)
-                    </p>
-                    <div className="flex gap-2">
-                      <Button
-                        onClick={() => setOrdersPage(prev => Math.max(1, prev - 1))}
-                        disabled={ordersData.page <= 1}
-                        variant="outline"
-                        size="sm"
-                        className="border-gray-600 text-gray-300 hover:bg-gray-700"
-                      >
-                        <ChevronLeft className="h-4 w-4" />
-                        Previous
-                      </Button>
-                      <Button
-                        onClick={() => setOrdersPage(prev => Math.min(ordersData.totalPages, prev + 1))}
-                        disabled={ordersData.page >= ordersData.totalPages}
-                        variant="outline"
-                        size="sm"
-                        className="border-gray-600 text-gray-300 hover:bg-gray-700"
-                      >
-                        Next
-                        <ChevronRight className="h-4 w-4" />
-                      </Button>
-                    </div>
+                    ))}
                   </div>
-                )}
-              </>
-            )}
-          </CardContent>
-        </Card>
+                </>
+              ) : (
+                <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                  No data available for this period.
+                </div>
+              )}
+            </div>
+
+            {/* Export Button */}
+            <Button 
+              onClick={exportSummaryCSV} 
+              disabled={exportingCSV === 'summary'}
+              className="w-full bg-emerald-600 hover:bg-emerald-700 text-white focus:ring-2 focus:ring-emerald-500"
+            >
+              <Download className="h-4 w-4 mr-2" />
+              {exportingCSV === 'summary' ? 'Exporting...' : 'Export CSV'}
+            </Button>
+          </div>
+        </div>
       </div>
-    </MobilePageWrapper>
+    </div>
   );
 }
