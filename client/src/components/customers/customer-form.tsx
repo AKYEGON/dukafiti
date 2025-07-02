@@ -147,6 +147,15 @@ export function CustomerForm({ open, onOpenChange, customer }: CustomerFormProps
   });
 
   const onSubmit = (data: CustomerFormData) => {
+    console.log("=== FORM SUBMISSION DEBUG ===");
+    console.log("Raw form data:", data);
+    console.log("Balance field value:", data.balance);
+    console.log("Balance type:", typeof data.balance);
+    console.log("Balance length:", data.balance?.length);
+    console.log("Balance === '':", data.balance === '');
+    console.log("Balance === '0':", data.balance === '0');
+    console.log("!data.balance:", !data.balance);
+    
     // Process balance field - only include if it has a value
     const processedData = {
       ...data,
@@ -154,7 +163,8 @@ export function CustomerForm({ open, onOpenChange, customer }: CustomerFormProps
       ...(data.balance && data.balance !== '' && data.balance !== '0' ? { balance: data.balance } : {})
     };
     
-    console.log("Form data being submitted:", processedData);
+    console.log("Processed data after balance filter:", processedData);
+    console.log("=== END FORM DEBUG ===");
     
     if (customer) {
       updateCustomer.mutate(processedData);

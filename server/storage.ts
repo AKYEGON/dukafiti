@@ -246,7 +246,16 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createCustomer(insertCustomer: InsertCustomer): Promise<Customer> {
+    console.log("=== STORAGE CREATE CUSTOMER DEBUG ===");
+    console.log("Data being inserted to DB:", insertCustomer);
+    console.log("Balance field in storage:", insertCustomer.balance);
+    console.log("Balance type in storage:", typeof insertCustomer.balance);
+    
     const [customer] = await db.insert(customers).values(insertCustomer).returning();
+    
+    console.log("Customer returned from DB:", customer);
+    console.log("Balance in returned customer:", customer.balance);
+    console.log("=== END STORAGE DEBUG ===");
     return customer;
   }
 
