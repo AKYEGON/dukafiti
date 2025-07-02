@@ -118,10 +118,19 @@ export function CustomerForm({ open, onOpenChange, customer }: CustomerFormProps
   });
 
   const onSubmit = (data: CustomerFormData) => {
+    // Process balance field - only include if it has a value
+    const processedData = {
+      ...data,
+      // Only include balance if it's provided and not empty
+      ...(data.balance && data.balance !== '' && data.balance !== '0' ? { balance: data.balance } : {})
+    };
+    
+    console.log("Form data being submitted:", processedData);
+    
     if (customer) {
-      updateCustomer.mutate(data);
+      updateCustomer.mutate(processedData);
     } else {
-      createCustomer.mutate(data);
+      createCustomer.mutate(processedData);
     }
   };
 

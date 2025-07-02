@@ -1183,53 +1183,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Top customers by credit endpoint
   app.get('/api/reports/top-customers', requireAuth, async (req: any, res: any) => {
     try {
-      const period = req.query.period || 'daily';
       const customers = await storage.getCustomers();
-      const orders = await storage.getOrders();
 
-      // Filter orders by period and credit status
-      let startDate: Date;
-      const now = new Date();
-      
-      switch (period) {
-        case 'daily':
-          startDate = new Date(now);
-          startDate.setHours(0, 0, 0, 0);
-          break;
-        case 'weekly':
-          startDate = new Date(now);
-          startDate.setDate(now.getDate() - 7);
-          break;
-        case 'monthly':
-          startDate = new Date(now);
-          startDate.setMonth(now.getMonth() - 1);
-          break;
-        default:
-          startDate = new Date(now);
-          startDate.setHours(0, 0, 0, 0);
-      }
-
-      // Calculate customer credit data
-      const customerCredits = customers.map(customer => {
-        const customerOrders = orders.filter(order => 
-          (order.customerId === customer.id || order.customerName === customer.name) && 
-          order.paymentMethod === 'credit' &&
-          new Date(order.createdAt) >= startDate
-        );
-
-        const totalOwed = customerOrders.reduce((sum, order) => sum + parseFloat(order.total), 0);
-        const outstandingOrders = customerOrders.length;
-
-        return {
+      // Calculate customer credit data based on current balance
+      const customerCredits = customers
+        .filter(customer => parseFloat(customer.balance || "0") > 0)
+        .map(customer => ({
           customerName: customer.name,
-          totalOwed: totalOwed.toFixed(2),
-          outstandingOrders
-        };
-      })
-      .filter(customer => parseFloat(customer.totalOwed) > 0)
-      .sort((a, b) => parseFloat(b.totalOwed) - parseFloat(a.totalOwed))
-      .slice(0, 5);
+          totalOwed: parseFloat(customer.balance).toFixed(2),
+          outstandingOrders: 1 // We don't track individual credit orders, just the balance
+        }))
+        .sort((a, b) => parseFloat(b.totalOwed) - parseFloat(a.totalOwed))
+        .slice(0, 5);
 
+      console.log("Top customers with credit:", customerCredits);
       res.json(customerCredits);
     } catch (error) {
       console.error('Top customers fetch error:', error);
