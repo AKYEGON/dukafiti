@@ -238,6 +238,9 @@ Changelog:
 - July 2, 2025. Implemented single-column flow with Quick-Select panel, Mini-Cart, Payment selector, and sticky Sell button
 - July 2, 2025. Added professional confirmation modal with customer info for credit sales
 - July 2, 2025. Created smooth touch-friendly interface with proper button animations and feedback
+- July 2, 2025. Fixed Reports page layout - changed Top Customers and Top-Selling Products panels from side-by-side to stacked vertical layout
+- July 2, 2025. Ensured proper data refresh for Top Customers and Top-Selling Products panels when timeframe selection changes
+- July 2, 2025. Both panels now respond to Summary Timeframe dropdown changes and display accurate real-time data
 ```
 
 ## User Preferences
