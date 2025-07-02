@@ -206,6 +206,12 @@ Changelog:
 - July 2, 2025. Removed Language Toggle and Data Backup sections from Settings page per user request
 - July 2, 2025. Cleaned up backend API routes for language settings (/api/settings/language) and backup endpoints (/api/backup, /api/backup/google-drive)
 - July 2, 2025. Simplified Settings page to show only Store Profile, Dark Mode, and Manual Sync sections
+- July 2, 2025. Fixed percentage calculation issue in Dashboard by clearing service worker cache and browser modules
+- July 2, 2025. Created SimpleMetricCard component and removed percentage displays from Dashboard cards per user request
+- July 2, 2025. Removed keyboard shortcut labels from Quick Actions buttons (Ctrl+P, Ctrl+O, etc.)
+- July 2, 2025. Implemented Edit Customer functionality with pre-filled modal and PUT /api/customers/:id endpoint
+- July 2, 2025. Fixed Record Repayment balance calculation bug - now properly subtracts payment from customer balance
+- July 2, 2025. Updated Customer page to replace "View" buttons with "Edit" buttons for better UX
 ```
 
 ## User Preferences

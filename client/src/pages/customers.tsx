@@ -18,6 +18,7 @@ export default function Customers() {
   });
 
   const [showNewCustomerForm, setShowNewCustomerForm] = useState(false);
+  const [showEditCustomerForm, setShowEditCustomerForm] = useState(false);
   const [showRepaymentModal, setShowRepaymentModal] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
@@ -51,6 +52,11 @@ export default function Customers() {
       return a.name.localeCompare(b.name);
     });
   }, [customers, searchQuery, filterType]);
+
+  const handleEditCustomer = (customer: Customer) => {
+    setSelectedCustomer(customer);
+    setShowEditCustomerForm(true);
+  };
 
   const handleRecordRepayment = (customer: Customer) => {
     setSelectedCustomer(customer);
@@ -237,13 +243,14 @@ export default function Customers() {
                         {/* Action Buttons */}
                         <div className="flex gap-2">
                           <Button 
+                            onClick={() => handleEditCustomer(customer)}
                             variant="outline" 
                             size="sm"
                             className="flex-1 min-h-[40px] border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
-                            aria-label={`View ${customer.name} details`}
+                            aria-label={`Edit ${customer.name} details`}
                           >
                             <Eye className="mr-2 h-4 w-4" />
-                            View
+                            Edit
                           </Button>
                           
                           {hasDebt && (
@@ -271,6 +278,13 @@ export default function Customers() {
         <CustomerForm
           open={showNewCustomerForm}
           onOpenChange={setShowNewCustomerForm}
+        />
+
+        {/* Edit Customer Form Modal */}
+        <CustomerForm
+          open={showEditCustomerForm}
+          onOpenChange={setShowEditCustomerForm}
+          customer={selectedCustomer || undefined}
         />
 
         {/* Record Repayment Modal */}

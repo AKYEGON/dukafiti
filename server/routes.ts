@@ -257,6 +257,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.put("/api/customers/:id", requireAuth, async (req, res) => {
+    try {
+      const customerId = parseInt(req.params.id);
+      const customerData = insertCustomerSchema.parse(req.body);
+      const customer = await storage.updateCustomer(customerId, customerData);
+      
+      if (!customer) {
+        return res.status(404).json({ message: "Customer not found" });
+      }
+      
+      res.json(customer);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid customer data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Failed to update customer" });
+    }
+  });
+
   // Customer repayment endpoint
   app.post("/api/customers/:id/payments", requireAuth, async (req, res) => {
     try {
@@ -294,6 +313,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
 
       const payment = await storage.createPayment(paymentData);
+      
+      // Update customer balance (subtract payment amount)
+      await storage.updateCustomerBalance(customerId, -paymentAmount);
       
       // Get updated customer
       const updatedCustomer = await storage.getCustomer(customerId);

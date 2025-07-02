@@ -5,7 +5,7 @@ import { type DashboardMetrics, type Order } from "@shared/schema";
 import { calcPctChange, formatCurrency as formatCurrencyUtil } from "@shared/utils";
 import { MobilePageWrapper } from "@/components/layout/mobile-page-wrapper";
 import { MetricCard } from "@/components/ui/metric-card";
-import { EnhancedMetricCard } from "@/components/ui/enhanced-metric-card";
+import { SimpleMetricCard } from "@/components/ui/simple-metric-card";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -91,43 +91,7 @@ export default function Dashboard() {
     }
   };
 
-  // Debug percentage calculations when metrics change
-  useEffect(() => {
-    if (detailedMetrics) {
-      console.log('=== DEEP ANALYSIS DEBUG SESSION ===');
-      console.log('calcPctChange function type:', typeof calcPctChange);
-      console.log('calcPctChange function source:', calcPctChange.toString());
-      
-      // Test direct function call with known values
-      console.log('Direct test calcPctChange(120, 0):', calcPctChange(120, 0));
-      console.log('Direct test calcPctChange(0, 0):', calcPctChange(0, 0));
-      console.log('Direct test calcPctChange(100, 50):', calcPctChange(100, 50));
-      
-      console.log('Dashboard Metrics Debug (Deep Analysis):', {
-        revenue: {
-          today: detailedMetrics.revenue.today,
-          yesterday: detailedMetrics.revenue.yesterday,
-          calculated: calcPctChange(detailedMetrics.revenue.today, detailedMetrics.revenue.yesterday)
-        },
-        orders: {
-          today: detailedMetrics.orders.today,
-          yesterday: detailedMetrics.orders.yesterday,
-          calculated: calcPctChange(detailedMetrics.orders.today, detailedMetrics.orders.yesterday)
-        },
-        inventory: {
-          current: detailedMetrics.inventory.totalItems,
-          prior: detailedMetrics.inventory.priorSnapshot,
-          calculated: calcPctChange(detailedMetrics.inventory.totalItems, detailedMetrics.inventory.priorSnapshot)
-        },
-        customers: {
-          current: detailedMetrics.customers.active,
-          prior: detailedMetrics.customers.priorActive,
-          calculated: calcPctChange(detailedMetrics.customers.active, detailedMetrics.customers.priorActive)
-        }
-      });
-      console.log('=== END DEEP ANALYSIS DEBUG SESSION ===');
-    }
-  }, [detailedMetrics]);
+
 
   // Quick Actions handlers
   const handleAddProduct = () => {
@@ -208,55 +172,35 @@ export default function Dashboard() {
   return (
     <MobilePageWrapper title="Dashboard">
       <div className="space-y-6">
-        {/* Enhanced Metrics Cards with Accurate Percentage Changes */}
+        {/* Simplified Metrics Cards without Percentage Changes */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <EnhancedMetricCard
+          <SimpleMetricCard
             title="Total Revenue"
             value={detailedMetrics?.revenue ? formatCurrencyUtil(detailedMetrics.revenue.today) : formatCurrency(metrics?.totalRevenue || "0")}
-            percentageChange={
-              detailedMetrics?.revenue 
-                ? calcPctChange(detailedMetrics.revenue.today, detailedMetrics.revenue.yesterday) 
-                : "—"
-            }
             icon={DollarSign}
             isLoading={detailedMetricsLoading || metricsLoading}
             isRefreshing={isRefreshing}
             error={!detailedMetrics && !detailedMetricsLoading}
           />
-          <EnhancedMetricCard
+          <SimpleMetricCard
             title="Orders Today"
             value={detailedMetrics?.orders ? detailedMetrics.orders.today.toString() : (metrics?.totalOrders || 0).toString()}
-            percentageChange={
-              detailedMetrics?.orders 
-                ? calcPctChange(detailedMetrics.orders.today, detailedMetrics.orders.yesterday) 
-                : "—"
-            }
             icon={ShoppingCart}
             isLoading={detailedMetricsLoading || metricsLoading}
             isRefreshing={isRefreshing}
             error={!detailedMetrics && !detailedMetricsLoading}
           />
-          <EnhancedMetricCard
+          <SimpleMetricCard
             title="Inventory Items"
             value={detailedMetrics?.inventory ? detailedMetrics.inventory.totalItems.toString() : (metrics?.totalProducts || 0).toString()}
-            percentageChange={
-              detailedMetrics?.inventory 
-                ? calcPctChange(detailedMetrics.inventory.totalItems, detailedMetrics.inventory.priorSnapshot) 
-                : "—"
-            }
             icon={Package}
             isLoading={detailedMetricsLoading || metricsLoading}
             isRefreshing={isRefreshing}
             error={!detailedMetrics && !detailedMetricsLoading}
           />
-          <EnhancedMetricCard
+          <SimpleMetricCard
             title="Active Customers"
             value={detailedMetrics?.customers ? detailedMetrics.customers.active.toString() : (metrics?.activeCustomersCount || 0).toString()}
-            percentageChange={
-              detailedMetrics?.customers 
-                ? calcPctChange(detailedMetrics.customers.active, detailedMetrics.customers.priorActive) 
-                : "—"
-            }
             icon={Users}
             isLoading={detailedMetricsLoading || metricsLoading}
             isRefreshing={isRefreshing}
@@ -277,7 +221,6 @@ export default function Dashboard() {
             >
               <Plus className="mr-3 h-5 w-5 flex-shrink-0" />
               <span className="truncate">Add New Product</span>
-              <kbd className="hidden sm:inline-block ml-auto text-xs bg-purple-100 text-purple-800 px-1.5 py-0.5 rounded">Ctrl+P</kbd>
             </Button>
             <Button 
               className="w-full h-12 justify-start text-base leading-relaxed bg-green-600 hover:bg-green-700 text-white font-medium transition-all duration-200"
@@ -286,7 +229,6 @@ export default function Dashboard() {
             >
               <ShoppingCart className="mr-3 h-5 w-5 flex-shrink-0" />
               <span className="truncate">Create Order</span>
-              <kbd className="hidden sm:inline-block ml-auto text-xs bg-green-100 text-green-800 px-1.5 py-0.5 rounded">Ctrl+O</kbd>
             </Button>
             <Button 
               className="w-full h-12 justify-start text-base leading-relaxed border border-purple-300 text-purple-600 hover:bg-purple-50 hover:shadow-[0_4px_12px_rgba(168,85,247,0.4)] transition-all duration-200"
@@ -295,7 +237,6 @@ export default function Dashboard() {
             >
               <UserPlus className="mr-3 h-5 w-5 flex-shrink-0" />
               <span className="truncate">Add Customer</span>
-              <kbd className="hidden sm:inline-block ml-auto text-xs bg-purple-100 text-purple-800 px-1.5 py-0.5 rounded">Ctrl+U</kbd>
             </Button>
             <Button 
               className="w-full h-12 justify-start text-base leading-relaxed border border-purple-300 text-purple-600 hover:bg-purple-50 hover:shadow-[0_4px_12px_rgba(168,85,247,0.4)] transition-all duration-200"
@@ -304,7 +245,6 @@ export default function Dashboard() {
             >
               <BarChart3 className="mr-3 h-5 w-5 flex-shrink-0" />
               <span className="truncate">Generate Report</span>
-              <kbd className="hidden sm:inline-block ml-auto text-xs bg-purple-100 text-purple-800 px-1.5 py-0.5 rounded">Ctrl+R</kbd>
             </Button>
             <Button 
               className="w-full h-12 justify-start text-base leading-relaxed border border-blue-300 text-blue-600 hover:bg-blue-50 hover:shadow-[0_4px_12px_rgba(59,130,246,0.4)] transition-all duration-200"
