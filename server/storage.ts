@@ -125,6 +125,8 @@ export interface IStorage {
   getUnreadNotificationCount(userId: number): Promise<number>;
   createNotification(notification: InsertNotification): Promise<Notification>;
   markNotificationAsRead(id: number): Promise<boolean>;
+  markAllNotificationsAsRead(userId: number): Promise<boolean>;
+  deleteNotification(id: number): Promise<boolean>;
 
   // Search
   globalSearch(query: string): Promise<SearchResult[]>;
@@ -632,6 +634,22 @@ export class DatabaseStorage implements IStorage {
   async markNotificationAsRead(id: number): Promise<boolean> {
     const result = await db.update(notifications)
       .set({ isRead: true })
+      .where(eq(notifications.id, id));
+    return result.rowCount! > 0;
+  }
+
+  async markAllNotificationsAsRead(userId: number): Promise<boolean> {
+    const result = await db.update(notifications)
+      .set({ isRead: true })
+      .where(and(
+        eq(notifications.userId, userId),
+        eq(notifications.isRead, false)
+      ));
+    return result.rowCount! > 0;
+  }
+
+  async deleteNotification(id: number): Promise<boolean> {
+    const result = await db.delete(notifications)
       .where(eq(notifications.id, id));
     return result.rowCount! > 0;
   }

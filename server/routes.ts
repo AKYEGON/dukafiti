@@ -1732,6 +1732,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.post('/api/notifications/mark-all-read', requireAuth, async (req: any, res: any) => {
+    try {
+      const user = await getCurrentUser(req);
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      const success = await storage.markAllNotificationsAsRead(user.id);
+      if (success) {
+        res.json({ success: true });
+      } else {
+        res.status(500).json({ error: 'Failed to mark all notifications as read' });
+      }
+    } catch (error) {
+      console.error('Mark all notifications as read error:', error);
+      res.status(500).json({ error: 'Failed to mark all notifications as read' });
+    }
+  });
+
+  app.delete('/api/notifications/:id', requireAuth, async (req: any, res: any) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ error: 'Invalid notification ID' });
+      }
+
+      const success = await storage.deleteNotification(id);
+      if (success) {
+        res.status(204).send();
+      } else {
+        res.status(404).json({ error: 'Notification not found' });
+      }
+    } catch (error) {
+      console.error('Delete notification error:', error);
+      res.status(500).json({ error: 'Failed to delete notification' });
+    }
+  });
+
   // Logout endpoint
   app.post('/api/logout', (req: any, res: any) => {
     req.session.destroy((err: any) => {

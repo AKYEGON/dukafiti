@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Switch, Route, useLocation } from "wouter";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "./lib/queryClient";
@@ -17,6 +18,7 @@ import Inventory from "@/pages/inventory";
 import Sales from "@/pages/sales";
 import Customers from "@/pages/customers";
 import Reports from "@/pages/reports";
+import NotificationsPage from "@/pages/notifications";
 import Home from "@/pages/home";
 import Login from "@/pages/login";
 import Register from "@/pages/register";
@@ -27,7 +29,6 @@ import SettingsPage from "@/pages/settings";
 function AuthenticatedApp() {
   // Initialize WebSocket connection for real-time notifications
   useWebSocket();
-  
   
   return (
     <div className="flex h-screen bg-background text-foreground overflow-hidden">
@@ -46,6 +47,7 @@ function AuthenticatedApp() {
             <Route path="/sales" component={Sales} />
             <Route path="/customers" component={Customers} />
             <Route path="/reports" component={Reports} />
+            <Route path="/notifications" component={NotificationsPage} />
             <Route path="/settings" component={SettingsPage} />
             <Route component={NotFound} />
           </Switch>
