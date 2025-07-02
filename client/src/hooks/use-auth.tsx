@@ -13,18 +13,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [user, setUser] = useState<{ phone: string } | null>(null);
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, error } = useQuery({
     queryKey: ["/api/me"],
     queryFn: async () => {
-      const response = await fetch("/api/me", { credentials: "include" });
-      if (response.ok) {
-        return response.json();
+      try {
+        const response = await fetch("/api/me", { credentials: "include" });
+        if (response.ok) {
+          return response.json();
+        }
+        return { authenticated: false, user: null };
+      } catch (error) {
+        console.warn("Auth check failed:", error);
+        return { authenticated: false, user: null };
       }
-      return null;
     },
     retry: false,
     refetchInterval: false,
     refetchOnWindowFocus: false,
+    throwOnError: false,
   });
 
   useEffect(() => {

@@ -15,7 +15,7 @@ export function MobilePageWrapper({
   showTitle = true 
 }: MobilePageWrapperProps) {
   return (
-    <div className={cn("w-full min-h-screen bg-background", className)}>
+    <div className={cn("w-full min-h-screen bg-background text-foreground", className)}>
       {/* Desktop title - hidden on mobile since we have sticky header */}
       {showTitle && title && (
         <div className="hidden lg:block p-6 border-b border-border">
@@ -24,7 +24,7 @@ export function MobilePageWrapper({
       )}
       
       {/* Main content with mobile-first padding */}
-      <div className="px-2 sm:px-4 lg:px-6 py-4 sm:py-6 w-full">
+      <div className="px-2 sm:px-4 lg:px-6 py-4 sm:py-6 w-full text-foreground">
         {children}
       </div>
     </div>
