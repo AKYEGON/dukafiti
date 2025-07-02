@@ -65,8 +65,6 @@ function UnauthenticatedApp() {
 function Router() {
   const { isAuthenticated, isLoading } = useAuth();
   const [location, setLocation] = useLocation();
-  
-  console.log("Router state:", { isAuthenticated, isLoading, location });
 
   // Show loading spinner while checking auth
   if (isLoading) {
@@ -93,7 +91,7 @@ function Router() {
   }
 
   // Redirect authenticated users from login/register pages to dashboard
-  if (isAuthenticated && (location === '/login' || location === '/register' || location === '/')) {
+  if (isAuthenticated && (location === '/login' || location === '/register')) {
     setLocation('/dashboard');
     return null;
   }
