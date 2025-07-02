@@ -203,6 +203,9 @@ Changelog:
 - July 2, 2025. Implemented responsive dropdown selectors for Summary Timeframe and Graph View
 - July 2, 2025. Enhanced Orders Record section with desktop table and mobile cards showing total amounts and product lists
 - July 2, 2025. Updated Orders endpoint to include price information and improved frontend display with proper formatting
+- July 2, 2025. Removed Language Toggle and Data Backup sections from Settings page per user request
+- July 2, 2025. Cleaned up backend API routes for language settings (/api/settings/language) and backup endpoints (/api/backup, /api/backup/google-drive)
+- July 2, 2025. Simplified Settings page to show only Store Profile, Dark Mode, and Manual Sync sections
 ```
 
 ## User Preferences
