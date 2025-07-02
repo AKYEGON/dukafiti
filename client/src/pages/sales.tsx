@@ -13,6 +13,7 @@ import { type Product } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { formatCurrency } from "@/lib/utils";
 import { offlineQueue, isOnline } from "@/lib/offline-queue";
+import { MobilePageWrapper } from "@/components/layout/mobile-page-wrapper";
 
 export default function Sales() {
   const [cartItems, setCartItems] = useState<SaleLineItem[]>([]);

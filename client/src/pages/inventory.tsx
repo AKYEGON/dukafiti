@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { type Product } from "@shared/schema";
-import { Header } from "@/components/layout/header";
+import { MobilePageWrapper } from "@/components/layout/mobile-page-wrapper";
 import { ProductForm } from "@/components/inventory/product-form";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -79,33 +79,31 @@ export default function Inventory() {
   };
 
   return (
-    <div className="space-y-6">
-      <Header title="Inventory Management" subtitle="Manage your products and stock levels" />
-      
-      <div className="p-4 lg:p-6">
-        <Card>
+    <MobilePageWrapper title="Inventory">
+      <div className="space-y-6">
+        {/* Mobile-first search and add button */}
+        <div className="space-y-3">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={20} />
+            <Input
+              placeholder="Search products..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-12 h-12 text-base"
+            />
+          </div>
+          <Button
+            onClick={() => setShowProductForm(true)}
+            className="w-full h-12 text-base bg-green-600 hover:bg-green-700 text-white"
+          >
+            <Plus className="mr-2 h-5 w-5" />
+            Add Product
+          </Button>
+        </div>
+
+        <Card className="w-full">
           <CardHeader>
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
-              <CardTitle>Product Inventory</CardTitle>
-              <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3">
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" size={16} />
-                  <Input
-                    placeholder="Search products..."
-                    value={search}
-                    onChange={(e) => setSearch(e.target.value)}
-                    className="pl-10"
-                  />
-                </div>
-                <Button
-                  onClick={() => setShowProductForm(true)}
-                  className="bg-green-600 hover:bg-green-700 text-foreground"
-                >
-                  <Plus className="mr-2 h-4 w-4" />
-                  + Add Product
-                </Button>
-              </div>
-            </div>
+            <CardTitle className="text-xl leading-relaxed">Product Inventory</CardTitle>
           </CardHeader>
           <CardContent>
             {isLoading ? (
@@ -205,6 +203,6 @@ export default function Inventory() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+    </MobilePageWrapper>
   );
 }

@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { type DashboardMetrics, type Order } from "@shared/schema";
-import { Header } from "@/components/layout/header";
+import { MobilePageWrapper } from "@/components/layout/mobile-page-wrapper";
 import { MetricCard } from "@/components/ui/metric-card";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -106,30 +106,27 @@ export default function Dashboard() {
 
   if (metricsLoading) {
     return (
-      <div className="space-y-6 bg-background text-foreground min-h-screen">
-        <Header title="Dashboard" subtitle="Business overview and key metrics" />
-        <div className="p-4 lg:p-6 space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <MobilePageWrapper title="Dashboard">
+        <div className="space-y-6">
+          <div className="grid grid-cols-1 gap-4">
             {[...Array(4)].map((_, i) => (
               <Skeleton key={i} className="h-32" />
             ))}
           </div>
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <Skeleton className="lg:col-span-2 h-96" />
+          <div className="space-y-6">
+            <Skeleton className="h-96" />
             <Skeleton className="h-96" />
           </div>
         </div>
-      </div>
+      </MobilePageWrapper>
     );
   }
 
   return (
-    <div className="space-y-6 bg-background text-foreground min-h-screen">
-      <Header title="Dashboard" subtitle="Business overview and key metrics" />
-      
-      <div className="p-4 lg:p-6 space-y-6">
-        {/* Metrics Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <MobilePageWrapper title="Dashboard">
+      <div className="space-y-6">
+        {/* Metrics Cards - Mobile-first single column */}
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <MetricCard
             title="Total Revenue"
             value={formatCurrency(metrics?.totalRevenue || "0")}
@@ -164,47 +161,92 @@ export default function Dashboard() {
           />
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 lg:gap-6">
-          {/* Recent Orders */}
-          <Card className="lg:col-span-3 order-2 lg:order-1">
-            <CardHeader>
-              <div className="flex items-center justify-between">
-                <CardTitle>Recent Orders</CardTitle>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="text-primary"
-                  onClick={handleViewAllOrders}
-                >
-                  View All
-                </Button>
+        {/* Quick Actions - Mobile-first positioning */}
+        <Card className="w-full">
+          <CardHeader>
+            <CardTitle className="text-xl leading-relaxed">Quick Actions</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <Button 
+              className="w-full h-12 justify-start text-base leading-relaxed bg-purple-600 hover:bg-purple-700 text-white font-medium transition-all duration-200"
+              onClick={handleAddProduct}
+              aria-label="Add a new product to inventory"
+            >
+              <Plus className="mr-3 h-5 w-5 flex-shrink-0" />
+              <span className="truncate">Add New Product</span>
+              <kbd className="hidden sm:inline-block ml-auto text-xs bg-purple-100 text-purple-800 px-1.5 py-0.5 rounded">Ctrl+P</kbd>
+            </Button>
+            <Button 
+              className="w-full h-12 justify-start text-base leading-relaxed bg-green-600 hover:bg-green-700 text-white font-medium transition-all duration-200"
+              onClick={handleCreateOrder}
+              aria-label="Create a new sales order"
+            >
+              <ShoppingCart className="mr-3 h-5 w-5 flex-shrink-0" />
+              <span className="truncate">Create Order</span>
+              <kbd className="hidden sm:inline-block ml-auto text-xs bg-green-100 text-green-800 px-1.5 py-0.5 rounded">Ctrl+O</kbd>
+            </Button>
+            <Button 
+              className="w-full h-12 justify-start text-base leading-relaxed border border-purple-300 text-purple-600 hover:bg-purple-50 hover:shadow-[0_4px_12px_rgba(168,85,247,0.4)] transition-all duration-200"
+              onClick={handleAddCustomer}
+              aria-label="Add a new customer"
+            >
+              <UserPlus className="mr-3 h-5 w-5 flex-shrink-0" />
+              <span className="truncate">Add Customer</span>
+              <kbd className="hidden sm:inline-block ml-auto text-xs bg-purple-100 text-purple-800 px-1.5 py-0.5 rounded">Ctrl+U</kbd>
+            </Button>
+            <Button 
+              className="w-full h-12 justify-start text-base leading-relaxed border border-purple-300 text-purple-600 hover:bg-purple-50 hover:shadow-[0_4px_12px_rgba(168,85,247,0.4)] transition-all duration-200"
+              onClick={handleGenerateReport}
+              aria-label="Generate business reports"
+            >
+              <BarChart3 className="mr-3 h-5 w-5 flex-shrink-0" />
+              <span className="truncate">Generate Report</span>
+              <kbd className="hidden sm:inline-block ml-auto text-xs bg-purple-100 text-purple-800 px-1.5 py-0.5 rounded">Ctrl+R</kbd>
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* Recent Orders - Full width on mobile */}
+        <Card className="w-full">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <CardTitle className="text-xl leading-relaxed">Recent Orders</CardTitle>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="text-primary h-12 min-w-[120px]"
+                onClick={handleViewAllOrders}
+              >
+                View All
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            {ordersLoading ? (
+              <div className="space-y-3">
+                {[...Array(4)].map((_, i) => (
+                  <Skeleton key={i} className="h-16" />
+                ))}
               </div>
-            </CardHeader>
-            <CardContent>
-              {ordersLoading ? (
-                <div className="space-y-3">
-                  {[...Array(4)].map((_, i) => (
-                    <Skeleton key={i} className="h-16" />
-                  ))}
-                </div>
-              ) : recentOrders && recentOrders.length > 0 ? (
+            ) : recentOrders && recentOrders.length > 0 ? (
+              <div className="overflow-x-auto">
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Order ID</TableHead>
-                      <TableHead>Customer</TableHead>
-                      <TableHead>Amount</TableHead>
-                      <TableHead>Status</TableHead>
+                      <TableHead className="text-base">Order ID</TableHead>
+                      <TableHead className="text-base">Customer</TableHead>
+                      <TableHead className="text-base">Amount</TableHead>
+                      <TableHead className="text-base">Status</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {recentOrders.map((order) => (
-                      <TableRow key={order.id}>
-                        <TableCell className="font-medium">
+                      <TableRow key={order.id} className="h-12">
+                        <TableCell className="font-medium text-base leading-relaxed">
                           #ORD-{order.id.toString().padStart(3, '0')}
                         </TableCell>
-                        <TableCell>{order.customerName}</TableCell>
-                        <TableCell>{formatCurrency(order.total)}</TableCell>
+                        <TableCell className="text-base leading-relaxed">{order.customerName}</TableCell>
+                        <TableCell className="text-base leading-relaxed">{formatCurrency(order.total)}</TableCell>
                         <TableCell>
                           <Badge className={getStatusColor(order.status)}>
                             {order.status}
@@ -214,64 +256,19 @@ export default function Dashboard() {
                     ))}
                   </TableBody>
                 </Table>
-              ) : (
-                <div className="flex flex-col items-center justify-center py-12 text-center">
-                  <ShoppingCart className="h-12 w-12 text-muted-foreground mb-4" />
-                  <h3 className="text-lg font-medium text-foreground mb-2">No recent orders</h3>
-                  <p className="text-sm text-muted-foreground mb-4">Start by creating your first order</p>
-                  <Button onClick={handleCreateOrder} className="primary-green">
-                    Create Order
-                  </Button>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Quick Actions */}
-          <Card className="order-1 lg:order-2">
-            <CardHeader>
-              <CardTitle>Quick Actions</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2 sm:space-y-3">
-              <Button 
-                className="w-full justify-start text-sm sm:text-base py-2 sm:py-3 btn-purple"
-                onClick={handleAddProduct}
-                aria-label="Add a new product to inventory"
-              >
-                <Plus className="mr-2 h-4 w-4 flex-shrink-0" />
-                <span className="truncate">Add New Product</span>
-                <kbd className="hidden sm:inline-block ml-auto text-xs bg-purple-100 text-purple-800 px-1.5 py-0.5 rounded">Ctrl+P</kbd>
-              </Button>
-              <Button 
-                className="w-full justify-start text-sm sm:text-base py-2 sm:py-3 bg-green-600 hover:bg-green-700 text-white font-medium transition-all duration-200"
-                onClick={handleCreateOrder}
-                aria-label="Create a new sales order"
-              >
-                <ShoppingCart className="mr-2 h-4 w-4 flex-shrink-0" />
-                <span className="truncate">Create Order</span>
-                <kbd className="hidden sm:inline-block ml-auto text-xs bg-green-100 text-green-800 px-1.5 py-0.5 rounded">Ctrl+O</kbd>
-              </Button>
-              <Button 
-                className="w-full justify-start text-sm sm:text-base py-2 sm:py-3 border border-purple-300 text-purple-600 hover:bg-purple-50 hover:shadow-[0_4px_12px_rgba(168,85,247,0.4)] transition-all duration-200"
-                onClick={handleAddCustomer}
-                aria-label="Add a new customer"
-              >
-                <UserPlus className="mr-2 h-4 w-4 flex-shrink-0" />
-                <span className="truncate">Add Customer</span>
-                <kbd className="hidden sm:inline-block ml-auto text-xs bg-purple-100 text-purple-800 px-1.5 py-0.5 rounded">Ctrl+U</kbd>
-              </Button>
-              <Button 
-                className="w-full justify-start text-sm sm:text-base py-2 sm:py-3 border border-purple-300 text-purple-600 hover:bg-purple-50 hover:shadow-[0_4px_12px_rgba(168,85,247,0.4)] transition-all duration-200"
-                onClick={handleGenerateReport}
-                aria-label="Generate business reports"
-              >
-                <BarChart3 className="mr-2 h-4 w-4 flex-shrink-0" />
-                <span className="truncate">Generate Report</span>
-                <kbd className="hidden sm:inline-block ml-auto text-xs bg-purple-100 text-purple-800 px-1.5 py-0.5 rounded">Ctrl+R</kbd>
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
+              </div>
+            ) : (
+              <div className="flex flex-col items-center justify-center py-12 text-center">
+                <ShoppingCart className="h-12 w-12 text-muted-foreground mb-4" />
+                <h3 className="text-xl font-medium text-foreground mb-2 leading-relaxed">No recent orders</h3>
+                <p className="text-base text-muted-foreground mb-4 leading-relaxed">Start by creating your first order</p>
+                <Button onClick={handleCreateOrder} className="h-12 text-base bg-green-600 hover:bg-green-700 text-white">
+                  Create Order
+                </Button>
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
 
       {/* Modal Components */}
@@ -284,6 +281,6 @@ export default function Dashboard() {
         open={showCustomerForm} 
         onOpenChange={setShowCustomerForm} 
       />
-    </div>
+    </MobilePageWrapper>
   );
 }

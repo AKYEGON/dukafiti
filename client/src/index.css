@@ -2,6 +2,36 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Mobile-first base styles */
+@layer base {
+  * {
+    @apply border-border;
+  }
+  
+  body {
+    @apply bg-background text-foreground leading-relaxed;
+    font-feature-settings: "rlig" 1, "calt" 1;
+    /* Ensure minimum touch target sizes on mobile */
+    font-size: 16px; /* Prevents iOS zoom on focus */
+  }
+  
+  /* Mobile-first typography */
+  h1, h2, h3, h4, h5, h6 {
+    @apply leading-relaxed;
+  }
+  
+  /* Touch-friendly form inputs */
+  input, textarea, select, button {
+    @apply text-base;
+    min-height: 48px; /* 48px minimum touch target */
+  }
+  
+  /* Better text visibility across themes */
+  p, span, div {
+    @apply text-foreground;
+  }
+}
+
 :root {
   --background: hsl(0, 0%, 100%);
   --foreground: hsl(222, 84%, 4.9%);
