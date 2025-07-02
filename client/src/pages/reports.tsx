@@ -368,14 +368,14 @@ export default function Reports() {
     <MobilePageWrapper title="Reports">
       <div className="space-y-6">
         {/* Sticky Header with Timeframe Selector */}
-        <div className="sticky top-0 bg-white dark:bg-gray-900 z-10 pb-4 border-b border-gray-200 dark:border-gray-700">
+        <div className="sticky top-0 bg-background z-10 pb-4 border-b border-border">
           <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
             <div className="flex items-center gap-2">
-              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              <label className="text-sm font-medium text-foreground">
                 Summary Timeframe:
               </label>
               <Select value={summaryPeriod} onValueChange={(value: 'today' | 'weekly' | 'monthly') => setSummaryPeriod(value)}>
-                <SelectTrigger className="w-32 border-green-600 focus:ring-green-600">
+                <SelectTrigger className="w-32 border-emerald focus:ring-emerald">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -465,11 +465,11 @@ export default function Reports() {
         <div className="space-y-4">
           {/* Graph View Selector */}
           <div className="flex items-center gap-2">
-            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+            <label className="text-sm font-medium text-foreground">
               Graph View:
             </label>
             <Select value={trendPeriod} onValueChange={(value: 'daily' | 'weekly' | 'monthly') => setTrendPeriod(value)}>
-              <SelectTrigger className="w-28 border-green-600 focus:ring-green-600">
+              <SelectTrigger className="w-28 border-emerald focus:ring-emerald">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -480,53 +480,66 @@ export default function Reports() {
             </Select>
           </div>
           
-          <Card className="bg-black border-gray-700">
+          <Card className="brand-card-featured">
             <CardHeader>
-              <CardTitle className="text-white">Sales Trend</CardTitle>
+              <CardTitle className="text-foreground">Sales Trend</CardTitle>
             </CardHeader>
           <CardContent>
             {trendLoading ? (
               <div className="h-64 flex items-center justify-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-emerald"></div>
               </div>
             ) : trendError ? (
               <div className="text-center py-8">
-                <p className="text-red-400 mb-4">No data for this period.</p>
+                <p className="text-destructive mb-4">No data for this period.</p>
               </div>
             ) : !trendData || trendData.length === 0 ? (
               <div className="text-center py-8">
-                <p className="text-gray-400">No data for this period.</p>
+                <p className="text-muted-foreground">No data for this period.</p>
               </div>
             ) : (
               <div className="h-64">
                 <ResponsiveContainer width="100%" height="100%">
                   <LineChart data={trendData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                    <CartesianGrid 
+                      strokeDasharray="3 3" 
+                      stroke="hsl(var(--muted-foreground))" 
+                      opacity={0.3}
+                    />
                     <XAxis 
                       dataKey="label" 
-                      stroke="#9CA3AF"
+                      stroke="hsl(var(--muted-foreground))"
                       fontSize={12}
+                      tickLine={false}
                     />
                     <YAxis 
-                      stroke="#9CA3AF"
+                      stroke="hsl(var(--muted-foreground))"
                       fontSize={12}
+                      tickLine={false}
                     />
                     <Tooltip 
                       contentStyle={{ 
-                        backgroundColor: '#1F2937', 
-                        border: '1px solid #374151',
-                        borderRadius: '6px',
-                        color: '#F3F4F6'
+                        backgroundColor: 'hsl(var(--card))', 
+                        border: '1px solid hsl(var(--border))',
+                        borderRadius: '8px',
+                        color: 'hsl(var(--card-foreground))',
+                        boxShadow: '0 4px 12px rgba(0,0,0,0.15)'
                       }}
                       formatter={(value) => [`KES ${value}`, 'Sales']}
+                      labelStyle={{ color: 'hsl(var(--muted-foreground))' }}
                     />
                     <Line 
                       type="monotone" 
                       dataKey="value" 
-                      stroke="#00AA00" 
-                      strokeWidth={2}
-                      dot={{ fill: '#00AA00', strokeWidth: 2, r: 4 }}
-                      activeDot={{ r: 6, stroke: '#00AA00', strokeWidth: 2 }}
+                      stroke="hsl(var(--chart-1))" 
+                      strokeWidth={3}
+                      dot={{ fill: 'hsl(var(--chart-1))', strokeWidth: 2, r: 4 }}
+                      activeDot={{ 
+                        r: 6, 
+                        stroke: 'hsl(var(--chart-1))', 
+                        strokeWidth: 2,
+                        fill: 'hsl(var(--background))'
+                      }}
                     />
                   </LineChart>
                 </ResponsiveContainer>

@@ -215,7 +215,7 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent className="space-y-3">
             <Button 
-              className="w-full h-12 justify-start text-base leading-relaxed bg-primaryPurple hover:bg-primaryPurple-dark text-white font-medium transition-all duration-200"
+              className="w-full h-12 justify-start text-base leading-relaxed btn-secondary font-medium transition-all duration-200"
               onClick={handleAddProduct}
               aria-label="Add a new product to inventory"
             >
@@ -223,7 +223,7 @@ export default function Dashboard() {
               <span className="truncate">Add New Product</span>
             </Button>
             <Button 
-              className="w-full h-12 justify-start text-base leading-relaxed bg-primaryGreen hover:bg-primaryGreen-dark text-white font-medium transition-all duration-200"
+              className="w-full h-12 justify-start text-base leading-relaxed btn-primary font-medium transition-all duration-200"
               onClick={handleCreateOrder}
               aria-label="Create a new sales order"
             >
@@ -231,7 +231,7 @@ export default function Dashboard() {
               <span className="truncate">Create Order</span>
             </Button>
             <Button 
-              className="w-full h-12 justify-start text-base leading-relaxed border border-primaryPurple text-primaryPurple hover:bg-primaryPurple-50 dark:hover:bg-primaryPurple-900 hover:shadow-[0_4px_12px_rgba(107,70,193,0.4)] transition-all duration-200"
+              className="w-full h-12 justify-start text-base leading-relaxed btn-outline-secondary transition-all duration-200"
               onClick={handleAddCustomer}
               aria-label="Add a new customer"
             >
@@ -323,7 +323,7 @@ export default function Dashboard() {
                 <ShoppingCart className="h-12 w-12 text-muted-foreground mb-4" />
                 <h3 className="text-xl font-medium text-foreground mb-2 leading-relaxed">No recent orders</h3>
                 <p className="text-base text-muted-foreground mb-4 leading-relaxed">Start by creating your first order</p>
-                <Button onClick={handleCreateOrder} className="h-12 text-base bg-primaryGreen hover:bg-primaryGreen-dark text-white">
+                <Button onClick={handleCreateOrder} className="h-12 text-base btn-primary">
                   Create Order
                 </Button>
               </div>

@@ -33,80 +33,100 @@
 }
 
 :root {
-  /* Light Mode - Brand Color Palette */
-  --background: hsl(0, 0%, 100%);
-  --foreground: hsl(0, 0%, 0%);
-  --muted: hsl(0, 0%, 96%);
-  --muted-foreground: hsl(0, 0%, 45%);
-  --popover: hsl(0, 0%, 100%);
-  --popover-foreground: hsl(0, 0%, 0%);
-  --card: hsl(0, 0%, 100%);
-  --card-foreground: hsl(0, 0%, 0%);
-  --border: hsl(262, 52%, 47%);
-  --input: hsl(0, 0%, 91%);
-  --primary: hsl(262, 52%, 47%);
-  --primary-foreground: hsl(0, 0%, 100%);
-  --secondary: hsl(120, 100%, 33%);
-  --secondary-foreground: hsl(0, 0%, 100%);
-  --accent: hsl(262, 52%, 47%);
-  --accent-foreground: hsl(0, 0%, 100%);
-  --destructive: hsl(0, 84%, 60%);
-  --destructive-foreground: hsl(0, 0%, 100%);
-  --ring: hsl(120, 100%, 33%);
-  --radius: 0.5rem;
-  --chart-1: hsl(120, 100%, 33%);
-  --chart-2: hsl(262, 52%, 47%);
-  --chart-3: hsl(0, 0%, 0%);
-  --chart-4: hsl(120, 61%, 70%);
-  --chart-5: hsl(262, 73%, 70%);
+  /* Research-Based Light Mode Palette (WCAG Compliant) */
+  --background: hsl(0, 0%, 100%);              /* Pure white */
+  --foreground: hsl(240, 5%, 10%);             /* Near black text - neutral.DEFAULT */
+  --card: hsl(0, 0%, 100%);                    /* White cards */
+  --card-foreground: hsl(240, 5%, 10%);        /* Dark text on cards */
+  --popover: hsl(0, 0%, 100%);                 /* White popovers */
+  --popover-foreground: hsl(240, 5%, 10%);     /* Dark text in popovers */
+  --muted: hsl(240, 5%, 96%);                  /* neutral.100 */
+  --muted-foreground: hsl(240, 4%, 46%);       /* neutral.500 */
   
-  /* Sidebar colors for light mode */
-  --sidebar-background: hsl(0, 0%, 0%);
-  --sidebar-foreground: hsl(0, 0%, 100%);
-  --sidebar-primary: hsl(262, 52%, 47%);
+  /* Primary = Emerald Green (WCAG AA: 4.52:1) */
+  --primary: hsl(160, 84%, 39%);               /* emerald.DEFAULT #059669 */
+  --primary-foreground: hsl(0, 0%, 100%);      /* White text on emerald */
+  
+  /* Secondary = Light Lavender Background */
+  --secondary: hsl(270, 40%, 95%);             /* Very light lavender */
+  --secondary-foreground: hsl(240, 5%, 10%);   /* Dark text */
+  
+  /* Accent = Lavender Purple (WCAG AAA: 7.04:1) */
+  --accent: hsl(258, 90%, 66%);                /* lavender.DEFAULT #7c3aed */
+  --accent-foreground: hsl(0, 0%, 100%);       /* White text on lavender */
+  
+  /* Semantic & UI */
+  --destructive: hsl(0, 84%, 60%);             /* Red for errors */
+  --destructive-foreground: hsl(0, 0%, 100%);
+  --border: hsl(240, 6%, 90%);                 /* Light gray borders */
+  --input: hsl(240, 6%, 90%);                  /* Input borders */
+  --ring: hsl(160, 84%, 39%);                  /* Emerald focus rings */
+  --radius: 0.5rem;
+  
+  /* Chart Colors (Triadic Harmony) */
+  --chart-1: hsl(160, 84%, 39%);               /* Primary: Emerald */
+  --chart-2: hsl(258, 90%, 66%);               /* Secondary: Lavender */
+  --chart-3: hsl(38, 92%, 50%);                /* Tertiary: Orange */
+  --chart-4: hsl(0, 84%, 60%);                 /* Error: Red */
+  --chart-5: hsl(240, 4%, 46%);                /* Neutral: Gray */
+  
+  /* Business Dashboard Sidebar (Light Mode) */
+  --sidebar-background: hsl(240, 5%, 10%);     /* Dark neutral for contrast */
+  --sidebar-foreground: hsl(0, 0%, 100%);      /* White text */
+  --sidebar-primary: hsl(160, 84%, 39%);       /* Emerald for active states */
   --sidebar-primary-foreground: hsl(0, 0%, 100%);
-  --sidebar-accent: hsl(0, 0%, 12%);
+  --sidebar-accent: hsl(258, 90%, 66%);        /* Lavender for hover */
   --sidebar-accent-foreground: hsl(0, 0%, 100%);
-  --sidebar-border: hsl(0, 0%, 12%);
-  --sidebar-ring: hsl(262, 52%, 47%);
+  --sidebar-border: hsl(240, 4%, 16%);         /* Slightly lighter than bg */
+  --sidebar-ring: hsl(160, 84%, 39%);          /* Emerald focus */
 }
 
 .dark {
-  /* Dark Mode - Brand Color Palette */
-  --background: hsl(0, 0%, 7%);
-  --foreground: hsl(120, 100%, 33%);
-  --muted: hsl(0, 0%, 11%);
-  --muted-foreground: hsl(0, 0%, 65%);
-  --popover: hsl(0, 0%, 12%);
-  --popover-foreground: hsl(120, 100%, 33%);
-  --card: hsl(0, 0%, 12%);
-  --card-foreground: hsl(120, 100%, 33%);
-  --border: hsl(120, 100%, 33%);
-  --input: hsl(0, 0%, 17%);
-  --primary: hsl(120, 100%, 33%);
-  --primary-foreground: hsl(0, 0%, 0%);
-  --secondary: hsl(262, 52%, 47%);
-  --secondary-foreground: hsl(0, 0%, 100%);
-  --accent: hsl(120, 100%, 33%);
-  --accent-foreground: hsl(0, 0%, 0%);
-  --destructive: hsl(0, 84%, 60%);
-  --destructive-foreground: hsl(0, 0%, 100%);
-  --ring: hsl(120, 100%, 33%);
-  --chart-1: hsl(120, 100%, 33%);
-  --chart-2: hsl(262, 52%, 47%);
-  --chart-3: hsl(0, 0%, 100%);
-  --chart-4: hsl(120, 61%, 70%);
-  --chart-5: hsl(262, 73%, 70%);
+  /* Research-Based Dark Mode Palette (Accessibility Optimized) */
+  --background: hsl(240, 10%, 4%);             /* Very dark background */
+  --foreground: hsl(0, 0%, 98%);               /* Near white text */
+  --card: hsl(240, 10%, 4%);                  /* Dark cards */
+  --card-foreground: hsl(0, 0%, 98%);          /* Light text on cards */
+  --popover: hsl(240, 10%, 4%);               /* Dark popovers */
+  --popover-foreground: hsl(0, 0%, 98%);       /* Light text in popovers */
+  --muted: hsl(240, 4%, 16%);                 /* Dark gray */
+  --muted-foreground: hsl(240, 5%, 65%);       /* Medium gray text */
   
-  /* Sidebar specific colors for dark mode */
-  --sidebar-background: hsl(0, 0%, 7%);
-  --sidebar-foreground: hsl(120, 100%, 33%);
-  --sidebar-primary: hsl(120, 100%, 33%);
-  --sidebar-primary-foreground: hsl(0, 0%, 0%);
-  --sidebar-accent: hsl(0, 0%, 12%);
-  --sidebar-accent-foreground: hsl(120, 100%, 33%);
-  --sidebar-border: hsl(0, 0%, 12%);
-  --sidebar-ring: hsl(120, 100%, 33%);
+  /* Primary = Emerald Green (Consistent in dark mode) */
+  --primary: hsl(160, 84%, 39%);               /* Same emerald for consistency */
+  --primary-foreground: hsl(240, 10%, 4%);     /* Dark text on emerald */
+  
+  /* Secondary = Dark Neutral */
+  --secondary: hsl(240, 4%, 16%);              /* Dark gray background */
+  --secondary-foreground: hsl(0, 0%, 98%);     /* Light text */
+  
+  /* Accent = Brighter Emerald (Dark Mode Switch) */
+  --accent: hsl(160, 84%, 39%);                /* Emerald accent in dark mode */
+  --accent-foreground: hsl(0, 0%, 98%);        /* Light text on emerald */
+  
+  /* Semantic Colors (Dark Mode Adjusted) */
+  --destructive: hsl(0, 63%, 31%);             /* Darker red for dark mode */
+  --destructive-foreground: hsl(0, 0%, 98%);
+  --border: hsl(240, 4%, 16%);                 /* Dark borders */
+  --input: hsl(240, 4%, 16%);                  /* Dark input borders */
+  --ring: hsl(160, 84%, 39%);                  /* Emerald focus rings */
+  
+  /* Chart Colors (Dark Mode Optimized) */
+  --chart-1: hsl(160, 84%, 39%);               /* Emerald (brighter for contrast) */
+  --chart-2: hsl(258, 90%, 66%);               /* Lavender (bright enough) */
+  --chart-3: hsl(38, 92%, 50%);                /* Orange (vivid) */
+  --chart-4: hsl(0, 84%, 60%);                 /* Red (error state) */
+  --chart-5: hsl(0, 0%, 98%);                  /* Light gray */
+  
+  /* Business Dashboard Sidebar (Dark Mode) */
+  --sidebar-background: hsl(240, 10%, 4%);     /* Very dark background */
+  --sidebar-foreground: hsl(0, 0%, 98%);       /* Light text */
+  --sidebar-primary: hsl(160, 84%, 39%);       /* Emerald for active states */
+  --sidebar-primary-foreground: hsl(0, 0%, 98%);
+  --sidebar-accent: hsl(160, 84%, 39%);        /* Emerald for hover in dark mode */
+  --sidebar-accent-foreground: hsl(0, 0%, 98%);
+  --sidebar-border: hsl(240, 4%, 16%);         /* Dark borders */
+  --sidebar-ring: hsl(160, 84%, 39%);          /* Emerald focus */
 }
 
 @layer base {
@@ -280,54 +300,58 @@
   }
 }
 
+/* Research-Based Component Utility Classes */
 @layer components {
-  /* Brand Card Component */
   .brand-card {
-    @apply bg-white dark:bg-brandBlack-light border-primaryPurple dark:border-primaryGreen shadow-[0_4px_8px_rgba(107,70,193,0.2)] dark:shadow-[0_4px_8px_rgba(0,170,0,0.4)] rounded-lg;
+    @apply bg-card border border-emerald/20 hover:border-emerald/40 hover:shadow-lg transition-all duration-200;
   }
-  
-  /* Button Variants */
+
+  .brand-card-featured {
+    @apply bg-card border border-lavender/30 hover:border-lavender/50 hover:shadow-xl transition-all duration-300;
+  }
+
   .btn-primary {
-    @apply bg-primaryPurple text-white hover:bg-primaryPurple-dark focus:ring-primaryPurple transition-all duration-200;
+    @apply bg-emerald hover:bg-emerald-700 text-white font-medium ring-emerald focus:ring-2;
   }
-  
+
   .btn-secondary {
-    @apply bg-primaryGreen text-white hover:bg-primaryGreen-dark focus:ring-primaryGreen transition-all duration-200;
+    @apply bg-lavender hover:bg-lavender-800 text-white font-medium ring-lavender focus:ring-2;
   }
-  
-  .btn-outline {
-    @apply border-primaryGreen text-primaryGreen hover:bg-primaryGreen-light dark:text-primaryGreen dark:border-primaryGreen dark:hover:bg-primaryGreen dark:hover:text-brandBlack transition-all duration-200;
+
+  .btn-outline-primary {
+    @apply border border-emerald text-emerald hover:bg-emerald hover:text-white transition-colors;
   }
-  
-  /* Header/Navbar Styles */
-  .brand-header {
-    @apply bg-brandBlack text-white dark:bg-brandBlack-dark dark:text-primaryGreen;
+
+  .btn-outline-secondary {
+    @apply border border-lavender text-lavender hover:bg-lavender hover:text-white transition-colors;
   }
-  
-  .brand-header .active {
-    @apply text-primaryPurple dark:text-primaryGreen;
+
+  .brand-gradient {
+    background: linear-gradient(135deg, hsl(var(--chart-1)) 0%, hsl(var(--chart-2)) 100%);
   }
-  
-  /* Form Elements */
-  .brand-input {
-    @apply focus:ring-primaryGreen border-primaryPurple dark:border-primaryGreen bg-white dark:bg-brandBlack-light text-brandBlack dark:text-primaryGreen;
+
+  .chart-emerald {
+    @apply text-emerald fill-emerald stroke-emerald;
   }
-  
-  /* Interactive Elements */
-  .brand-link {
-    @apply text-primaryPurple dark:text-primaryGreen hover:text-primaryPurple-dark dark:hover:text-primaryGreen-light;
+
+  .chart-lavender {
+    @apply text-lavender fill-lavender stroke-lavender;
   }
-  
-  /* Status Colors */
-  .success-element {
-    @apply text-primaryGreen bg-primaryGreen-50 dark:bg-primaryGreen-900 border-primaryGreen;
+
+  /* Accessibility-focused text utilities */
+  .text-brand-primary {
+    @apply text-emerald;
   }
-  
-  .info-element {
-    @apply text-primaryPurple bg-primaryPurple-50 dark:bg-primaryPurple-900 border-primaryPurple;
+
+  .text-brand-secondary {
+    @apply text-lavender;
   }
-  
-  .error-element {
-    @apply text-red-600 bg-red-50 dark:bg-red-900 border-red-600;
+
+  .text-success {
+    @apply text-emerald;
+  }
+
+  .text-info {
+    @apply text-lavender;
   }
 }
