@@ -195,6 +195,9 @@ Changelog:
 - July 2, 2025. Created comprehensive notification system with unread badge and mark-as-read functionality
 - July 2, 2025. Added PostgreSQL notifications table and complete backend API endpoints
 - July 2, 2025. Replaced old universal search component with integrated TopBar search functionality
+- July 2, 2025. Added Mobile Money payment option to Sales page, confirmation modal, and Reports breakdown
+- July 2, 2025. Updated backend API to handle mobileMoney payments with paid status (like Cash payments)
+- July 2, 2025. Enhanced Reports page to include Mobile Money in payment breakdown and CSV exports
 ```
 
 ## User Preferences

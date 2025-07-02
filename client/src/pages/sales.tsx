@@ -386,6 +386,7 @@ export default function Sales() {
                           M-Pesa
                         </button>
                       )}
+                      {/* Mobile Money Payment Button */}
                       <button
                         onClick={() => setPaymentMethod('mobileMoney')}
                         className={`flex-1 py-2 px-4 rounded-full text-sm font-medium transition-colors ${
