@@ -4,6 +4,7 @@ import { queryClient } from "./lib/queryClient";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Sidebar } from "@/components/layout/sidebar";
+import { UniversalSearch } from "@/components/layout/universal-search";
 import { AuthProvider, useAuth } from "@/hooks/use-auth";
 import { useWebSocket } from "@/hooks/use-websocket";
 import { ThemeProvider } from "@/contexts/theme-context";
@@ -28,6 +29,7 @@ function AuthenticatedApp() {
     <div className="min-h-screen flex flex-col bg-background text-foreground">
       <Sidebar />
       <main className="flex-1 w-full">
+        <UniversalSearch />
         <Switch>
           <Route path="/" component={Dashboard} />
           <Route path="/dashboard" component={Dashboard} />

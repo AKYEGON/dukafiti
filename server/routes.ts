@@ -1241,5 +1241,90 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Universal search endpoint
+  app.get('/api/search', requireAuth, async (req: any, res: any) => {
+    try {
+      const { q } = req.query;
+      
+      if (!q || q.length < 3) {
+        return res.json([]);
+      }
+      
+      const query = q.toLowerCase();
+      const results: any[] = [];
+      
+      // Search products
+      const products = await storage.searchProducts(query);
+      for (const product of products) {
+        results.push({
+          id: `product-${product.id}`,
+          type: 'product',
+          title: product.name,
+          subtitle: `SKU: ${product.sku} | Stock: ${product.stock} | KES ${product.price}`,
+          href: `/inventory?search=${encodeURIComponent(product.name)}`
+        });
+      }
+      
+      // Search customers  
+      const customers = await storage.getCustomers();
+      const matchingCustomers = customers.filter(customer => 
+        customer.name.toLowerCase().includes(query) ||
+        (customer.phone && customer.phone.includes(query)) ||
+        (customer.email && customer.email.toLowerCase().includes(query))
+      );
+      
+      for (const customer of matchingCustomers) {
+        results.push({
+          id: `customer-${customer.id}`,
+          type: 'customer',
+          title: customer.name,
+          subtitle: `${customer.phone || 'No phone'} | Balance: KES ${customer.balance}`,
+          href: `/customers?search=${encodeURIComponent(customer.name)}`
+        });
+      }
+      
+      // Search orders by reference or customer name
+      const orders = await storage.getOrders();
+      const matchingOrders = orders.filter(order => 
+        (order.reference && order.reference.toLowerCase().includes(query)) ||
+        order.customerName.toLowerCase().includes(query)
+      );
+      
+      for (const order of matchingOrders) {
+        results.push({
+          id: `order-${order.id}`,
+          type: 'order',
+          title: `Order #${order.reference || order.id}`,
+          subtitle: `${order.customerName} | KES ${order.total} | ${order.status}`,
+          href: `/reports?order=${order.id}`
+        });
+      }
+      
+      // Sort by relevance and limit to 5 results
+      const sortedResults = results
+        .sort((a, b) => {
+          // Prioritize exact matches in title
+          const aExact = a.title.toLowerCase() === query;
+          const bExact = b.title.toLowerCase() === query;
+          if (aExact && !bExact) return -1;
+          if (!aExact && bExact) return 1;
+          
+          // Then prioritize title matches over subtitle matches
+          const aTitleMatch = a.title.toLowerCase().includes(query);
+          const bTitleMatch = b.title.toLowerCase().includes(query);
+          if (aTitleMatch && !bTitleMatch) return -1;
+          if (!aTitleMatch && bTitleMatch) return 1;
+          
+          return 0;
+        })
+        .slice(0, 5);
+      
+      res.json(sortedResults);
+    } catch (error) {
+      console.error('Search error:', error);
+      res.status(500).json({ error: 'Search failed' });
+    }
+  });
+
   return httpServer;
 }
