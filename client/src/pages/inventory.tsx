@@ -21,7 +21,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Search, Package, Edit, Trash2 } from "lucide-react";
+import { Search, Package, Edit, Trash2, Plus } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -113,6 +113,14 @@ export default function Inventory() {
                 className="pl-10"
               />
             </div>
+            
+            <Button
+              onClick={() => setShowProductForm(true)}
+              className="bg-purple-600 hover:bg-purple-700 text-white min-h-[48px] px-4"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Add Product
+            </Button>
           </div>
         </div>
         
