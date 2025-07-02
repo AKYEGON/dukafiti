@@ -342,12 +342,12 @@ export class DatabaseStorage implements IStorage {
 
   // Dashboard methods
   async getDashboardMetrics(): Promise<DashboardMetrics> {
-    // Get total revenue from paid orders (completed or paid status)
+    // Get total revenue from all revenue-generating orders (paid, credit, completed)
     const [revenueResult] = await db.select({
       totalRevenue: sql<string>`COALESCE(SUM(CAST(${orders.total} AS DECIMAL)), 0)::TEXT`
     })
     .from(orders)
-    .where(or(eq(orders.status, 'completed'), eq(orders.status, 'paid')));
+    .where(or(eq(orders.status, 'paid'), eq(orders.status, 'credit'), eq(orders.status, 'completed')));
 
     // Get today's orders count
     const today = new Date();
@@ -402,13 +402,13 @@ export class DatabaseStorage implements IStorage {
     const tomorrowStart = new Date(today);
     tomorrowStart.setDate(tomorrowStart.getDate() + 1);
 
-    // Revenue calculations for paid/completed orders
+    // Revenue calculations for all revenue-generating orders (paid, credit)
     const [todayRevenue] = await db.select({
       revenue: sql<number>`COALESCE(SUM(CAST(${orders.total} AS DECIMAL)), 0)`
     })
     .from(orders)
     .where(and(
-      or(eq(orders.status, 'completed'), eq(orders.status, 'paid')),
+      or(eq(orders.status, 'paid'), eq(orders.status, 'credit'), eq(orders.status, 'completed')),
       gte(orders.createdAt, today),
       sql`${orders.createdAt} < ${tomorrowStart}`
     ));
@@ -418,7 +418,7 @@ export class DatabaseStorage implements IStorage {
     })
     .from(orders)
     .where(and(
-      or(eq(orders.status, 'completed'), eq(orders.status, 'paid')),
+      or(eq(orders.status, 'paid'), eq(orders.status, 'credit'), eq(orders.status, 'completed')),
       gte(orders.createdAt, yesterday),
       sql`${orders.createdAt} < ${today}`
     ));
@@ -464,12 +464,55 @@ export class DatabaseStorage implements IStorage {
       total: sql<number>`COUNT(*)`
     }).from(customers);
 
+    // Calculate week-to-date revenue
+    const weekStart = new Date(today);
+    weekStart.setDate(today.getDate() - today.getDay()); // Start of current week (Sunday)
+    
+    const [weekToDateRevenue] = await db.select({
+      revenue: sql<number>`COALESCE(SUM(CAST(${orders.total} AS DECIMAL)), 0)`
+    })
+    .from(orders)
+    .where(and(
+      or(eq(orders.status, 'paid'), eq(orders.status, 'credit'), eq(orders.status, 'completed')),
+      gte(orders.createdAt, weekStart),
+      sql`${orders.createdAt} < ${tomorrowStart}`
+    ));
+
+    // Calculate prior week revenue
+    const priorWeekStart = new Date(weekStart);
+    priorWeekStart.setDate(weekStart.getDate() - 7);
+    const priorWeekEnd = new Date(weekStart);
+    
+    const [priorWeekRevenue] = await db.select({
+      revenue: sql<number>`COALESCE(SUM(CAST(${orders.total} AS DECIMAL)), 0)`
+    })
+    .from(orders)
+    .where(and(
+      or(eq(orders.status, 'paid'), eq(orders.status, 'credit'), eq(orders.status, 'completed')),
+      gte(orders.createdAt, priorWeekStart),
+      sql`${orders.createdAt} < ${priorWeekEnd}`
+    ));
+
+    // Calculate prior active customers (30-60 days ago)
+    const sixtyDaysAgo = new Date(today);
+    sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
+    
+    const [priorActiveCustomers] = await db.select({
+      active: sql<number>`COUNT(DISTINCT ${orders.customerId})`
+    })
+    .from(orders)
+    .where(and(
+      isNotNull(orders.customerId),
+      gte(orders.createdAt, sixtyDaysAgo),
+      sql`${orders.createdAt} < ${thirtyDaysAgo}`
+    ));
+
     return {
       revenue: {
         today: Number(todayRevenue?.revenue || 0),
         yesterday: Number(yesterdayRevenue?.revenue || 0),
-        weekToDate: Number(todayRevenue?.revenue || 0), // Simplified for now
-        priorWeekToDate: Number(yesterdayRevenue?.revenue || 0), // Simplified for now
+        weekToDate: Number(weekToDateRevenue?.revenue || 0),
+        priorWeekToDate: Number(priorWeekRevenue?.revenue || 0),
       },
       orders: {
         today: Number(todayOrders?.count || 0),
@@ -477,11 +520,11 @@ export class DatabaseStorage implements IStorage {
       },
       inventory: {
         totalItems: Number(inventoryCount?.totalItems || 0),
-        priorSnapshot: Number(inventoryCount?.totalItems || 0), // Simplified - would need historical data
+        priorSnapshot: Number(inventoryCount?.totalItems || 0), // Would need historical inventory data
       },
       customers: {
         active: Number(activeCustomers?.active || 0),
-        priorActive: Math.max(0, Number(totalCustomers?.total || 0) - 1), // Simplified approximation
+        priorActive: Number(priorActiveCustomers?.active || 0),
       },
     };
   }

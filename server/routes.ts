@@ -1009,14 +1009,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const amount = parseFloat(order.total);
         totalSales += amount;
         
-        if (order.status === 'completed') {
+        // Handle paid orders (cash and mobile money)
+        if (order.status === 'paid' || order.status === 'completed') {
           if (order.paymentMethod === 'cash') {
             cashSales += amount;
           } else if (order.paymentMethod === 'mobileMoney') {
             mobileMoneySales += amount;
           }
-        } else if (order.status === 'pending') {
+        } 
+        // Handle credit orders
+        else if (order.status === 'credit') {
           creditSales += amount;
+        }
+        // Handle pending M-Pesa orders (not yet completed)
+        else if (order.status === 'pending') {
+          // These are typically M-Pesa orders awaiting confirmation, don't count in breakdown yet
         }
       });
       
@@ -1064,7 +1071,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
           
           const hourSales = hourOrders.reduce((sum, order) => 
-            sum + (order.status === 'completed' ? parseFloat(order.total) : 0), 0
+            sum + (order.status === 'paid' || order.status === 'completed' || order.status === 'credit' ? parseFloat(order.total) : 0), 0
           );
           
           data.push({
@@ -1089,7 +1096,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
           
           const daySales = dayOrders.reduce((sum, order) => 
-            sum + (order.status === 'completed' ? parseFloat(order.total) : 0), 0
+            sum + (order.status === 'paid' || order.status === 'completed' || order.status === 'credit' ? parseFloat(order.total) : 0), 0
           );
           
           data.push({
@@ -1112,7 +1119,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
           
           const daySales = dayOrders.reduce((sum, order) => 
-            sum + (order.status === 'completed' ? parseFloat(order.total) : 0), 0
+            sum + (order.status === 'paid' || order.status === 'completed' || order.status === 'credit' ? parseFloat(order.total) : 0), 0
           );
           
           data.push({
