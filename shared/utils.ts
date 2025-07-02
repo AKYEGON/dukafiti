@@ -7,8 +7,8 @@
 export function calcPctChange(current: number, prior: number): string {
   // Handle edge cases
   if (prior === 0 && current === 0) return "0.0%";
-  if (prior === 0 && current > 0) return "+100.0%";
-  if (prior === 0 && current < 0) return "-100.0%";
+  if (prior === 0 && current > 0) return "New";
+  if (prior === 0 && current < 0) return "New";
   
   // Calculate percentage change
   const change = ((current - prior) / prior) * 100;

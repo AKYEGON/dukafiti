@@ -91,6 +91,34 @@ export default function Dashboard() {
     }
   };
 
+  // Debug percentage calculations when metrics change
+  useEffect(() => {
+    if (detailedMetrics) {
+      console.log('Dashboard Metrics Debug:', {
+        revenue: {
+          today: detailedMetrics.revenue.today,
+          yesterday: detailedMetrics.revenue.yesterday,
+          calculated: calcPctChange(detailedMetrics.revenue.today, detailedMetrics.revenue.yesterday)
+        },
+        orders: {
+          today: detailedMetrics.orders.today,
+          yesterday: detailedMetrics.orders.yesterday,
+          calculated: calcPctChange(detailedMetrics.orders.today, detailedMetrics.orders.yesterday)
+        },
+        inventory: {
+          current: detailedMetrics.inventory.totalItems,
+          prior: detailedMetrics.inventory.priorSnapshot,
+          calculated: calcPctChange(detailedMetrics.inventory.totalItems, detailedMetrics.inventory.priorSnapshot)
+        },
+        customers: {
+          current: detailedMetrics.customers.active,
+          prior: detailedMetrics.customers.priorActive,
+          calculated: calcPctChange(detailedMetrics.customers.active, detailedMetrics.customers.priorActive)
+        }
+      });
+    }
+  }, [detailedMetrics]);
+
   // Quick Actions handlers
   const handleAddProduct = () => {
     setShowProductForm(true);
@@ -175,7 +203,11 @@ export default function Dashboard() {
           <EnhancedMetricCard
             title="Total Revenue"
             value={detailedMetrics?.revenue ? formatCurrencyUtil(detailedMetrics.revenue.today) : formatCurrency(metrics?.totalRevenue || "0")}
-            percentageChange={detailedMetrics?.revenue ? calcPctChange(detailedMetrics.revenue.today, detailedMetrics.revenue.yesterday) : "—"}
+            percentageChange={
+              detailedMetrics?.revenue 
+                ? calcPctChange(detailedMetrics.revenue.today, detailedMetrics.revenue.yesterday) 
+                : "—"
+            }
             icon={DollarSign}
             isLoading={detailedMetricsLoading || metricsLoading}
             isRefreshing={isRefreshing}
@@ -184,7 +216,11 @@ export default function Dashboard() {
           <EnhancedMetricCard
             title="Orders Today"
             value={detailedMetrics?.orders ? detailedMetrics.orders.today.toString() : (metrics?.totalOrders || 0).toString()}
-            percentageChange={detailedMetrics?.orders ? calcPctChange(detailedMetrics.orders.today, detailedMetrics.orders.yesterday) : "—"}
+            percentageChange={
+              detailedMetrics?.orders 
+                ? calcPctChange(detailedMetrics.orders.today, detailedMetrics.orders.yesterday) 
+                : "—"
+            }
             icon={ShoppingCart}
             isLoading={detailedMetricsLoading || metricsLoading}
             isRefreshing={isRefreshing}
@@ -193,7 +229,11 @@ export default function Dashboard() {
           <EnhancedMetricCard
             title="Inventory Items"
             value={detailedMetrics?.inventory ? detailedMetrics.inventory.totalItems.toString() : (metrics?.totalProducts || 0).toString()}
-            percentageChange={detailedMetrics?.inventory ? calcPctChange(detailedMetrics.inventory.totalItems, detailedMetrics.inventory.priorSnapshot) : "—"}
+            percentageChange={
+              detailedMetrics?.inventory 
+                ? calcPctChange(detailedMetrics.inventory.totalItems, detailedMetrics.inventory.priorSnapshot) 
+                : "—"
+            }
             icon={Package}
             isLoading={detailedMetricsLoading || metricsLoading}
             isRefreshing={isRefreshing}
@@ -202,7 +242,11 @@ export default function Dashboard() {
           <EnhancedMetricCard
             title="Active Customers"
             value={detailedMetrics?.customers ? detailedMetrics.customers.active.toString() : (metrics?.activeCustomersCount || 0).toString()}
-            percentageChange={detailedMetrics?.customers ? calcPctChange(detailedMetrics.customers.active, detailedMetrics.customers.priorActive) : "—"}
+            percentageChange={
+              detailedMetrics?.customers 
+                ? calcPctChange(detailedMetrics.customers.active, detailedMetrics.customers.priorActive) 
+                : "—"
+            }
             icon={Users}
             isLoading={detailedMetricsLoading || metricsLoading}
             isRefreshing={isRefreshing}

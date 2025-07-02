@@ -14,6 +14,7 @@ interface EnhancedMetricCardProps {
 
 function getPercentageColor(percentageChange: string): string {
   if (percentageChange === "0.0%" || percentageChange === "—") return "text-gray-500";
+  if (percentageChange === "New") return "text-green-600 dark:text-green-400";
   if (percentageChange.startsWith("+")) return "text-green-600 dark:text-green-400";
   if (percentageChange.startsWith("-")) return "text-red-600 dark:text-red-400";
   return "text-gray-500";
@@ -62,7 +63,7 @@ export function EnhancedMetricCard({
               getPercentageColor(percentageChange)
             )}>
               {percentageChange}
-              {percentageChange !== "—" && percentageChange !== "0.0%" && (
+              {percentageChange !== "—" && percentageChange !== "0.0%" && percentageChange !== "New" && (
                 <span className="text-muted-foreground ml-1">vs yesterday</span>
               )}
             </p>
