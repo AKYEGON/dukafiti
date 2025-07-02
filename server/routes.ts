@@ -263,10 +263,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/customers", requireAuth, async (req, res) => {
     try {
+      console.log("Raw request body:", req.body);
       const customerData = insertCustomerSchema.parse(req.body);
+      console.log("Parsed customer data:", customerData);
       const customer = await storage.createCustomer(customerData);
+      console.log("Created customer:", customer);
       res.status(201).json(customer);
     } catch (error) {
+      console.error("Customer creation error:", error);
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "Invalid customer data", errors: error.errors });
       }

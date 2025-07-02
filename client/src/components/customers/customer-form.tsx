@@ -176,17 +176,25 @@ export function CustomerForm({ open, onOpenChange, customer }: CustomerFormProps
                 name="balance"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-foreground">Initial Debt Amount (KES)</FormLabel>
+                    <FormLabel className="text-foreground">Initial Debt Amount (Optional)</FormLabel>
                     <FormControl>
-                      <Input 
-                        type="number"
-                        step="0.01"
-                        min="0"
-                        placeholder="0.00" 
-                        {...field} 
-                        className="bg-input border-border text-foreground placeholder-muted-foreground"
-                      />
+                      <div className="relative">
+                        <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground text-sm">
+                          KES
+                        </span>
+                        <Input 
+                          type="number"
+                          step="0.01"
+                          min="0"
+                          placeholder="0.00" 
+                          {...field} 
+                          className="bg-input border-border text-foreground placeholder-muted-foreground pl-12"
+                        />
+                      </div>
                     </FormControl>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Enter amount if customer already owes money
+                    </p>
                     <FormMessage />
                   </FormItem>
                 )}
