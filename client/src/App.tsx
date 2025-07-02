@@ -41,7 +41,7 @@ function AuthenticatedApp() {
     <div className="flex h-screen bg-background text-foreground overflow-hidden">
       {/* Desktop Sidebar - hidden on mobile */}
       <div className="hidden sm:block">
-        <Sidebar collapsed={sidebarCollapsed} />
+        <Sidebar collapsed={sidebarCollapsed} toggleSidebar={toggleSidebar} />
       </div>
       
       <div className="flex-1 flex flex-col main-content min-w-0">
