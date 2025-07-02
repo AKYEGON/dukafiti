@@ -1,4 +1,4 @@
-const CACHE_NAME = 'dukasmart-v2';
+const CACHE_NAME = 'dukasmart-v3-fix-percentage';
 const urlsToCache = [
   '/',
   '/manifest.json',
@@ -28,6 +28,13 @@ self.addEventListener('install', (event) => {
         console.error('Service Worker: Install failed:', error);
       })
   );
+});
+
+// Handle skip waiting message
+self.addEventListener('message', (event) => {
+  if (event.data && event.data.type === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
 });
 
 // Activate event - clean up old caches
