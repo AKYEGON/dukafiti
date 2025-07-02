@@ -2,6 +2,7 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -29,10 +30,25 @@ export function CustomerForm({ open, onOpenChange, customer }: CustomerFormProps
   const form = useForm<CustomerFormData>({
     resolver: zodResolver(customerFormSchema),
     defaultValues: {
-      name: customer?.name || "",
-      phone: customer?.phone || "",
+      name: "",
+      phone: "",
     },
   });
+
+  // Reset form when customer prop changes
+  useEffect(() => {
+    if (customer) {
+      form.reset({
+        name: customer.name || "",
+        phone: customer.phone || "",
+      });
+    } else {
+      form.reset({
+        name: "",
+        phone: "",
+      });
+    }
+  }, [customer, form]);
 
   const createCustomer = useMutation({
     mutationFn: async (data: CustomerFormData) => {
