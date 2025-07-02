@@ -45,6 +45,10 @@ interface OrderRecord {
   totalAmount: string;
   status: 'paid' | 'pending' | 'cancelled';
   reference: string | null;
+  items: Array<{
+    productName: string;
+    qty: number;
+  }>;
 }
 
 interface OrdersResponse {
@@ -202,7 +206,7 @@ export default function Reports() {
   };
 
   // Enhanced CSV Export Functions with sharing
-  const exportAndShareCSV = async (type: 'summary' | 'top-items' | 'inventory', data: any[], headers: string[], filename: string): Promise<string | null> => {
+  const exportAndShareCSV = async (type: 'summary' | 'top-items' | 'inventory' | 'orders', data: any[], headers: string[], filename: string): Promise<string | null> => {
     setExportingCSV(type);
     try {
       const csv = convertToCSV(data, headers);
@@ -270,6 +274,48 @@ export default function Reports() {
         variant: "destructive"
       });
       return null;
+    }
+  };
+
+  const exportOrdersCSV = async (): Promise<string | null> => {
+    if (!ordersData) return null;
+    
+    setExportingCSV('orders');
+    try {
+      const data = ordersData.orders.map(order => ({
+        orderId: order.orderId,
+        date: order.date,
+        customerName: order.customerName,
+        totalAmount: order.totalAmount,
+        status: order.status,
+        items: order.items.map(item => `${item.productName} x${item.qty}`).join('; ')
+      }));
+      
+      const csv = convertToCSV(data, ['Order ID', 'Date', 'Customer Name', 'Total Amount', 'Status', 'Items']);
+      
+      // Download locally
+      downloadCSV(csv, 'orders.csv');
+      
+      // Upload for sharing
+      const csvUrl = await uploadCSVToServer(csv, 'orders.csv');
+      
+      if (csvUrl) {
+        toast({
+          title: "Export Successful",
+          description: "CSV downloaded and ready for sharing",
+        });
+        return csvUrl;
+      }
+      return null;
+    } catch (error) {
+      toast({
+        title: "Export Failed",
+        description: "Failed to export orders CSV",
+        variant: "destructive"
+      });
+      return null;
+    } finally {
+      setExportingCSV(null);
     }
   };
 
@@ -481,6 +527,9 @@ export default function Reports() {
                   className="pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 text-sm min-w-[200px]"
                 />
               </div>
+
+              {/* Export Button */}
+              <ShareButtons onExport={exportOrdersCSV} type="orders" disabled={!ordersData?.orders?.length} />
             </div>
           </div>
         </CardHeader>
@@ -512,58 +561,108 @@ export default function Reports() {
                 <table className="table-auto w-full text-sm">
                   <thead>
                     <tr className="bg-purple-600 text-white">
-                      <th className="px-4 py-3 text-left font-medium border-b border-gray-300">Order ID</th>
-                      <th className="px-4 py-3 text-left font-medium border-b border-gray-300">Date</th>
-                      <th className="px-4 py-3 text-left font-medium border-b border-gray-300">Customer</th>
-                      <th className="px-4 py-3 text-left font-medium border-b border-gray-300">Amount</th>
-                      <th className="px-4 py-3 text-left font-medium border-b border-gray-300">Status</th>
+                      <th className="px-2 py-1 text-left font-medium border-b border-gray-300">Order ID</th>
+                      <th className="px-2 py-1 text-left font-medium border-b border-gray-300">Date</th>
+                      <th className="px-2 py-1 text-left font-medium border-b border-gray-300">Customer</th>
+                      <th className="px-2 py-1 text-right font-medium border-b border-gray-300">Amount (KES)</th>
+                      <th className="px-2 py-1 text-left font-medium border-b border-gray-300">Products</th>
+                      <th className="px-2 py-1 text-left font-medium border-b border-gray-300">Status</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {ordersData.orders.map((order) => (
-                      <tr key={order.orderId} className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800">
-                        <td className="px-4 py-3 text-foreground">#{order.orderId}</td>
-                        <td className="px-4 py-3 text-foreground">{order.date}</td>
-                        <td className="px-4 py-3 text-foreground">{order.customerName}</td>
-                        <td className="px-4 py-3 text-foreground">{formatCurrency(order.totalAmount)}</td>
-                        <td className="px-4 py-3">
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                            order.status === 'paid' 
-                              ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                              : order.status === 'pending'
-                              ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
-                              : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
-                          }`}>
-                            {order.status}
-                          </span>
-                        </td>
-                      </tr>
-                    ))}
+                    {ordersData.orders.map((order) => {
+                      // Format items display
+                      const formatItems = (items: Array<{ productName: string; qty: number }>) => {
+                        if (!items || items.length === 0) return 'No items';
+                        
+                        const displayItems = items.slice(0, 3);
+                        const formatted = displayItems.map(item => `${item.productName} x${item.qty}`).join(', ');
+                        
+                        if (items.length > 3) {
+                          return `${formatted}, +${items.length - 3} more`;
+                        }
+                        return formatted;
+                      };
+
+                      const amountColor = order.status === 'paid' ? 'text-green-400' : order.status === 'pending' ? 'text-yellow-400' : 'text-red-400';
+
+                      return (
+                        <tr key={order.orderId} className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800">
+                          <td className="px-2 py-1 text-foreground">#{order.orderId}</td>
+                          <td className="px-2 py-1 text-foreground">{order.date}</td>
+                          <td className="px-2 py-1 text-foreground">{order.customerName}</td>
+                          <td className={`px-2 py-1 text-right font-medium ${amountColor}`}>
+                            {parseFloat(order.totalAmount).toLocaleString('en-KE', { 
+                              minimumFractionDigits: 2, 
+                              maximumFractionDigits: 2 
+                            })}
+                          </td>
+                          <td className="px-2 py-1 text-foreground text-xs">
+                            {formatItems(order.items)}
+                          </td>
+                          <td className="px-2 py-1">
+                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                              order.status === 'paid' 
+                                ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                                : order.status === 'pending'
+                                ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
+                                : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                            }`}>
+                              {order.status}
+                            </span>
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
 
               {/* Mobile Cards */}
-              <div className="md:hidden space-y-3">
-                {ordersData.orders.map((order) => (
-                  <div key={order.orderId} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
-                    <div className="flex justify-between items-start mb-2">
-                      <div className="font-medium text-foreground">#{order.orderId}</div>
-                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                        order.status === 'paid' 
-                          ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                          : order.status === 'pending'
-                          ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
-                          : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
-                      }`}>
-                        {order.status}
-                      </span>
+              <div className="md:hidden space-y-2">
+                {ordersData.orders.map((order) => {
+                  // Format items for mobile with truncation
+                  const formatMobileItems = (items: Array<{ productName: string; qty: number }>) => {
+                    if (!items || items.length === 0) return 'No items';
+                    
+                    const itemsText = items.map(item => `${item.productName} x${item.qty}`).join(', ');
+                    
+                    if (itemsText.length > 50) {
+                      return itemsText.substring(0, 47) + '...';
+                    }
+                    return itemsText;
+                  };
+
+                  const amountColor = order.status === 'paid' ? 'text-green-400' : order.status === 'pending' ? 'text-yellow-400' : 'text-red-400';
+
+                  return (
+                    <div key={order.orderId} className="p-4 mb-2 bg-gray-800 rounded border border-gray-700">
+                      <div className="flex justify-between items-start mb-2">
+                        <div className="font-medium text-foreground">#{order.orderId}</div>
+                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                          order.status === 'paid' 
+                            ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                            : order.status === 'pending'
+                            ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
+                            : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                        }`}>
+                          {order.status}
+                        </span>
+                      </div>
+                      <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">{order.date}</div>
+                      <div className="text-sm text-foreground mb-1">{order.customerName}</div>
+                      <div className={`font-bold mb-1 ${amountColor}`}>
+                        Amount: KES {parseFloat(order.totalAmount).toLocaleString('en-KE', { 
+                          minimumFractionDigits: 2, 
+                          maximumFractionDigits: 2 
+                        })}
+                      </div>
+                      <div className="text-xs text-gray-400">
+                        Items: {formatMobileItems(order.items)}
+                      </div>
                     </div>
-                    <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">{order.date}</div>
-                    <div className="text-sm text-foreground mb-1">{order.customerName}</div>
-                    <div className="font-medium text-green-600">{formatCurrency(order.totalAmount)}</div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
 
               {/* Pagination */}

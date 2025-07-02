@@ -885,14 +885,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const endIndex = startIndex + limitNum;
       const paginatedOrders = filteredOrders.slice(startIndex, endIndex);
 
-      // Format response
-      const formattedOrders = paginatedOrders.map(order => ({
-        orderId: order.id,
-        date: order.createdAt.toISOString().split('T')[0], // YYYY-MM-DD format
-        customerName: order.customerName,
-        totalAmount: parseFloat(order.total).toFixed(2),
-        status: order.status,
-        reference: order.reference
+      // Format response with order items
+      const formattedOrders = await Promise.all(paginatedOrders.map(async (order) => {
+        // Get order items for this order
+        const orderItems = await storage.getOrderItems(order.id);
+        
+        // Format items as {productName, qty}
+        const items = orderItems.map(item => ({
+          productName: item.productName,
+          qty: item.quantity
+        }));
+
+        return {
+          orderId: order.id,
+          date: order.createdAt.toISOString().split('T')[0], // YYYY-MM-DD format
+          customerName: order.customerName,
+          totalAmount: parseFloat(order.total).toFixed(2),
+          status: order.status,
+          reference: order.reference,
+          items: items
+        };
       }));
 
       res.json({
