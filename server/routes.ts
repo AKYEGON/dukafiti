@@ -1253,7 +1253,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const profile = await storage.getStoreProfile(user.id);
-      res.json(profile || {});
+      
+      // Transform database fields to frontend field names
+      const transformedProfile = profile ? {
+        storeName: profile.storeName,
+        ownerName: profile.ownerName || '',
+        address: profile.location || '',
+        storeType: profile.storeType,
+        location: profile.location,
+        description: profile.description,
+      } : {};
+      
+      res.json(transformedProfile);
     } catch (error) {
       console.error('Store profile fetch error:', error);
       res.status(500).json({ error: 'Failed to fetch store profile' });
@@ -1270,10 +1281,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const existingProfile = await storage.getStoreProfile(user.id);
       let profile;
       
+      // Map frontend fields to database fields
+      const profileData = {
+        storeName: req.body.storeName,
+        ownerName: req.body.ownerName,
+        storeType: req.body.storeType || 'retail', // Default to 'retail' if not provided
+        location: req.body.address, // Map address to location field
+        description: req.body.description || '',
+      };
+
       if (existingProfile) {
-        profile = await storage.updateStoreProfile(user.id, req.body);
+        profile = await storage.updateStoreProfile(user.id, profileData);
       } else {
-        profile = await storage.saveStoreProfile(user.id, req.body);
+        profile = await storage.saveStoreProfile(user.id, profileData);
       }
       
       res.json(profile);

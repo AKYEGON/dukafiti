@@ -79,6 +79,7 @@ export const storeProfiles = pgTable("store_profiles", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull().references(() => users.id),
   storeName: text("store_name").notNull(),
+  ownerName: text("owner_name"),
   storeType: text("store_type").notNull(),
   location: text("location"),
   description: text("description"),
