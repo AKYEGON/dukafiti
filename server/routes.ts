@@ -960,14 +960,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
           price: parseFloat(item.price).toFixed(2)
         }));
 
+        // Convert items to products format for frontend
+        const products = items.map(item => ({
+          name: item.productName,
+          quantity: item.qty
+        }));
+
         return {
           orderId: order.id,
           date: order.createdAt.toISOString().split('T')[0], // YYYY-MM-DD format
           customerName: order.customerName,
-          totalAmount: parseFloat(order.total).toFixed(2),
+          total: order.total, // Keep original string format
+          paymentMethod: order.paymentMethod,
           status: order.status,
           reference: order.reference,
-          items: items
+          products: products
         };
       }));
 
@@ -1201,8 +1208,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Calculate customer credit data
       const customerCredits = customers.map(customer => {
         const customerOrders = orders.filter(order => 
-          order.customerId === customer.id && 
-          order.status === 'credit' &&
+          (order.customerId === customer.id || order.customerName === customer.name) && 
+          order.paymentMethod === 'credit' &&
           new Date(order.createdAt) >= startDate
         );
 

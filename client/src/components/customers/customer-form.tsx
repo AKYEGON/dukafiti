@@ -13,6 +13,7 @@ import type { Customer } from "@shared/schema";
 const customerFormSchema = z.object({
   name: z.string().min(1, "Customer name is required"),
   phone: z.string().min(1, "Phone number is required").regex(/^[0-9+\-\s()]+$/, "Please enter a valid phone number"),
+  balance: z.string().optional(),
 });
 
 type CustomerFormData = z.infer<typeof customerFormSchema>;
@@ -32,6 +33,7 @@ export function CustomerForm({ open, onOpenChange, customer }: CustomerFormProps
     defaultValues: {
       name: "",
       phone: "",
+      balance: "",
     },
   });
 
@@ -41,11 +43,13 @@ export function CustomerForm({ open, onOpenChange, customer }: CustomerFormProps
       form.reset({
         name: customer.name || "",
         phone: customer.phone || "",
+        balance: customer.balance || "",
       });
     } else {
       form.reset({
         name: "",
         phone: "",
+        balance: "",
       });
     }
   }, [customer, form]);
@@ -165,6 +169,29 @@ export function CustomerForm({ open, onOpenChange, customer }: CustomerFormProps
                 </FormItem>
               )}
             />
+            
+            {!customer && (
+              <FormField
+                control={form.control}
+                name="balance"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel className="text-foreground">Initial Debt Amount (KES)</FormLabel>
+                    <FormControl>
+                      <Input 
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        placeholder="0.00" 
+                        {...field} 
+                        className="bg-input border-border text-foreground placeholder-muted-foreground"
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
 
             <div className="flex justify-end space-x-2 pt-4">
               <Button 
