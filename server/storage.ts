@@ -17,7 +17,10 @@ import {
   InsertStoreProfile,
   UserSettings,
   InsertUserSettings,
+  Notification,
+  InsertNotification,
   DashboardMetrics,
+  SearchResult,
   products,
   customers,
   orders,
@@ -26,7 +29,8 @@ import {
   businessProfiles,
   payments,
   storeProfiles,
-  userSettings
+  userSettings,
+  notifications
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, like, sql, or, ilike } from "drizzle-orm";
@@ -114,6 +118,15 @@ export interface IStorage {
   getUserSettings(userId: number): Promise<UserSettings | undefined>;
   saveUserSettings(userId: number, settings: Omit<InsertUserSettings, 'userId'>): Promise<UserSettings>;
   updateUserSettings(userId: number, settings: Partial<Omit<InsertUserSettings, 'userId'>>): Promise<UserSettings | undefined>;
+
+  // Notifications
+  getNotifications(userId: number, limit?: number): Promise<Notification[]>;
+  getUnreadNotificationCount(userId: number): Promise<number>;
+  createNotification(notification: InsertNotification): Promise<Notification>;
+  markNotificationAsRead(id: number): Promise<boolean>;
+
+  // Search
+  globalSearch(query: string): Promise<SearchResult[]>;
 }
 
 export class MemStorage implements IStorage {
@@ -1069,6 +1082,116 @@ export class DatabaseStorage implements IStorage {
         priorActive: priorActiveCustomers
       }
     };
+  }
+
+  // Notifications
+  async getNotifications(userId: number, limit = 10): Promise<Notification[]> {
+    const result = await db
+      .select()
+      .from(notifications)
+      .where(eq(notifications.userId, userId))
+      .orderBy(desc(notifications.createdAt))
+      .limit(limit);
+    return result;
+  }
+
+  async getUnreadNotificationCount(userId: number): Promise<number> {
+    const [result] = await db
+      .select({ count: sql<number>`count(*)` })
+      .from(notifications)
+      .where(
+        sql`${notifications.userId} = ${userId} AND ${notifications.isRead} = false`
+      );
+    return result?.count || 0;
+  }
+
+  async createNotification(notification: InsertNotification): Promise<Notification> {
+    const [result] = await db.insert(notifications).values(notification).returning();
+    return result;
+  }
+
+  async markNotificationAsRead(id: number): Promise<boolean> {
+    const result = await db
+      .update(notifications)
+      .set({ isRead: true })
+      .where(eq(notifications.id, id));
+    return result.rowCount > 0;
+  }
+
+  // Search
+  async globalSearch(query: string): Promise<SearchResult[]> {
+    const searchTerm = `%${query.toLowerCase()}%`;
+    const results: SearchResult[] = [];
+
+    // Search products
+    const productResults = await db
+      .select()
+      .from(products)
+      .where(
+        or(
+          ilike(products.name, searchTerm),
+          ilike(products.sku, searchTerm),
+          ilike(products.description, searchTerm)
+        )
+      )
+      .limit(3);
+
+    productResults.forEach(product => {
+      results.push({
+        id: product.id,
+        type: 'product',
+        name: product.name,
+        subtitle: `SKU: ${product.sku} • KES ${product.price}`,
+        url: `/inventory?product=${product.id}`
+      });
+    });
+
+    // Search customers
+    const customerResults = await db
+      .select()
+      .from(customers)
+      .where(
+        or(
+          ilike(customers.name, searchTerm),
+          ilike(customers.email, searchTerm),
+          ilike(customers.phone, searchTerm)
+        )
+      )
+      .limit(3);
+
+    customerResults.forEach(customer => {
+      results.push({
+        id: customer.id,
+        type: 'customer',
+        name: customer.name,
+        subtitle: customer.phone || customer.email || '',
+        url: `/customers?customer=${customer.id}`
+      });
+    });
+
+    // Search orders
+    const orderResults = await db
+      .select()
+      .from(orders)
+      .where(
+        or(
+          ilike(orders.customerName, searchTerm),
+          ilike(orders.reference, searchTerm)
+        )
+      )
+      .limit(2);
+
+    orderResults.forEach(order => {
+      results.push({
+        id: order.id,
+        type: 'order',
+        name: `Order #${order.id}`,
+        subtitle: `${order.customerName} • KES ${order.total}`,
+        url: `/orders?order=${order.id}`
+      });
+    });
+
+    return results;
   }
 }
 

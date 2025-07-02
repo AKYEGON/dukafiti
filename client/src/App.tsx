@@ -4,7 +4,7 @@ import { queryClient } from "./lib/queryClient";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Sidebar } from "@/components/layout/sidebar";
-import { UniversalSearch } from "@/components/layout/universal-search";
+import { TopBar } from "@/components/TopBar";
 import { AuthProvider, useAuth } from "@/hooks/use-auth";
 import { useWebSocket } from "@/hooks/use-websocket";
 import { ThemeProvider } from "@/contexts/theme-context";
@@ -32,7 +32,7 @@ function AuthenticatedApp() {
     <div className="flex h-screen bg-background text-foreground overflow-hidden">
       <Sidebar />
       <div className="flex-1 flex flex-col main-content min-w-0">
-        <UniversalSearch />
+        <TopBar />
         <main className="flex-1 overflow-y-auto bg-background">
           <Switch>
             <Route path="/" component={Dashboard} />

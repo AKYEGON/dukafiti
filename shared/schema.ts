@@ -100,6 +100,16 @@ export const userSettings = pgTable("user_settings", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+export const notifications = pgTable("notifications", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull().references(() => users.id),
+  title: text("title").notNull(),
+  message: text("message").notNull(),
+  type: text("type").notNull().default("info"), // info, success, warning, error
+  isRead: boolean("is_read").notNull().default(false),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 // Relations
 export const customersRelations = relations(customers, ({ many }) => ({
   orders: many(orders),
@@ -182,6 +192,11 @@ export const insertUserSettingsSchema = createInsertSchema(userSettings).omit({
   createdAt: true,
 });
 
+export const insertNotificationSchema = createInsertSchema(notifications).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Types
 export type Product = typeof products.$inferSelect;
 export type InsertProduct = z.infer<typeof insertProductSchema>;
@@ -210,6 +225,9 @@ export type InsertStoreProfile = z.infer<typeof insertStoreProfileSchema>;
 export type UserSettings = typeof userSettings.$inferSelect;
 export type InsertUserSettings = z.infer<typeof insertUserSettingsSchema>;
 
+export type Notification = typeof notifications.$inferSelect;
+export type InsertNotification = z.infer<typeof insertNotificationSchema>;
+
 export interface DashboardMetrics {
   totalRevenue: string;
   totalOrders: number;
@@ -219,4 +237,12 @@ export interface DashboardMetrics {
   ordersGrowth: string;
   lowStockCount: number;
   activeCustomersCount: number;
+}
+
+export interface SearchResult {
+  id: number;
+  type: 'product' | 'customer' | 'order';
+  name: string;
+  subtitle?: string;
+  url: string;
 }

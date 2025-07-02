@@ -1337,5 +1337,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Notifications endpoints
+  app.get('/api/notifications', requireAuth, async (req: any, res: any) => {
+    try {
+      const user = await getCurrentUser(req);
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      const limit = parseInt(req.query.limit) || 5;
+      const notifications = await storage.getNotifications(user.id, limit);
+      res.json(notifications);
+    } catch (error) {
+      console.error('Notifications fetch error:', error);
+      res.status(500).json({ error: 'Failed to fetch notifications' });
+    }
+  });
+
+  app.get('/api/notifications/unread-count', requireAuth, async (req: any, res: any) => {
+    try {
+      const user = await getCurrentUser(req);
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+
+      const count = await storage.getUnreadNotificationCount(user.id);
+      res.json({ count });
+    } catch (error) {
+      console.error('Unread notifications count error:', error);
+      res.status(500).json({ error: 'Failed to fetch unread notifications count' });
+    }
+  });
+
+  app.post('/api/notifications/:id/read', requireAuth, async (req: any, res: any) => {
+    try {
+      const id = parseInt(req.params.id);
+      if (isNaN(id)) {
+        return res.status(400).json({ error: 'Invalid notification ID' });
+      }
+
+      const success = await storage.markNotificationAsRead(id);
+      if (success) {
+        res.json({ success: true });
+      } else {
+        res.status(404).json({ error: 'Notification not found' });
+      }
+    } catch (error) {
+      console.error('Mark notification as read error:', error);
+      res.status(500).json({ error: 'Failed to mark notification as read' });
+    }
+  });
+
+  // Logout endpoint
+  app.post('/api/logout', (req: any, res: any) => {
+    req.session.destroy((err: any) => {
+      if (err) {
+        console.error('Logout error:', err);
+        return res.status(500).json({ error: 'Failed to logout' });
+      }
+      res.json({ success: true });
+    });
+  });
+
   return httpServer;
 }
