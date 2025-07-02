@@ -168,7 +168,7 @@ export function Sidebar({ className }: SidebarProps) {
 
       {/* Desktop sidebar with collapsible animation */}
       <aside className={cn(
-        "hidden lg:block fixed left-0 top-0 h-full bg-gray-900 text-white z-40 transition-all duration-300 ease-in-out",
+        "hidden lg:flex lg:flex-col bg-gray-900 text-white transition-all duration-300 ease-in-out",
         isDesktopCollapsed ? "w-16" : "w-64",
         className
       )}>

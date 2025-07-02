@@ -29,23 +29,21 @@ function AuthenticatedApp() {
   
   
   return (
-    <div className="min-h-screen bg-background text-foreground">
+    <div className="flex h-screen bg-background text-foreground">
       <Sidebar />
-      <div className="lg:ml-64 min-h-screen flex">
-        <main className="flex-1 flex flex-col">
-          <UniversalSearch />
-          <div className="flex-1 bg-background">
-            <Switch>
-              <Route path="/" component={Dashboard} />
-              <Route path="/dashboard" component={Dashboard} />
-              <Route path="/inventory" component={Inventory} />
-              <Route path="/sales" component={Sales} />
-              <Route path="/customers" component={Customers} />
-              <Route path="/reports" component={Reports} />
-              <Route path="/settings" component={SettingsPage} />
-              <Route component={NotFound} />
-            </Switch>
-          </div>
+      <div className="flex-1 flex flex-col main-content">
+        <UniversalSearch />
+        <main className="flex-1 overflow-auto bg-background">
+          <Switch>
+            <Route path="/" component={Dashboard} />
+            <Route path="/dashboard" component={Dashboard} />
+            <Route path="/inventory" component={Inventory} />
+            <Route path="/sales" component={Sales} />
+            <Route path="/customers" component={Customers} />
+            <Route path="/reports" component={Reports} />
+            <Route path="/settings" component={SettingsPage} />
+            <Route component={NotFound} />
+          </Switch>
         </main>
       </div>
     </div>
