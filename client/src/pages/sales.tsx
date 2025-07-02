@@ -1,31 +1,163 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
-import { ShoppingCart, Plus, TrendingUp } from "lucide-react";
+import { ShoppingCart, CreditCard, Smartphone, Banknote } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import { ProductSearch } from "@/components/sales/product-search";
-import { QuickSelectProducts } from "@/components/sales/quick-select-products";
-import { MiniCart } from "@/components/sales/mini-cart";
-import { SaleConfirmationModal } from "@/components/sales/sale-confirmation-modal";
-import { type SaleLineItem } from "@/components/sales/sale-line-item";
 import { type Product } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { formatCurrency } from "@/lib/utils";
 import { offlineQueue, isOnline } from "@/lib/offline-queue";
-import { MobilePageWrapper } from "@/components/layout/mobile-page-wrapper";
+import { Skeleton } from "@/components/ui/skeleton";
+
+// Cart item interface
+interface CartItem {
+  id: string;
+  product: Product;
+  quantity: number;
+  unitPrice: string;
+  total: string;
+}
+
+// Confirmation modal component
+const ConfirmationModal = ({ 
+  isOpen, 
+  onClose, 
+  cartItems, 
+  paymentMethod, 
+  onConfirm,
+  isProcessing 
+}: {
+  isOpen: boolean;
+  onClose: () => void;
+  cartItems: CartItem[];
+  paymentMethod: 'cash' | 'credit' | 'mobileMoney';
+  onConfirm: (customer?: { name: string; phone?: string }) => void;
+  isProcessing: boolean;
+}) => {
+  const [customerName, setCustomerName] = useState('');
+  const [customerPhone, setCustomerPhone] = useState('');
+
+  if (!isOpen) return null;
+
+  const total = cartItems.reduce((sum, item) => sum + parseFloat(item.total), 0);
+  
+  const getPaymentIcon = () => {
+    switch (paymentMethod) {
+      case 'cash': return <Banknote className="h-5 w-5" />;
+      case 'mobileMoney': return <Smartphone className="h-5 w-5" />;
+      case 'credit': return <CreditCard className="h-5 w-5" />;
+    }
+  };
+
+  const getPaymentLabel = () => {
+    switch (paymentMethod) {
+      case 'cash': return 'Cash Payment';
+      case 'mobileMoney': return 'Mobile Money';
+      case 'credit': return 'Credit Sale';
+    }
+  };
+
+  const handleConfirm = () => {
+    if (paymentMethod === 'credit' && customerName.trim()) {
+      onConfirm({ name: customerName.trim(), phone: customerPhone.trim() });
+    } else {
+      onConfirm();
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50">
+      <div className="bg-white dark:bg-[#1F1F1F] rounded-t-xl p-6 shadow-lg w-full max-w-md animate-in slide-in-from-bottom duration-300">
+        <h3 className="text-lg font-semibold mb-4">Confirm Sale</h3>
+        
+        {/* Items list */}
+        <div className="space-y-2 mb-4 max-h-48 overflow-y-auto">
+          {cartItems.map(item => (
+            <div key={item.id} className="flex justify-between text-sm">
+              <span>{item.product.name} × {item.quantity}</span>
+              <span>{formatCurrency(item.total)}</span>
+            </div>
+          ))}
+        </div>
+        
+        {/* Total */}
+        <div className="border-t pt-3 mb-4">
+          <div className="flex justify-between font-semibold text-lg">
+            <span>Total</span>
+            <span>{formatCurrency(total.toFixed(2))}</span>
+          </div>
+        </div>
+        
+        {/* Payment method */}
+        <div className="flex items-center gap-2 mb-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
+          {getPaymentIcon()}
+          <span className="font-medium">{getPaymentLabel()}</span>
+        </div>
+        
+        {/* Customer info for credit sales */}
+        {paymentMethod === 'credit' && (
+          <div className="space-y-3 mb-4">
+            <input
+              type="text"
+              placeholder="Customer Name (required)"
+              value={customerName}
+              onChange={(e) => setCustomerName(e.target.value)}
+              className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800"
+            />
+            <input
+              type="text"
+              placeholder="Customer Phone (optional)"
+              value={customerPhone}
+              onChange={(e) => setCustomerPhone(e.target.value)}
+              className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800"
+            />
+          </div>
+        )}
+        
+        {/* Buttons */}
+        <div className="space-y-3">
+          <Button 
+            onClick={handleConfirm}
+            disabled={isProcessing || (paymentMethod === 'credit' && !customerName.trim())}
+            className="w-full bg-green-600 hover:bg-green-700 text-white h-12 text-lg font-semibold"
+          >
+            {isProcessing ? 'Processing...' : 'Confirm Sale'}
+          </Button>
+          <Button 
+            onClick={onClose}
+            variant="outline"
+            disabled={isProcessing}
+            className="w-full h-12"
+          >
+            Cancel
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export default function Sales() {
-  const [cartItems, setCartItems] = useState<SaleLineItem[]>([]);
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<'cash' | 'credit' | 'mobileMoney' | ''>('');
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const buttonRef = useRef<HTMLButtonElement>(null);
 
   // Fetch all products for quick select functionality
-  const { data: products = [] } = useQuery<Product[]>({
+  const { data: products = [], isLoading: productsLoading } = useQuery<Product[]>({
     queryKey: ["/api/products"],
   });
+
+  // Get frequent products (first 6 for quick select)
+  const { data: frequentProducts = [] } = useQuery<Product[]>({
+    queryKey: ["/api/products/frequent"],
+  });
+
+  const quickSelectProducts = frequentProducts.length > 0 
+    ? frequentProducts.slice(0, 6) 
+    : products.slice(0, 6);
 
   const createSaleMutation = useMutation({
     mutationFn: async (saleData: { 
@@ -259,180 +391,201 @@ export default function Sales() {
   };
 
   const cartTotal = cartItems.reduce((sum, item) => sum + parseFloat(item.total), 0);
-  const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+  const isCartEmpty = cartItems.length === 0;
+  const canProceed = !isCartEmpty && paymentMethod !== '';
+
+  // Button click handler with ripple effect
+  const handleSellButtonClick = () => {
+    if (!canProceed) {
+      if (isCartEmpty) {
+        toast({ title: "Cart is empty", description: "Scan or select items to start a sale", variant: "destructive" });
+      } else {
+        toast({ title: "Select payment method", variant: "destructive" });
+      }
+      return;
+    }
+
+    // Add button animation
+    if (buttonRef.current) {
+      buttonRef.current.style.transform = 'scale(0.95)';
+      setTimeout(() => {
+        if (buttonRef.current) {
+          buttonRef.current.style.transform = 'scale(1)';
+        }
+      }, 100);
+    }
+
+    setShowConfirmationModal(true);
+  };
 
   return (
-    <div className="container mx-auto p-4 max-w-6xl">
-      {/* Header */}
-      <div className="mb-6">
-        <div className="flex items-center gap-3 mb-2">
-          <div className="w-10 h-10 bg-[#00AA00]/10 rounded-lg flex items-center justify-center">
-            <TrendingUp className="w-6 h-6 text-[#00AA00]" />
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold text-black">Sales</h1>
-            <p className="text-gray-600">Create new sales and manage transactions</p>
-          </div>
-        </div>
-      </div>
-
-      {/* Quick Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-        <Card className="border-[#00AA00]/20">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-[#00AA00]/10 rounded-full flex items-center justify-center">
-                <ShoppingCart className="w-4 h-4 text-[#00AA00]" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-600">Current Sale</p>
-                <p className="font-semibold text-black">{formatCurrency(cartTotal.toFixed(2))}</p>
-              </div>
+    <div className="min-h-screen bg-background">
+      {/* Mobile-First Single-Column Flow */}
+      <div className="px-4 py-3 space-y-4 pb-24">{/* pb-24 for sticky button space */}
+        
+        {/* 1. Quick-Select Panel */}
+        <div className="bg-white dark:bg-[#1F1F1F] rounded-lg p-2 shadow-sm">
+          <h3 className="text-sm font-medium text-muted-foreground mb-2 px-2">Quick Select</h3>
+          {productsLoading ? (
+            <div className="flex gap-2 overflow-x-auto">
+              {[...Array(6)].map((_, i) => (
+                <Skeleton key={i} className="w-24 h-12 flex-shrink-0 rounded" />
+              ))}
             </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-[#00AA00]/20">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-[#00AA00]/10 rounded-full flex items-center justify-center">
-                <Plus className="w-4 h-4 text-[#00AA00]" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-600">Items in Cart</p>
-                <p className="font-semibold text-black">{totalItems}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border-[#00AA00]/20">
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-[#00AA00]/10 rounded-full flex items-center justify-center">
-                <TrendingUp className="w-4 h-4 text-[#00AA00]" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-600">Status</p>
-                <p className="font-semibold text-[#00AA00]">
-                  {cartItems.length > 0 ? 'In Progress' : 'Ready'}
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Left Column - Product Search and Customer */}
-        <div className="space-y-6">
-          {/* Product Search */}
-          <Card className="border-2 border-[#00AA00]/20">
-            <CardHeader>
-              <CardTitle className="text-lg">Add Products to Sale</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <ProductSearch onProductSelect={handleProductSelect} />
-                <p className="text-sm text-gray-500">
-                  Search by product name, SKU, or category. Click on a product to add it to your sale.
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Quick Select Products */}
-          <QuickSelectProducts onProductSelect={handleQuickSelectProduct} />
-        </div>
-
-        {/* Right Column - Cart and Payment */}
-        <div className="space-y-6">
-          <MiniCart
-            items={cartItems}
-            onQuantityChange={handleQuantityChange}
-            onRemoveItem={handleRemoveItem}
-            onClearCart={handleClearCart}
-            onCheckout={handleSellClick}
-            isProcessing={createSaleMutation.isPending}
-          />
-          
-          {/* Payment Method and Sell Button */}
-          {cartItems.length > 0 && (
-            <Card className="border-2 border-[#00AA00]/20">
-              <CardContent className="p-6">
-                <div className="space-y-4">
+          ) : quickSelectProducts.length > 0 ? (
+            <div className="flex gap-2 overflow-x-auto pb-2">
+              {quickSelectProducts.map((product) => (
+                <button
+                  key={product.id}
+                  onClick={() => handleProductSelect(product)}
+                  className="w-24 h-12 flex-shrink-0 bg-gray-50 dark:bg-gray-800 hover:bg-green-50 dark:hover:bg-green-900/20 border border-gray-200 dark:border-gray-600 rounded text-xs p-1 transition-all duration-200 transform active:scale-95 focus:outline-none focus:ring-2 focus:ring-green-600"
+                >
                   <div className="text-center">
-                    <div className="text-sm text-gray-600 mb-2">Total Amount</div>
-                    <div className="text-3xl font-bold text-[#00AA00]">
-                      {formatCurrency(cartTotal.toFixed(2))}
-                    </div>
+                    <div className="font-medium truncate">{product.name}</div>
+                    <div className="text-green-600">{formatCurrency(product.price)}</div>
                   </div>
-                  
-                  {/* Payment Method Buttons */}
-                  <div className="space-y-3">
-                    <div className="text-sm font-medium text-gray-700 text-center">Payment Method</div>
-                    <div className="flex gap-2">
-                      <button
-                        onClick={() => setPaymentMethod('cash')}
-                        className={`flex-1 py-2 px-4 rounded-full text-sm font-medium transition-colors ${
-                          paymentMethod === 'cash'
-                            ? 'bg-[#00AA00] text-foreground'
-                            : 'bg-background text-foreground hover:bg-muted'
-                        }`}
-                      >
-                        Cash
-                      </button>
-                      {/* Mobile Money Payment Button */}
-                      <button
-                        onClick={() => setPaymentMethod('mobileMoney')}
-                        className={`flex-1 py-2 px-4 rounded-full text-sm font-medium transition-colors ${
-                          paymentMethod === 'mobileMoney'
-                            ? 'bg-[#00AA00] text-foreground'
-                            : 'bg-background text-foreground hover:bg-muted'
-                        }`}
-                      >
-                        Mobile Money
-                      </button>
-                      <button
-                        onClick={() => setPaymentMethod('credit')}
-                        className={`flex-1 py-2 px-4 rounded-full text-sm font-medium transition-colors ${
-                          paymentMethod === 'credit'
-                            ? 'bg-[#00AA00] text-foreground'
-                            : 'bg-background text-foreground hover:bg-muted'
-                        }`}
-                      >
-                        Credit
-                      </button>
-                    </div>
-                  </div>
-                  
-                  <Button
-                    onClick={handleSellClick}
-                    disabled={!paymentMethod || createSaleMutation.isPending}
-                    className={`w-full h-12 text-foreground text-lg font-semibold ${
-                      !paymentMethod || createSaleMutation.isPending
-                        ? 'bg-gray-400 cursor-not-allowed'
-                        : 'bg-[#00AA00] hover:bg-[#00AA00]/90'
-                    }`}
-                  >
-                    {createSaleMutation.isPending ? "Processing..." : "Sell"}
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+                </button>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-4 text-sm text-muted-foreground">
+              No products available for quick select
+            </div>
           )}
-
-          {/* Confirmation Modal */}
-          <SaleConfirmationModal
-            open={showConfirmationModal}
-            onOpenChange={setShowConfirmationModal}
-            items={cartItems}
-            paymentMethod={paymentMethod}
-            onConfirm={handleConfirmSale}
-            isProcessing={createSaleMutation.isPending}
-          />
         </div>
+
+        {/* 2. Mini-Cart Summary */}
+        <div className="bg-white dark:bg-[#1F1F1F] rounded-lg p-4 shadow-md">
+          <h3 className="text-lg font-semibold mb-3">Cart</h3>
+          
+          {isCartEmpty ? (
+            <div className="text-center py-8">
+              <ShoppingCart className="h-12 w-12 text-muted-foreground mx-auto mb-2" />
+              <p className="text-muted-foreground">Scan or select items to start a sale</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {cartItems.map((item) => (
+                <div 
+                  key={item.id} 
+                  className="flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-700 last:border-b-0 transition-all duration-200"
+                >
+                  <div className="flex-1">
+                    <div className="font-medium text-foreground">{item.product.name}</div>
+                    <div className="text-sm text-muted-foreground">
+                      × {item.quantity} @ {formatCurrency(item.unitPrice)}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => handleQuantityChange(item.id, Math.max(1, item.quantity - 1))}
+                      className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-lg font-bold hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                    >
+                      -
+                    </button>
+                    <span className="w-8 text-center font-medium">{item.quantity}</span>
+                    <button
+                      onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
+                      className="w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-lg font-bold hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
+                    >
+                      +
+                    </button>
+                    <button
+                      onClick={() => handleRemoveItem(item.id)}
+                      className="ml-2 w-8 h-8 rounded-full bg-red-100 dark:bg-red-900/20 text-red-600 flex items-center justify-center hover:bg-red-200 dark:hover:bg-red-900/40 transition-colors"
+                    >
+                      ×
+                    </button>
+                  </div>
+                  <div className="w-20 text-right font-semibold">
+                    {formatCurrency(item.total)}
+                  </div>
+                </div>
+              ))}
+              
+              {/* Grand Total */}
+              <div className="border-t pt-3 mt-4">
+                <div className="flex justify-between items-center">
+                  <span className="text-xl font-bold">Total</span>
+                  <span className="text-2xl font-bold text-green-600">
+                    {formatCurrency(cartTotal.toFixed(2))}
+                  </span>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* 3. Payment Method Selector */}
+        {!isCartEmpty && (
+          <div className="bg-white dark:bg-[#1F1F1F] rounded-lg p-4 shadow-md">
+            <h3 className="text-lg font-semibold mb-3">Payment Method</h3>
+            <div className="space-y-2">
+              <button
+                onClick={() => setPaymentMethod('cash')}
+                className={`w-full h-12 rounded-lg font-medium transition-all duration-200 flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-green-600 ${
+                  paymentMethod === 'cash'
+                    ? 'bg-green-600 text-white'
+                    : 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600'
+                }`}
+              >
+                <Banknote className="h-5 w-5" />
+                Cash
+              </button>
+              
+              <button
+                onClick={() => setPaymentMethod('mobileMoney')}
+                className={`w-full h-12 rounded-lg font-medium transition-all duration-200 flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-green-600 ${
+                  paymentMethod === 'mobileMoney'
+                    ? 'bg-green-600 text-white'
+                    : 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600'
+                }`}
+              >
+                <Smartphone className="h-5 w-5" />
+                Mobile Money
+              </button>
+              
+              <button
+                onClick={() => setPaymentMethod('credit')}
+                className={`w-full h-12 rounded-lg font-medium transition-all duration-200 flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-green-600 ${
+                  paymentMethod === 'credit'
+                    ? 'bg-green-600 text-white'
+                    : 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600'
+                }`}
+              >
+                <CreditCard className="h-5 w-5" />
+                Credit
+              </button>
+            </div>
+          </div>
+        )}
       </div>
+
+      {/* 4. Sticky Sell Button */}
+      <div className="fixed bottom-0 left-0 right-0 p-4 bg-background border-t border-border">
+        <button
+          ref={buttonRef}
+          onClick={handleSellButtonClick}
+          disabled={createSaleMutation.isPending}
+          className={`w-full h-14 text-lg font-semibold rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-green-600 ${
+            canProceed && !createSaleMutation.isPending
+              ? 'bg-green-600 hover:bg-green-700 text-white transform active:scale-95'
+              : 'bg-gray-400 text-gray-600 cursor-not-allowed'
+          }`}
+        >
+          {createSaleMutation.isPending ? 'Processing...' : 'Complete Sale'}
+        </button>
+      </div>
+
+      {/* Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={showConfirmationModal}
+        onClose={() => setShowConfirmationModal(false)}
+        cartItems={cartItems}
+        paymentMethod={paymentMethod as 'cash' | 'credit' | 'mobileMoney'}
+        onConfirm={handleConfirmSale}
+        isProcessing={createSaleMutation.isPending}
+      />
     </div>
   );
 }
