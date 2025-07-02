@@ -1,11 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { Download, ExternalLink } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
-import { formatCurrency } from '@/lib/utils';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { Download } from 'lucide-react';
 
 // Types
 interface SummaryData {
@@ -20,18 +19,6 @@ interface TrendData {
   value: number;
 }
 
-interface TopItem {
-  name: string;
-  unitsSold: number;
-  revenue: string;
-}
-
-interface CustomerCredit {
-  name: string;
-  phone: string;
-  balance: string;
-}
-
 interface TopCustomer {
   customerName: string;
   totalOwed: string;
@@ -44,37 +31,50 @@ interface TopProduct {
   totalRevenue: string;
 }
 
-interface OrderItem {
-  productName: string;
-  qty: number;
-  price: string;
+interface TopItem {
+  name: string;
+  unitsSold: number;
+  revenue: string;
 }
 
-interface Order {
-  orderId: number;
-  date: string;
-  customerName: string;
-  totalAmount: string;
-  status: string;
-  reference?: string;
-  items: OrderItem[];
+interface CustomerCredit {
+  name: string;
+  phone: string;
+  balance: string;
 }
 
 interface OrdersResponse {
-  orders: Order[];
+  orders: Array<{
+    orderId: number;
+    customerName: string;
+    total: string;
+    paymentMethod: string;
+    date: string;
+    products?: Array<{
+      name: string;
+      quantity: number;
+    }>;
+  }>;
   total: number;
   page: number;
   totalPages: number;
 }
 
-// CSV utility functions
+// Utility functions
+const formatCurrency = (amount: string | number): string => {
+  const num = typeof amount === 'string' ? parseFloat(amount) : amount;
+  return new Intl.NumberFormat('en-KE', {
+    style: 'currency',
+    currency: 'KES',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 2,
+  }).format(num);
+};
+
 const convertToCSV = (data: any[], headers: string[]): string => {
   const csvHeaders = headers.join(',');
   const csvRows = data.map(row => 
-    headers.map(header => {
-      const value = row[header] || row[header.toLowerCase().replace(' ', '')] || '';
-      return `"${value.toString().replace(/"/g, '""')}"`;
-    }).join(',')
+    headers.map(header => `"${row[header] || ''}"`).join(',')
   );
   return [csvHeaders, ...csvRows].join('\n');
 };
@@ -206,305 +206,331 @@ export default function Reports() {
           <p className="text-neutral-600 dark:text-neutral-400">View your business analytics and performance</p>
         </div>
 
-        {/* Desktop: Two Column Layout / Mobile: Single Column */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Left Column: Summary & Trend */}
-          <div className="lg:col-span-2 space-y-8">
-            
-            {/* Timeframe Selector */}
-            <div className="flex items-center gap-4">
-              <label className="text-sm font-medium text-neutral-900 dark:text-neutral-100">Timeframe:</label>
-              <Select value={summaryPeriod} onValueChange={(value: 'today' | 'weekly' | 'monthly') => setSummaryPeriod(value)}>
-                <SelectTrigger className="w-40 bg-gray-50 dark:bg-gray-800 border rounded px-3 py-2 focus:ring-2 focus:ring-emerald-500">
+        {/* Single Column Layout for All Screen Sizes */}
+        <div className="space-y-8">
+          
+          {/* Timeframe Selector */}
+          <div className="flex items-center gap-4">
+            <label className="text-sm font-medium text-neutral-900 dark:text-neutral-100">Timeframe:</label>
+            <Select value={summaryPeriod} onValueChange={(value: 'today' | 'weekly' | 'monthly') => setSummaryPeriod(value)}>
+              <SelectTrigger className="w-40 bg-gray-50 dark:bg-gray-800 border rounded px-3 py-2 focus:ring-2 focus:ring-emerald-500">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="today">Today</SelectItem>
+                <SelectItem value="weekly">Week</SelectItem>
+                <SelectItem value="monthly">Month</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Summary Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {/* Total Sales Card */}
+            <div className="bg-white dark:bg-[#1F1F1F] border border-gray-200 dark:border-gray-700 rounded-lg p-6 shadow-sm">
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Total Sales</p>
+              {summaryLoading ? (
+                <Skeleton className="h-6 w-24" />
+              ) : (
+                <p className="text-xl font-bold text-neutral-900 dark:text-neutral-100">
+                  {formatCurrency(summaryData?.totalSales || '0')}
+                </p>
+              )}
+            </div>
+
+            {/* Cash Sales Card */}
+            <div className="bg-white dark:bg-[#1F1F1F] border border-gray-200 dark:border-gray-700 rounded-lg p-6 shadow-sm">
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Cash</p>
+              {summaryLoading ? (
+                <Skeleton className="h-6 w-24" />
+              ) : (
+                <p className="text-xl font-bold text-neutral-900 dark:text-neutral-100">
+                  {formatCurrency(summaryData?.cashSales || '0')}
+                </p>
+              )}
+            </div>
+
+            {/* Mobile Money Card */}
+            <div className="bg-white dark:bg-[#1F1F1F] border border-gray-200 dark:border-gray-700 rounded-lg p-6 shadow-sm">
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Mobile Money</p>
+              {summaryLoading ? (
+                <Skeleton className="h-6 w-24" />
+              ) : (
+                <p className="text-xl font-bold text-neutral-900 dark:text-neutral-100">
+                  {formatCurrency(summaryData?.mobileMoneySales || '0')}
+                </p>
+              )}
+            </div>
+
+            {/* Credit Sales Card */}
+            <div className="bg-white dark:bg-[#1F1F1F] border border-gray-200 dark:border-gray-700 rounded-lg p-6 shadow-sm">
+              <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Credit</p>
+              {summaryLoading ? (
+                <Skeleton className="h-6 w-24" />
+              ) : (
+                <p className="text-xl font-bold text-neutral-900 dark:text-neutral-100">
+                  {formatCurrency(summaryData?.creditSales || '0')}
+                </p>
+              )}
+            </div>
+          </div>
+
+          {/* Trend Chart */}
+          <div className="bg-white dark:bg-[#1F1F1F] border border-gray-200 dark:border-gray-700 rounded-lg p-6 shadow-sm">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">Sales Trend</h3>
+              <Select value={trendPeriod} onValueChange={(value: 'daily' | 'weekly' | 'monthly') => setTrendPeriod(value)}>
+                <SelectTrigger className="w-32 bg-gray-50 dark:bg-gray-800 border rounded px-3 py-2 focus:ring-2 focus:ring-emerald-500">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="today">Today</SelectItem>
-                  <SelectItem value="weekly">Week</SelectItem>
-                  <SelectItem value="monthly">Month</SelectItem>
+                  <SelectItem value="daily">Daily</SelectItem>
+                  <SelectItem value="weekly">Weekly</SelectItem>
+                  <SelectItem value="monthly">Monthly</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-
-            {/* Summary Cards */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {/* Total Sales Card */}
-              <div className="bg-white dark:bg-[#1F1F1F] border border-gray-200 dark:border-gray-700 rounded-lg p-4 shadow-sm">
-                <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Total Sales</p>
-                {summaryLoading ? (
-                  <Skeleton className="h-6 w-24" />
-                ) : (
-                  <p className="text-xl font-bold text-neutral-900 dark:text-neutral-100">
-                    {formatCurrency(summaryData?.totalSales || '0')}
-                  </p>
-                )}
+            
+            {trendLoading ? (
+              <div className="h-64 flex items-center justify-center">
+                <Skeleton className="h-full w-full" />
               </div>
-
-              {/* Cash Sales Card */}
-              <div className="bg-white dark:bg-[#1F1F1F] border border-gray-200 dark:border-gray-700 rounded-lg p-4 shadow-sm">
-                <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Cash</p>
-                {summaryLoading ? (
-                  <Skeleton className="h-6 w-24" />
-                ) : (
-                  <p className="text-xl font-bold text-neutral-900 dark:text-neutral-100">
-                    {formatCurrency(summaryData?.cashSales || '0')}
-                  </p>
-                )}
+            ) : trendData && trendData.length > 0 ? (
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={trendData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" className="dark:stroke-[#374151]" />
+                    <XAxis 
+                      dataKey="label" 
+                      stroke="#6B7280" 
+                      fontSize={12}
+                      className="dark:stroke-[#9CA3AF]"
+                    />
+                    <YAxis 
+                      stroke="#6B7280" 
+                      fontSize={12}
+                      className="dark:stroke-[#9CA3AF]"
+                    />
+                    <Tooltip 
+                      contentStyle={{
+                        backgroundColor: 'white',
+                        border: '1px solid #E5E7EB',
+                        borderRadius: '8px',
+                        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                      }}
+                    />
+                    <Line 
+                      type="monotone" 
+                      dataKey="value" 
+                      stroke="#00AA00" 
+                      strokeWidth={3}
+                      dot={{ fill: '#00AA00', strokeWidth: 2 }}
+                      className="dark:stroke-[#6B46C1]"
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
               </div>
-
-              {/* Mobile Money Card */}
-              <div className="bg-white dark:bg-[#1F1F1F] border border-gray-200 dark:border-gray-700 rounded-lg p-4 shadow-sm">
-                <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Mobile Money</p>
-                {summaryLoading ? (
-                  <Skeleton className="h-6 w-24" />
-                ) : (
-                  <p className="text-xl font-bold text-neutral-900 dark:text-neutral-100">
-                    {formatCurrency(summaryData?.mobileMoneySales || '0')}
-                  </p>
-                )}
+            ) : (
+              <div className="h-64 flex items-center justify-center text-gray-500 dark:text-gray-400">
+                No data available for this period.
               </div>
+            )}
+          </div>
 
-              {/* Credit Sales Card */}
-              <div className="bg-white dark:bg-[#1F1F1F] border border-gray-200 dark:border-gray-700 rounded-lg p-4 shadow-sm">
-                <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Credit</p>
-                {summaryLoading ? (
-                  <Skeleton className="h-6 w-24" />
-                ) : (
-                  <p className="text-xl font-bold text-neutral-900 dark:text-neutral-100">
-                    {formatCurrency(summaryData?.creditSales || '0')}
-                  </p>
-                )}
+          {/* Top Customers Card */}
+          <div className="bg-white dark:bg-[#1F1F1F] border border-gray-200 dark:border-gray-700 rounded-lg p-6 shadow-sm">
+            <h3 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100 mb-4">Top Customers (Credit)</h3>
+            {topCustomersLoading ? (
+              <div className="space-y-3">
+                {[...Array(5)].map((_, i) => (
+                  <div key={i} className="flex justify-between items-center">
+                    <div className="space-y-1">
+                      <Skeleton className="h-4 w-24" />
+                      <Skeleton className="h-3 w-16" />
+                    </div>
+                    <Skeleton className="h-4 w-16" />
+                  </div>
+                ))}
               </div>
-            </div>
+            ) : topCustomersData && topCustomersData.length > 0 ? (
+              <div className="space-y-3">
+                {topCustomersData.map((customer, index) => (
+                  <div key={index} className="flex justify-between items-center py-2 border-b border-gray-100 dark:border-gray-700 last:border-b-0">
+                    <div>
+                      <p className="font-medium text-gray-900 dark:text-gray-100">{customer.customerName}</p>
+                      <p className="text-sm text-gray-500 dark:text-gray-400">{customer.outstandingOrders} outstanding orders</p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-semibold text-red-600 dark:text-red-400">{formatCurrency(customer.totalOwed)}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                No customers with outstanding credit for this period.
+              </div>
+            )}
+          </div>
 
-            {/* Trend Chart */}
-            <div className="bg-white dark:bg-[#1F1F1F] border border-gray-200 dark:border-gray-700 rounded-lg p-4 shadow-sm">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">Sales Trend</h3>
-                <Select value={trendPeriod} onValueChange={(value: 'daily' | 'weekly' | 'monthly') => setTrendPeriod(value)}>
-                  <SelectTrigger className="w-32 bg-gray-50 dark:bg-gray-800 border rounded px-3 py-2 focus:ring-2 focus:ring-emerald-500">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="daily">Daily</SelectItem>
-                    <SelectItem value="weekly">Weekly</SelectItem>
-                    <SelectItem value="monthly">Monthly</SelectItem>
-                  </SelectContent>
-                </Select>
+          {/* Top-Selling Products Card */}
+          <div className="bg-white dark:bg-[#1F1F1F] border border-gray-200 dark:border-gray-700 rounded-lg p-6 shadow-sm">
+            <h3 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100 mb-4">Top-Selling Products</h3>
+            {topProductsLoading ? (
+              <div className="space-y-3">
+                {[...Array(5)].map((_, i) => (
+                  <div key={i} className="flex justify-between items-center">
+                    <div className="space-y-1">
+                      <Skeleton className="h-4 w-24" />
+                      <Skeleton className="h-3 w-16" />
+                    </div>
+                    <Skeleton className="h-4 w-16" />
+                  </div>
+                ))}
               </div>
-              
-              {trendLoading ? (
-                <div className="h-64 flex items-center justify-center">
-                  <Skeleton className="h-full w-full" />
-                </div>
-              ) : trendData && trendData.length > 0 ? (
-                <div className="h-64">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={trendData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" className="dark:stroke-[#374151]" />
-                      <XAxis 
-                        dataKey="label" 
-                        stroke="#6B7280" 
-                        fontSize={12}
-                        className="dark:stroke-[#9CA3AF]"
-                      />
-                      <YAxis 
-                        stroke="#6B7280" 
-                        fontSize={12}
-                        className="dark:stroke-[#9CA3AF]"
-                      />
-                      <Tooltip 
-                        contentStyle={{
-                          backgroundColor: 'white',
-                          border: '1px solid #E5E7EB',
-                          borderRadius: '8px',
-                          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+            ) : topProductsData && topProductsData.length > 0 ? (
+              <div className="space-y-3">
+                {topProductsData.map((product, index) => (
+                  <div key={index} className="py-2 border-b border-gray-100 dark:border-gray-700 last:border-b-0">
+                    <div className="flex justify-between items-start mb-2">
+                      <div>
+                        <p className="font-medium text-gray-900 dark:text-gray-100">{product.productName}</p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">{product.unitsSold} units sold</p>
+                      </div>
+                      <p className="font-semibold text-green-600 dark:text-green-400">{formatCurrency(product.totalRevenue)}</p>
+                    </div>
+                    {/* Progress bar showing relative sales volume */}
+                    <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                      <div 
+                        className="bg-green-500 h-2 rounded-full transition-all duration-300" 
+                        style={{ 
+                          width: `${Math.min(100, (product.unitsSold / (topProductsData[0]?.unitsSold || 1)) * 100)}%` 
                         }}
                       />
-                      <Line 
-                        type="monotone" 
-                        dataKey="value" 
-                        stroke="#00AA00" 
-                        strokeWidth={3}
-                        dot={{ fill: '#00AA00', strokeWidth: 2 }}
-                        className="dark:stroke-[#6B46C1]"
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-              ) : (
-                <div className="h-64 flex items-center justify-center text-gray-500 dark:text-gray-400">
-                  No data available for this period.
-                </div>
-              )}
-            </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                No product sales data for this period.
+              </div>
+            )}
           </div>
 
-          {/* Right Column: Top Performance Cards & Orders Record */}
-          <div className="space-y-6">
-            {/* Top Customers Card - Full Width */}
-            <div className="bg-white dark:bg-[#1F1F1F] border border-gray-200 dark:border-gray-700 rounded-lg p-4 shadow-sm">
-              <h3 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100 mb-4">Top Customers (Credit)</h3>
-              {topCustomersLoading ? (
-                <div className="space-y-3">
-                  {[...Array(5)].map((_, i) => (
-                    <div key={i} className="flex justify-between items-center">
-                      <div className="space-y-1">
-                        <Skeleton className="h-4 w-24" />
-                        <Skeleton className="h-3 w-16" />
-                      </div>
-                      <Skeleton className="h-4 w-16" />
-                    </div>
-                  ))}
-                </div>
-              ) : topCustomersData && topCustomersData.length > 0 ? (
-                <div className="space-y-3">
-                  {topCustomersData.map((customer, index) => (
-                    <div key={index} className="flex justify-between items-center py-2 border-b border-gray-100 dark:border-gray-700 last:border-b-0">
-                      <div>
-                        <p className="font-medium text-gray-900 dark:text-gray-100">{customer.customerName}</p>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">{customer.outstandingOrders} outstanding orders</p>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-semibold text-red-600 dark:text-red-400">{formatCurrency(customer.totalOwed)}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                  No customers with outstanding credit for this period.
-                </div>
-              )}
+          {/* Orders Record */}
+          <div className="bg-white dark:bg-[#1F1F1F] border border-gray-200 dark:border-gray-700 rounded-lg p-6 shadow-sm">
+            <div className="mb-4">
+              <h3 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">Orders Record</h3>
             </div>
 
-            {/* Top-Selling Products Card - Full Width */}
-            <div className="bg-white dark:bg-[#1F1F1F] border border-gray-200 dark:border-gray-700 rounded-lg p-4 shadow-sm">
-              <h3 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100 mb-4">Top-Selling Products</h3>
-              {topProductsLoading ? (
-                <div className="space-y-3">
-                  {[...Array(5)].map((_, i) => (
-                    <div key={i} className="flex justify-between items-center">
-                      <div className="space-y-1">
-                        <Skeleton className="h-4 w-24" />
-                        <Skeleton className="h-3 w-16" />
-                      </div>
-                      <Skeleton className="h-4 w-16" />
-                    </div>
-                  ))}
+            {ordersLoading ? (
+              <div className="space-y-3">
+                {[...Array(5)].map((_, i) => (
+                  <Skeleton key={i} className="h-16 w-full" />
+                ))}
+              </div>
+            ) : ordersData && ordersData.orders.length > 0 ? (
+              <>
+                {/* Desktop Table */}
+                <div className="hidden md:block">
+                  <table className="table-auto w-full text-sm">
+                    <thead>
+                      <tr className="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200">
+                        <th className="px-3 py-2 text-left">Order ID</th>
+                        <th className="px-3 py-2 text-left">Customer</th>
+                        <th className="px-3 py-2 text-left">Products</th>
+                        <th className="px-3 py-2 text-right">Amount</th>
+                        <th className="px-3 py-2 text-left">Payment</th>
+                        <th className="px-3 py-2 text-left">Date</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {ordersData.orders.map((order) => (
+                        <tr key={order.orderId} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 border-b border-gray-100 dark:border-gray-700">
+                          <td className="px-3 py-3 font-medium text-gray-900 dark:text-gray-100">#{order.orderId}</td>
+                          <td className="px-3 py-3 text-gray-700 dark:text-gray-300">{order.customerName}</td>
+                          <td className="px-3 py-3 text-gray-700 dark:text-gray-300">
+                            {order.products && order.products.length > 0 
+                              ? order.products.map(p => `${p.name} x${p.quantity}`).join(', ')
+                              : 'No products'
+                            }
+                          </td>
+                          <td className="px-3 py-3 text-right font-semibold text-gray-900 dark:text-gray-100">
+                            {formatCurrency(order.total)}
+                          </td>
+                          <td className="px-3 py-3">
+                            <span className={`px-2 py-1 rounded text-xs font-medium ${
+                              order.paymentMethod === 'cash'
+                                ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                                : order.paymentMethod === 'mobileMoney'
+                                ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
+                                : 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200'
+                            }`}>
+                              {order.paymentMethod === 'cash' ? 'Cash' :
+                               order.paymentMethod === 'mobileMoney' ? 'Mobile Money' : 'Credit'}
+                            </span>
+                          </td>
+                          <td className="px-3 py-3 text-gray-500 dark:text-gray-400 text-sm">{order.date}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
-              ) : topProductsData && topProductsData.length > 0 ? (
-                <div className="space-y-3">
-                  {topProductsData.map((product, index) => (
-                    <div key={index} className="py-2 border-b border-gray-100 dark:border-gray-700 last:border-b-0">
+
+                {/* Mobile Cards */}
+                <div className="md:hidden space-y-3">
+                  {ordersData.orders.map((order) => (
+                    <div key={order.orderId} className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
                       <div className="flex justify-between items-start mb-2">
                         <div>
-                          <p className="font-medium text-gray-900 dark:text-gray-100">{product.productName}</p>
-                          <p className="text-sm text-gray-500 dark:text-gray-400">{product.unitsSold} units sold</p>
+                          <p className="font-medium text-gray-900 dark:text-gray-100">Order #{order.orderId}</p>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">{order.customerName}</p>
                         </div>
-                        <p className="font-semibold text-green-600 dark:text-green-400">{formatCurrency(product.totalRevenue)}</p>
+                        <p className="font-semibold text-gray-900 dark:text-gray-100">{formatCurrency(order.total)}</p>
                       </div>
-                      {/* Progress bar showing relative sales volume */}
-                      <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                        <div 
-                          className="bg-green-500 h-2 rounded-full transition-all duration-300" 
-                          style={{ 
-                            width: `${Math.min(100, (product.unitsSold / (topProductsData[0]?.unitsSold || 1)) * 100)}%` 
-                          }}
-                        />
+                      <div className="mb-2">
+                        <p className="text-sm text-gray-700 dark:text-gray-300">
+                          <span className="font-medium">Products: </span>
+                          {order.products && order.products.length > 0 
+                            ? order.products.map(p => `${p.name} x${p.quantity}`).join(', ')
+                            : 'No products'
+                          }
+                        </p>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className={`px-2 py-1 rounded text-xs font-medium ${
+                          order.paymentMethod === 'cash'
+                            ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                            : order.paymentMethod === 'mobileMoney'
+                            ? 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
+                            : 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200'
+                        }`}>
+                          {order.paymentMethod === 'cash' ? 'Cash' :
+                           order.paymentMethod === 'mobileMoney' ? 'Mobile Money' : 'Credit'}
+                        </span>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">{order.date}</p>
                       </div>
                     </div>
                   ))}
                 </div>
-              ) : (
-                <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                  No product sales data for this period.
-                </div>
-              )}
-            </div>
-
-            {/* Orders Record - Full Width */}
-            <div className="bg-white dark:bg-[#1F1F1F] border border-gray-200 dark:border-gray-700 rounded-lg p-4 shadow-sm">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">Orders Record</h3>
-                <Button variant="ghost" size="sm" className="text-emerald-600 hover:text-emerald-700 focus:ring-2 focus:ring-emerald-500">
-                  <ExternalLink className="h-4 w-4 mr-1" />
-                  View All
-                </Button>
+              </>
+            ) : (
+              <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                No data available for this period.
               </div>
-
-              {ordersLoading ? (
-                <div className="space-y-3">
-                  {[...Array(5)].map((_, i) => (
-                    <Skeleton key={i} className="h-16 w-full" />
-                  ))}
-                </div>
-              ) : ordersData && ordersData.orders.length > 0 ? (
-                <>
-                  {/* Desktop Table */}
-                  <div className="hidden md:block">
-                    <table className="table-auto w-full text-sm">
-                      <thead>
-                        <tr className="bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200">
-                          <th className="px-3 py-2 text-left">Order ID</th>
-                          <th className="px-3 py-2 text-left">Customer</th>
-                          <th className="px-3 py-2 text-right">Amount</th>
-                          <th className="px-3 py-2 text-left">Status</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {ordersData.orders.map((order, index) => (
-                          <tr key={order.orderId} className={index % 2 === 0 ? 'bg-white dark:bg-[#1F1F1F]' : 'bg-gray-50 dark:bg-[#2A2A2A]'}>
-                            <td className="px-3 py-3 font-medium">#{order.orderId}</td>
-                            <td className="px-3 py-3">{order.customerName}</td>
-                            <td className="px-3 py-3 text-right font-semibold">{formatCurrency(order.totalAmount)}</td>
-                            <td className="px-3 py-3">
-                              <span className="inline-flex px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">
-                                {order.status}
-                              </span>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-
-                  {/* Mobile Cards */}
-                  <div className="md:hidden space-y-4">
-                    {ordersData.orders.map((order) => (
-                      <div key={order.orderId} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 shadow-none">
-                        <div className="flex justify-between items-start mb-2">
-                          <span className="font-medium">#{order.orderId}</span>
-                          <span className="inline-flex px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">
-                            {order.status}
-                          </span>
-                        </div>
-                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">{order.customerName}</p>
-                        <p className="text-lg font-semibold">{formatCurrency(order.totalAmount)}</p>
-                        <p className="text-xs text-gray-500 dark:text-gray-500 mt-2">
-                          {order.items.map(item => `${item.productName} (${item.qty})`).join(', ')}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                </>
-              ) : (
-                <div className="text-center py-8 text-gray-500 dark:text-gray-400">
-                  No data available for this period.
-                </div>
-              )}
-            </div>
-
-            {/* Export Button */}
-            <Button 
-              onClick={exportSummaryCSV} 
-              disabled={exportingCSV === 'summary'}
-              className="w-full bg-emerald-600 hover:bg-emerald-700 text-white focus:ring-2 focus:ring-emerald-500"
-            >
-              <Download className="h-4 w-4 mr-2" />
-              {exportingCSV === 'summary' ? 'Exporting...' : 'Export CSV'}
-            </Button>
+            )}
           </div>
+
+          {/* Export CSV Button */}
+          <Button
+            onClick={exportSummaryCSV}
+            disabled={exportingCSV === 'summary'}
+            className="w-full bg-emerald-600 hover:bg-emerald-700 text-white focus:ring-2 focus:ring-emerald-500"
+          >
+            <Download className="h-4 w-4 mr-2" />
+            {exportingCSV === 'summary' ? 'Exporting...' : 'Export CSV'}
+          </Button>
         </div>
       </div>
     </div>
