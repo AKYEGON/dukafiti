@@ -126,6 +126,10 @@ export function CustomerForm({ open, onOpenChange, customer }: CustomerFormProps
       if (!response.ok) {
         throw new Error("Failed to delete customer");
       }
+      // Don't try to parse JSON for 204 No Content responses
+      if (response.status === 204) {
+        return null;
+      }
       return response.json();
     },
     onSuccess: () => {
