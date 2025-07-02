@@ -59,7 +59,7 @@ export function Sidebar({ className }: SidebarProps) {
     <>
       {/* Logo and branding */}
       <div className={cn(
-        "border-b border-gray-700 transition-all duration-300",
+        "border-b border-sidebar-border transition-all duration-300",
         isCollapsed && !isMobile ? "p-2" : "p-4 sm:p-6"
       )}>
         <div className="flex items-center justify-between">
@@ -67,15 +67,15 @@ export function Sidebar({ className }: SidebarProps) {
             "flex items-center transition-all duration-300",
             isCollapsed && !isMobile ? "space-x-0 justify-center" : "space-x-3"
           )}>
-            <div className="w-10 h-10 bg-purple-600 rounded-lg flex items-center justify-center">
+            <div className="w-10 h-10 bg-primaryPurple rounded-lg flex items-center justify-center">
               <Store className="text-white" size={20} />
             </div>
             <div className={cn(
               "transition-all duration-300",
               isCollapsed && !isMobile ? "opacity-0 w-0 overflow-hidden" : "opacity-100"
             )}>
-              <h1 className="text-xl font-bold text-white">DukaSmart</h1>
-              <p className="text-gray-400 text-sm">Business Platform</p>
+              <h1 className="text-xl font-bold text-sidebar-foreground">DukaSmart</h1>
+              <p className="text-sidebar-foreground/70 text-sm">Business Platform</p>
             </div>
           </div>
           
@@ -84,7 +84,7 @@ export function Sidebar({ className }: SidebarProps) {
             <Button
               variant="ghost"
               size="sm"
-              className="hidden lg:flex text-white hover:bg-gray-800 h-10 w-10"
+              className="hidden lg:flex text-sidebar-foreground hover:bg-sidebar-accent h-10 w-10"
               onClick={() => setIsDesktopCollapsed(!isDesktopCollapsed)}
             >
               {isDesktopCollapsed ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
@@ -96,7 +96,7 @@ export function Sidebar({ className }: SidebarProps) {
             <Button
               variant="ghost"
               size="sm"
-              className="text-white hover:bg-gray-800 h-12 w-12"
+              className="text-sidebar-foreground hover:bg-sidebar-accent h-12 w-12"
               onClick={() => setIsMobileMenuOpen(false)}
             >
               <X size={24} />
@@ -123,8 +123,8 @@ export function Sidebar({ className }: SidebarProps) {
                     ? "p-3 justify-center h-12" 
                     : "p-4 space-x-3 h-12",
                   isActive
-                    ? "bg-purple-600 text-white"
-                    : "text-gray-300 hover:bg-gray-800 hover:text-white"
+                    ? "bg-sidebar-primary text-sidebar-primary-foreground"
+                    : "text-sidebar-foreground/80 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
                 )}
                 onClick={() => setIsMobileMenuOpen(false)}
                 title={isCollapsed && !isMobile ? item.name : undefined}
@@ -160,7 +160,7 @@ export function Sidebar({ className }: SidebarProps) {
             </Button>
             <h1 className="text-xl font-semibold text-foreground">{pageTitle}</h1>
           </div>
-          <div className="w-10 h-10 bg-purple-600 rounded-lg flex items-center justify-center">
+          <div className="w-10 h-10 bg-primaryPurple rounded-lg flex items-center justify-center">
             <Store className="text-white" size={20} />
           </div>
         </div>
@@ -168,7 +168,7 @@ export function Sidebar({ className }: SidebarProps) {
 
       {/* Desktop sidebar with collapsible animation */}
       <aside className={cn(
-        "hidden lg:flex flex-col bg-gray-900 text-white transition-all duration-300 ease-in-out flex-shrink-0 h-full overflow-hidden",
+        "hidden lg:flex flex-col bg-sidebar text-sidebar-foreground transition-all duration-300 ease-in-out flex-shrink-0 h-full overflow-hidden border-r border-sidebar-border",
         isDesktopCollapsed ? "w-16" : "w-64",
         className
       )}>
@@ -191,7 +191,7 @@ export function Sidebar({ className }: SidebarProps) {
         
         {/* Drawer */}
         <aside className={cn(
-          "fixed left-0 top-0 h-full w-80 bg-gray-900 text-white z-50 shadow-2xl transition-transform duration-300 ease-in-out",
+          "fixed left-0 top-0 h-full w-80 bg-sidebar text-sidebar-foreground z-50 shadow-2xl transition-transform duration-300 ease-in-out border-r border-sidebar-border",
           isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
         )}>
           <SidebarContent isMobile={true} />

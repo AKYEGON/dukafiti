@@ -215,7 +215,7 @@ export default function Dashboard() {
           </CardHeader>
           <CardContent className="space-y-3">
             <Button 
-              className="w-full h-12 justify-start text-base leading-relaxed bg-purple-600 hover:bg-purple-700 text-white font-medium transition-all duration-200"
+              className="w-full h-12 justify-start text-base leading-relaxed bg-primaryPurple hover:bg-primaryPurple-dark text-white font-medium transition-all duration-200"
               onClick={handleAddProduct}
               aria-label="Add a new product to inventory"
             >
@@ -223,7 +223,7 @@ export default function Dashboard() {
               <span className="truncate">Add New Product</span>
             </Button>
             <Button 
-              className="w-full h-12 justify-start text-base leading-relaxed bg-green-600 hover:bg-green-700 text-white font-medium transition-all duration-200"
+              className="w-full h-12 justify-start text-base leading-relaxed bg-primaryGreen hover:bg-primaryGreen-dark text-white font-medium transition-all duration-200"
               onClick={handleCreateOrder}
               aria-label="Create a new sales order"
             >
@@ -231,7 +231,7 @@ export default function Dashboard() {
               <span className="truncate">Create Order</span>
             </Button>
             <Button 
-              className="w-full h-12 justify-start text-base leading-relaxed border border-purple-300 text-purple-600 hover:bg-purple-50 hover:shadow-[0_4px_12px_rgba(168,85,247,0.4)] transition-all duration-200"
+              className="w-full h-12 justify-start text-base leading-relaxed border border-primaryPurple text-primaryPurple hover:bg-primaryPurple-50 dark:hover:bg-primaryPurple-900 hover:shadow-[0_4px_12px_rgba(107,70,193,0.4)] transition-all duration-200"
               onClick={handleAddCustomer}
               aria-label="Add a new customer"
             >
@@ -239,7 +239,7 @@ export default function Dashboard() {
               <span className="truncate">Add Customer</span>
             </Button>
             <Button 
-              className="w-full h-12 justify-start text-base leading-relaxed border border-purple-300 text-purple-600 hover:bg-purple-50 hover:shadow-[0_4px_12px_rgba(168,85,247,0.4)] transition-all duration-200"
+              className="w-full h-12 justify-start text-base leading-relaxed border border-primaryPurple text-primaryPurple hover:bg-primaryPurple-50 dark:hover:bg-primaryPurple-900 hover:shadow-[0_4px_12px_rgba(107,70,193,0.4)] transition-all duration-200"
               onClick={handleGenerateReport}
               aria-label="Generate business reports"
             >
@@ -247,14 +247,14 @@ export default function Dashboard() {
               <span className="truncate">Generate Report</span>
             </Button>
             <Button 
-              className="w-full h-12 justify-start text-base leading-relaxed border border-blue-300 text-blue-600 hover:bg-blue-50 hover:shadow-[0_4px_12px_rgba(59,130,246,0.4)] transition-all duration-200"
+              className="w-full h-12 justify-start text-base leading-relaxed border border-primaryGreen text-primaryGreen hover:bg-primaryGreen-50 dark:hover:bg-primaryGreen-900 hover:shadow-[0_4px_12px_rgba(0,170,0,0.4)] transition-all duration-200"
               onClick={handleManualSync}
               disabled={isRefreshing}
               aria-label="Sync data and refresh metrics"
             >
               {isRefreshing ? (
                 <>
-                  <div className="mr-3 h-5 w-5 animate-spin border-2 border-blue-600 border-t-transparent rounded-full flex-shrink-0" />
+                  <div className="mr-3 h-5 w-5 animate-spin border-2 border-primaryGreen border-t-transparent rounded-full flex-shrink-0" />
                   <span className="truncate">Syncing...</span>
                 </>
               ) : (
@@ -323,7 +323,7 @@ export default function Dashboard() {
                 <ShoppingCart className="h-12 w-12 text-muted-foreground mb-4" />
                 <h3 className="text-xl font-medium text-foreground mb-2 leading-relaxed">No recent orders</h3>
                 <p className="text-base text-muted-foreground mb-4 leading-relaxed">Start by creating your first order</p>
-                <Button onClick={handleCreateOrder} className="h-12 text-base bg-green-600 hover:bg-green-700 text-white">
+                <Button onClick={handleCreateOrder} className="h-12 text-base bg-primaryGreen hover:bg-primaryGreen-dark text-white">
                   Create Order
                 </Button>
               </div>
