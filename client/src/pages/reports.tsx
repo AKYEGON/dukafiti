@@ -370,38 +370,20 @@ export default function Reports() {
         {/* Sticky Header with Timeframe Selector */}
         <div className="sticky top-0 bg-white dark:bg-gray-900 z-10 pb-4 border-b border-gray-200 dark:border-gray-700">
           <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Summary Timeframe:
-                </label>
-                <Select value={summaryPeriod} onValueChange={(value: 'today' | 'weekly' | 'monthly') => setSummaryPeriod(value)}>
-                  <SelectTrigger className="w-32 border-green-600 focus:ring-green-600">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="today">Today</SelectItem>
-                    <SelectItem value="weekly">This Week</SelectItem>
-                    <SelectItem value="monthly">This Month</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div className="flex items-center gap-2">
-                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Graph View:
-                </label>
-                <Select value={trendPeriod} onValueChange={(value: 'daily' | 'weekly' | 'monthly') => setTrendPeriod(value)}>
-                  <SelectTrigger className="w-28 border-green-600 focus:ring-green-600">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="daily">Daily</SelectItem>
-                    <SelectItem value="weekly">Weekly</SelectItem>
-                    <SelectItem value="monthly">Monthly</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+            <div className="flex items-center gap-2">
+              <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                Summary Timeframe:
+              </label>
+              <Select value={summaryPeriod} onValueChange={(value: 'today' | 'weekly' | 'monthly') => setSummaryPeriod(value)}>
+                <SelectTrigger className="w-32 border-green-600 focus:ring-green-600">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="today">Today</SelectItem>
+                  <SelectItem value="weekly">This Week</SelectItem>
+                  <SelectItem value="monthly">This Month</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
             
             <ShareButtons onExport={exportSummaryCSV} type="summary" disabled={!summaryData} />
@@ -480,10 +462,28 @@ export default function Reports() {
         </div>
 
         {/* Sales Trend Chart */}
-        <Card className="bg-black border-gray-700">
-          <CardHeader>
-            <CardTitle className="text-white">Sales Trend</CardTitle>
-          </CardHeader>
+        <div className="space-y-4">
+          {/* Graph View Selector */}
+          <div className="flex items-center gap-2">
+            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              Graph View:
+            </label>
+            <Select value={trendPeriod} onValueChange={(value: 'daily' | 'weekly' | 'monthly') => setTrendPeriod(value)}>
+              <SelectTrigger className="w-28 border-green-600 focus:ring-green-600">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="daily">Daily</SelectItem>
+                <SelectItem value="weekly">Weekly</SelectItem>
+                <SelectItem value="monthly">Monthly</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <Card className="bg-black border-gray-700">
+            <CardHeader>
+              <CardTitle className="text-white">Sales Trend</CardTitle>
+            </CardHeader>
           <CardContent>
             {trendLoading ? (
               <div className="h-64 flex items-center justify-center">
@@ -534,6 +534,7 @@ export default function Reports() {
             )}
           </CardContent>
         </Card>
+        </div>
 
         {/* Top Selling Items */}
         <Card className="bg-black border-gray-700">
