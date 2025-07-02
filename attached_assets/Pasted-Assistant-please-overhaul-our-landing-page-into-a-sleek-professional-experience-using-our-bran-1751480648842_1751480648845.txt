@@ -1,0 +1,43 @@
+Assistant, please overhaul our **landing page** into a sleek, professional experience using our brand colors (green, black, purple). No extra features—just polish. Overwrite existing `Landing.jsx`, CSS, and layout:
+
+1. **Hero Section**
+   - Full-width hero with heading: “DukaSmart – Smart POS for Kenyan Dukawalas”
+   - Subheading: benefit-oriented sentence.
+   - Primary CTA button (“Get Started – It’s Free” in bright green) prominently above fold.
+   - Subtle hero graphic/video (optimized) on the right of the hero.
+
+2. **Content Flow**
+   - Arrange sections vertically: Hero → Features → Testimonials → Footer.
+   - Features: three-highlight columns with icons, headings, and short descriptions, using alternating green/purple accent borders.
+   - Testimonials: two client quotes with border-left accent in purple.
+
+3. **Visual Design & Spacing**
+   - Use lots of white (or black in dark mode) space: `p-12 lg:px-24 xl:px-32`.
+   - Typography: Headings bold and large (`text-4xl` hero, `text-2xl` section titles); body `text-base leading-relaxed`.
+   - Use green (#00AA00) for buttons and accent borders; purple (#6B46C1) for highlights and borders.
+
+4. **Navigation & CTA**
+   - Use minimal nav: Logo on left, single “Login” button on right.
+   - CTA button repeated in footer: “Get Started Now”.
+
+5. **Responsive & Mobile**
+   - Mobile viewport stacks hero vertically, CTA full-width with `py-4` touch size.
+   - All images/video optimized and lazy-loaded.
+
+6. **Trust Elements**
+   - Add a testimonials section with neutral cards (`bg-white dark:bg-[#1F1F1F] border-purple rounded-lg p-6 shadow-sm`).
+
+7. **Accessibility & Performance**
+   - Ensure all text meets WCAG contrast.
+   - Lazy-load visuals and optimize assets.
+
+8. **QA Checklist**
+   - [ ] Hero headline, subheadline, and CTA appear above fold.
+   - [ ] CTA button visible in both hero and footer.
+   - [ ] Feature icons/sections align and use our brand color styling.
+   - [ ] Testimonials render properly.
+   - [ ] Mobile screen looks polished with large tap targets.
+   - [ ] Designed for both light/dark mode.
+   - [ ] No console errors; non-blocking lazy loading of resources.
+
+Please generate the updated `Landing.jsx`, including JSX structure, responsive Tailwind CSS classes, hero media inclusion, testimonial cards, and footer CTA.
