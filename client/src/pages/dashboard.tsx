@@ -94,7 +94,16 @@ export default function Dashboard() {
   // Debug percentage calculations when metrics change
   useEffect(() => {
     if (detailedMetrics) {
-      console.log('Dashboard Metrics Debug (Updated):', {
+      console.log('=== DEEP ANALYSIS DEBUG SESSION ===');
+      console.log('calcPctChange function type:', typeof calcPctChange);
+      console.log('calcPctChange function source:', calcPctChange.toString());
+      
+      // Test direct function call with known values
+      console.log('Direct test calcPctChange(120, 0):', calcPctChange(120, 0));
+      console.log('Direct test calcPctChange(0, 0):', calcPctChange(0, 0));
+      console.log('Direct test calcPctChange(100, 50):', calcPctChange(100, 50));
+      
+      console.log('Dashboard Metrics Debug (Deep Analysis):', {
         revenue: {
           today: detailedMetrics.revenue.today,
           yesterday: detailedMetrics.revenue.yesterday,
@@ -116,6 +125,7 @@ export default function Dashboard() {
           calculated: calcPctChange(detailedMetrics.customers.active, detailedMetrics.customers.priorActive)
         }
       });
+      console.log('=== END DEEP ANALYSIS DEBUG SESSION ===');
     }
   }, [detailedMetrics]);
 
