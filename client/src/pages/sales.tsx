@@ -18,15 +18,9 @@ import { MobilePageWrapper } from "@/components/layout/mobile-page-wrapper";
 export default function Sales() {
   const [cartItems, setCartItems] = useState<SaleLineItem[]>([]);
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
-  const [paymentMethod, setPaymentMethod] = useState<'cash' | 'mpesa' | 'credit' | 'mobileMoney' | ''>('');
+  const [paymentMethod, setPaymentMethod] = useState<'cash' | 'credit' | 'mobileMoney' | ''>('');
   const { toast } = useToast();
   const queryClient = useQueryClient();
-
-  // Fetch M-Pesa enabled status
-  const { data: mpesaEnabledData } = useQuery<{ enabled: boolean }>({
-    queryKey: ['/api/settings/mpesa-enabled'],
-    retry: false,
-  });
 
   // Fetch all products for quick select functionality
   const { data: products = [] } = useQuery<Product[]>({
@@ -36,7 +30,7 @@ export default function Sales() {
   const createSaleMutation = useMutation({
     mutationFn: async (saleData: { 
       items: Array<{ productId: number; qty: number }>;
-      paymentType: 'cash' | 'mpesa' | 'credit' | 'mobileMoney';
+      paymentType: 'cash' | 'credit' | 'mobileMoney';
       customerName?: string;
       customerPhone?: string;
     }) => {
@@ -108,7 +102,7 @@ export default function Sales() {
         });
       } else if (status === 'pending') {
         toast({ 
-          title: "Sale recorded – awaiting M-Pesa", 
+          title: "Sale recorded – payment pending", 
           description: `Sale #${result.saleId} pending payment confirmation`,
           className: "bg-yellow-50 border-yellow-200 text-yellow-800",
           duration: 3000
@@ -242,7 +236,7 @@ export default function Sales() {
         productId: item.product.id,
         qty: item.quantity,
       })),
-      paymentType: paymentMethod as 'cash' | 'mpesa' | 'credit' | 'mobileMoney',
+      paymentType: paymentMethod as 'cash' | 'credit' | 'mobileMoney',
       customer: customerName,
     };
 
@@ -373,19 +367,6 @@ export default function Sales() {
                       >
                         Cash
                       </button>
-                      {/* M-Pesa button - only show if enabled */}
-                      {mpesaEnabledData?.enabled && (
-                        <button
-                          onClick={() => setPaymentMethod('mpesa')}
-                          className={`flex-1 py-2 px-4 rounded-full text-sm font-medium transition-colors ${
-                            paymentMethod === 'mpesa'
-                              ? 'bg-[#00AA00] text-foreground'
-                              : 'bg-background text-foreground hover:bg-muted'
-                          }`}
-                        >
-                          M-Pesa
-                        </button>
-                      )}
                       {/* Mobile Money Payment Button */}
                       <button
                         onClick={() => setPaymentMethod('mobileMoney')}

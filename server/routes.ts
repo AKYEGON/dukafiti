@@ -713,15 +713,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const paymentBreakdown = todayOrders.reduce((acc, order) => {
         const amount = parseFloat(order.total);
         if (order.paymentMethod === 'cash') acc.cash += amount;
-        else if (order.paymentMethod === 'mpesa') acc.mpesa += amount;
         else if (order.paymentMethod === 'mobileMoney') acc.mobileMoney += amount;
         else if (order.paymentMethod === 'credit') acc.credit += amount;
         return acc;
-      }, { cash: 0, mpesa: 0, mobileMoney: 0, credit: 0 });
+      }, { cash: 0, mobileMoney: 0, credit: 0 });
 
-      // Count pending M-Pesa payments
-      const pendingMpesa = allOrders.filter(order => 
-        order.status === 'pending' && order.paymentMethod === 'mpesa'
+      // Count pending payments
+      const pendingPayments = allOrders.filter(order => 
+        order.status === 'pending'
       ).length;
 
       // Count low stock items (threshold: 10)
@@ -734,11 +733,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         totalSalesMonth,
         paymentBreakdown: {
           cash: paymentBreakdown.cash.toFixed(2),
-          mpesa: paymentBreakdown.mpesa.toFixed(2),
           mobileMoney: paymentBreakdown.mobileMoney.toFixed(2),
           credit: paymentBreakdown.credit.toFixed(2)
         },
-        pendingMpesa,
+        pendingPayments,
         lowStockItems
       };
 

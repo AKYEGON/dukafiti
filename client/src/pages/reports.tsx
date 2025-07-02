@@ -14,11 +14,10 @@ interface SummaryData {
   totalSalesMonth: string;
   paymentBreakdown: {
     cash: string;
-    mpesa: string;
     credit: string;
     mobileMoney: string;
   };
-  pendingMpesa: number;
+  pendingPayments: number;
   lowStockItems: number;
 }
 
@@ -243,9 +242,8 @@ export default function Reports() {
       { metric: 'Total Sales This Month', value: summaryData.totalSalesMonth },
       { metric: 'Cash Sales', value: summaryData.paymentBreakdown.cash },
       { metric: 'Mobile Money Sales', value: summaryData.paymentBreakdown.mobileMoney },
-      { metric: 'M-Pesa Sales', value: summaryData.paymentBreakdown.mpesa },
       { metric: 'Credit Sales', value: summaryData.paymentBreakdown.credit },
-      { metric: 'Pending M-Pesa Payments', value: summaryData.pendingMpesa.toString() },
+      { metric: 'Pending Payments', value: summaryData.pendingPayments.toString() },
       { metric: 'Low Stock Items', value: summaryData.lowStockItems.toString() }
     ];
     

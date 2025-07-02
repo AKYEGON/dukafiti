@@ -35,7 +35,7 @@ export function useWebSocket() {
             });
           } else if (data.status === 'pending') {
             toast({
-              title: "Sale recorded – awaiting M-Pesa",
+              title: "Sale recorded – awaiting payment",
               description: `Sale #${data.saleId} pending payment confirmation`,
               className: "bg-yellow-50 border-yellow-200 text-yellow-800",
               duration: 3000,
@@ -50,14 +50,14 @@ export function useWebSocket() {
           }
         } else if (data.type === 'payment_received') {
           toast({
-            title: "M-Pesa payment received!",
+            title: "Payment received!",
             description: `Payment confirmed for ${data.reference} - ${formatCurrency(data.amount)}`,
             className: "bg-green-50 border-green-200 text-green-800",
             duration: 3000,
           });
         } else if (data.type === 'payment_failed') {
           toast({
-            title: "M-Pesa payment failed",
+            title: "Payment failed",
             description: `Payment failed for ${data.reference}: ${data.resultDesc}`,
             variant: "destructive",
             duration: 3000,

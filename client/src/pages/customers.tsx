@@ -225,7 +225,7 @@ export default function Customers() {
                       </SelectTrigger>
                       <SelectContent className="bg-muted border-gray-600">
                         <SelectItem value="cash">Cash</SelectItem>
-                        <SelectItem value="mpesa">M-Pesa</SelectItem>
+                        <SelectItem value="mobileMoney">Mobile Money</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
