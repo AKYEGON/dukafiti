@@ -30,10 +30,10 @@ function AuthenticatedApp() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <Sidebar />
-      <div className="lg:ml-64">
-        <main className="flex-1 flex flex-col">
+      <div className="lg:ml-64 min-h-screen">
+        <main className="flex-1 flex flex-col min-h-screen">
           <UniversalSearch />
-          <div className="flex-1 overflow-auto bg-background">
+          <div className="flex-1 bg-background">
             <Switch>
               <Route path="/" component={Dashboard} />
               <Route path="/dashboard" component={Dashboard} />
