@@ -62,7 +62,7 @@ export function CustomerForm({ open, onOpenChange, customer }: CustomerFormProps
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...data,
-          balance: data.balance || "0.00", // Use provided balance or default to 0
+          balance: data.balance && data.balance.trim() !== "" ? data.balance : "0.00",
         }),
       });
       if (!response.ok) {

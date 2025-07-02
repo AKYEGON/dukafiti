@@ -241,6 +241,10 @@ Changelog:
 - July 2, 2025. Fixed Reports page layout - changed Top Customers and Top-Selling Products panels from side-by-side to stacked vertical layout
 - July 2, 2025. Ensured proper data refresh for Top Customers and Top-Selling Products panels when timeframe selection changes
 - July 2, 2025. Both panels now respond to Summary Timeframe dropdown changes and display accurate real-time data
+- July 2, 2025. Successfully completed migration from Replit Agent to standard Replit environment with PostgreSQL database
+- July 2, 2025. Fixed critical customer balance bug where initial debt amounts were always saved as 0.00
+- July 2, 2025. Updated customer form mutation logic to properly handle non-empty balance values vs empty strings
+- July 2, 2025. Verified full application functionality after migration with comprehensive database integration
 ```
 
 ## User Preferences
