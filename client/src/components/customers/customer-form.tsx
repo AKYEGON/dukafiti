@@ -258,9 +258,7 @@ export function CustomerForm({ open, onOpenChange, customer }: CustomerFormProps
                   type="button" 
                   variant="destructive"
                   onClick={() => {
-                    if (confirm(`Are you sure you want to delete ${customer.name}? This action cannot be undone.`)) {
-                      deleteCustomer.mutate();
-                    }
+                    deleteCustomer.mutate();
                   }}
                   disabled={deleteCustomer.isPending}
                   className="bg-red-600 hover:bg-red-700 text-white"
