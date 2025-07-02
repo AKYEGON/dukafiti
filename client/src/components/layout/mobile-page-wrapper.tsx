@@ -14,6 +14,7 @@ export function MobilePageWrapper({
   title, 
   showTitle = true 
 }: MobilePageWrapperProps) {
+  
   return (
     <div className={cn("w-full h-full bg-background text-foreground", className)}>
       {/* Desktop title - hidden on mobile since we have sticky header */}
