@@ -56,7 +56,7 @@ export function MobileBottomNav() {
 
   return (
     <nav 
-      className="fixed bottom-0 left-0 right-0 bg-black border-t border-gray-700 h-16 flex sm:hidden z-50"
+      className="fixed bottom-0 left-0 right-0 bg-black border-t border-gray-700 h-16 flex sm:hidden z-[60]"
       style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
     >
       {navItems.map((item) => {
@@ -69,17 +69,12 @@ export function MobileBottomNav() {
             onClick={() => handleNavigation(item.path)}
             className="flex-1 flex flex-col items-center justify-center h-full px-2 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-inset"
             aria-label={`Navigate to ${item.label}`}
-            style={{
-              color: active ? item.activeColor : 'white'
-            }}
           >
             <Icon 
-              className="h-5 w-5 mb-1" 
-              style={{ color: active ? item.activeColor : 'white' }}
+              className={`h-5 w-5 mb-1 ${active ? 'text-green-500' : 'text-white'}`}
             />
             <span 
-              className="text-xs font-medium"
-              style={{ color: active ? item.activeColor : 'white' }}
+              className={`text-xs font-medium ${active ? 'text-green-500' : 'text-white'}`}
             >
               {item.label}
             </span>

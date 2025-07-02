@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { BarChart3, DollarSign, CreditCard, AlertTriangle, TrendingUp, Users, Download, MessageCircle, Mail } from "lucide-react";
+import { BarChart3, DollarSign, CreditCard, AlertTriangle, TrendingUp, Users, Download, MessageCircle, Mail, Search, ChevronLeft, ChevronRight } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -38,6 +38,22 @@ interface CustomerCredit {
   balance: string;
 }
 
+interface OrderRecord {
+  orderId: number;
+  date: string;
+  customerName: string;
+  totalAmount: string;
+  status: 'paid' | 'pending' | 'cancelled';
+  reference: string | null;
+}
+
+interface OrdersResponse {
+  orders: OrderRecord[];
+  total: number;
+  page: number;
+  totalPages: number;
+}
+
 // CSV Export Utilities
 const convertToCSV = (data: any[], headers: string[]): string => {
   const csvRows = [];
@@ -70,6 +86,22 @@ export default function Reports() {
   const [selectedPeriod, setSelectedPeriod] = useState<'today' | 'week' | 'month'>('today');
   const [exportingCSV, setExportingCSV] = useState<string | null>(null);
   const { toast } = useToast();
+
+  // Orders Record state
+  const [ordersPeriod, setOrdersPeriod] = useState<'daily' | 'weekly' | 'monthly'>('daily');
+  const [ordersSearchQuery, setOrdersSearchQuery] = useState('');
+  const [ordersPage, setOrdersPage] = useState(1);
+  const [debouncedOrdersQuery, setDebouncedOrdersQuery] = useState('');
+
+  // Debounce search query
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedOrdersQuery(ordersSearchQuery);
+      setOrdersPage(1); // Reset to first page when search changes
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [ordersSearchQuery]);
 
   // Fetch summary data
   const { data: summaryData, isLoading: summaryLoading } = useQuery<SummaryData>({
@@ -107,6 +139,26 @@ export default function Reports() {
     queryFn: async () => {
       const response = await fetch('/api/reports/credits');
       if (!response.ok) throw new Error('Failed to fetch customer credits');
+      return response.json();
+    }
+  });
+
+  // Fetch orders data
+  const { data: ordersData, isLoading: ordersLoading, error: ordersError } = useQuery<OrdersResponse>({
+    queryKey: ['/api/reports/orders', ordersPeriod, debouncedOrdersQuery, ordersPage],
+    queryFn: async () => {
+      const params = new URLSearchParams({
+        period: ordersPeriod,
+        page: ordersPage.toString(),
+        limit: '20'
+      });
+      
+      if (debouncedOrdersQuery) {
+        params.set('q', debouncedOrdersQuery);
+      }
+      
+      const response = await fetch(`/api/reports/orders?${params}`);
+      if (!response.ok) throw new Error('Failed to fetch orders');
       return response.json();
     }
   });
@@ -377,6 +429,163 @@ export default function Reports() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Orders Record Section */}
+      <Card className="">
+        <CardHeader>
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+            <CardTitle className="text-lg font-semibold text-purple-600">Orders Record</CardTitle>
+            
+            {/* Filters and Search Toolbar */}
+            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+              {/* Period Filter Pills */}
+              <div className="flex bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
+                {(['daily', 'weekly', 'monthly'] as const).map((period) => (
+                  <button
+                    key={period}
+                    onClick={() => {
+                      setOrdersPeriod(period);
+                      setOrdersPage(1);
+                    }}
+                    className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
+                      ordersPeriod === period
+                        ? 'bg-green-500 text-white'
+                        : 'bg-black text-white hover:bg-gray-700'
+                    }`}
+                  >
+                    {period.charAt(0).toUpperCase() + period.slice(1)}
+                  </button>
+                ))}
+              </div>
+              
+              {/* Search Input */}
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                <input
+                  type="text"
+                  placeholder="Search orders..."
+                  value={ordersSearchQuery}
+                  onChange={(e) => setOrdersSearchQuery(e.target.value)}
+                  className="pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 text-sm min-w-[200px]"
+                />
+              </div>
+            </div>
+          </div>
+        </CardHeader>
+        
+        <CardContent>
+          {ordersLoading ? (
+            <div className="h-64 flex items-center justify-center">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500"></div>
+            </div>
+          ) : ordersError ? (
+            <div className="text-center py-8">
+              <p className="text-red-500 mb-4">Couldn't load orders. Retry.</p>
+              <Button 
+                onClick={() => window.location.reload()} 
+                variant="outline"
+                size="sm"
+              >
+                Retry
+              </Button>
+            </div>
+          ) : !ordersData?.orders?.length ? (
+            <div className="text-center py-8">
+              <p className="text-gray-500 dark:text-gray-400">No orders found for this period.</p>
+            </div>
+          ) : (
+            <>
+              {/* Desktop Table */}
+              <div className="hidden md:block overflow-x-auto">
+                <table className="table-auto w-full text-sm">
+                  <thead>
+                    <tr className="bg-purple-600 text-white">
+                      <th className="px-4 py-3 text-left font-medium border-b border-gray-300">Order ID</th>
+                      <th className="px-4 py-3 text-left font-medium border-b border-gray-300">Date</th>
+                      <th className="px-4 py-3 text-left font-medium border-b border-gray-300">Customer</th>
+                      <th className="px-4 py-3 text-left font-medium border-b border-gray-300">Amount</th>
+                      <th className="px-4 py-3 text-left font-medium border-b border-gray-300">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {ordersData.orders.map((order) => (
+                      <tr key={order.orderId} className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800">
+                        <td className="px-4 py-3 text-foreground">#{order.orderId}</td>
+                        <td className="px-4 py-3 text-foreground">{order.date}</td>
+                        <td className="px-4 py-3 text-foreground">{order.customerName}</td>
+                        <td className="px-4 py-3 text-foreground">{formatCurrency(order.totalAmount)}</td>
+                        <td className="px-4 py-3">
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            order.status === 'paid' 
+                              ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                              : order.status === 'pending'
+                              ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
+                              : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                          }`}>
+                            {order.status}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* Mobile Cards */}
+              <div className="md:hidden space-y-3">
+                {ordersData.orders.map((order) => (
+                  <div key={order.orderId} className="border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+                    <div className="flex justify-between items-start mb-2">
+                      <div className="font-medium text-foreground">#{order.orderId}</div>
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        order.status === 'paid' 
+                          ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                          : order.status === 'pending'
+                          ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
+                          : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                      }`}>
+                        {order.status}
+                      </span>
+                    </div>
+                    <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">{order.date}</div>
+                    <div className="text-sm text-foreground mb-1">{order.customerName}</div>
+                    <div className="font-medium text-green-600">{formatCurrency(order.totalAmount)}</div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Pagination */}
+              {ordersData.totalPages > 1 && (
+                <div className="flex justify-between items-center mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+                  <div className="text-sm text-gray-600 dark:text-gray-400">
+                    Page {ordersData.page} of {ordersData.totalPages} ({ordersData.total} total orders)
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={() => setOrdersPage(Math.max(1, ordersPage - 1))}
+                      disabled={ordersPage === 1}
+                      variant="outline"
+                      size="sm"
+                    >
+                      <ChevronLeft className="h-4 w-4 mr-1" />
+                      Prev
+                    </Button>
+                    <Button
+                      onClick={() => setOrdersPage(Math.min(ordersData.totalPages, ordersPage + 1))}
+                      disabled={ordersPage === ordersData.totalPages}
+                      variant="outline"
+                      size="sm"
+                    >
+                      Next
+                      <ChevronRight className="h-4 w-4 ml-1" />
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Charts and Lists */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

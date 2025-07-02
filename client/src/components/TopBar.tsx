@@ -235,7 +235,7 @@ export function TopBar() {
       <div className="mx-auto px-2 sm:px-4">
         <div className="flex items-center justify-between h-16">
           {/* Desktop Search Bar */}
-          <div className="hidden md:block flex-1 max-w-lg mx-auto">
+          <div className="hidden sm:block flex-1 max-w-lg mx-auto">
             <div ref={searchRef} className="relative">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
@@ -288,7 +288,7 @@ export function TopBar() {
           {/* Mobile Search Button */}
           <button
             onClick={() => setIsMobileSearchOpen(true)}
-            className="md:hidden p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
+            className="sm:hidden p-2 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
           >
             <Search className="h-5 w-5" />
           </button>

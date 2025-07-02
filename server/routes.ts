@@ -835,6 +835,78 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Orders Record endpoint for Reports page
+  app.get('/api/reports/orders', requireAuth, async (req: any, res: any) => {
+    try {
+      const { period = 'daily', q = '', page = '1', limit = '20' } = req.query;
+      const today = new Date();
+      let startDate: Date;
+
+      // Calculate date range based on period
+      switch (period) {
+        case 'weekly':
+          startDate = new Date(today);
+          startDate.setDate(today.getDate() - 7);
+          break;
+        case 'monthly':
+          startDate = new Date(today);
+          startDate.setDate(today.getDate() - 30);
+          break;
+        default: // daily
+          startDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+      }
+
+      // Get all orders
+      const allOrders = await storage.getOrders();
+      
+      // Filter by date range
+      let filteredOrders = allOrders.filter(order => 
+        new Date(order.createdAt) >= startDate
+      );
+
+      // Filter by search query if provided
+      if (q) {
+        const searchLower = q.toLowerCase();
+        filteredOrders = filteredOrders.filter(order => {
+          // Search by order ID, customer name, or reference
+          return order.id.toString().includes(searchLower) ||
+                 order.customerName.toLowerCase().includes(searchLower) ||
+                 (order.reference && order.reference.toLowerCase().includes(searchLower));
+        });
+      }
+
+      // Sort by creation date (newest first)
+      filteredOrders.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+      // Pagination
+      const pageNum = parseInt(page);
+      const limitNum = parseInt(limit);
+      const startIndex = (pageNum - 1) * limitNum;
+      const endIndex = startIndex + limitNum;
+      const paginatedOrders = filteredOrders.slice(startIndex, endIndex);
+
+      // Format response
+      const formattedOrders = paginatedOrders.map(order => ({
+        orderId: order.id,
+        date: order.createdAt.toISOString().split('T')[0], // YYYY-MM-DD format
+        customerName: order.customerName,
+        totalAmount: parseFloat(order.total).toFixed(2),
+        status: order.status,
+        reference: order.reference
+      }));
+
+      res.json({
+        orders: formattedOrders,
+        total: filteredOrders.length,
+        page: pageNum,
+        totalPages: Math.ceil(filteredOrders.length / limitNum)
+      });
+    } catch (error) {
+      console.error('Orders reports error:', error);
+      res.status(500).json({ message: 'Failed to fetch orders' });
+    }
+  });
+
   app.get('/api/reports/credits', requireAuth, async (req: any, res: any) => {
     try {
       const customers = await storage.getCustomers();
