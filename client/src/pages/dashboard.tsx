@@ -2,8 +2,10 @@ import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { type DashboardMetrics, type Order } from "@shared/schema";
+import { calcPctChange, formatCurrency as formatCurrencyUtil } from "@shared/utils";
 import { MobilePageWrapper } from "@/components/layout/mobile-page-wrapper";
 import { MetricCard } from "@/components/ui/metric-card";
+import { EnhancedMetricCard } from "@/components/ui/enhanced-metric-card";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -27,6 +29,7 @@ import {
   AlertTriangle,
   Info,
   CheckCircle,
+  RefreshCw,
 } from "lucide-react";
 import { formatCurrency, formatDate, getStatusColor } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -37,14 +40,55 @@ export default function Dashboard() {
   const [, setLocation] = useLocation();
   const [showProductForm, setShowProductForm] = useState(false);
   const [showCustomerForm, setShowCustomerForm] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const { data: metrics, isLoading: metricsLoading } = useQuery<DashboardMetrics>({
     queryKey: ["/api/dashboard/metrics"],
   });
 
+  interface DetailedMetrics {
+    revenue: {
+      today: number;
+      yesterday: number;
+      weekToDate: number;
+      priorWeekToDate: number;
+    };
+    orders: {
+      today: number;
+      yesterday: number;
+    };
+    inventory: {
+      totalItems: number;
+      priorSnapshot: number;
+    };
+    customers: {
+      active: number;
+      priorActive: number;
+    };
+  }
+
+  const { data: detailedMetrics, isLoading: detailedMetricsLoading, refetch: refetchDetailedMetrics } = useQuery<DetailedMetrics>({
+    queryKey: ["/api/metrics/dashboard"],
+  });
+
   const { data: recentOrders, isLoading: ordersLoading } = useQuery<Order[]>({
     queryKey: ["/api/orders/recent"],
   });
+
+  // Manual sync functionality
+  const handleManualSync = async () => {
+    setIsRefreshing(true);
+    try {
+      await Promise.all([
+        refetchDetailedMetrics(),
+        // Refetch other queries if needed
+      ]);
+    } catch (error) {
+      console.error('Manual sync error:', error);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   // Quick Actions handlers
   const handleAddProduct = () => {
@@ -125,39 +169,43 @@ export default function Dashboard() {
   return (
     <MobilePageWrapper title="Dashboard">
       <div className="space-y-6">
-        {/* Metrics Cards - Mobile-first single column */}
+        {/* Enhanced Metrics Cards with Accurate Percentage Changes */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <MetricCard
+          <EnhancedMetricCard
             title="Total Revenue"
-            value={formatCurrency(metrics?.totalRevenue || "0")}
-            change={metrics?.revenueGrowth}
-            changeType="positive"
+            value={detailedMetrics?.revenue ? formatCurrencyUtil(detailedMetrics.revenue.today) : formatCurrency(metrics?.totalRevenue || "0")}
+            percentageChange={detailedMetrics?.revenue ? calcPctChange(detailedMetrics.revenue.today, detailedMetrics.revenue.yesterday) : "—"}
             icon={DollarSign}
-            iconColor="text-green-600"
+            isLoading={detailedMetricsLoading || metricsLoading}
+            isRefreshing={isRefreshing}
+            error={!detailedMetrics && !detailedMetricsLoading}
           />
-          <MetricCard
+          <EnhancedMetricCard
             title="Orders Today"
-            value={metrics?.totalOrders || 0}
-            change={metrics?.ordersGrowth}
-            changeType="positive"
+            value={detailedMetrics?.orders ? detailedMetrics.orders.today.toString() : (metrics?.totalOrders || 0).toString()}
+            percentageChange={detailedMetrics?.orders ? calcPctChange(detailedMetrics.orders.today, detailedMetrics.orders.yesterday) : "—"}
             icon={ShoppingCart}
-            iconColor="text-blue-600"
+            isLoading={detailedMetricsLoading || metricsLoading}
+            isRefreshing={isRefreshing}
+            error={!detailedMetrics && !detailedMetricsLoading}
           />
-          <MetricCard
+          <EnhancedMetricCard
             title="Inventory Items"
-            value={metrics?.totalProducts || 0}
-            change={`${metrics?.lowStockCount || 0} low stock`}
-            changeType={metrics?.lowStockCount ? "negative" : "neutral"}
+            value={detailedMetrics?.inventory ? detailedMetrics.inventory.totalItems.toString() : (metrics?.totalProducts || 0).toString()}
+            percentageChange={detailedMetrics?.inventory ? calcPctChange(detailedMetrics.inventory.totalItems, detailedMetrics.inventory.priorSnapshot) : "—"}
             icon={Package}
-            iconColor="text-orange-600"
+            isLoading={detailedMetricsLoading || metricsLoading}
+            isRefreshing={isRefreshing}
+            error={!detailedMetrics && !detailedMetricsLoading}
           />
-          <MetricCard
+          <EnhancedMetricCard
             title="Active Customers"
-            value={metrics?.activeCustomersCount || 0}
-            change="+5.4% this week"
-            changeType="positive"
+            value={detailedMetrics?.customers ? detailedMetrics.customers.active.toString() : (metrics?.activeCustomersCount || 0).toString()}
+            percentageChange={detailedMetrics?.customers ? calcPctChange(detailedMetrics.customers.active, detailedMetrics.customers.priorActive) : "—"}
             icon={Users}
-            iconColor="text-purple-600"
+            isLoading={detailedMetricsLoading || metricsLoading}
+            isRefreshing={isRefreshing}
+            error={!detailedMetrics && !detailedMetricsLoading}
           />
         </div>
 
@@ -202,6 +250,24 @@ export default function Dashboard() {
               <BarChart3 className="mr-3 h-5 w-5 flex-shrink-0" />
               <span className="truncate">Generate Report</span>
               <kbd className="hidden sm:inline-block ml-auto text-xs bg-purple-100 text-purple-800 px-1.5 py-0.5 rounded">Ctrl+R</kbd>
+            </Button>
+            <Button 
+              className="w-full h-12 justify-start text-base leading-relaxed border border-blue-300 text-blue-600 hover:bg-blue-50 hover:shadow-[0_4px_12px_rgba(59,130,246,0.4)] transition-all duration-200"
+              onClick={handleManualSync}
+              disabled={isRefreshing}
+              aria-label="Sync data and refresh metrics"
+            >
+              {isRefreshing ? (
+                <>
+                  <div className="mr-3 h-5 w-5 animate-spin border-2 border-blue-600 border-t-transparent rounded-full flex-shrink-0" />
+                  <span className="truncate">Syncing...</span>
+                </>
+              ) : (
+                <>
+                  <RefreshCw className="mr-3 h-5 w-5 flex-shrink-0" />
+                  <span className="truncate">Sync Now</span>
+                </>
+              )}
             </Button>
           </CardContent>
         </Card>

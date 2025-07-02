@@ -1241,6 +1241,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Enhanced dashboard metrics endpoint
+  app.get('/api/metrics/dashboard', requireAuth, async (req: any, res: any) => {
+    try {
+      const detailedMetrics = await storage.getDetailedDashboardMetrics();
+      res.json(detailedMetrics);
+    } catch (error) {
+      console.error('Detailed dashboard metrics error:', error);
+      res.status(500).json({ error: 'Failed to fetch detailed dashboard metrics' });
+    }
+  });
+
   // Universal search endpoint
   app.get('/api/search', requireAuth, async (req: any, res: any) => {
     try {

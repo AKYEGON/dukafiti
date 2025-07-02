@@ -80,6 +80,26 @@ export interface IStorage {
 
   // Dashboard
   getDashboardMetrics(): Promise<DashboardMetrics>;
+  getDetailedDashboardMetrics(): Promise<{
+    revenue: {
+      today: number;
+      yesterday: number;
+      weekToDate: number;
+      priorWeekToDate: number;
+    };
+    orders: {
+      today: number;
+      yesterday: number;
+    };
+    inventory: {
+      totalItems: number;
+      priorSnapshot: number;
+    };
+    customers: {
+      active: number;
+      priorActive: number;
+    };
+  }>;
 
   // Business Profile
   saveBusinessProfile(userId: number, profile: Omit<InsertBusinessProfile, 'userId'>): Promise<void>;
@@ -561,6 +581,21 @@ export class MemStorage implements IStorage {
   async updateUserSettings(userId: number, settings: Partial<Omit<InsertUserSettings, 'userId'>>): Promise<UserSettings | undefined> {
     return undefined;
   }
+
+  async getDetailedDashboardMetrics(): Promise<{
+    revenue: { today: number; yesterday: number; weekToDate: number; priorWeekToDate: number; };
+    orders: { today: number; yesterday: number; };
+    inventory: { totalItems: number; priorSnapshot: number; };
+    customers: { active: number; priorActive: number; };
+  }> {
+    // Return mock data for MemStorage since this is for testing
+    return {
+      revenue: { today: 0, yesterday: 0, weekToDate: 0, priorWeekToDate: 0 },
+      orders: { today: 0, yesterday: 0 },
+      inventory: { totalItems: this.products.size, priorSnapshot: this.products.size },
+      customers: { active: 0, priorActive: 0 }
+    };
+  }
 }
 
 export class DatabaseStorage implements IStorage {
@@ -914,6 +949,126 @@ export class DatabaseStorage implements IStorage {
       .where(eq(userSettings.userId, userId))
       .returning();
     return result;
+  }
+
+  async getDetailedDashboardMetrics(): Promise<{
+    revenue: {
+      today: number;
+      yesterday: number;
+      weekToDate: number;
+      priorWeekToDate: number;
+    };
+    orders: {
+      today: number;
+      yesterday: number;
+    };
+    inventory: {
+      totalItems: number;
+      priorSnapshot: number;
+    };
+    customers: {
+      active: number;
+      priorActive: number;
+    };
+  }> {
+    const now = new Date();
+    const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+    
+    // Get date bounds
+    const todayStart = new Date(now);
+    todayStart.setHours(0, 0, 0, 0);
+    const todayEnd = new Date(now);
+    todayEnd.setHours(23, 59, 59, 999);
+    
+    const yesterdayStart = new Date(yesterday);
+    yesterdayStart.setHours(0, 0, 0, 0);
+    const yesterdayEnd = new Date(yesterday);
+    yesterdayEnd.setHours(23, 59, 59, 999);
+    
+    // Week to date (Monday to today)
+    const weekStart = new Date(now);
+    const dayOfWeek = weekStart.getDay();
+    const daysFromMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+    weekStart.setDate(weekStart.getDate() - daysFromMonday);
+    weekStart.setHours(0, 0, 0, 0);
+    
+    // Prior week to date
+    const priorWeekStart = new Date(weekStart);
+    priorWeekStart.setDate(priorWeekStart.getDate() - 7);
+    const priorWeekEnd = new Date(yesterday);
+    priorWeekEnd.setDate(priorWeekEnd.getDate() - 7);
+    priorWeekEnd.setHours(23, 59, 59, 999);
+
+    // Get all orders for analysis
+    const allOrders = await db.select().from(orders);
+    
+    // Filter orders by date ranges
+    const todayOrders = allOrders.filter(order => 
+      order.createdAt >= todayStart && order.createdAt <= todayEnd && order.status === 'paid'
+    );
+    
+    const yesterdayOrders = allOrders.filter(order => 
+      order.createdAt >= yesterdayStart && order.createdAt <= yesterdayEnd && order.status === 'paid'
+    );
+    
+    const weekOrders = allOrders.filter(order => 
+      order.createdAt >= weekStart && order.createdAt <= todayEnd && order.status === 'paid'
+    );
+    
+    const priorWeekOrders = allOrders.filter(order => 
+      order.createdAt >= priorWeekStart && order.createdAt <= priorWeekEnd && order.status === 'paid'
+    );
+
+    // Calculate revenue
+    const todayRevenue = todayOrders.reduce((sum, order) => sum + parseFloat(order.total), 0);
+    const yesterdayRevenue = yesterdayOrders.reduce((sum, order) => sum + parseFloat(order.total), 0);
+    const weekRevenue = weekOrders.reduce((sum, order) => sum + parseFloat(order.total), 0);
+    const priorWeekRevenue = priorWeekOrders.reduce((sum, order) => sum + parseFloat(order.total), 0);
+
+    // Calculate order counts
+    const todayOrderCount = todayOrders.length;
+    const yesterdayOrderCount = yesterdayOrders.length;
+
+    // Get inventory metrics
+    const allProducts = await db.select().from(products);
+    const totalItems = allProducts.length;
+    // For prior snapshot, we'll use the same count since we don't track historical inventory changes
+    // In a real system, you'd store daily snapshots or calculate from stock movement history
+    const priorSnapshot = totalItems;
+
+    // Get customer activity (customers with orders in the last 24h)
+    const activeCustomers = new Set(
+      todayOrders
+        .filter(order => order.customerId)
+        .map(order => order.customerId)
+    ).size;
+    
+    const priorActiveCustomers = new Set(
+      yesterdayOrders
+        .filter(order => order.customerId)
+        .map(order => order.customerId)
+    ).size;
+
+    return {
+      revenue: {
+        today: todayRevenue,
+        yesterday: yesterdayRevenue,
+        weekToDate: weekRevenue,
+        priorWeekToDate: priorWeekRevenue
+      },
+      orders: {
+        today: todayOrderCount,
+        yesterday: yesterdayOrderCount
+      },
+      inventory: {
+        totalItems,
+        priorSnapshot
+      },
+      customers: {
+        active: activeCustomers,
+        priorActive: priorActiveCustomers
+      }
+    };
   }
 }
 
