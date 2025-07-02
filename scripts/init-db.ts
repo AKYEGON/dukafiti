@@ -21,12 +21,12 @@ async function initializeDatabase() {
     
     // Create a default user
     const hashedPassword = await bcrypt.hash("admin123", 10);
-    const defaultUser = await db.insert(users).values({
+    const [defaultUser] = await db.insert(users).values({
       username: "admin",
       email: "admin@dukasmart.com",
       passwordHash: hashedPassword,
       phone: "+254700000000"
-    }).returning().get();
+    }).returning();
     
     console.log("Created default user:", defaultUser);
 
