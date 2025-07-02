@@ -2,11 +2,7 @@ import { useState, useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { type DashboardMetrics, type Order } from "@shared/schema";
-import { calcPctChange, formatCurrency as formatCurrencyUtil } from "@shared/utils";
-import { MobilePageWrapper } from "@/components/layout/mobile-page-wrapper";
-import { MetricCard } from "@/components/ui/metric-card";
-import { SimpleMetricCard } from "@/components/ui/simple-metric-card";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { formatCurrency as formatCurrencyUtil } from "@shared/utils";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -24,12 +20,7 @@ import {
   Users,
   Plus,
   UserPlus,
-  FileText,
   BarChart3,
-  AlertTriangle,
-  Info,
-  CheckCircle,
-  RefreshCw,
 } from "lucide-react";
 import { formatCurrency, formatDate, getStatusColor } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -37,11 +28,9 @@ import { ProductForm } from "@/components/inventory/product-form";
 import { CustomerForm } from "@/components/customers/customer-form";
 
 export default function Dashboard() {
-  
   const [, setLocation] = useLocation();
   const [showProductForm, setShowProductForm] = useState(false);
   const [showCustomerForm, setShowCustomerForm] = useState(false);
-  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const { data: metrics, isLoading: metricsLoading } = useQuery<DashboardMetrics>({
     queryKey: ["/api/dashboard/metrics"],
@@ -68,30 +57,13 @@ export default function Dashboard() {
     };
   }
 
-  const { data: detailedMetrics, isLoading: detailedMetricsLoading, refetch: refetchDetailedMetrics } = useQuery<DetailedMetrics>({
+  const { data: detailedMetrics, isLoading: detailedMetricsLoading } = useQuery<DetailedMetrics>({
     queryKey: ["/api/metrics/dashboard"],
   });
 
   const { data: recentOrders, isLoading: ordersLoading } = useQuery<Order[]>({
     queryKey: ["/api/orders/recent"],
   });
-
-  // Manual sync functionality
-  const handleManualSync = async () => {
-    setIsRefreshing(true);
-    try {
-      await Promise.all([
-        refetchDetailedMetrics(),
-        // Refetch other queries if needed
-      ]);
-    } catch (error) {
-      console.error('Manual sync error:', error);
-    } finally {
-      setIsRefreshing(false);
-    }
-  };
-
-
 
   // Quick Actions handlers
   const handleAddProduct = () => {
@@ -114,202 +86,199 @@ export default function Dashboard() {
     setLocation("/sales");
   };
 
-  // Keyboard shortcuts for Quick Actions
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      // Only trigger shortcuts when no modal is open and not typing in input
-      if (showProductForm || showCustomerForm || 
-          event.target instanceof HTMLInputElement || 
-          event.target instanceof HTMLTextAreaElement) {
-        return;
-      }
+  // Professional Summary Card Component
+  const SummaryCard = ({ title, value, icon: Icon, isLoading }: { 
+    title: string; 
+    value: string; 
+    icon: any; 
+    isLoading: boolean;
+  }) => (
+    <div className="bg-white dark:bg-[#1F1F1F] border border-gray-200 dark:border-gray-700 rounded-xl p-6 shadow hover:shadow-lg transition-shadow duration-200 dark:shadow-[0_4px_8px_rgba(0,0,0,0.5)]">
+      <div className="flex items-start justify-between">
+        <div className="flex-1">
+          <p className="text-sm uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-2">
+            {title}
+          </p>
+          {isLoading ? (
+            <Skeleton className="h-8 w-24" />
+          ) : (
+            <p className="text-2xl font-extrabold text-foreground">
+              {value}
+            </p>
+          )}
+        </div>
+        <div className="bg-green-600 p-3 rounded-full">
+          <Icon className="h-6 w-6 text-white" />
+        </div>
+      </div>
+    </div>
+  );
 
-      // Check for Ctrl/Cmd + key combinations
-      if (event.ctrlKey || event.metaKey) {
-        switch (event.key.toLowerCase()) {
-          case 'p':
-            event.preventDefault();
-            handleAddProduct();
-            break;
-          case 'o':
-            event.preventDefault();
-            handleCreateOrder();
-            break;
-          case 'u':
-            event.preventDefault();
-            handleAddCustomer();
-            break;
-          case 'r':
-            event.preventDefault();
-            handleGenerateReport();
-            break;
-        }
-      }
-    };
-
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [showProductForm, showCustomerForm]);
+  // Professional Action Button Component
+  const ActionButton = ({ 
+    onClick, 
+    icon: Icon, 
+    label, 
+    ariaLabel 
+  }: { 
+    onClick: () => void; 
+    icon: any; 
+    label: string; 
+    ariaLabel: string;
+  }) => (
+    <button
+      onClick={onClick}
+      aria-label={ariaLabel}
+      className="bg-purple-600 hover:bg-purple-700 text-white px-6 py-4 rounded-xl flex items-center gap-3 shadow-md transition-all duration-200 transform hover:-translate-y-1 min-w-[200px] focus:outline-none focus:ring-2 focus:ring-green-600"
+    >
+      <Icon className="h-5 w-5" />
+      <span className="font-medium">{label}</span>
+    </button>
+  );
 
   if (metricsLoading) {
     return (
-      <MobilePageWrapper title="Dashboard">
-        <div className="space-y-6">
-          <div className="grid grid-cols-1 gap-4">
+      <div className="min-h-screen bg-background p-6 lg:p-12">
+        <div className="space-y-8">
+          {/* Loading Summary Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {[...Array(4)].map((_, i) => (
-              <Skeleton key={i} className="h-32" />
+              <div key={i} className="bg-white dark:bg-[#1F1F1F] border border-gray-200 dark:border-gray-700 rounded-xl p-6">
+                <Skeleton className="h-6 w-3/4 mb-3" />
+                <Skeleton className="h-8 w-1/2" />
+              </div>
             ))}
           </div>
-          <div className="space-y-6">
-            <Skeleton className="h-96" />
-            <Skeleton className="h-96" />
+          
+          {/* Loading Quick Actions */}
+          <div className="flex flex-wrap gap-4">
+            {[...Array(4)].map((_, i) => (
+              <Skeleton key={i} className="h-16 w-48 rounded-xl" />
+            ))}
+          </div>
+          
+          {/* Loading Recent Orders */}
+          <div className="bg-white dark:bg-[#1F1F1F] rounded-xl p-6">
+            <Skeleton className="h-6 w-48 mb-4" />
+            <div className="space-y-3">
+              {[...Array(4)].map((_, i) => (
+                <Skeleton key={i} className="h-12 w-full" />
+              ))}
+            </div>
           </div>
         </div>
-      </MobilePageWrapper>
+      </div>
     );
   }
 
   return (
-    <MobilePageWrapper title="Dashboard">
-      <div className="space-y-6">
-        {/* Simplified Metrics Cards without Percentage Changes */}
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <SimpleMetricCard
+    <div className="min-h-screen bg-background p-6 lg:p-12">
+      <div className="space-y-8">
+        {/* Row 1: Summary Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <SummaryCard
             title="Total Revenue"
             value={detailedMetrics?.revenue ? formatCurrencyUtil(detailedMetrics.revenue.today) : formatCurrency(metrics?.totalRevenue || "0")}
             icon={DollarSign}
-            isLoading={detailedMetricsLoading || metricsLoading}
-            isRefreshing={isRefreshing}
-            error={!detailedMetrics && !detailedMetricsLoading}
+            isLoading={detailedMetricsLoading}
           />
-          <SimpleMetricCard
+          <SummaryCard
             title="Orders Today"
             value={detailedMetrics?.orders ? detailedMetrics.orders.today.toString() : (metrics?.totalOrders || 0).toString()}
             icon={ShoppingCart}
-            isLoading={detailedMetricsLoading || metricsLoading}
-            isRefreshing={isRefreshing}
-            error={!detailedMetrics && !detailedMetricsLoading}
+            isLoading={detailedMetricsLoading}
           />
-          <SimpleMetricCard
+          <SummaryCard
             title="Inventory Items"
             value={detailedMetrics?.inventory ? detailedMetrics.inventory.totalItems.toString() : (metrics?.totalProducts || 0).toString()}
             icon={Package}
-            isLoading={detailedMetricsLoading || metricsLoading}
-            isRefreshing={isRefreshing}
-            error={!detailedMetrics && !detailedMetricsLoading}
+            isLoading={detailedMetricsLoading}
           />
-          <SimpleMetricCard
+          <SummaryCard
             title="Active Customers"
             value={detailedMetrics?.customers ? detailedMetrics.customers.active.toString() : (metrics?.activeCustomersCount || 0).toString()}
             icon={Users}
-            isLoading={detailedMetricsLoading || metricsLoading}
-            isRefreshing={isRefreshing}
-            error={!detailedMetrics && !detailedMetricsLoading}
+            isLoading={detailedMetricsLoading}
           />
         </div>
 
-        {/* Quick Actions - Mobile-first positioning */}
-        <Card className="w-full">
-          <CardHeader>
-            <CardTitle className="text-xl leading-relaxed">Quick Actions</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            <Button 
-              className="w-full h-12 justify-start text-base leading-relaxed btn-secondary font-medium transition-all duration-200"
-              onClick={handleAddProduct}
-              aria-label="Add a new product to inventory"
-            >
-              <Plus className="mr-3 h-5 w-5 flex-shrink-0" />
-              <span className="truncate">Add New Product</span>
-            </Button>
-            <Button 
-              className="w-full h-12 justify-start text-base leading-relaxed btn-primary font-medium transition-all duration-200"
-              onClick={handleCreateOrder}
-              aria-label="Create a new sales order"
-            >
-              <ShoppingCart className="mr-3 h-5 w-5 flex-shrink-0" />
-              <span className="truncate">Create Order</span>
-            </Button>
-            <Button 
-              className="w-full h-12 justify-start text-base leading-relaxed btn-outline-secondary transition-all duration-200"
-              onClick={handleAddCustomer}
-              aria-label="Add a new customer"
-            >
-              <UserPlus className="mr-3 h-5 w-5 flex-shrink-0" />
-              <span className="truncate">Add Customer</span>
-            </Button>
-            <Button 
-              className="w-full h-12 justify-start text-base leading-relaxed border border-primaryPurple text-primaryPurple hover:bg-primaryPurple-50 dark:hover:bg-primaryPurple-900 hover:shadow-[0_4px_12px_rgba(107,70,193,0.4)] transition-all duration-200"
-              onClick={handleGenerateReport}
-              aria-label="Generate business reports"
-            >
-              <BarChart3 className="mr-3 h-5 w-5 flex-shrink-0" />
-              <span className="truncate">Generate Report</span>
-            </Button>
-            <Button 
-              className="w-full h-12 justify-start text-base leading-relaxed border border-primaryGreen text-primaryGreen hover:bg-primaryGreen-50 dark:hover:bg-primaryGreen-900 hover:shadow-[0_4px_12px_rgba(0,170,0,0.4)] transition-all duration-200"
-              onClick={handleManualSync}
-              disabled={isRefreshing}
-              aria-label="Sync data and refresh metrics"
-            >
-              {isRefreshing ? (
-                <>
-                  <div className="mr-3 h-5 w-5 animate-spin border-2 border-primaryGreen border-t-transparent rounded-full flex-shrink-0" />
-                  <span className="truncate">Syncing...</span>
-                </>
-              ) : (
-                <>
-                  <RefreshCw className="mr-3 h-5 w-5 flex-shrink-0" />
-                  <span className="truncate">Sync Now</span>
-                </>
-              )}
-            </Button>
-          </CardContent>
-        </Card>
+        {/* Row 2: Quick Actions */}
+        <div className="flex flex-wrap gap-4 mt-8">
+          <ActionButton
+            onClick={handleAddProduct}
+            icon={Plus}
+            label="Add Product"
+            ariaLabel="Add a new product to inventory"
+          />
+          <ActionButton
+            onClick={handleCreateOrder}
+            icon={ShoppingCart}
+            label="Create Order"
+            ariaLabel="Create a new sales order"
+          />
+          <ActionButton
+            onClick={handleAddCustomer}
+            icon={UserPlus}
+            label="Add Customer"
+            ariaLabel="Add a new customer"
+          />
+          <ActionButton
+            onClick={handleGenerateReport}
+            icon={BarChart3}
+            label="Generate Report"
+            ariaLabel="Generate business reports"
+          />
+        </div>
 
-        {/* Recent Orders - Full width on mobile */}
-        <Card className="w-full">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle className="text-xl leading-relaxed">Recent Orders</CardTitle>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="text-primary h-12 min-w-[120px]"
-                onClick={handleViewAllOrders}
-              >
-                View All
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {ordersLoading ? (
-              <div className="space-y-3">
+        {/* Row 3: Recent Orders */}
+        <div className="mt-10">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-xl font-semibold text-foreground">Recent Orders</h2>
+            <button
+              onClick={handleViewAllOrders}
+              className="text-green-600 hover:underline focus:outline-none focus:ring-2 focus:ring-green-600 rounded px-2 py-1"
+            >
+              View All
+            </button>
+          </div>
+
+          {ordersLoading ? (
+            <div className="bg-white dark:bg-[#1F1F1F] rounded-xl overflow-hidden shadow">
+              <div className="p-4 space-y-3">
                 {[...Array(4)].map((_, i) => (
-                  <Skeleton key={i} className="h-16" />
+                  <Skeleton key={i} className="h-12 w-full" />
                 ))}
               </div>
-            ) : recentOrders && recentOrders.length > 0 ? (
-              <div className="overflow-x-auto">
+            </div>
+          ) : recentOrders && recentOrders.length > 0 ? (
+            <div className="hidden md:block">
+              <div className="bg-white dark:bg-[#1F1F1F] rounded-xl overflow-hidden shadow">
                 <Table>
                   <TableHeader>
-                    <TableRow>
-                      <TableHead className="text-base">Order ID</TableHead>
-                      <TableHead className="text-base">Customer</TableHead>
-                      <TableHead className="text-base">Amount</TableHead>
-                      <TableHead className="text-base">Status</TableHead>
+                    <TableRow className="bg-gray-100 dark:bg-[#2A2A2A]">
+                      <TableHead className="text-gray-700 dark:text-gray-300 px-4 py-3">Order ID</TableHead>
+                      <TableHead className="text-gray-700 dark:text-gray-300 px-4 py-3">Customer</TableHead>
+                      <TableHead className="text-gray-700 dark:text-gray-300 px-4 py-3 text-right">Amount</TableHead>
+                      <TableHead className="text-gray-700 dark:text-gray-300 px-4 py-3">Status</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {recentOrders.map((order) => (
-                      <TableRow key={order.id} className="h-12">
-                        <TableCell className="font-medium text-base leading-relaxed">
+                    {recentOrders.map((order, index) => (
+                      <TableRow 
+                        key={order.id} 
+                        className={`${
+                          index % 2 === 0 
+                            ? 'bg-white dark:bg-[#1F1F1F]' 
+                            : 'bg-gray-50 dark:bg-[#2A2A2A]'
+                        }`}
+                      >
+                        <TableCell className="px-4 py-3 font-medium">
                           #ORD-{order.id.toString().padStart(3, '0')}
                         </TableCell>
-                        <TableCell className="text-base leading-relaxed">{order.customerName}</TableCell>
-                        <TableCell className="text-base leading-relaxed">{formatCurrency(order.total)}</TableCell>
-                        <TableCell>
-                          <Badge className={getStatusColor(order.status)}>
+                        <TableCell className="px-4 py-3">{order.customerName}</TableCell>
+                        <TableCell className="px-4 py-3 text-right">{formatCurrency(order.total)}</TableCell>
+                        <TableCell className="px-4 py-3">
+                          <Badge className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs">
                             {order.status}
                           </Badge>
                         </TableCell>
@@ -318,18 +287,32 @@ export default function Dashboard() {
                   </TableBody>
                 </Table>
               </div>
-            ) : (
-              <div className="flex flex-col items-center justify-center py-12 text-center">
-                <ShoppingCart className="h-12 w-12 text-muted-foreground mb-4" />
-                <h3 className="text-xl font-medium text-foreground mb-2 leading-relaxed">No recent orders</h3>
-                <p className="text-base text-muted-foreground mb-4 leading-relaxed">Start by creating your first order</p>
-                <Button onClick={handleCreateOrder} className="h-12 text-base btn-primary">
-                  Create Order
-                </Button>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+            </div>
+          ) : (
+            <div className="bg-white dark:bg-[#1F1F1F] rounded-xl p-12 text-center shadow">
+              <ShoppingCart className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <p className="text-gray-500 text-lg">No recent orders</p>
+            </div>
+          )}
+
+          {/* Mobile Cards Fallback */}
+          {recentOrders && recentOrders.length > 0 && (
+            <div className="md:hidden space-y-4">
+              {recentOrders.map((order) => (
+                <div key={order.id} className="bg-white dark:bg-[#1F1F1F] p-4 rounded-xl shadow">
+                  <div className="flex justify-between items-start mb-2">
+                    <span className="font-medium">#ORD-{order.id.toString().padStart(3, '0')}</span>
+                    <Badge className="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs">
+                      {order.status}
+                    </Badge>
+                  </div>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 mb-1">{order.customerName}</p>
+                  <p className="text-lg font-semibold">{formatCurrency(order.total)}</p>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Modal Components */}
@@ -342,6 +325,6 @@ export default function Dashboard() {
         open={showCustomerForm} 
         onOpenChange={setShowCustomerForm} 
       />
-    </MobilePageWrapper>
+    </div>
   );
 }
