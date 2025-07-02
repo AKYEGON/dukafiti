@@ -666,56 +666,107 @@ export default function Reports() {
               </div>
             ) : (
               <>
-                {/* Orders List */}
-                <div className="space-y-3 mb-6">
-                  {ordersData.orders.map((order) => (
-                    <div key={order.orderId} className="p-4 bg-gray-800 rounded-lg border border-gray-700">
-                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-3 mb-2">
-                            <h3 className="font-semibold text-white">Order #{order.orderId}</h3>
-                            <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                              order.status === 'completed' 
-                                ? 'bg-green-100 text-green-800' 
-                                : order.status === 'pending'
-                                ? 'bg-yellow-100 text-yellow-800'
-                                : 'bg-red-100 text-red-800'
-                            }`}>
-                              {order.status}
-                            </span>
-                          </div>
+                {/* Desktop Table View */}
+                <div className="hidden md:block">
+                  <div className="bg-gray-800 rounded-lg border border-gray-700 overflow-hidden">
+                    <table className="w-full">
+                      <thead className="bg-gray-700">
+                        <tr>
+                          <th className="px-4 py-3 text-left text-sm font-medium text-gray-300">Order</th>
+                          <th className="px-4 py-3 text-left text-sm font-medium text-gray-300">Customer</th>
+                          <th className="px-4 py-3 text-left text-sm font-medium text-gray-300">Date</th>
+                          <th className="px-4 py-3 text-right text-sm font-medium text-gray-300">Amount (KES)</th>
+                          <th className="px-4 py-3 text-left text-sm font-medium text-gray-300">Products</th>
+                          <th className="px-4 py-3 text-center text-sm font-medium text-gray-300">Status</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-700">
+                        {ordersData.orders.map((order) => {
+                          const displayItems = order.items.slice(0, 3);
+                          const remainingCount = order.items.length - 3;
+                          const itemsText = displayItems.map(item => `${item.productName} x${item.qty}`).join(', ');
+                          const productsDisplay = remainingCount > 0 ? `${itemsText} +${remainingCount} more` : itemsText;
                           
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-                            <div>
-                              <p className="text-gray-400">Customer: <span className="text-white">{order.customerName}</span></p>
-                              <p className="text-gray-400">Date: <span className="text-white">{order.date}</span></p>
-                            </div>
-                            <div>
-                              <p className="text-gray-400">Total: <span className="text-green-400 font-bold">KES {order.totalAmount}</span></p>
-                              {order.reference && (
-                                <p className="text-gray-400">Ref: <span className="text-white">{order.reference}</span></p>
-                              )}
-                            </div>
-                          </div>
-                          
-                          {/* Order Items */}
-                          <div className="mt-3 pt-3 border-t border-gray-700">
-                            <p className="text-gray-400 text-sm mb-2">Items:</p>
-                            <div className="flex flex-wrap gap-2">
-                              {order.items.map((item, index) => (
-                                <span
-                                  key={index}
-                                  className="px-2 py-1 bg-gray-700 rounded text-xs text-gray-300"
-                                >
-                                  {item.productName} x{item.qty} @ KES {item.price}
+                          return (
+                            <tr key={order.orderId} className="hover:bg-gray-750">
+                              <td className="px-4 py-3 text-sm text-white font-medium">#{order.orderId}</td>
+                              <td className="px-4 py-3 text-sm text-gray-300">{order.customerName}</td>
+                              <td className="px-4 py-3 text-sm text-gray-300">{order.date}</td>
+                              <td className={`px-4 py-3 text-sm font-bold text-right ${
+                                order.status === 'completed' ? 'text-green-400' : 'text-yellow-400'
+                              }`}>
+                                {parseFloat(order.totalAmount).toLocaleString('en-KE', { 
+                                  minimumFractionDigits: 2, 
+                                  maximumFractionDigits: 2 
+                                })}
+                              </td>
+                              <td className="px-4 py-3 text-sm text-gray-300 max-w-xs truncate" title={productsDisplay}>
+                                {productsDisplay}
+                              </td>
+                              <td className="px-4 py-3 text-center">
+                                <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                  order.status === 'completed' 
+                                    ? 'bg-green-100 text-green-800' 
+                                    : order.status === 'pending'
+                                    ? 'bg-yellow-100 text-yellow-800'
+                                    : 'bg-red-100 text-red-800'
+                                }`}>
+                                  {order.status}
                                 </span>
-                              ))}
-                            </div>
-                          </div>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                {/* Mobile Cards View */}
+                <div className="md:hidden space-y-3 mb-6">
+                  {ordersData.orders.map((order) => {
+                    const displayItems = order.items.slice(0, 3);
+                    const remainingCount = order.items.length - 3;
+                    const itemsText = displayItems.map(item => `${item.productName} x${item.qty}`).join(', ');
+                    const productsDisplay = remainingCount > 0 ? `${itemsText} +${remainingCount} more` : itemsText;
+                    const truncatedItems = productsDisplay.length > 50 ? productsDisplay.substring(0, 50) + '...' : productsDisplay;
+                    
+                    return (
+                      <div key={order.orderId} className="p-4 mb-2 bg-gray-800 rounded border border-gray-700">
+                        <div className="flex items-center justify-between mb-3">
+                          <h3 className="font-semibold text-white">Order #{order.orderId}</h3>
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                            order.status === 'completed' 
+                              ? 'bg-green-100 text-green-800' 
+                              : order.status === 'pending'
+                              ? 'bg-yellow-100 text-yellow-800'
+                              : 'bg-red-100 text-red-800'
+                          }`}>
+                            {order.status}
+                          </span>
+                        </div>
+                        
+                        <div className="space-y-2 text-sm">
+                          <p className="text-gray-400">Customer: <span className="text-white">{order.customerName}</span></p>
+                          <p className="text-gray-400">Date: <span className="text-white">{order.date}</span></p>
+                          <p className="text-gray-400">
+                            Amount: <span className={`font-bold ${
+                              order.status === 'completed' ? 'text-green-400' : 'text-yellow-400'
+                            }`}>
+                              KES {parseFloat(order.totalAmount).toLocaleString('en-KE', { 
+                                minimumFractionDigits: 2, 
+                                maximumFractionDigits: 2 
+                              })}
+                            </span>
+                          </p>
+                          <p className="text-gray-400">Items: <span className="text-gray-300">{truncatedItems}</span></p>
+                          {order.reference && (
+                            <p className="text-gray-400">Ref: <span className="text-white">{order.reference}</span></p>
+                          )}
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
 
                 {/* Pagination */}

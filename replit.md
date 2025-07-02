@@ -198,6 +198,11 @@ Changelog:
 - July 2, 2025. Added Mobile Money payment option to Sales page, confirmation modal, and Reports breakdown
 - July 2, 2025. Updated backend API to handle mobileMoney payments with paid status (like Cash payments)
 - July 2, 2025. Enhanced Reports page to include Mobile Money in payment breakdown and CSV exports
+- July 2, 2025. Refactored Reports page with unified summary cards and extended graph timeframes
+- July 2, 2025. Added new backend endpoints `/api/reports/summary` and `/api/reports/trend` with period support
+- July 2, 2025. Implemented responsive dropdown selectors for Summary Timeframe and Graph View
+- July 2, 2025. Enhanced Orders Record section with desktop table and mobile cards showing total amounts and product lists
+- July 2, 2025. Updated Orders endpoint to include price information and improved frontend display with proper formatting
 ```
 
 ## User Preferences

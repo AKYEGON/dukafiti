@@ -890,10 +890,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Get order items for this order
         const orderItems = await storage.getOrderItems(order.id);
         
-        // Format items as {productName, qty}
+        // Format items as {productName, qty, price}
         const items = orderItems.map(item => ({
           productName: item.productName,
-          qty: item.quantity
+          qty: item.quantity,
+          price: parseFloat(item.price).toFixed(2)
         }));
 
         return {
