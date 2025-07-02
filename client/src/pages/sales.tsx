@@ -240,6 +240,7 @@ export default function Sales() {
 
   // Handle search result selection
   const handleSearchResultSelect = (product: Product) => {
+    console.log('Search result selected:', product);
     handleProductSelect(product);
     setSearchQuery('');
     setShowSearchDropdown(false);
@@ -370,12 +371,17 @@ export default function Sales() {
   });
 
   const handleProductSelect = (product: Product) => {
+    console.log('handleProductSelect called with:', product);
+    console.log('Current cartItems:', cartItems);
+    
     const existingItem = cartItems.find(item => item.product.id === product.id);
     
     if (existingItem) {
+      console.log('Product exists in cart, incrementing quantity');
       // Increment quantity if product already in cart
       handleQuantityChange(existingItem.id, existingItem.quantity + 1);
     } else {
+      console.log('Adding new product to cart');
       // Add new item to cart
       const newItem: SaleLineItem = {
         id: `${product.id}-${Date.now()}`,
@@ -384,7 +390,12 @@ export default function Sales() {
         unitPrice: product.price,
         total: product.price,
       };
-      setCartItems(prev => [...prev, newItem]);
+      console.log('New item created:', newItem);
+      setCartItems(prev => {
+        const updated = [...prev, newItem];
+        console.log('Updated cart items:', updated);
+        return updated;
+      });
     }
   };
 
@@ -539,12 +550,12 @@ export default function Sales() {
                   key={product.id}
                   onClick={() => handleProductSelect(product)}
                   aria-label={`Add ${product.name} to cart`}
-                  className="min-w-24 h-12 flex-shrink-0 bg-gray-50 dark:bg-gray-800 hover:bg-green-50 dark:hover:bg-green-900/20 border border-gray-200 dark:border-gray-600 rounded text-xs px-4 py-2 transition-all duration-200 transform active:scale-95 focus:outline-none focus:ring-2 focus:ring-green-600"
+                  className="min-w-24 h-12 flex-shrink-0 bg-gray-50 dark:bg-gray-800 hover:bg-purple-50 dark:hover:bg-purple-900/20 border border-gray-200 dark:border-gray-600 rounded text-xs p-2 transition-all duration-200 transform active:scale-95 focus:outline-none focus:ring-2 focus:ring-purple-600"
                   style={{ minHeight: '48px' }}
                 >
                   <div className="text-center">
                     <div className="font-medium truncate leading-tight">{product.name}</div>
-                    <div className="text-green-600 font-semibold">{formatCurrency(product.price)}</div>
+                    <div className="text-purple-600 font-semibold">{formatCurrency(product.price)}</div>
                   </div>
                 </button>
               ))}
@@ -574,9 +585,9 @@ export default function Sales() {
                     setShowSearchDropdown(true);
                   }
                 }}
-                placeholder="Search products..."
+                placeholder="Type to search products..."
                 aria-label="Search products to add to cart"
-                className="w-full h-14 pl-12 pr-12 border-2 border-gray-200 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-800 text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500 transition-all duration-200 text-base shadow-sm"
+                className="w-full h-14 pl-12 pr-12 border-2 border-gray-200 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-800 text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 text-base shadow-sm"
               />
               {searchLoading && (
                 <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
@@ -621,9 +632,22 @@ export default function Sales() {
                       style={{ minHeight: '60px' }}
                     >
                       <div className="flex items-center justify-between">
-                        <span className="font-medium text-foreground">
-                          {product.name} – {formatCurrency(product.price)}
-                        </span>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold text-foreground truncate text-base">
+                            {product.name}
+                          </p>
+                          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                            Stock: {product.stock} • SKU: {product.sku}
+                          </p>
+                        </div>
+                        <div className="text-right ml-4 flex-shrink-0">
+                          <p className="text-lg font-bold text-purple-600 dark:text-purple-400">
+                            {formatCurrency(product.price)}
+                          </p>
+                          <div className="text-xs bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 px-2 py-1 rounded-full mt-1">
+                            Click to add
+                          </div>
+                        </div>
                       </div>
                     </div>
                   ))}
