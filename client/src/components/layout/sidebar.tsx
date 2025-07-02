@@ -107,7 +107,7 @@ export function Sidebar({ className }: SidebarProps) {
 
       {/* Navigation */}
       <nav className={cn(
-        "space-y-1 transition-all duration-300",
+        "flex-1 space-y-1 transition-all duration-300 overflow-y-auto",
         isCollapsed && !isMobile ? "p-2" : "p-2 sm:p-4"
       )}>
         {navigation.map((item) => {
@@ -168,7 +168,7 @@ export function Sidebar({ className }: SidebarProps) {
 
       {/* Desktop sidebar with collapsible animation */}
       <aside className={cn(
-        "hidden lg:flex flex-col bg-gray-900 text-white transition-all duration-300 ease-in-out flex-shrink-0",
+        "hidden lg:flex flex-col bg-gray-900 text-white transition-all duration-300 ease-in-out flex-shrink-0 h-full overflow-hidden",
         isDesktopCollapsed ? "w-16" : "w-64",
         className
       )}>

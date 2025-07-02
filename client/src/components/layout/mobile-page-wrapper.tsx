@@ -19,7 +19,7 @@ export function MobilePageWrapper({
     <div className={cn("w-full h-full bg-background text-foreground", className)}>
       {/* Desktop title - shown on desktop only */}
       {showTitle && title && (
-        <div className="hidden lg:block p-6 border-b border-border">
+        <div className="hidden lg:block p-6 border-b border-border flex-shrink-0">
           <h1 className="text-2xl font-bold text-foreground">{title}</h1>
         </div>
       )}
