@@ -4,7 +4,8 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { Download } from 'lucide-react';
+import { Download, FileSpreadsheet } from 'lucide-react';
+import download from 'downloadjs';
 
 // Types
 interface SummaryData {
@@ -192,6 +193,36 @@ export default function Reports() {
       
       const csv = convertToCSV(csvData, ['type', 'amount']);
       downloadCSV(csv, `sales-summary-${summaryPeriod}-${new Date().toISOString().split('T')[0]}.csv`);
+    } finally {
+      setExportingCSV(null);
+    }
+  };
+
+  // Detailed CSV Export with full order and line item data
+  const exportDetailedCSV = async () => {
+    setExportingCSV('detailed');
+    try {
+      const response = await fetch(`/api/reports/export-orders?period=${summaryPeriod}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/csv',
+        },
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to export detailed CSV');
+      }
+      
+      // Get the blob data
+      const blob = await response.blob();
+      const filename = `orders_detailed_${summaryPeriod}_${new Date().toISOString().split('T')[0]}.csv`;
+      
+      // Use downloadjs to prompt download
+      download(blob, filename, 'text/csv');
+      
+    } catch (error) {
+      console.error('Failed to export detailed CSV:', error);
+      // Could add toast notification here
     } finally {
       setExportingCSV(null);
     }
@@ -522,15 +553,26 @@ export default function Reports() {
             )}
           </div>
 
-          {/* Export CSV Button */}
-          <Button
-            onClick={exportSummaryCSV}
-            disabled={exportingCSV === 'summary'}
-            className="w-full bg-emerald-600 hover:bg-emerald-700 text-white focus:ring-2 focus:ring-emerald-500"
-          >
-            <Download className="h-4 w-4 mr-2" />
-            {exportingCSV === 'summary' ? 'Exporting...' : 'Export CSV'}
-          </Button>
+          {/* Export CSV Buttons */}
+          <div className="space-y-3">
+            <Button
+              onClick={exportSummaryCSV}
+              disabled={exportingCSV === 'summary'}
+              className="w-full bg-emerald-600 hover:bg-emerald-700 text-white focus:ring-2 focus:ring-emerald-500"
+            >
+              <Download className="h-4 w-4 mr-2" />
+              {exportingCSV === 'summary' ? 'Exporting...' : 'Export Summary CSV'}
+            </Button>
+            
+            <Button
+              onClick={exportDetailedCSV}
+              disabled={exportingCSV === 'detailed'}
+              className="w-full bg-purple-600 hover:bg-purple-700 text-white focus:ring-2 focus:ring-purple-500"
+            >
+              <FileSpreadsheet className="h-4 w-4 mr-2" />
+              {exportingCSV === 'detailed' ? 'Exporting...' : 'Export Detailed CSV'}
+            </Button>
+          </div>
         </div>
       </div>
     </div>

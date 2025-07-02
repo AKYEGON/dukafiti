@@ -1,0 +1,88 @@
+Assistant, enhance the **Reports → Export CSV** feature so that downloads include full, detailed data—not just summaries. Overwrite existing implementation using server-side CSV generation:
+
+### 1. Backend – Detailed CSV Endpoint  
+- Create a new route:  
+  **GET** `/api/reports/export-orders?period={period}`  
+- Query and return all order fields:
+  - Order metadata: ID, Date, Customer, Status, Payment Method  
+  - Line items: product name, qty, unit price  
+- Use `json2csv` for generation:
+  ```js
+  const fields = [
+    { label: 'Order ID', value: 'orderId' },
+    { label: 'Date', value: row => format(row.date, 'yyyy-MM-dd HH:mm') },
+    ...
+    { label: 'Product Name', value: 'productName' },
+    { label: 'Quantity', value: 'qty' },
+    { label: 'Unit Price', value: 'unitPrice' },
+    { label: 'Line Total', value: row => row.qty * row.unitPrice },
+  ];
+  const parser = new Json2csvParser({ fields });
+  const csv = parser.parse(flattenedRows);
+  res.header('Content-Type', 'text/csv');
+  res.attachment(`orders_${period}_${Date.now()}.csv`);
+  res.send(csv);
+2. Frontend – Export Button Hook
+On Reports page, update the Export CSV button to:
+
+js
+Copy
+Edit
+const res = await api.get('/api/reports/export-orders', {
+  params: { period },
+  responseType: 'blob'
+});
+download(res.data, `orders_${period}.csv`);
+Use downloadjs to prompt the file download 
+reddit.com
++15
+aliyev.dev
++15
+restack.io
++15
+npmjs.com
++2
+telerik.com
++2
+telerik.com
++2
+.
+
+3. Handling Large Datasets
+If data >10,000 rows: stream CSV using Node.js streams and json2csv parseStream to avoid memory issues (see StackOverflow advice) 
+stackoverflow.com
+.
+
+4. Optional Excel Export
+Add a second button Export Excel (XLSX) using SheetJS:
+
+js
+Copy
+Edit
+const ws = XLSX.utils.json_to_sheet(data);
+const wb = XLSX.utils.book_new();
+XLSX.utils.book_append_sheet(wb, ws, 'Orders');
+XLSX.writeFile(wb, filename);
+5. QA Checklist
+ CSV includes all order-level and line-item fields with correct headers
+
+ File name includes period and timestamp
+
+ Download works on frontend with correct content type
+
+ Handles large exports without crashing
+
+ Optional Excel export produces a valid .xlsx
+
+ No regressions in Reports page
+
+Generate backend route, frontend hook, and any config needed (json2csv, downloadjs, xlsx) for a full detailed export solution.
+
+yaml
+Copy
+Edit
+
+---
+
+This leverages best-in-class libraries, ensures detailed, complete export, handles scale via streaming, and gives optional Excel output. Let me know when you’re ready with your tech stack to tailor the code!
+::contentReference[oaicite:14]{index=14}

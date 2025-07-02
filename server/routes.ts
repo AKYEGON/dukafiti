@@ -6,6 +6,7 @@ import { insertProductSchema, insertCustomerSchema, insertOrderSchema, insertOrd
 import { z } from "zod";
 import bcrypt from "bcryptjs";
 import { v4 as uuidv4 } from "uuid";
+import { Parser as Json2csvParser } from "json2csv";
 
 // WebSocket clients store
 const wsClients = new Set<WebSocket>();
@@ -1326,6 +1327,113 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.setHeader('Content-Type', 'text/csv');
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
     res.send(csvData.content);
+  });
+
+  // Detailed CSV export endpoint with full order and line item data
+  app.get('/api/reports/export-orders', requireAuth, async (req: any, res: any) => {
+    try {
+      const period = req.query.period || 'today';
+      const orders = await storage.getOrders();
+      
+      // Filter orders by period
+      let startDate: Date;
+      let endDate = new Date();
+      
+      switch (period) {
+        case 'weekly':
+          startDate = new Date();
+          startDate.setDate(startDate.getDate() - 7);
+          break;
+        case 'monthly':
+          startDate = new Date();
+          startDate.setDate(startDate.getDate() - 30);
+          break;
+        default: // today
+          startDate = new Date();
+          startDate.setHours(0, 0, 0, 0);
+          endDate.setHours(23, 59, 59, 999);
+      }
+      
+      const filteredOrders = orders.filter(order => {
+        const orderDate = new Date(order.createdAt);
+        return orderDate >= startDate && orderDate <= endDate;
+      });
+      
+      // Get all order items for filtered orders
+      const flattenedRows: any[] = [];
+      
+      for (const order of filteredOrders) {
+        const orderItems = await storage.getOrderItems(order.id);
+        
+        if (orderItems.length === 0) {
+          // If no items found, add one row with order info
+          flattenedRows.push({
+            orderId: order.id,
+            date: order.createdAt.toISOString().slice(0, 19).replace('T', ' '),
+            customerName: order.customerName,
+            customerPhone: '', // Not available in current schema
+            paymentMethod: order.paymentMethod,
+            status: order.status,
+            reference: order.reference || '',
+            productName: 'N/A',
+            quantity: 0,
+            unitPrice: 0,
+            lineTotal: 0,
+            orderTotal: parseFloat(order.total)
+          });
+        } else {
+          // Add one row per line item
+          orderItems.forEach(item => {
+            flattenedRows.push({
+              orderId: order.id,
+              date: order.createdAt.toISOString().slice(0, 19).replace('T', ' '),
+              customerName: order.customerName,
+              customerPhone: '', // Not available in current schema
+              paymentMethod: order.paymentMethod,
+              status: order.status,
+              reference: order.reference || '',
+              productName: item.productName,
+              quantity: item.quantity,
+              unitPrice: parseFloat(item.price),
+              lineTotal: item.quantity * parseFloat(item.price),
+              orderTotal: parseFloat(order.total)
+            });
+          });
+        }
+      }
+      
+      // Define CSV fields with proper formatting
+      const fields = [
+        { label: 'Order ID', value: 'orderId' },
+        { label: 'Date', value: 'date' },
+        { label: 'Customer Name', value: 'customerName' },
+        { label: 'Customer Phone', value: 'customerPhone' },
+        { label: 'Payment Method', value: 'paymentMethod' },
+        { label: 'Status', value: 'status' },
+        { label: 'Reference', value: 'reference' },
+        { label: 'Product Name', value: 'productName' },
+        { label: 'Quantity', value: 'quantity' },
+        { label: 'Unit Price (KES)', value: (row: any) => row.unitPrice.toFixed(2) },
+        { label: 'Line Total (KES)', value: (row: any) => row.lineTotal.toFixed(2) },
+        { label: 'Order Total (KES)', value: (row: any) => row.orderTotal.toFixed(2) }
+      ];
+      
+      // Generate CSV
+      const parser = new Json2csvParser({ fields });
+      const csv = parser.parse(flattenedRows);
+      
+      // Set response headers for file download
+      const timestamp = new Date().toISOString().slice(0, 10);
+      const filename = `orders_detailed_${period}_${timestamp}.csv`;
+      
+      res.setHeader('Content-Type', 'text/csv');
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      res.send(csv);
+      
+    } catch (error) {
+      console.error('Detailed CSV export error:', error);
+      res.status(500).json({ error: 'Failed to generate detailed CSV export' });
+    }
   });
 
   // Business profile endpoints
