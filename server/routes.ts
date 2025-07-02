@@ -940,6 +940,164 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // New unified summary endpoint with period support
+  app.get('/api/reports/summary', requireAuth, async (req: any, res: any) => {
+    try {
+      const period = req.query.period || 'today';
+      const orders = await storage.getOrders();
+      
+      let startDate: Date;
+      let endDate = new Date();
+      
+      switch (period) {
+        case 'weekly':
+          startDate = new Date();
+          startDate.setDate(startDate.getDate() - 7);
+          break;
+        case 'monthly':
+          startDate = new Date();
+          startDate.setDate(startDate.getDate() - 30);
+          break;
+        default: // today
+          startDate = new Date();
+          startDate.setHours(0, 0, 0, 0);
+          endDate.setHours(23, 59, 59, 999);
+      }
+      
+      const filteredOrders = orders.filter(order => {
+        const orderDate = new Date(order.createdAt);
+        return orderDate >= startDate && orderDate <= endDate;
+      });
+      
+      let totalSales = 0;
+      let cashSales = 0;
+      let mobileMoneySales = 0;
+      let creditSales = 0;
+      
+      filteredOrders.forEach(order => {
+        const amount = parseFloat(order.total);
+        totalSales += amount;
+        
+        if (order.status === 'completed') {
+          if (order.paymentMethod === 'cash') {
+            cashSales += amount;
+          } else if (order.paymentMethod === 'mobileMoney') {
+            mobileMoneySales += amount;
+          }
+        } else if (order.status === 'pending') {
+          creditSales += amount;
+        }
+      });
+      
+      res.json({
+        totalSales: totalSales.toFixed(2),
+        cashSales: cashSales.toFixed(2),
+        mobileMoneySales: mobileMoneySales.toFixed(2),
+        creditSales: creditSales.toFixed(2)
+      });
+    } catch (error) {
+      console.error('Summary reports error:', error);
+      res.status(500).json({ message: 'Failed to fetch summary' });
+    }
+  });
+
+  // New trend endpoint with period support  
+  app.get('/api/reports/trend', requireAuth, async (req: any, res: any) => {
+    try {
+      const period = req.query.period || 'daily';
+      const orders = await storage.getOrders();
+      
+      let data: { label: string; value: number }[] = [];
+      
+      if (period === 'daily') {
+        // 24 hourly points for today
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const tomorrow = new Date(today);
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        
+        const todayOrders = orders.filter(order => {
+          const orderDate = new Date(order.createdAt);
+          return orderDate >= today && orderDate < tomorrow;
+        });
+        
+        for (let hour = 0; hour < 24; hour++) {
+          const hourStart = new Date(today);
+          hourStart.setHours(hour);
+          const hourEnd = new Date(today);
+          hourEnd.setHours(hour + 1);
+          
+          const hourOrders = todayOrders.filter(order => {
+            const orderDate = new Date(order.createdAt);
+            return orderDate >= hourStart && orderDate < hourEnd;
+          });
+          
+          const hourSales = hourOrders.reduce((sum, order) => 
+            sum + (order.status === 'completed' ? parseFloat(order.total) : 0), 0
+          );
+          
+          data.push({
+            label: hour.toString().padStart(2, '0') + ':00',
+            value: hourSales
+          });
+        }
+      } else if (period === 'weekly') {
+        // 7 daily points for the last week
+        const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+        
+        for (let i = 6; i >= 0; i--) {
+          const day = new Date();
+          day.setDate(day.getDate() - i);
+          day.setHours(0, 0, 0, 0);
+          const nextDay = new Date(day);
+          nextDay.setDate(nextDay.getDate() + 1);
+          
+          const dayOrders = orders.filter(order => {
+            const orderDate = new Date(order.createdAt);
+            return orderDate >= day && orderDate < nextDay;
+          });
+          
+          const daySales = dayOrders.reduce((sum, order) => 
+            sum + (order.status === 'completed' ? parseFloat(order.total) : 0), 0
+          );
+          
+          data.push({
+            label: dayNames[day.getDay()],
+            value: daySales
+          });
+        }
+      } else if (period === 'monthly') {
+        // 30 daily points for the last month
+        for (let i = 29; i >= 0; i--) {
+          const day = new Date();
+          day.setDate(day.getDate() - i);
+          day.setHours(0, 0, 0, 0);
+          const nextDay = new Date(day);
+          nextDay.setDate(nextDay.getDate() + 1);
+          
+          const dayOrders = orders.filter(order => {
+            const orderDate = new Date(order.createdAt);
+            return orderDate >= day && orderDate < nextDay;
+          });
+          
+          const daySales = dayOrders.reduce((sum, order) => 
+            sum + (order.status === 'completed' ? parseFloat(order.total) : 0), 0
+          );
+          
+          data.push({
+            label: day.getDate().toString(),
+            value: daySales
+          });
+        }
+      }
+      
+      res.json(data);
+    } catch (error) {
+      console.error('Trend reports error:', error);
+      res.status(500).json({ message: 'Failed to fetch trend data' });
+    }
+  });
+
   // CSV export hosting endpoints
   const csvStorage = new Map<string, { content: string; timestamp: number }>();
   

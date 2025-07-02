@@ -1,29 +1,24 @@
-import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { BarChart3, DollarSign, CreditCard, AlertTriangle, TrendingUp, Users, Download, MessageCircle, Mail, Search, ChevronLeft, ChevronRight, Smartphone } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts";
-import { formatCurrency } from "@/lib/utils";
-import { useToast } from "@/hooks/use-toast";
+import { useState, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useToast } from '@/hooks/use-toast';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { Download, Share2, Search, ChevronLeft, ChevronRight } from 'lucide-react';
+import { MobilePageWrapper } from '@/components/layout/mobile-page-wrapper';
 
+// Types
 interface SummaryData {
-  totalSalesToday: string;
-  totalSalesWeek: string;
-  totalSalesMonth: string;
-  paymentBreakdown: {
-    cash: string;
-    credit: string;
-    mobileMoney: string;
-  };
-  pendingPayments: number;
-  lowStockItems: number;
+  totalSales: string;
+  cashSales: string;
+  mobileMoneySales: string;
+  creditSales: string;
 }
 
-interface HourlyData {
-  hour: string;
-  sales: number;
+interface TrendData {
+  label: string;
+  value: number;
 }
 
 interface TopItem {
@@ -38,40 +33,39 @@ interface CustomerCredit {
   balance: string;
 }
 
-interface OrderRecord {
+interface OrderItem {
+  productName: string;
+  qty: number;
+  price: string;
+}
+
+interface Order {
   orderId: number;
   date: string;
   customerName: string;
   totalAmount: string;
-  status: 'paid' | 'pending' | 'cancelled';
-  reference: string | null;
-  items: Array<{
-    productName: string;
-    qty: number;
-  }>;
+  status: string;
+  reference?: string;
+  items: OrderItem[];
 }
 
 interface OrdersResponse {
-  orders: OrderRecord[];
+  orders: Order[];
   total: number;
   page: number;
   totalPages: number;
 }
 
-// CSV Export Utilities
+// CSV utility functions
 const convertToCSV = (data: any[], headers: string[]): string => {
-  const csvRows = [];
-  csvRows.push(headers.join(','));
-  
-  for (const row of data) {
-    const values = headers.map(header => {
-      const value = row[header.toLowerCase().replace(/\s+/g, '_')] || row[header] || '';
-      return `"${value}"`;
-    });
-    csvRows.push(values.join(','));
-  }
-  
-  return csvRows.join('\n');
+  const csvHeaders = headers.join(',');
+  const csvRows = data.map(row => 
+    headers.map(header => {
+      const value = row[header] || row[header.toLowerCase().replace(' ', '')] || '';
+      return `"${value.toString().replace(/"/g, '""')}"`;
+    }).join(',')
+  );
+  return [csvHeaders, ...csvRows].join('\n');
 };
 
 const downloadCSV = (csvContent: string, filename: string): void => {
@@ -87,58 +81,60 @@ const downloadCSV = (csvContent: string, filename: string): void => {
 };
 
 export default function Reports() {
-  const [selectedPeriod, setSelectedPeriod] = useState<'today' | 'week' | 'month'>('today');
-  const [exportingCSV, setExportingCSV] = useState<string | null>(null);
-  const { toast } = useToast();
-
+  // State for timeframe selectors
+  const [summaryPeriod, setSummaryPeriod] = useState<'today' | 'weekly' | 'monthly'>('today');
+  const [trendPeriod, setTrendPeriod] = useState<'daily' | 'weekly' | 'monthly'>('daily');
+  
   // Orders Record state
   const [ordersPeriod, setOrdersPeriod] = useState<'daily' | 'weekly' | 'monthly'>('daily');
   const [ordersSearchQuery, setOrdersSearchQuery] = useState('');
   const [ordersPage, setOrdersPage] = useState(1);
   const [debouncedOrdersQuery, setDebouncedOrdersQuery] = useState('');
+  
+  const [exportingCSV, setExportingCSV] = useState<string | null>(null);
+  const { toast } = useToast();
 
   // Debounce search query
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedOrdersQuery(ordersSearchQuery);
-      setOrdersPage(1); // Reset to first page when search changes
+      setOrdersPage(1);
     }, 300);
-
     return () => clearTimeout(timer);
   }, [ordersSearchQuery]);
 
   // Fetch summary data
-  const { data: summaryData, isLoading: summaryLoading } = useQuery<SummaryData>({
-    queryKey: ['/api/reports/summary'],
+  const { data: summaryData, isLoading: summaryLoading, error: summaryError } = useQuery<SummaryData>({
+    queryKey: ['/api/reports/summary', summaryPeriod],
     queryFn: async () => {
-      const response = await fetch('/api/reports/summary');
-      if (!response.ok) throw new Error('Failed to fetch summary data');
+      const response = await fetch(`/api/reports/summary?period=${summaryPeriod}`);
+      if (!response.ok) throw new Error('Failed to fetch summary');
       return response.json();
     }
   });
 
-  // Fetch hourly data
-  const { data: hourlyData, isLoading: hourlyLoading } = useQuery<HourlyData[]>({
-    queryKey: ['/api/reports/hourly'],
+  // Fetch trend data
+  const { data: trendData, isLoading: trendLoading, error: trendError } = useQuery<TrendData[]>({
+    queryKey: ['/api/reports/trend', trendPeriod],
     queryFn: async () => {
-      const response = await fetch('/api/reports/hourly');
-      if (!response.ok) throw new Error('Failed to fetch hourly data');
+      const response = await fetch(`/api/reports/trend?period=${trendPeriod}`);
+      if (!response.ok) throw new Error('Failed to fetch trend');
       return response.json();
     }
   });
 
-  // Fetch top items
-  const { data: topItems, isLoading: topItemsLoading } = useQuery<TopItem[]>({
-    queryKey: ['/api/reports/top-items', selectedPeriod],
+  // Fetch top items data
+  const { data: topItemsData, isLoading: topItemsLoading } = useQuery<TopItem[]>({
+    queryKey: ['/api/reports/top-items'],
     queryFn: async () => {
-      const response = await fetch(`/api/reports/top-items?period=${selectedPeriod}`);
+      const response = await fetch('/api/reports/top-items');
       if (!response.ok) throw new Error('Failed to fetch top items');
       return response.json();
     }
   });
 
-  // Fetch customer credits
-  const { data: customerCredits, isLoading: creditsLoading } = useQuery<CustomerCredit[]>({
+  // Fetch customer credits data
+  const { data: customerCreditsData, isLoading: customerCreditsLoading } = useQuery<CustomerCredit[]>({
     queryKey: ['/api/reports/credits'],
     queryFn: async () => {
       const response = await fetch('/api/reports/credits');
@@ -168,44 +164,40 @@ export default function Reports() {
   });
 
   // Upload CSV to server and get shareable URL
-  const uploadCSVToServer = async (content: string, filename: string): Promise<string | null> => {
+  const uploadCSVToServer = async (csvContent: string, filename: string): Promise<string | null> => {
     try {
       const response = await fetch('/api/exports', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ filename, content })
+        body: JSON.stringify({ filename, content: csvContent })
       });
       
       if (!response.ok) throw new Error('Failed to upload CSV');
+      
       const { url } = await response.json();
-      return `${window.location.origin}${url}`;
+      return window.location.origin + url;
     } catch (error) {
-      console.error('Failed to upload CSV:', error);
-      toast({
-        title: "Export Error",
-        description: "Failed to upload CSV for sharing",
-        variant: "destructive"
-      });
+      console.error('CSV upload error:', error);
       return null;
     }
   };
 
   // Share via WhatsApp
-  const shareViaWhatsApp = (reportType: string, csvUrl: string) => {
-    const message = `DukaSmart ${reportType} Report - ${new Date().toLocaleDateString()}\n\nDownload: ${csvUrl}`;
+  const shareViaWhatsApp = (csvUrl: string, type: string) => {
+    const message = `Check out this ${type} report from DukaSmart: ${csvUrl}`;
     const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');
   };
 
   // Share via Email
-  const shareViaEmail = (reportType: string, csvUrl: string) => {
-    const subject = `Your DukaSmart ${reportType} Report`;
-    const body = `Hi,\n\nPlease find your DukaSmart ${reportType} report for ${new Date().toLocaleDateString()}.\n\nDownload link: ${csvUrl}\n\nNote: This link will expire in 1 hour for security purposes.\n\nBest regards,\nDukaSmart Team`;
+  const shareViaEmail = (csvUrl: string, type: string) => {
+    const subject = `DukaSmart ${type} Report`;
+    const body = `Hi,\n\nPlease find attached the ${type} report from DukaSmart.\n\nReport Link: ${csvUrl}\n\nBest regards`;
     const mailtoUrl = `mailto:?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
     window.open(mailtoUrl);
   };
 
-  // Enhanced CSV Export Functions with sharing
+  // Enhanced CSV Export Functions
   const exportAndShareCSV = async (type: 'summary' | 'top-items' | 'inventory' | 'orders', data: any[], headers: string[], filename: string): Promise<string | null> => {
     setExportingCSV(type);
     try {
@@ -240,23 +232,26 @@ export default function Reports() {
   const exportSummaryCSV = async (): Promise<string | null> => {
     if (!summaryData) return null;
     
-    const data = [
-      { metric: 'Total Sales Today', value: summaryData.totalSalesToday },
-      { metric: 'Total Sales This Week', value: summaryData.totalSalesWeek },
-      { metric: 'Total Sales This Month', value: summaryData.totalSalesMonth },
-      { metric: 'Cash Sales', value: summaryData.paymentBreakdown.cash },
-      { metric: 'Mobile Money Sales', value: summaryData.paymentBreakdown.mobileMoney },
-      { metric: 'Credit Sales', value: summaryData.paymentBreakdown.credit },
-      { metric: 'Pending Payments', value: summaryData.pendingPayments.toString() },
-      { metric: 'Low Stock Items', value: summaryData.lowStockItems.toString() }
-    ];
+    const data = [{
+      metric: 'Total Sales',
+      amount: summaryData.totalSales
+    }, {
+      metric: 'Cash Sales',
+      amount: summaryData.cashSales
+    }, {
+      metric: 'Mobile Money Sales',
+      amount: summaryData.mobileMoneySales
+    }, {
+      metric: 'Credit Sales',
+      amount: summaryData.creditSales
+    }];
     
-    return await exportAndShareCSV('summary', data, ['Metric', 'Value'], 'summary.csv');
+    return await exportAndShareCSV('summary', data, ['Metric', 'Amount'], 'summary.csv');
   };
 
   const exportTopItemsCSV = async (): Promise<string | null> => {
-    if (!topItems) return null;
-    return await exportAndShareCSV('top-items', topItems, ['Name', 'Units Sold', 'Revenue'], 'top_items.csv');
+    if (!topItemsData) return null;
+    return await exportAndShareCSV('top-items', topItemsData, ['Name', 'Units Sold', 'Revenue'], 'top-items.csv');
   };
 
   const exportInventoryCSV = async (): Promise<string | null> => {
@@ -329,493 +324,435 @@ export default function Reports() {
       setCsvUrl(url);
     };
 
-    const handleWhatsAppShare = () => {
-      if (csvUrl) shareViaWhatsApp(type, csvUrl);
-    };
-
-    const handleEmailShare = () => {
-      if (csvUrl) shareViaEmail(type, csvUrl);
-    };
-
     return (
       <div className="flex items-center gap-2">
-        <Button 
-          onClick={handleExport} 
-          variant="outline" 
-          size="sm" 
+        <Button
+          onClick={handleExport}
           disabled={disabled || isExporting}
-          className="bg-muted border-border text-foreground hover:bg-gray-700"
+          size="sm"
+          className="bg-green-600 hover:bg-green-700 text-white"
         >
           {isExporting ? (
-            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-500 mr-2"></div>
+            <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
           ) : (
-            <Download className="h-4 w-4 mr-2" />
+            <Download className="h-4 w-4" />
           )}
-          Export {type}
+          {isExporting ? 'Exporting...' : 'Export CSV'}
         </Button>
+        
         {csvUrl && (
-          <>
-            <Button 
-              onClick={handleWhatsAppShare} 
-              className="px-3 py-1 bg-green-600 text-white rounded-md mr-2"
-              aria-label={`Share ${type} report via WhatsApp`}
+          <div className="flex gap-1">
+            <Button
+              onClick={() => shareViaWhatsApp(csvUrl, type)}
+              size="sm"
+              variant="outline"
+              className="text-green-600 border-green-600 hover:bg-green-50"
             >
-              Share WhatsApp
+              WhatsApp
             </Button>
-            <Button 
-              onClick={handleEmailShare} 
-              className="px-3 py-1 bg-green-600 text-white rounded-md"
-              aria-label={`Share ${type} report via Email`}
+            <Button
+              onClick={() => shareViaEmail(csvUrl, type)}
+              size="sm"
+              variant="outline"
+              className="text-green-600 border-green-600 hover:bg-green-50"
             >
-              Share Email
+              Email
             </Button>
-          </>
+          </div>
         )}
       </div>
     );
   };
 
-  if (summaryLoading) {
-    return (
-      <div className="p-6 bg-background text-foreground min-h-screen">
-        <div className="animate-pulse space-y-6">
-          <div className="h-8 bg-muted rounded w-1/4"></div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[...Array(6)].map((_, i) => (
-              <div key={i} className="h-32 bg-muted rounded"></div>
-            ))}
-          </div>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="p-6 space-y-6 bg-background text-foreground min-h-screen">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h1 className="text-3xl font-bold text-foreground">Reports</h1>
-        <div className="flex flex-wrap gap-2">
-          <ShareButtons onExport={exportSummaryCSV} type="Summary" disabled={!summaryData} />
-          <ShareButtons onExport={exportInventoryCSV} type="Inventory" />
-        </div>
-      </div>
-
-      {/* Summary Tiles */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <Card className="">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-gray-400">Total Sales Today</CardTitle>
-            <DollarSign className="h-4 w-4 text-green-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-foreground">
-              {formatCurrency(summaryData?.totalSalesToday || "0")}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-gray-400">Total Sales This Week</CardTitle>
-            <TrendingUp className="h-4 w-4 text-green-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-foreground">
-              {formatCurrency(summaryData?.totalSalesWeek || "0")}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-gray-400">Total Sales This Month</CardTitle>
-            <BarChart3 className="h-4 w-4 text-green-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-foreground">
-              {formatCurrency(summaryData?.totalSalesMonth || "0")}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-gray-400">Cash Sales</CardTitle>
-            <DollarSign className="h-4 w-4 text-green-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-foreground">
-              {formatCurrency(summaryData?.paymentBreakdown.cash || "0")}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-gray-400">Mobile Money</CardTitle>
-            <Smartphone className="h-4 w-4 text-green-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-foreground">
-              {formatCurrency(summaryData?.paymentBreakdown.mobileMoney || "0")}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-gray-400">Credit Sales</CardTitle>
-            <CreditCard className="h-4 w-4 text-green-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-foreground">
-              {formatCurrency(summaryData?.paymentBreakdown.credit || "0")}
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-gray-400">Low Stock Items</CardTitle>
-            <AlertTriangle className="h-4 w-4 text-red-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-foreground">
-              {summaryData?.lowStockItems || 0}
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Orders Record Section */}
-      <Card className="">
-        <CardHeader>
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <CardTitle className="text-lg font-semibold text-purple-600">Orders Record</CardTitle>
-            
-            {/* Filters and Search Toolbar */}
-            <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
-              {/* Period Filter Pills */}
-              <div className="flex bg-gray-100 dark:bg-gray-800 rounded-lg p-1">
-                {(['daily', 'weekly', 'monthly'] as const).map((period) => (
-                  <button
-                    key={period}
-                    onClick={() => {
-                      setOrdersPeriod(period);
-                      setOrdersPage(1);
-                    }}
-                    className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
-                      ordersPeriod === period
-                        ? 'bg-green-500 text-white'
-                        : 'bg-black text-white hover:bg-gray-700'
-                    }`}
-                  >
-                    {period.charAt(0).toUpperCase() + period.slice(1)}
-                  </button>
-                ))}
+    <MobilePageWrapper title="Reports">
+      <div className="space-y-6">
+        {/* Sticky Header with Timeframe Selector */}
+        <div className="sticky top-0 bg-white dark:bg-gray-900 z-10 pb-4 border-b border-gray-200 dark:border-gray-700">
+          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Summary Timeframe:
+                </label>
+                <Select value={summaryPeriod} onValueChange={(value: 'today' | 'weekly' | 'monthly') => setSummaryPeriod(value)}>
+                  <SelectTrigger className="w-32 border-green-600 focus:ring-green-600">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="today">Today</SelectItem>
+                    <SelectItem value="weekly">This Week</SelectItem>
+                    <SelectItem value="monthly">This Month</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               
-              {/* Search Input */}
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                <input
-                  type="text"
-                  placeholder="Search orders..."
-                  value={ordersSearchQuery}
-                  onChange={(e) => setOrdersSearchQuery(e.target.value)}
-                  className="pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100 text-sm min-w-[200px]"
-                />
+              <div className="flex items-center gap-2">
+                <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Graph View:
+                </label>
+                <Select value={trendPeriod} onValueChange={(value: 'daily' | 'weekly' | 'monthly') => setTrendPeriod(value)}>
+                  <SelectTrigger className="w-28 border-green-600 focus:ring-green-600">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="daily">Daily</SelectItem>
+                    <SelectItem value="weekly">Weekly</SelectItem>
+                    <SelectItem value="monthly">Monthly</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
-
-              {/* Export Button */}
-              <ShareButtons onExport={exportOrdersCSV} type="orders" disabled={!ordersData?.orders?.length} />
             </div>
+            
+            <ShareButtons onExport={exportSummaryCSV} type="summary" disabled={!summaryData} />
           </div>
-        </CardHeader>
-        
-        <CardContent>
-          {ordersLoading ? (
-            <div className="h-64 flex items-center justify-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500"></div>
-            </div>
-          ) : ordersError ? (
-            <div className="text-center py-8">
-              <p className="text-red-500 mb-4">Couldn't load orders. Retry.</p>
-              <Button 
-                onClick={() => window.location.reload()} 
-                variant="outline"
-                size="sm"
-              >
-                Retry
-              </Button>
-            </div>
-          ) : !ordersData?.orders?.length ? (
-            <div className="text-center py-8">
-              <p className="text-gray-500 dark:text-gray-400">No orders found for this period.</p>
-            </div>
-          ) : (
-            <>
-              {/* Desktop Table */}
-              <div className="hidden md:block overflow-x-auto">
-                <table className="table-auto w-full text-sm">
-                  <thead>
-                    <tr className="bg-purple-600 text-white">
-                      <th className="px-2 py-1 text-left font-medium border-b border-gray-300">Order ID</th>
-                      <th className="px-2 py-1 text-left font-medium border-b border-gray-300">Date</th>
-                      <th className="px-2 py-1 text-left font-medium border-b border-gray-300">Customer</th>
-                      <th className="px-2 py-1 text-right font-medium border-b border-gray-300">Amount (KES)</th>
-                      <th className="px-2 py-1 text-left font-medium border-b border-gray-300">Products</th>
-                      <th className="px-2 py-1 text-left font-medium border-b border-gray-300">Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {ordersData.orders.map((order) => {
-                      // Format items display
-                      const formatItems = (items: Array<{ productName: string; qty: number }>) => {
-                        if (!items || items.length === 0) return 'No items';
-                        
-                        const displayItems = items.slice(0, 3);
-                        const formatted = displayItems.map(item => `${item.productName} x${item.qty}`).join(', ');
-                        
-                        if (items.length > 3) {
-                          return `${formatted}, +${items.length - 3} more`;
-                        }
-                        return formatted;
-                      };
+        </div>
 
-                      const amountColor = order.status === 'paid' ? 'text-green-400' : order.status === 'pending' ? 'text-yellow-400' : 'text-red-400';
+        {/* Unified Summary Cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <Card className="bg-black border-gray-700 hover:scale-105 transition-transform">
+            <CardContent className="p-4">
+              <div className="text-center">
+                <p className="text-sm text-gray-400 mb-1">Total Sales</p>
+                {summaryLoading ? (
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-green-600 mx-auto"></div>
+                ) : summaryError ? (
+                  <p className="text-red-400 text-xs">Error loading</p>
+                ) : (
+                  <p className="text-2xl font-bold text-green-600">
+                    KES {summaryData?.totalSales || '0.00'}
+                  </p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
 
-                      return (
-                        <tr key={order.orderId} className="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800">
-                          <td className="px-2 py-1 text-foreground">#{order.orderId}</td>
-                          <td className="px-2 py-1 text-foreground">{order.date}</td>
-                          <td className="px-2 py-1 text-foreground">{order.customerName}</td>
-                          <td className={`px-2 py-1 text-right font-medium ${amountColor}`}>
-                            {parseFloat(order.totalAmount).toLocaleString('en-KE', { 
-                              minimumFractionDigits: 2, 
-                              maximumFractionDigits: 2 
-                            })}
-                          </td>
-                          <td className="px-2 py-1 text-foreground text-xs">
-                            {formatItems(order.items)}
-                          </td>
-                          <td className="px-2 py-1">
+          <Card className="bg-black border-gray-700 hover:scale-105 transition-transform">
+            <CardContent className="p-4">
+              <div className="text-center">
+                <p className="text-sm text-gray-400 mb-1">Cash Sales</p>
+                {summaryLoading ? (
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-green-600 mx-auto"></div>
+                ) : summaryError ? (
+                  <p className="text-red-400 text-xs">Error loading</p>
+                ) : (
+                  <p className="text-2xl font-bold text-green-600">
+                    KES {summaryData?.cashSales || '0.00'}
+                  </p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-black border-gray-700 hover:scale-105 transition-transform">
+            <CardContent className="p-4">
+              <div className="text-center">
+                <p className="text-sm text-gray-400 mb-1">Mobile Money</p>
+                {summaryLoading ? (
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-green-600 mx-auto"></div>
+                ) : summaryError ? (
+                  <p className="text-red-400 text-xs">Error loading</p>
+                ) : (
+                  <p className="text-2xl font-bold text-green-600">
+                    KES {summaryData?.mobileMoneySales || '0.00'}
+                  </p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card className="bg-black border-gray-700 hover:scale-105 transition-transform">
+            <CardContent className="p-4">
+              <div className="text-center">
+                <p className="text-sm text-gray-400 mb-1">Credit Sales</p>
+                {summaryLoading ? (
+                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-green-600 mx-auto"></div>
+                ) : summaryError ? (
+                  <p className="text-red-400 text-xs">Error loading</p>
+                ) : (
+                  <p className="text-2xl font-bold text-green-600">
+                    KES {summaryData?.creditSales || '0.00'}
+                  </p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Sales Trend Chart */}
+        <Card className="bg-black border-gray-700">
+          <CardHeader>
+            <CardTitle className="text-white">Sales Trend</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {trendLoading ? (
+              <div className="h-64 flex items-center justify-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
+              </div>
+            ) : trendError ? (
+              <div className="text-center py-8">
+                <p className="text-red-400 mb-4">No data for this period.</p>
+              </div>
+            ) : !trendData || trendData.length === 0 ? (
+              <div className="text-center py-8">
+                <p className="text-gray-400">No data for this period.</p>
+              </div>
+            ) : (
+              <div className="h-64">
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={trendData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+                    <XAxis 
+                      dataKey="label" 
+                      stroke="#9CA3AF"
+                      fontSize={12}
+                    />
+                    <YAxis 
+                      stroke="#9CA3AF"
+                      fontSize={12}
+                    />
+                    <Tooltip 
+                      contentStyle={{ 
+                        backgroundColor: '#1F2937', 
+                        border: '1px solid #374151',
+                        borderRadius: '6px',
+                        color: '#F3F4F6'
+                      }}
+                      formatter={(value) => [`KES ${value}`, 'Sales']}
+                    />
+                    <Line 
+                      type="monotone" 
+                      dataKey="value" 
+                      stroke="#00AA00" 
+                      strokeWidth={2}
+                      dot={{ fill: '#00AA00', strokeWidth: 2, r: 4 }}
+                      activeDot={{ r: 6, stroke: '#00AA00', strokeWidth: 2 }}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Top Selling Items */}
+        <Card className="bg-black border-gray-700">
+          <CardHeader className="flex flex-row items-center justify-between">
+            <CardTitle className="text-white">Top Selling Items</CardTitle>
+            <ShareButtons onExport={exportTopItemsCSV} type="top-items" disabled={!topItemsData?.length} />
+          </CardHeader>
+          <CardContent>
+            {topItemsLoading ? (
+              <div className="h-32 flex items-center justify-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
+              </div>
+            ) : !topItemsData || topItemsData.length === 0 ? (
+              <p className="text-gray-400 text-center py-4">No sales data available.</p>
+            ) : (
+              <div className="space-y-3">
+                {topItemsData.slice(0, 5).map((item, index) => (
+                  <div key={index} className="flex items-center justify-between p-3 bg-gray-800 rounded-lg">
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center text-white font-bold text-sm">
+                        {index + 1}
+                      </div>
+                      <div>
+                        <p className="text-white font-medium">{item.name}</p>
+                        <p className="text-gray-400 text-sm">{item.unitsSold} units sold</p>
+                      </div>
+                    </div>
+                    <p className="text-green-400 font-bold">KES {item.revenue}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Customer Credits */}
+        <Card className="bg-black border-gray-700">
+          <CardHeader>
+            <CardTitle className="text-white">Customer Credits</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {customerCreditsLoading ? (
+              <div className="h-32 flex items-center justify-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
+              </div>
+            ) : !customerCreditsData || customerCreditsData.length === 0 ? (
+              <p className="text-gray-400 text-center py-4">No customer credits.</p>
+            ) : (
+              <div className="space-y-3">
+                {customerCreditsData.slice(0, 5).map((customer, index) => (
+                  <div key={index} className="flex items-center justify-between p-3 bg-gray-800 rounded-lg">
+                    <div>
+                      <p className="text-white font-medium">{customer.name}</p>
+                      <p className="text-gray-400 text-sm">{customer.phone}</p>
+                    </div>
+                    <p className="text-orange-400 font-bold">KES {customer.balance}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Orders Record */}
+        <Card className="bg-black border-gray-700">
+          <CardHeader>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <CardTitle className="text-white">Orders Record</CardTitle>
+              
+              {/* Filters and Search Toolbar */}
+              <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                {/* Period Filter Pills */}
+                <div className="flex bg-gray-800 rounded-lg p-1">
+                  {(['daily', 'weekly', 'monthly'] as const).map((period) => (
+                    <button
+                      key={period}
+                      onClick={() => {
+                        setOrdersPeriod(period);
+                        setOrdersPage(1);
+                      }}
+                      className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
+                        ordersPeriod === period
+                          ? 'bg-green-600 text-white'
+                          : 'text-gray-300 hover:bg-gray-700'
+                      }`}
+                    >
+                      {period.charAt(0).toUpperCase() + period.slice(1)}
+                    </button>
+                  ))}
+                </div>
+                
+                {/* Search Input */}
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                  <input
+                    type="text"
+                    placeholder="Search orders..."
+                    value={ordersSearchQuery}
+                    onChange={(e) => setOrdersSearchQuery(e.target.value)}
+                    className="pl-10 pr-4 py-2 border border-gray-600 rounded-lg focus:ring-2 focus:ring-green-600 focus:border-transparent bg-gray-800 text-gray-100 text-sm min-w-[200px]"
+                  />
+                </div>
+
+                {/* Export Button */}
+                <ShareButtons onExport={exportOrdersCSV} type="orders" disabled={!ordersData?.orders?.length} />
+              </div>
+            </div>
+          </CardHeader>
+          
+          <CardContent>
+            {ordersLoading ? (
+              <div className="h-64 flex items-center justify-center">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-600"></div>
+              </div>
+            ) : ordersError ? (
+              <div className="text-center py-8">
+                <p className="text-red-400 mb-4">Couldn't load orders. Retry.</p>
+                <Button 
+                  onClick={() => window.location.reload()} 
+                  variant="outline"
+                  size="sm"
+                  className="border-green-600 text-green-600 hover:bg-green-50"
+                >
+                  Retry
+                </Button>
+              </div>
+            ) : !ordersData?.orders?.length ? (
+              <div className="text-center py-8">
+                <p className="text-gray-400">No orders found for this period.</p>
+              </div>
+            ) : (
+              <>
+                {/* Orders List */}
+                <div className="space-y-3 mb-6">
+                  {ordersData.orders.map((order) => (
+                    <div key={order.orderId} className="p-4 bg-gray-800 rounded-lg border border-gray-700">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-3 mb-2">
+                            <h3 className="font-semibold text-white">Order #{order.orderId}</h3>
                             <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                              order.status === 'paid' 
-                                ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                              order.status === 'completed' 
+                                ? 'bg-green-100 text-green-800' 
                                 : order.status === 'pending'
-                                ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
-                                : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                                ? 'bg-yellow-100 text-yellow-800'
+                                : 'bg-red-100 text-red-800'
                             }`}>
                               {order.status}
                             </span>
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              </div>
-
-              {/* Mobile Cards */}
-              <div className="md:hidden space-y-2">
-                {ordersData.orders.map((order) => {
-                  // Format items for mobile with truncation
-                  const formatMobileItems = (items: Array<{ productName: string; qty: number }>) => {
-                    if (!items || items.length === 0) return 'No items';
-                    
-                    const itemsText = items.map(item => `${item.productName} x${item.qty}`).join(', ');
-                    
-                    if (itemsText.length > 50) {
-                      return itemsText.substring(0, 47) + '...';
-                    }
-                    return itemsText;
-                  };
-
-                  const amountColor = order.status === 'paid' ? 'text-green-400' : order.status === 'pending' ? 'text-yellow-400' : 'text-red-400';
-
-                  return (
-                    <div key={order.orderId} className="p-4 mb-2 bg-gray-800 rounded border border-gray-700">
-                      <div className="flex justify-between items-start mb-2">
-                        <div className="font-medium text-foreground">#{order.orderId}</div>
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          order.status === 'paid' 
-                            ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
-                            : order.status === 'pending'
-                            ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
-                            : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
-                        }`}>
-                          {order.status}
-                        </span>
-                      </div>
-                      <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">{order.date}</div>
-                      <div className="text-sm text-foreground mb-1">{order.customerName}</div>
-                      <div className={`font-bold mb-1 ${amountColor}`}>
-                        Amount: KES {parseFloat(order.totalAmount).toLocaleString('en-KE', { 
-                          minimumFractionDigits: 2, 
-                          maximumFractionDigits: 2 
-                        })}
-                      </div>
-                      <div className="text-xs text-gray-400">
-                        Items: {formatMobileItems(order.items)}
+                          </div>
+                          
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                            <div>
+                              <p className="text-gray-400">Customer: <span className="text-white">{order.customerName}</span></p>
+                              <p className="text-gray-400">Date: <span className="text-white">{order.date}</span></p>
+                            </div>
+                            <div>
+                              <p className="text-gray-400">Total: <span className="text-green-400 font-bold">KES {order.totalAmount}</span></p>
+                              {order.reference && (
+                                <p className="text-gray-400">Ref: <span className="text-white">{order.reference}</span></p>
+                              )}
+                            </div>
+                          </div>
+                          
+                          {/* Order Items */}
+                          <div className="mt-3 pt-3 border-t border-gray-700">
+                            <p className="text-gray-400 text-sm mb-2">Items:</p>
+                            <div className="flex flex-wrap gap-2">
+                              {order.items.map((item, index) => (
+                                <span
+                                  key={index}
+                                  className="px-2 py-1 bg-gray-700 rounded text-xs text-gray-300"
+                                >
+                                  {item.productName} x{item.qty} @ KES {item.price}
+                                </span>
+                              ))}
+                            </div>
+                          </div>
+                        </div>
                       </div>
                     </div>
-                  );
-                })}
-              </div>
-
-              {/* Pagination */}
-              {ordersData.totalPages > 1 && (
-                <div className="flex justify-between items-center mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
-                  <div className="text-sm text-gray-600 dark:text-gray-400">
-                    Page {ordersData.page} of {ordersData.totalPages} ({ordersData.total} total orders)
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      onClick={() => setOrdersPage(Math.max(1, ordersPage - 1))}
-                      disabled={ordersPage === 1}
-                      variant="outline"
-                      size="sm"
-                    >
-                      <ChevronLeft className="h-4 w-4 mr-1" />
-                      Prev
-                    </Button>
-                    <Button
-                      onClick={() => setOrdersPage(Math.min(ordersData.totalPages, ordersPage + 1))}
-                      disabled={ordersPage === ordersData.totalPages}
-                      variant="outline"
-                      size="sm"
-                    >
-                      Next
-                      <ChevronRight className="h-4 w-4 ml-1" />
-                    </Button>
-                  </div>
+                  ))}
                 </div>
-              )}
-            </>
-          )}
-        </CardContent>
-      </Card>
 
-      {/* Charts and Lists */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Hourly Sales Trend */}
-        <Card className="">
-          <CardHeader>
-            <CardTitle className="text-lg font-semibold text-green-500">Hourly Sales Trend</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {hourlyLoading ? (
-              <div className="h-64 flex items-center justify-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500"></div>
-              </div>
-            ) : (
-              <ResponsiveContainer width="100%" height={300}>
-                <LineChart data={hourlyData || []}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                  <XAxis dataKey="hour" stroke="#9CA3AF" />
-                  <YAxis stroke="#9CA3AF" />
-                  <Tooltip 
-                    formatter={(value) => [formatCurrency(value as string), 'Sales']} 
-                    contentStyle={{ backgroundColor: '#111827', border: '1px solid #374151', borderRadius: '6px' }}
-                    labelStyle={{ color: '#9CA3AF' }}
-                  />
-                  <Line 
-                    type="monotone" 
-                    dataKey="sales" 
-                    stroke="#10B981" 
-                    strokeWidth={2}
-                    dot={{ fill: '#10B981' }}
-                  />
-                </LineChart>
-              </ResponsiveContainer>
-            )}
-          </CardContent>
-        </Card>
-
-        {/* Customer Credit Ranking */}
-        <Card className="">
-          <CardHeader>
-            <CardTitle className="text-lg font-semibold text-green-500">Customer Credit Ranking</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {creditsLoading ? (
-              <div className="h-64 flex items-center justify-center">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500"></div>
-              </div>
-            ) : (
-              <div className="space-y-3">
-                {customerCredits?.slice(0, 10).map((customer, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                    <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 bg-green-500/20 rounded-full flex items-center justify-center">
-                        <Users className="h-4 w-4 text-green-500" />
-                      </div>
-                      <div>
-                        <p className="font-medium text-foreground">{customer.name}</p>
-                        <p className="text-sm text-gray-400">{customer.phone}</p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-semibold text-foreground">{formatCurrency(customer.balance)}</p>
+                {/* Pagination */}
+                {ordersData.totalPages > 1 && (
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm text-gray-400">
+                      Showing page {ordersData.page} of {ordersData.totalPages} ({ordersData.total} total orders)
+                    </p>
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={() => setOrdersPage(prev => Math.max(1, prev - 1))}
+                        disabled={ordersData.page <= 1}
+                        variant="outline"
+                        size="sm"
+                        className="border-gray-600 text-gray-300 hover:bg-gray-700"
+                      >
+                        <ChevronLeft className="h-4 w-4" />
+                        Previous
+                      </Button>
+                      <Button
+                        onClick={() => setOrdersPage(prev => Math.min(ordersData.totalPages, prev + 1))}
+                        disabled={ordersData.page >= ordersData.totalPages}
+                        variant="outline"
+                        size="sm"
+                        className="border-gray-600 text-gray-300 hover:bg-gray-700"
+                      >
+                        Next
+                        <ChevronRight className="h-4 w-4" />
+                      </Button>
                     </div>
                   </div>
-                ))}
-              </div>
+                )}
+              </>
             )}
           </CardContent>
         </Card>
       </div>
-
-      {/* Top Selling Items */}
-      <Card className="">
-        <CardHeader className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <CardTitle className="text-lg font-semibold text-green-500">Top Selling Items</CardTitle>
-          <div className="flex gap-2">
-            <Select value={selectedPeriod} onValueChange={(value: 'today' | 'week' | 'month') => setSelectedPeriod(value)}>
-              <SelectTrigger className="w-32 bg-muted border-border text-foreground">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="bg-muted border-border">
-                <SelectItem value="today" className="text-foreground hover:bg-gray-700">Today</SelectItem>
-                <SelectItem value="week" className="text-foreground hover:bg-gray-700">This Week</SelectItem>
-                <SelectItem value="month" className="text-foreground hover:bg-gray-700">This Month</SelectItem>
-              </SelectContent>
-            </Select>
-            <ShareButtons onExport={exportTopItemsCSV} type="Top Items" disabled={!topItems || topItems.length === 0} />
-          </div>
-        </CardHeader>
-        <CardContent>
-          {topItemsLoading ? (
-            <div className="h-32 flex items-center justify-center">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-500"></div>
-            </div>
-          ) : (
-            <div className="space-y-3">
-              {topItems?.map((item, index) => (
-                <div key={index} className="flex items-center justify-between p-3 bg-muted rounded-lg">
-                  <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-green-500/20 rounded-full flex items-center justify-center text-sm font-bold text-green-500">
-                      {index + 1}
-                    </div>
-                    <div>
-                      <p className="font-medium text-foreground">{item.name}</p>
-                      <p className="text-sm text-gray-400">{item.unitsSold} units sold</p>
-                    </div>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-semibold text-foreground">{formatCurrency(item.revenue)}</p>
-                  </div>
-                </div>
-              ))}
-              {(!topItems || topItems.length === 0) && (
-                <p className="text-center text-gray-400 py-8">No sales data available for this period</p>
-              )}
-            </div>
-          )}
-        </CardContent>
-      </Card>
-    </div>
+    </MobilePageWrapper>
   );
 }
