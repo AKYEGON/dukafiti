@@ -92,7 +92,7 @@ export default function Login() {
                   <FormControl>
                     <Input 
                       type="email"
-                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-green-600 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white min-h-[44px]"
+                      className="w-full px-4 py-3 border-2 border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-green-600 bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white min-h-[44px] placeholder:text-gray-500 dark:placeholder:text-gray-400"
                       {...field} 
                     />
                   </FormControl>
@@ -113,7 +113,7 @@ export default function Login() {
                     <div className="relative">
                       <Input 
                         type={showPassword ? "text" : "password"}
-                        className="w-full px-4 py-3 pr-12 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-green-600 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white min-h-[44px]"
+                        className="w-full px-4 py-3 pr-12 border-2 border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-green-600 bg-gray-100 dark:bg-gray-700 text-gray-900 dark:text-white min-h-[44px] placeholder:text-gray-500 dark:placeholder:text-gray-400"
                         {...field} 
                       />
                       <button
