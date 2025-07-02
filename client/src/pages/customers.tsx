@@ -101,9 +101,6 @@ export default function Customers() {
         {/* Enhanced Header */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <div className="flex flex-col">
-              <div className="h-1 w-20 bg-green-600 rounded-full"></div>
-            </div>
             <Button 
               onClick={() => setShowNewCustomerForm(true)}
               className="bg-purple-600 hover:bg-purple-700 text-white min-h-[48px] px-6"
