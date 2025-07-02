@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useOutsideClick } from '@/hooks/useOutsideClick';
+import { SidebarToggleIcon } from '@/components/icons/sidebar-toggle-icon';
 import type { SearchResult, Notification } from '@shared/schema';
 
 interface User {
@@ -202,11 +203,16 @@ export function TopBar() {
         </div>
       )}
 
-      {/* Left Section - Logo/Brand Space */}
+      {/* Left Section - Sidebar Toggle */}
       <div className="flex items-center gap-4">
-        <div className="text-lg font-semibold text-gray-900 dark:text-gray-100 hidden sm:block">
-          DukaSmart
-        </div>
+        <button
+          className="w-8 h-8 rounded-lg flex items-center justify-center text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+          aria-label="Toggle sidebar"
+          role="button"
+          tabIndex={0}
+        >
+          <SidebarToggleIcon size={20} />
+        </button>
       </div>
 
       {/* Center Section - Search Bar (Desktop) */}
