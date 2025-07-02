@@ -371,12 +371,17 @@ export default function Sales() {
   });
 
   const handleProductSelect = (product: Product) => {
+    console.log('handleProductSelect called with:', product);
+    console.log('Current cartItems:', cartItems);
+    
     const existingItem = cartItems.find(item => item.product.id === product.id);
     
     if (existingItem) {
+      console.log('Product exists in cart, incrementing quantity');
       // Increment quantity if product already in cart
       handleQuantityChange(existingItem.id, existingItem.quantity + 1);
     } else {
+      console.log('Adding new product to cart');
       // Add new item to cart
       const newItem: SaleLineItem = {
         id: `${product.id}-${Date.now()}`,
@@ -385,7 +390,12 @@ export default function Sales() {
         unitPrice: product.price,
         total: product.price,
       };
-      setCartItems(prev => [...prev, newItem]);
+      console.log('New item created:', newItem);
+      setCartItems(prev => {
+        const updated = [...prev, newItem];
+        console.log('Updated cart items:', updated);
+        return updated;
+      });
     }
   };
 
@@ -561,46 +571,100 @@ export default function Sales() {
           
           {/* 2. Smart Product Search Bar */}
           <div className="relative">
+            <h4 className="text-sm font-medium text-muted-foreground mb-2">Search Products</h4>
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5 z-10" />
               <input
                 ref={searchInputRef}
                 type="text"
                 value={searchQuery}
                 onChange={handleSearchChange}
                 onKeyDown={handleSearchKeyDown}
-                onFocus={() => searchQuery.length > 0 && setShowSearchDropdown(true)}
-                onBlur={() => setTimeout(() => setShowSearchDropdown(false), 200)}
-                placeholder="Search products..."
+                onFocus={() => {
+                  if (searchResults.length > 0) {
+                    setShowSearchDropdown(true);
+                  }
+                }}
+                placeholder="Type to search products..."
                 aria-label="Search products to add to cart"
-                className="w-full h-12 pl-10 pr-4 border border-gray-200 dark:border-gray-600 rounded-lg bg-gray-50 dark:bg-gray-800 text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-600 focus:border-transparent transition-all duration-200"
-                style={{ minHeight: '48px' }}
+                className="w-full h-14 pl-12 pr-12 border-2 border-gray-200 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-800 text-foreground placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 transition-all duration-200 text-base shadow-sm"
               />
               {searchLoading && (
-                <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                  <div className="animate-spin h-4 w-4 border-2 border-purple-600 border-t-transparent rounded-full"></div>
+                <div className="absolute right-4 top-1/2 transform -translate-y-1/2">
+                  <div className="animate-spin h-5 w-5 border-2 border-purple-500 border-t-transparent rounded-full"></div>
                 </div>
+              )}
+              {!searchLoading && searchQuery && (
+                <button
+                  onClick={() => {
+                    setSearchQuery('');
+                    setShowSearchDropdown(false);
+                    setSearchResults([]);
+                  }}
+                  className="absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  ×
+                </button>
               )}
             </div>
             
-            {/* Search Dropdown */}
+            {/* Enhanced Search Dropdown */}
             {showSearchDropdown && searchResults.length > 0 && (
-              <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-600 rounded-lg shadow-lg max-h-64 overflow-y-auto">
-                {searchResults.map((product, index) => (
-                  <button
-                    key={product.id}
-                    onClick={() => handleSearchResultSelect(product)}
-                    className={`w-full px-4 py-3 text-left hover:bg-gray-50 dark:hover:bg-gray-700 border-b border-gray-100 dark:border-gray-700 last:border-b-0 transition-colors ${
-                      index === selectedSearchIndex ? 'bg-purple-50 dark:bg-purple-900/20' : ''
-                    }`}
-                    style={{ minHeight: '48px' }}
-                  >
-                    <div className="flex justify-between items-center">
-                      <span className="font-medium text-foreground">{product.name}</span>
-                      <span className="text-purple-600 font-semibold">{formatCurrency(product.price)}</span>
+              <div className="absolute top-full left-0 right-0 z-50 mt-2 bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-600 rounded-xl shadow-2xl max-h-80 overflow-hidden">
+                <div className="p-2 border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-750">
+                  <p className="text-xs text-gray-500 dark:text-gray-400 font-medium">
+                    {searchResults.length} product{searchResults.length !== 1 ? 's' : ''} found
+                  </p>
+                </div>
+                <div className="max-h-64 overflow-y-auto">
+                  {searchResults.map((product, index) => (
+                    <div
+                      key={product.id}
+                      onMouseDown={(e) => {
+                        e.preventDefault(); // Prevent input blur
+                        handleSearchResultSelect(product);
+                      }}
+                      className={`px-4 py-4 cursor-pointer border-b border-gray-100 dark:border-gray-700 last:border-b-0 transition-all duration-150 ${
+                        index === selectedSearchIndex 
+                          ? 'bg-purple-50 dark:bg-purple-900/30 border-l-4 border-l-purple-500' 
+                          : 'hover:bg-gray-50 dark:hover:bg-gray-700/50'
+                      }`}
+                      style={{ minHeight: '60px' }}
+                    >
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1 min-w-0">
+                          <p className="font-semibold text-foreground truncate text-base">
+                            {product.name}
+                          </p>
+                          <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                            Stock: {product.stock} • SKU: {product.sku}
+                          </p>
+                        </div>
+                        <div className="text-right ml-4 flex-shrink-0">
+                          <p className="text-lg font-bold text-purple-600 dark:text-purple-400">
+                            {formatCurrency(product.price)}
+                          </p>
+                          <div className="text-xs bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 px-2 py-1 rounded-full mt-1">
+                            Click to add
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                  </button>
-                ))}
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* No results message */}
+            {showSearchDropdown && searchQuery.length > 0 && searchResults.length === 0 && !searchLoading && (
+              <div className="absolute top-full left-0 right-0 z-50 mt-2 bg-white dark:bg-gray-800 border-2 border-gray-200 dark:border-gray-600 rounded-xl shadow-lg p-6 text-center">
+                <div className="text-gray-400 mb-2">
+                  <Search className="h-8 w-8 mx-auto opacity-50" />
+                </div>
+                <p className="text-gray-500 dark:text-gray-400 font-medium">No products found</p>
+                <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
+                  Try searching with different keywords
+                </p>
               </div>
             )}
           </div>
