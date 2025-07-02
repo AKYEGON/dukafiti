@@ -31,9 +31,9 @@ function AuthenticatedApp() {
     <div className="min-h-screen bg-background text-foreground">
       <div className="flex min-h-screen">
         <Sidebar />
-        <main className="flex-1 flex flex-col">
-          <UniversalSearch />
-          <div className="flex-1 overflow-auto bg-background">
+        <main style={{ position: 'relative', flex: '1', display: 'flex', flexDirection: 'column', backgroundColor: 'red', minHeight: '100vh' }}>
+          <div style={{ backgroundColor: 'yellow', padding: '20px', position: 'relative', zIndex: 999 }}>MAIN CONTAINER TEST</div>
+          <div style={{ flex: '1', backgroundColor: 'blue', padding: '20px', position: 'relative', zIndex: 999 }}>
             <div className="p-4 bg-red-500 text-white">
               DEBUG: Main content area rendering. Current path: {window.location.pathname}
             </div>
