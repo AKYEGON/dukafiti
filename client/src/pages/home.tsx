@@ -11,29 +11,29 @@ export default function Home() {
       icon: Store,
       title: "Inventory Management",
       description: "Track products, stock levels, and manage your inventory efficiently",
-      color: "bg-primaryPurple-100 text-primaryPurple dark:bg-primaryPurple-900 dark:text-primaryPurple-100"
+      color: "bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-100"
     },
     {
       icon: BarChart3,
       title: "Sales Analytics",
       description: "Monitor your business performance with detailed sales reports",
-      color: "bg-primaryGreen-100 text-primaryGreen dark:bg-primaryGreen-900 dark:text-primaryGreen-100"
+      color: "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-100"
     },
     {
       icon: Users,
       title: "Customer Management", 
       description: "Keep track of your customers and their purchase history",
-      color: "bg-primaryPurple-100 text-primaryPurple dark:bg-primaryPurple-900 dark:text-primaryPurple-100"
+      color: "bg-purple-100 text-purple-700 dark:bg-purple-900 dark:text-purple-100"
     }
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primaryPurple-50 to-primaryGreen-50 dark:from-brandBlack dark:to-brandBlack-light">
+    <div className="min-h-screen bg-gradient-to-br from-purple-50 to-green-50 dark:from-gray-900 dark:to-gray-800">
       {/* Hero Section */}
       <div className="container mx-auto px-4 py-16">
         <div className="text-center max-w-4xl mx-auto">
           <h1 className="text-5xl font-bold text-foreground mb-6">
-            Welcome to <span className="text-primaryGreen">DukaSmart</span>
+            Welcome to <span className="text-green-600">DukaSmart</span>
           </h1>
           <p className="text-xl text-muted-foreground mb-8 leading-relaxed">
             The complete business management platform that helps you streamline operations, 
@@ -43,7 +43,7 @@ export default function Home() {
           <div className="flex gap-4 justify-center mb-16">
             <Button 
               onClick={() => setLocation("/register")}
-              className="bg-primaryGreen hover:bg-primaryGreen-dark text-white px-8 py-3 text-lg"
+              className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 text-lg"
               size="lg"
             >
               Get Started <ArrowRight className="ml-2 h-5 w-5" />
@@ -51,7 +51,7 @@ export default function Home() {
             <Button 
               onClick={() => setLocation("/login")}
               variant="outline"
-              className="border-primaryGreen text-primaryGreen hover:bg-primaryGreen-50 dark:hover:bg-primaryGreen-900 px-8 py-3 text-lg"
+              className="border-green-600 text-green-600 hover:bg-green-50 dark:hover:bg-green-900 px-8 py-3 text-lg"
               size="lg"
             >
               Sign In
@@ -85,25 +85,25 @@ export default function Home() {
           </h2>
           <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
             <div className="text-left">
-              <h3 className="text-xl font-semibold mb-3 text-primaryGreen">Easy to Use</h3>
+              <h3 className="text-xl font-semibold mb-3 text-green-600">Easy to Use</h3>
               <p className="text-muted-foreground">
                 Intuitive interface designed for business owners who want to focus on growth, not complicated software.
               </p>
             </div>
             <div className="text-left">
-              <h3 className="text-xl font-semibold mb-3 text-primaryGreen">Real-time Insights</h3>
+              <h3 className="text-xl font-semibold mb-3 text-green-600">Real-time Insights</h3>
               <p className="text-muted-foreground">
                 Get instant access to your business data with live dashboards and comprehensive reports.
               </p>
             </div>
             <div className="text-left">
-              <h3 className="text-xl font-semibold mb-3 text-primaryGreen">Secure & Reliable</h3>
+              <h3 className="text-xl font-semibold mb-3 text-green-600">Secure & Reliable</h3>
               <p className="text-muted-foreground">
                 Your business data is protected with enterprise-grade security and reliable cloud infrastructure.
               </p>
             </div>
             <div className="text-left">
-              <h3 className="text-xl font-semibold mb-3 text-primaryGreen">Scale with You</h3>
+              <h3 className="text-xl font-semibold mb-3 text-green-600">Scale with You</h3>
               <p className="text-muted-foreground">
                 From small shops to growing enterprises, DukaSmart adapts to your business needs.
               </p>
