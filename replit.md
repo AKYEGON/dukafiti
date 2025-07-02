@@ -251,6 +251,12 @@ Changelog:
 - July 2, 2025. Added professional collapse/expand button with panel icons at bottom of sidebar
 - July 2, 2025. Improved mobile responsiveness with sticky header and smooth drawer animations
 - July 2, 2025. Added proper dividers, spacing, and typography for polished professional look
+- July 2, 2025. Completely redesigned Login and Register pages with professional UX/UI
+- July 2, 2025. Implemented research-backed best practices with labels above inputs and inline validation
+- July 2, 2025. Added password show/hide toggles with eye icons for better usability
+- July 2, 2025. Enhanced forms with proper focus states, touch-friendly buttons, and accessibility
+- July 2, 2025. Applied consistent purple/green color scheme and dark mode support
+- July 2, 2025. Added "Forgot password?" link and clear flow switching between login/register
 ```
 
 ## User Preferences

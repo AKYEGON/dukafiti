@@ -5,11 +5,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Separator } from "@/components/ui/separator";
-import { UserPlus, Mail, Lock, User, Chrome } from "lucide-react";
+import { Store, Eye, EyeOff } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 const registerSchema = z.object({
@@ -26,7 +24,8 @@ type RegisterForm = z.infer<typeof registerSchema>;
 
 export default function Register() {
   const [, setLocation] = useLocation();
-  const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -74,167 +73,149 @@ export default function Register() {
     registerMutation.mutate(registerData);
   };
 
-  const handleGoogleSignup = () => {
-    setIsLoading(true);
-    // Redirect to Google OAuth endpoint
-    window.location.href = "/api/auth/google";
-  };
-
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-green-50 px-4">
-      <Card className="w-full max-w-md shadow-lg">
-        <CardHeader className="text-center space-y-2">
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
-            <UserPlus className="h-6 w-6 text-green-600" />
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4">
+      <div className="bg-white dark:bg-[#1F1F1F] border border-gray-200 dark:border-gray-700 rounded-lg shadow-md dark:shadow-lg p-8 w-full max-w-sm">
+        {/* Logo/App Name */}
+        <div className="text-center mb-8">
+          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-purple-600">
+            <Store className="h-6 w-6 text-white" />
           </div>
-          <CardTitle className="text-2xl font-bold text-gray-900">
-            Join DukaSmart
-          </CardTitle>
-          <CardDescription className="text-gray-600">
-            Create your business account and start growing
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {/* Google Signup Button */}
-          <Button
-            onClick={handleGoogleSignup}
-            disabled={isLoading}
-            variant="outline"
-            className="w-full border-gray-300 hover:bg-gray-50"
-            size="lg"
-          >
-            <Chrome className="mr-2 h-4 w-4" />
-            Continue with Google
-          </Button>
+          <h1 className="text-2xl font-bold text-purple-600">DukaSmart</h1>
+        </div>
 
-          <div className="relative">
-            <div className="absolute inset-0 flex items-center">
-              <Separator className="w-full" />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-white px-2 text-gray-500">Or continue with email</span>
-            </div>
-          </div>
+        {/* Register Form */}
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-gray-700 dark:text-gray-300 font-medium">
+                    Name
+                  </FormLabel>
+                  <FormControl>
+                    <Input 
+                      type="text"
+                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-green-600 bg-white dark:bg-[#1F1F1F] text-gray-900 dark:text-white min-h-[44px]"
+                      {...field} 
+                    />
+                  </FormControl>
+                  <FormMessage className="text-red-500 text-sm" />
+                </FormItem>
+              )}
+            />
 
-          {/* Registration Form */}
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <FormField
-                control={form.control}
-                name="name"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Full Name</FormLabel>
-                    <FormControl>
-                      <div className="relative">
-                        <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                        <Input 
-                          placeholder="Enter your full name" 
-                          className="pl-10"
-                          {...field} 
-                        />
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+            <FormField
+              control={form.control}
+              name="email"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-gray-700 dark:text-gray-300 font-medium">
+                    Email
+                  </FormLabel>
+                  <FormControl>
+                    <Input 
+                      type="email"
+                      className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-green-600 bg-white dark:bg-[#1F1F1F] text-gray-900 dark:text-white min-h-[44px]"
+                      {...field} 
+                    />
+                  </FormControl>
+                  <FormMessage className="text-red-500 text-sm" />
+                </FormItem>
+              )}
+            />
+            
+            <FormField
+              control={form.control}
+              name="password"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-gray-700 dark:text-gray-300 font-medium">
+                    Password
+                  </FormLabel>
+                  <FormControl>
+                    <div className="relative">
+                      <Input 
+                        type={showPassword ? "text" : "password"}
+                        className="w-full px-4 py-3 pr-12 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-green-600 bg-white dark:bg-[#1F1F1F] text-gray-900 dark:text-white min-h-[44px]"
+                        {...field} 
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowPassword(!showPassword)}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                      >
+                        {showPassword ? (
+                          <EyeOff className="h-5 w-5" />
+                        ) : (
+                          <Eye className="h-5 w-5" />
+                        )}
+                      </button>
+                    </div>
+                  </FormControl>
+                  <FormMessage className="text-red-500 text-sm" />
+                </FormItem>
+              )}
+            />
 
-              <FormField
-                control={form.control}
-                name="email"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Email</FormLabel>
-                    <FormControl>
-                      <div className="relative">
-                        <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                        <Input 
-                          placeholder="Enter your email" 
-                          className="pl-10"
-                          {...field} 
-                        />
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <FormField
-                control={form.control}
-                name="password"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Password</FormLabel>
-                    <FormControl>
-                      <div className="relative">
-                        <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                        <Input 
-                          type="password" 
-                          placeholder="Create a password"
-                          className="pl-10"
-                          {...field} 
-                        />
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="confirmPassword"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Confirm Password</FormLabel>
-                    <FormControl>
-                      <div className="relative">
-                        <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                        <Input 
-                          type="password" 
-                          placeholder="Confirm your password"
-                          className="pl-10"
-                          {...field} 
-                        />
-                      </div>
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              
-              <Button
-                type="submit"
-                disabled={registerMutation.isPending}
-                className="w-full bg-green-600 hover:bg-green-700"
-                size="lg"
-              >
-                {registerMutation.isPending ? "Creating account..." : "Create Account"}
-              </Button>
-            </form>
-          </Form>
-
-          <div className="text-center space-y-4">
-            <p className="text-sm text-gray-600">
-              Already have an account?{" "}
-              <button
-                onClick={() => setLocation("/login")}
-                className="text-green-600 hover:text-green-700 font-medium hover:underline"
-              >
-                Sign in
-              </button>
-            </p>
-            <button
-              onClick={() => setLocation("/")}
-              className="text-sm text-gray-500 hover:text-gray-700 hover:underline"
+            <FormField
+              control={form.control}
+              name="confirmPassword"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-gray-700 dark:text-gray-300 font-medium">
+                    Confirm Password
+                  </FormLabel>
+                  <FormControl>
+                    <div className="relative">
+                      <Input 
+                        type={showConfirmPassword ? "text" : "password"}
+                        className="w-full px-4 py-3 pr-12 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-green-600 bg-white dark:bg-[#1F1F1F] text-gray-900 dark:text-white min-h-[44px]"
+                        {...field} 
+                      />
+                      <button
+                        type="button"
+                        onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                        className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
+                      >
+                        {showConfirmPassword ? (
+                          <EyeOff className="h-5 w-5" />
+                        ) : (
+                          <Eye className="h-5 w-5" />
+                        )}
+                      </button>
+                    </div>
+                  </FormControl>
+                  <FormMessage className="text-red-500 text-sm" />
+                </FormItem>
+              )}
+            />
+            
+            <Button
+              type="submit"
+              disabled={registerMutation.isPending}
+              className="w-full py-3 font-semibold rounded-md bg-purple-600 hover:bg-purple-700 text-white min-h-[44px] focus:outline-none focus:ring-2 focus:ring-purple-600"
             >
-              Back to Home
+              {registerMutation.isPending ? "Creating account..." : "Register"}
+            </Button>
+          </form>
+        </Form>
+
+        {/* Switch to Login */}
+        <div className="text-center mt-6">
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            Already have an account?{" "}
+            <button
+              onClick={() => setLocation("/login")}
+              className="text-green-600 hover:underline font-medium"
+            >
+              Log in
             </button>
-          </div>
-        </CardContent>
-      </Card>
+          </p>
+        </div>
+      </div>
     </div>
   );
 }
