@@ -228,7 +228,7 @@ export default function Sales() {
         e.preventDefault();
         if (selectedSearchIndex >= 0 && selectedSearchIndex < searchResults.length) {
           const selectedProduct = searchResults[selectedSearchIndex];
-          handleProductSelect(selectedProduct);
+          handleSearchResultSelect(selectedProduct);
         }
         break;
       case 'Escape':
@@ -240,10 +240,24 @@ export default function Sales() {
 
   // Handle search result selection
   const handleSearchResultSelect = (product: Product) => {
+    console.log('Search result selected:', product);
     handleProductSelect(product);
     setSearchQuery('');
     setShowSearchDropdown(false);
     setSelectedSearchIndex(-1);
+    
+    // Blur the search input
+    if (searchInputRef.current) {
+      searchInputRef.current.blur();
+    }
+    
+    // Add success toast notification
+    toast({
+      title: "Product added",
+      description: `${product.name} added to cart`,
+      className: "bg-green-50 border-green-200 text-green-800",
+      duration: 2000,
+    });
   };
 
   const createSaleMutation = useMutation({
