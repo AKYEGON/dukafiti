@@ -83,7 +83,7 @@ export default function Dashboard() {
   };
 
   const handleViewAllOrders = () => {
-    setLocation("/sales");
+    setLocation("/reports");
   };
 
   // Professional Summary Card Component
