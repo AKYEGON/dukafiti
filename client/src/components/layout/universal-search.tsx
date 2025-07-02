@@ -129,7 +129,7 @@ export function UniversalSearch({ className }: UniversalSearchProps) {
     <div
       ref={searchRef}
       className={cn(
-        "sticky top-0 z-30 bg-gray-100 dark:bg-gray-800 border-b border-border transition-transform duration-200 ease-in-out",
+        "relative z-30 bg-gray-100 dark:bg-gray-800 border-b border-border transition-transform duration-200 ease-in-out",
         isVisible ? "translate-y-0" : "-translate-y-full",
         className
       )}
