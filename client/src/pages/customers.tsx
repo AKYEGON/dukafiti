@@ -77,12 +77,7 @@ export default function Customers() {
   if (isLoading) {
     return (
       <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold">Customer Directory</h1>
-            <p className="text-muted-foreground">Manage your customer relationships</p>
-          </div>
-        </div>
+        
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {[...Array(6)].map((_, i) => (
             <Card key={i} className="bg-card border-border animate-pulse">
@@ -100,11 +95,7 @@ export default function Customers() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Customer Directory</h1>
-          <p className="text-muted-foreground">Manage your customer relationships</p>
-        </div>
+      <div className="flex items-center justify-end">
         <Button 
           onClick={() => setShowNewCustomerForm(true)}
           className="btn-purple"
