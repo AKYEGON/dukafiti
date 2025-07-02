@@ -62,7 +62,7 @@ export function CustomerForm({ open, onOpenChange, customer }: CustomerFormProps
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...data,
-          balance: "0.00", // Set default balance to 0
+          balance: data.balance || "0.00", // Use provided balance or default to 0
         }),
       });
       if (!response.ok) {
@@ -151,19 +151,13 @@ export function CustomerForm({ open, onOpenChange, customer }: CustomerFormProps
     console.log("Raw form data:", data);
     console.log("Balance field value:", data.balance);
     console.log("Balance type:", typeof data.balance);
-    console.log("Balance length:", data.balance?.length);
-    console.log("Balance === '':", data.balance === '');
-    console.log("Balance === '0':", data.balance === '0');
-    console.log("!data.balance:", !data.balance);
     
-    // Process balance field - only include if it has a value
+    // Keep the balance field as-is, let the mutation handle defaults
     const processedData = {
-      ...data,
-      // Only include balance if it's provided and not empty
-      ...(data.balance && data.balance !== '' && data.balance !== '0' ? { balance: data.balance } : {})
+      ...data
     };
     
-    console.log("Processed data after balance filter:", processedData);
+    console.log("Processed data:", processedData);
     console.log("=== END FORM DEBUG ===");
     
     if (customer) {
