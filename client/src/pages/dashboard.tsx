@@ -37,6 +37,7 @@ import { ProductForm } from "@/components/inventory/product-form";
 import { CustomerForm } from "@/components/customers/customer-form";
 
 export default function Dashboard() {
+  console.log("Dashboard component rendering...");
   const [, setLocation] = useLocation();
   const [showProductForm, setShowProductForm] = useState(false);
   const [showCustomerForm, setShowCustomerForm] = useState(false);
@@ -167,8 +168,10 @@ export default function Dashboard() {
   }
 
   return (
-    <MobilePageWrapper title="Dashboard">
-      <div className="space-y-6">
+    <div>
+      <div className="p-4 bg-blue-500 text-white">DASHBOARD COMPONENT RENDERING</div>
+      <MobilePageWrapper title="Dashboard">
+        <div className="space-y-6">
         {/* Enhanced Metrics Cards with Accurate Percentage Changes */}
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <EnhancedMetricCard
@@ -348,5 +351,6 @@ export default function Dashboard() {
         onOpenChange={setShowCustomerForm} 
       />
     </MobilePageWrapper>
+    </div>
   );
 }

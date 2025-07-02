@@ -34,16 +34,12 @@ function AuthenticatedApp() {
         <main className="flex-1 flex flex-col">
           <UniversalSearch />
           <div className="flex-1 overflow-auto bg-background">
-            <Switch>
-              <Route path="/" component={Dashboard} />
-              <Route path="/dashboard" component={Dashboard} />
-              <Route path="/inventory" component={Inventory} />
-              <Route path="/sales" component={Sales} />
-              <Route path="/customers" component={Customers} />
-              <Route path="/reports" component={Reports} />
-              <Route path="/settings" component={SettingsPage} />
-              <Route component={NotFound} />
-            </Switch>
+            <div className="p-4 bg-red-500 text-white">
+              DEBUG: Main content area rendering. Current path: {window.location.pathname}
+            </div>
+            <div className="p-4 bg-green-500 text-white">
+              TESTING: Switch component replaced. Should see this text.
+            </div>
           </div>
         </main>
       </div>
