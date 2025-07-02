@@ -33,7 +33,7 @@ import {
   notifications
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, desc, like, sql, or, ilike, and, gte } from "drizzle-orm";
+import { eq, desc, like, sql, or, ilike, and, gte, isNotNull } from "drizzle-orm";
 
 export interface IStorage {
   // Users

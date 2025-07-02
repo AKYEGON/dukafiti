@@ -484,6 +484,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const order = await storage.createOrder(orderData);
       
       // Create order items and update inventory for all payment types
+      const updatedProducts = [];
       for (const item of enrichedItems) {
         // Create order item
         await storage.createOrderItem({
@@ -497,20 +498,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Update product stock (decrement for all payment types)
         await storage.updateProductStock(item.productId, -item.quantity);
         
+        // Get updated product info for inventory event
+        const updatedProduct = await storage.getProduct(item.productId);
+        if (updatedProduct) {
+          updatedProducts.push({
+            productId: item.productId,
+            newQuantity: updatedProduct.stock
+          });
+        }
+        
         // Increment sales count for analytics
         await storage.incrementProductSalesCount(item.productId, item.quantity);
       }
       
-      // Emit real-time notification
-      const notificationData = {
+      // Emit real-time data update events
+      broadcastToClients({
+        type: 'dataUpdate',
+        updateType: 'sale',
+        sale: {
+          id: order.id,
+          total: total.toFixed(2),
+          paymentType,
+          status,
+          items: enrichedItems
+        }
+      });
+      
+      // Emit inventory update events for each affected product
+      updatedProducts.forEach(product => {
+        broadcastToClients({
+          type: 'inventoryUpdate',
+          productId: product.productId,
+          newQuantity: product.newQuantity
+        });
+      });
+      
+      // Emit legacy sale notification for existing UI
+      broadcastToClients({
         type: 'saleUpdate',
         paymentType,
         saleId: order.id,
         total: total.toFixed(2),
         status
-      };
-      
-      broadcastToClients(notificationData);
+      });
       
       res.status(201).json({
         success: true,

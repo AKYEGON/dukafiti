@@ -24,7 +24,22 @@ export function useWebSocket() {
       try {
         const data = JSON.parse(event.data);
         
-        if (data.type === 'saleUpdate') {
+        if (data.type === 'dataUpdate') {
+          // Handle real-time data updates
+          if (data.updateType === 'sale') {
+            // Invalidate dashboard and reports data
+            queryClient.invalidateQueries({ queryKey: ["/api/dashboard/metrics"] });
+            queryClient.invalidateQueries({ queryKey: ["/api/metrics/dashboard"] });
+            queryClient.invalidateQueries({ queryKey: ["/api/orders/recent"] });
+            queryClient.invalidateQueries({ queryKey: ["/api/reports/summary"] });
+            queryClient.invalidateQueries({ queryKey: ["/api/reports/trend"] });
+            queryClient.invalidateQueries({ queryKey: ["/api/orders"] });
+          }
+        } else if (data.type === 'inventoryUpdate') {
+          // Handle inventory updates
+          queryClient.invalidateQueries({ queryKey: ["/api/products"] });
+          queryClient.invalidateQueries({ queryKey: ["/api/products/frequent"] });
+        } else if (data.type === 'saleUpdate') {
           // Handle sale completion notifications based on status
           if (data.status === 'paid') {
             toast({

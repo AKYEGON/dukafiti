@@ -76,11 +76,26 @@ export default function Sales() {
       setCartItems([]);
       setPaymentMethod('');
       
-      // Only invalidate queries if online
+      // Immediately refresh all relevant data if online
       if (isOnline()) {
-        queryClient.invalidateQueries({ queryKey: ["/api/orders"] });
+        // Dashboard metrics
         queryClient.invalidateQueries({ queryKey: ["/api/dashboard/metrics"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/metrics/dashboard"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/orders/recent"] });
+        
+        // Reports data  
+        queryClient.invalidateQueries({ queryKey: ["/api/reports/summary"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/reports/trend"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/orders"] });
+        
+        // Inventory data
         queryClient.invalidateQueries({ queryKey: ["/api/products"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/products/frequent"] });
+        
+        // Customer data for credit sales
+        if (paymentMethod === 'credit') {
+          queryClient.invalidateQueries({ queryKey: ["/api/customers"] });
+        }
       }
       
       // Show appropriate toast based on status
