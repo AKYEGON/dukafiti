@@ -10,7 +10,7 @@ import { useWebSocket } from "@/hooks/use-websocket";
 import { ThemeProvider } from "@/contexts/theme-context";
 import { OfflineIndicator } from "@/components/offline-indicator";
 import { ErrorBoundary } from "@/components/error-boundary";
-import { DebugComponent } from "@/components/../debug-component";
+
 import Dashboard from "@/pages/dashboard";
 import Inventory from "@/pages/inventory";
 import Sales from "@/pages/sales";
@@ -25,21 +25,25 @@ import SettingsPage from "@/pages/settings";
 
 function AuthenticatedApp() {
   // Initialize WebSocket connection for real-time notifications
-  // useWebSocket(); // Temporarily disabled for debugging
+  useWebSocket();
   
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <div className="flex min-h-screen">
-        <Sidebar />
-        <main style={{ position: 'relative', flex: '1', display: 'flex', flexDirection: 'column', backgroundColor: 'red', minHeight: '100vh' }}>
-          <div style={{ backgroundColor: 'yellow', padding: '20px', position: 'relative', zIndex: 999 }}>MAIN CONTAINER TEST</div>
-          <div style={{ flex: '1', backgroundColor: 'blue', padding: '20px', position: 'relative', zIndex: 999 }}>
-            <div className="p-4 bg-red-500 text-white">
-              DEBUG: Main content area rendering. Current path: {window.location.pathname}
-            </div>
-            <div className="p-4 bg-green-500 text-white">
-              TESTING: Switch component replaced. Should see this text.
-            </div>
+      <Sidebar />
+      <div className="lg:ml-64">
+        <main className="flex-1 flex flex-col">
+          <UniversalSearch />
+          <div className="flex-1 overflow-auto bg-background">
+            <Switch>
+              <Route path="/" component={Dashboard} />
+              <Route path="/dashboard" component={Dashboard} />
+              <Route path="/inventory" component={Inventory} />
+              <Route path="/sales" component={Sales} />
+              <Route path="/customers" component={Customers} />
+              <Route path="/reports" component={Reports} />
+              <Route path="/settings" component={SettingsPage} />
+              <Route component={NotFound} />
+            </Switch>
           </div>
         </main>
       </div>
@@ -104,7 +108,6 @@ function Router() {
 function App() {
   return (
     <ErrorBoundary>
-      <DebugComponent />
       <QueryClientProvider client={queryClient}>
         <ThemeProvider>
           <AuthProvider>
