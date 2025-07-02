@@ -4,6 +4,7 @@ import { queryClient } from "./lib/queryClient";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Sidebar } from "@/components/layout/sidebar";
+import { MobileBottomNav } from "@/components/layout/mobile-bottom-nav";
 import { TopBar } from "@/components/TopBar";
 import { AuthProvider, useAuth } from "@/hooks/use-auth";
 import { useWebSocket } from "@/hooks/use-websocket";
@@ -30,10 +31,14 @@ function AuthenticatedApp() {
   
   return (
     <div className="flex h-screen bg-background text-foreground overflow-hidden">
-      <Sidebar />
+      {/* Desktop Sidebar - hidden on mobile */}
+      <div className="hidden sm:block">
+        <Sidebar />
+      </div>
+      
       <div className="flex-1 flex flex-col main-content min-w-0">
         <TopBar />
-        <main className="flex-1 overflow-y-auto bg-background">
+        <main className="flex-1 overflow-y-auto bg-background pb-16 sm:pb-0">
           <Switch>
             <Route path="/" component={Dashboard} />
             <Route path="/dashboard" component={Dashboard} />
@@ -46,6 +51,9 @@ function AuthenticatedApp() {
           </Switch>
         </main>
       </div>
+      
+      {/* Mobile Bottom Navigation - shown only on mobile */}
+      <MobileBottomNav />
     </div>
   );
 }
