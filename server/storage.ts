@@ -170,7 +170,8 @@ export class MemStorage implements IStorage {
         id: this.productId++, 
         description: product.description || null,
         stock: product.stock || 0,
-        lowStockThreshold: product.lowStockThreshold || 10
+        lowStockThreshold: product.lowStockThreshold || 10,
+        salesCount: product.salesCount || 0
       };
       this.products.set(newProduct.id, newProduct);
     });
@@ -280,6 +281,7 @@ export class MemStorage implements IStorage {
       description: insertProduct.description ?? null,
       stock: insertProduct.stock ?? 0,
       lowStockThreshold: insertProduct.lowStockThreshold ?? 10,
+      salesCount: 0,
       createdAt: new Date()
     };
     this.products.set(product.id, product);
@@ -349,6 +351,7 @@ export class MemStorage implements IStorage {
       phone: insertCustomer.phone ?? null,
       email: insertCustomer.email ?? null,
       address: insertCustomer.address ?? null,
+      balance: insertCustomer.balance ?? "0.00",
       createdAt: new Date()
     };
     this.customers.set(customer.id, customer);
