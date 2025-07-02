@@ -195,9 +195,9 @@ export default function Reports() {
             </div>
 
             {/* Summary Cards */}
-            <div className="flex gap-4 overflow-x-auto pb-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {/* Total Sales Card */}
-              <div className="bg-white dark:bg-[#1F1F1F] border border-gray-200 dark:border-gray-700 rounded-lg p-4 shadow-sm min-w-[200px]">
+              <div className="bg-white dark:bg-[#1F1F1F] border border-gray-200 dark:border-gray-700 rounded-lg p-4 shadow-sm">
                 <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Total Sales</p>
                 {summaryLoading ? (
                   <Skeleton className="h-6 w-24" />
@@ -209,7 +209,7 @@ export default function Reports() {
               </div>
 
               {/* Cash Sales Card */}
-              <div className="bg-white dark:bg-[#1F1F1F] border border-gray-200 dark:border-gray-700 rounded-lg p-4 shadow-sm min-w-[200px]">
+              <div className="bg-white dark:bg-[#1F1F1F] border border-gray-200 dark:border-gray-700 rounded-lg p-4 shadow-sm">
                 <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Cash</p>
                 {summaryLoading ? (
                   <Skeleton className="h-6 w-24" />
@@ -221,7 +221,7 @@ export default function Reports() {
               </div>
 
               {/* Mobile Money Card */}
-              <div className="bg-white dark:bg-[#1F1F1F] border border-gray-200 dark:border-gray-700 rounded-lg p-4 shadow-sm min-w-[200px]">
+              <div className="bg-white dark:bg-[#1F1F1F] border border-gray-200 dark:border-gray-700 rounded-lg p-4 shadow-sm">
                 <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Mobile Money</p>
                 {summaryLoading ? (
                   <Skeleton className="h-6 w-24" />
@@ -233,7 +233,7 @@ export default function Reports() {
               </div>
 
               {/* Credit Sales Card */}
-              <div className="bg-white dark:bg-[#1F1F1F] border border-gray-200 dark:border-gray-700 rounded-lg p-4 shadow-sm min-w-[200px]">
+              <div className="bg-white dark:bg-[#1F1F1F] border border-gray-200 dark:border-gray-700 rounded-lg p-4 shadow-sm">
                 <p className="text-sm text-gray-500 dark:text-gray-400 mb-1">Credit</p>
                 {summaryLoading ? (
                   <Skeleton className="h-6 w-24" />

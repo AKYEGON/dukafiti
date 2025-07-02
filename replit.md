@@ -209,6 +209,7 @@ Changelog:
 - July 2, 2025. Added purple accent hover effects and focus states for accessibility compliance
 - July 2, 2025. Integrated search dropdown with up to 8 results showing "Name – KES Price" format
 - July 2, 2025. Added proper ARIA labels and 48px minimum touch targets for mobile optimization
+- July 2, 2025. Updated Reports page summary cards from horizontal scrolling to vertical grid layout (2-column responsive)
 - July 2, 2025. Removed Language Toggle and Data Backup sections from Settings page per user request
 - July 2, 2025. Cleaned up backend API routes for language settings (/api/settings/language) and backup endpoints (/api/backup, /api/backup/google-drive)
 - July 2, 2025. Simplified Settings page to show only Store Profile, Dark Mode, and Manual Sync sections
