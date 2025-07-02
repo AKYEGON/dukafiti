@@ -342,24 +342,28 @@ export class DatabaseStorage implements IStorage {
 
   // Dashboard methods
   async getDashboardMetrics(): Promise<DashboardMetrics> {
-    // Get total revenue from completed orders
+    // Get total revenue from paid orders (completed or paid status)
     const [revenueResult] = await db.select({
       totalRevenue: sql<string>`COALESCE(SUM(CAST(${orders.total} AS DECIMAL)), 0)::TEXT`
     })
     .from(orders)
-    .where(eq(orders.status, 'completed'));
+    .where(or(eq(orders.status, 'completed'), eq(orders.status, 'paid')));
 
-    // Get total orders
-    const [ordersResult] = await db.select({
-      totalOrders: sql<number>`COUNT(*)`
-    }).from(orders);
+    // Get today's orders count
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const [todayOrdersResult] = await db.select({
+      todayOrders: sql<number>`COUNT(*)`
+    })
+    .from(orders)
+    .where(gte(orders.createdAt, today));
 
-    // Get total products
+    // Get total products count
     const [productsResult] = await db.select({
       totalProducts: sql<number>`COUNT(*)`
     }).from(products);
 
-    // Get total customers
+    // Get total customers count  
     const [customersResult] = await db.select({
       totalCustomers: sql<number>`COUNT(*)`
     }).from(customers);
@@ -372,11 +376,11 @@ export class DatabaseStorage implements IStorage {
 
     return {
       totalRevenue: revenueResult?.totalRevenue || "0.00",
-      totalOrders: ordersResult?.totalOrders || 0,
+      totalOrders: todayOrdersResult?.todayOrders || 0,
       totalProducts: productsResult?.totalProducts || 0,
       totalCustomers: customersResult?.totalCustomers || 0,
-      revenueGrowth: "+12.5%", // Mock for now
-      ordersGrowth: "+8.2%", // Mock for now
+      revenueGrowth: "0.0%", // Will be calculated accurately by detailed metrics
+      ordersGrowth: "0.0%", // Will be calculated accurately by detailed metrics
       lowStockCount: lowStockResult?.lowStockCount || 0,
       activeCustomersCount: customersResult?.totalCustomers || 0
     };
@@ -388,19 +392,25 @@ export class DatabaseStorage implements IStorage {
     inventory: { totalItems: number; priorSnapshot: number; };
     customers: { active: number; priorActive: number; };
   }> {
-    const today = new Date();
+    const now = new Date();
+    const today = new Date(now);
     today.setHours(0, 0, 0, 0);
+    
     const yesterday = new Date(today);
     yesterday.setDate(yesterday.getDate() - 1);
+    
+    const tomorrowStart = new Date(today);
+    tomorrowStart.setDate(tomorrowStart.getDate() + 1);
 
-    // Revenue calculations
+    // Revenue calculations for paid/completed orders
     const [todayRevenue] = await db.select({
       revenue: sql<number>`COALESCE(SUM(CAST(${orders.total} AS DECIMAL)), 0)`
     })
     .from(orders)
     .where(and(
-      eq(orders.status, 'completed'),
-      gte(orders.createdAt, today)
+      or(eq(orders.status, 'completed'), eq(orders.status, 'paid')),
+      gte(orders.createdAt, today),
+      sql`${orders.createdAt} < ${tomorrowStart}`
     ));
 
     const [yesterdayRevenue] = await db.select({
@@ -408,17 +418,20 @@ export class DatabaseStorage implements IStorage {
     })
     .from(orders)
     .where(and(
-      eq(orders.status, 'completed'),
+      or(eq(orders.status, 'completed'), eq(orders.status, 'paid')),
       gte(orders.createdAt, yesterday),
       sql`${orders.createdAt} < ${today}`
     ));
 
-    // Orders calculations
+    // Orders calculations (all orders for today and yesterday)
     const [todayOrders] = await db.select({
       count: sql<number>`COUNT(*)`
     })
     .from(orders)
-    .where(gte(orders.createdAt, today));
+    .where(and(
+      gte(orders.createdAt, today),
+      sql`${orders.createdAt} < ${tomorrowStart}`
+    ));
 
     const [yesterdayOrders] = await db.select({
       count: sql<number>`COUNT(*)`
@@ -434,29 +447,41 @@ export class DatabaseStorage implements IStorage {
       totalItems: sql<number>`COALESCE(SUM(${products.stock}), 0)`
     }).from(products);
 
-    // Customer calculations
-    const [customerCount] = await db.select({
-      active: sql<number>`COUNT(*)`
+    // Customer calculations (customers with orders in last 30 days are considered active)
+    const thirtyDaysAgo = new Date(today);
+    thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+    
+    const [activeCustomers] = await db.select({
+      active: sql<number>`COUNT(DISTINCT ${orders.customerId})`
+    })
+    .from(orders)
+    .where(and(
+      isNotNull(orders.customerId),
+      gte(orders.createdAt, thirtyDaysAgo)
+    ));
+
+    const [totalCustomers] = await db.select({
+      total: sql<number>`COUNT(*)`
     }).from(customers);
 
     return {
       revenue: {
-        today: todayRevenue?.revenue || 0,
-        yesterday: yesterdayRevenue?.revenue || 0,
-        weekToDate: todayRevenue?.revenue || 0, // Simplified
-        priorWeekToDate: yesterdayRevenue?.revenue || 0, // Simplified
+        today: Number(todayRevenue?.revenue || 0),
+        yesterday: Number(yesterdayRevenue?.revenue || 0),
+        weekToDate: Number(todayRevenue?.revenue || 0), // Simplified for now
+        priorWeekToDate: Number(yesterdayRevenue?.revenue || 0), // Simplified for now
       },
       orders: {
-        today: todayOrders?.count || 0,
-        yesterday: yesterdayOrders?.count || 0,
+        today: Number(todayOrders?.count || 0),
+        yesterday: Number(yesterdayOrders?.count || 0),
       },
       inventory: {
-        totalItems: inventoryCount?.totalItems || 0,
-        priorSnapshot: inventoryCount?.totalItems || 0, // Simplified
+        totalItems: Number(inventoryCount?.totalItems || 0),
+        priorSnapshot: Number(inventoryCount?.totalItems || 0), // Simplified - would need historical data
       },
       customers: {
-        active: customerCount?.active || 0,
-        priorActive: customerCount?.active || 0, // Simplified
+        active: Number(activeCustomers?.active || 0),
+        priorActive: Math.max(0, Number(totalCustomers?.total || 0) - 1), // Simplified approximation
       },
     };
   }
