@@ -32,6 +32,18 @@ interface CustomerCredit {
   balance: string;
 }
 
+interface TopCustomer {
+  customerName: string;
+  totalOwed: string;
+  outstandingOrders: number;
+}
+
+interface TopProduct {
+  productName: string;
+  unitsSold: number;
+  totalRevenue: string;
+}
+
 interface OrderItem {
   productName: string;
   qty: number;
@@ -126,6 +138,26 @@ export default function Reports() {
     queryFn: async () => {
       const response = await fetch('/api/reports/credits');
       if (!response.ok) throw new Error('Failed to fetch customer credits');
+      return response.json();
+    }
+  });
+
+  // Fetch top customers data
+  const { data: topCustomersData, isLoading: topCustomersLoading } = useQuery<TopCustomer[]>({
+    queryKey: ['/api/reports/top-customers', summaryPeriod],
+    queryFn: async () => {
+      const response = await fetch(`/api/reports/top-customers?period=${summaryPeriod}`);
+      if (!response.ok) throw new Error('Failed to fetch top customers');
+      return response.json();
+    }
+  });
+
+  // Fetch top products data
+  const { data: topProductsData, isLoading: topProductsLoading } = useQuery<TopProduct[]>({
+    queryKey: ['/api/reports/top-products', summaryPeriod],
+    queryFn: async () => {
+      const response = await fetch(`/api/reports/top-products?period=${summaryPeriod}`);
+      if (!response.ok) throw new Error('Failed to fetch top products');
       return response.json();
     }
   });
@@ -308,8 +340,91 @@ export default function Reports() {
             </div>
           </div>
 
-          {/* Right Column: Orders Record */}
+          {/* Right Column: Top Performance Cards & Orders Record */}
           <div className="space-y-6">
+            {/* Top Customers and Top Products Row */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Top Customers by Credit Card */}
+              <div className="bg-white dark:bg-[#1F1F1F] border border-gray-200 dark:border-gray-700 rounded-lg p-4 shadow-sm">
+                <h3 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100 mb-4">Top Customers (Credit)</h3>
+                {topCustomersLoading ? (
+                  <div className="space-y-3">
+                    {[...Array(5)].map((_, i) => (
+                      <div key={i} className="flex justify-between items-center">
+                        <div className="space-y-1">
+                          <Skeleton className="h-4 w-24" />
+                          <Skeleton className="h-3 w-16" />
+                        </div>
+                        <Skeleton className="h-4 w-16" />
+                      </div>
+                    ))}
+                  </div>
+                ) : topCustomersData && topCustomersData.length > 0 ? (
+                  <div className="space-y-3">
+                    {topCustomersData.map((customer, index) => (
+                      <div key={index} className="flex justify-between items-center py-2 border-b border-gray-100 dark:border-gray-700 last:border-b-0">
+                        <div>
+                          <p className="font-medium text-gray-900 dark:text-gray-100">{customer.customerName}</p>
+                          <p className="text-sm text-gray-500 dark:text-gray-400">{customer.outstandingOrders} outstanding orders</p>
+                        </div>
+                        <div className="text-right">
+                          <p className="font-semibold text-red-600 dark:text-red-400">{formatCurrency(customer.totalOwed)}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                    No customers with outstanding credit for this period.
+                  </div>
+                )}
+              </div>
+
+              {/* Top-Selling Products Card */}
+              <div className="bg-white dark:bg-[#1F1F1F] border border-gray-200 dark:border-gray-700 rounded-lg p-4 shadow-sm">
+                <h3 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100 mb-4">Top-Selling Products</h3>
+                {topProductsLoading ? (
+                  <div className="space-y-3">
+                    {[...Array(5)].map((_, i) => (
+                      <div key={i} className="flex justify-between items-center">
+                        <div className="space-y-1">
+                          <Skeleton className="h-4 w-24" />
+                          <Skeleton className="h-3 w-16" />
+                        </div>
+                        <Skeleton className="h-4 w-16" />
+                      </div>
+                    ))}
+                  </div>
+                ) : topProductsData && topProductsData.length > 0 ? (
+                  <div className="space-y-3">
+                    {topProductsData.map((product, index) => (
+                      <div key={index} className="py-2 border-b border-gray-100 dark:border-gray-700 last:border-b-0">
+                        <div className="flex justify-between items-start mb-2">
+                          <div>
+                            <p className="font-medium text-gray-900 dark:text-gray-100">{product.productName}</p>
+                            <p className="text-sm text-gray-500 dark:text-gray-400">{product.unitsSold} units sold</p>
+                          </div>
+                          <p className="font-semibold text-green-600 dark:text-green-400">{formatCurrency(product.totalRevenue)}</p>
+                        </div>
+                        {/* Progress bar showing relative sales volume */}
+                        <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
+                          <div 
+                            className="bg-green-500 h-2 rounded-full transition-all duration-300" 
+                            style={{ 
+                              width: `${Math.min(100, (product.unitsSold / (topProductsData[0]?.unitsSold || 1)) * 100)}%` 
+                            }}
+                          />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                    No product sales data for this period.
+                  </div>
+                )}
+              </div>
+            </div>
             <div className="bg-white dark:bg-[#1F1F1F] border border-gray-200 dark:border-gray-700 rounded-lg p-4 shadow-sm">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">Orders Record</h3>

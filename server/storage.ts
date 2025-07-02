@@ -74,6 +74,7 @@ export interface IStorage {
 
   // Order Items
   getOrderItems(orderId: number): Promise<OrderItem[]>;
+  getAllOrderItems(): Promise<OrderItem[]>;
   createOrderItem(orderItem: InsertOrderItem): Promise<OrderItem>;
 
   // Payments
@@ -312,6 +313,10 @@ export class DatabaseStorage implements IStorage {
   // Order Item methods
   async getOrderItems(orderId: number): Promise<OrderItem[]> {
     return await db.select().from(orderItems).where(eq(orderItems.orderId, orderId));
+  }
+
+  async getAllOrderItems(): Promise<OrderItem[]> {
+    return await db.select().from(orderItems);
   }
 
   async createOrderItem(insertOrderItem: InsertOrderItem): Promise<OrderItem> {

@@ -1169,6 +1169,128 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Top customers by credit endpoint
+  app.get('/api/reports/top-customers', requireAuth, async (req: any, res: any) => {
+    try {
+      const period = req.query.period || 'daily';
+      const customers = await storage.getCustomers();
+      const orders = await storage.getOrders();
+
+      // Filter orders by period and credit status
+      let startDate: Date;
+      const now = new Date();
+      
+      switch (period) {
+        case 'daily':
+          startDate = new Date(now);
+          startDate.setHours(0, 0, 0, 0);
+          break;
+        case 'weekly':
+          startDate = new Date(now);
+          startDate.setDate(now.getDate() - 7);
+          break;
+        case 'monthly':
+          startDate = new Date(now);
+          startDate.setMonth(now.getMonth() - 1);
+          break;
+        default:
+          startDate = new Date(now);
+          startDate.setHours(0, 0, 0, 0);
+      }
+
+      // Calculate customer credit data
+      const customerCredits = customers.map(customer => {
+        const customerOrders = orders.filter(order => 
+          order.customerId === customer.id && 
+          order.status === 'credit' &&
+          new Date(order.createdAt) >= startDate
+        );
+
+        const totalOwed = customerOrders.reduce((sum, order) => sum + parseFloat(order.total), 0);
+        const outstandingOrders = customerOrders.length;
+
+        return {
+          customerName: customer.name,
+          totalOwed: totalOwed.toFixed(2),
+          outstandingOrders
+        };
+      })
+      .filter(customer => parseFloat(customer.totalOwed) > 0)
+      .sort((a, b) => parseFloat(b.totalOwed) - parseFloat(a.totalOwed))
+      .slice(0, 5);
+
+      res.json(customerCredits);
+    } catch (error) {
+      console.error('Top customers fetch error:', error);
+      res.status(500).json({ error: 'Failed to fetch top customers' });
+    }
+  });
+
+  // Top products by sales endpoint
+  app.get('/api/reports/top-products', requireAuth, async (req: any, res: any) => {
+    try {
+      const period = req.query.period || 'daily';
+      const products = await storage.getProducts();
+      const orders = await storage.getOrders();
+      const orderItems = await storage.getAllOrderItems();
+
+      // Filter orders by period
+      let startDate: Date;
+      const now = new Date();
+      
+      switch (period) {
+        case 'daily':
+          startDate = new Date(now);
+          startDate.setHours(0, 0, 0, 0);
+          break;
+        case 'weekly':
+          startDate = new Date(now);
+          startDate.setDate(now.getDate() - 7);
+          break;
+        case 'monthly':
+          startDate = new Date(now);
+          startDate.setMonth(now.getMonth() - 1);
+          break;
+        default:
+          startDate = new Date(now);
+          startDate.setHours(0, 0, 0, 0);
+      }
+
+      const relevantOrders = orders.filter(order => 
+        (order.status === 'paid' || order.status === 'completed' || order.status === 'credit') &&
+        new Date(order.createdAt) >= startDate
+      );
+
+      // Calculate product sales data
+      const productSales = products.reduce((acc, product) => {
+        const productOrderItems = orderItems.filter(item => 
+          item.productId === product.id &&
+          relevantOrders.some(order => order.id === item.orderId)
+        );
+
+        const unitsSold = productOrderItems.reduce((sum, item) => sum + item.quantity, 0);
+        const totalRevenue = productOrderItems.reduce((sum, item) => sum + (item.quantity * parseFloat(item.price)), 0);
+
+        if (unitsSold > 0) {
+          acc.push({
+            productName: product.name,
+            unitsSold,
+            totalRevenue: totalRevenue.toFixed(2)
+          });
+        }
+
+        return acc;
+      }, [] as Array<{ productName: string; unitsSold: number; totalRevenue: string }>)
+      .sort((a, b) => b.unitsSold - a.unitsSold)
+      .slice(0, 5);
+
+      res.json(productSales);
+    } catch (error) {
+      console.error('Top products fetch error:', error);
+      res.status(500).json({ error: 'Failed to fetch top products' });
+    }
+  });
+
   // CSV export hosting endpoints
   const csvStorage = new Map<string, { content: string; timestamp: number }>();
   

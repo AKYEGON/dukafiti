@@ -1,0 +1,29 @@
+Assistant, the “Top Customers by Credit” and “Top‑Selling Products” sections were removed from the Reports page—please restore them with a clean, professional layout and ensure they work correctly alongside the existing summary and orders sections. Overwrite the current `Reports.jsx` as needed:
+
+1. **Top Customers by Credit**  
+   - Add a card titled **“Top Customers (Credit)”** above or beside the Orders Record section.  
+   - Fetch data from a new GET endpoint `/api/reports/top-customers?period={period}` (reuse the same `period` dropdown value).  
+   - Render the top 5 customers sorted by outstanding credit: each row shows Customer Name, Total Owed (KES formatted), and Number of Outstanding Orders.  
+   - Card styling: `bg-white dark:bg-[#1F1F1F] border rounded-lg p-4 shadow-sm`, with header `text-lg font-semibold`.
+
+2. **Top‑Selling Products**  
+   - Add a card titled **“Top‑Selling Products”** next to the Top Customers card.  
+   - Fetch data from `/api/reports/top-products?period={period}` and display the top 5 products by units sold: Product Name, Units Sold, and Total Revenue for that product.  
+   - Use a simple bar chart or a ranked list with green progress bars showing relative sales volume.
+
+3. **Integration & Layout**  
+   - Position these two cards in a responsive two‑column grid on desktop (`grid-cols-1 lg:grid-cols-2 gap-6`), stacking on mobile.  
+   - Ensure they update when the Timeframe dropdown changes, matching the summary cards’ `period` selection.
+
+4. **Endpoint Definitions**  
+   - **GET** `/api/reports/top-customers?period={period}` → `[{ customerName, totalOwed, outstandingOrders }]`  
+   - **GET** `/api/reports/top-products?period={period}` → `[{ productName, unitsSold, totalRevenue }]`
+
+5. **QA Checklist**  
+   - [ ] Top Customers card fetches and lists the 5 correct customers for each period.  
+   - [ ] Top‑Selling Products card fetches and shows the 5 correct products.  
+   - [ ] Layout is responsive and matches the Reports page styling.  
+   - [ ] Cards update when changing the period dropdown.  
+   - [ ] No console errors or layout regressions.
+
+Generate the React component updates, new Express route handlers for these endpoints, and any necessary styling (Tailwind classes) to restore and polish these Reports sections.```
