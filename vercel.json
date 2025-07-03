@@ -6,7 +6,7 @@
       "use": "@vercel/static-build",
       "config": {
         "distDir": "dist/public",
-        "buildCommand": "npm run build:client"
+        "buildCommand": "npm run build"
       }
     },
     {
@@ -32,11 +32,6 @@
       "dest": "/dist/public/$1"
     }
   ],
-  "functions": {
-    "server/index.ts": {
-      "maxDuration": 30
-    }
-  },
   "env": {
     "NODE_ENV": "production"
   }
