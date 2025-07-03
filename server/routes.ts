@@ -7,6 +7,7 @@ import { z } from "zod";
 import bcrypt from "bcryptjs";
 import { v4 as uuidv4 } from "uuid";
 import { Parser as Json2csvParser } from "json2csv";
+import { requireAuth as requireSupabaseAuth, optionalAuth, getCurrentUser as getSupabaseUser } from "./auth-middleware";
 
 // WebSocket clients store
 const wsClients = new Set<WebSocket>();
@@ -28,16 +29,20 @@ function broadcastToClients(message: any) {
   });
 }
 
-// Authentication middleware
-function requireAuth(req: any, res: any, next: any) {
+// Use Supabase auth by default, legacy auth as aliases
+const requireAuth = requireSupabaseAuth;
+const getCurrentUser = getSupabaseUser;
+
+// Legacy authentication middleware for backward compatibility
+function requireAuthLegacy(req: any, res: any, next: any) {
   if (!req.session.user) {
     return res.status(401).json({ error: "Authentication required" });
   }
   next();
 }
 
-// Helper function to get current user from session
-async function getCurrentUser(req: any) {
+// Helper function to get current user from session (legacy)
+async function getCurrentUserLegacy(req: any) {
   if (!req.session.user) {
     return null;
   }
