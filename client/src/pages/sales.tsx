@@ -619,7 +619,7 @@ export default function Sales() {
   return (
     <div className="min-h-screen bg-background">
       {/* Responsive Single-Column Flow */}
-      <div className="container mx-auto px-4 sm:px-6 md:px-8 py-4 sm:py-6 space-y-4 sm:space-y-6 pb-32 max-w-2xl">{/* pb-32 for extra sticky button space */}
+      <div className="container mx-auto px-4 sm:px-6 md:px-8 py-4 sm:py-6 space-y-4 sm:space-y-6 pb-40 md:pb-32 max-w-2xl">{/* pb-40 mobile, pb-32 tablet+ for sticky button space */}
         
         {/* 1. Quick-Select Panel (Top 6) */}
         <div className="bg-white dark:bg-[#1F1F1F] rounded-lg p-4 shadow-sm">
@@ -864,8 +864,8 @@ export default function Sales() {
         )}
       </div>
 
-      {/* 4. Sticky Sell Button */}
-      <div className="fixed bottom-0 left-0 right-0 p-4 bg-background border-t border-border">
+      {/* 4. Sticky Sell Button - with mobile bottom nav spacing */}
+      <div className="fixed bottom-16 md:bottom-0 left-0 right-0 p-4 bg-background border-t border-border">
         <button
           ref={buttonRef}
           onClick={handleSellButtonClick}
