@@ -584,6 +584,21 @@ export async function registerSupabaseRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Top products endpoint (for Reports page)
+  app.get('/api/reports/top-products', requireAuth, async (req, res) => {
+    try {
+      const topProducts = await supabaseDb.getTopProducts();
+      res.json(topProducts.map(product => ({
+        productName: product.productName,
+        unitsSold: product.unitsSold,
+        totalRevenue: product.totalRevenue
+      })));
+    } catch (error) {
+      console.error('Top products reports error:', error);
+      res.status(500).json({ message: 'Failed to fetch top products' });
+    }
+  });
+
   // Credits endpoint for reports
   app.get('/api/reports/credits', requireAuth, async (req, res) => {
     try {
@@ -850,7 +865,13 @@ export async function registerSupabaseRoutes(app: Express): Promise<Server> {
         return res.json([]);
       }
       
-      const results = [];
+      const results: Array<{
+        id: number;
+        type: string;
+        name: string;
+        subtitle: string;
+        url: string;
+      }> = [];
       
       // Search products
       const { data: products, error: productsError } = await supabase
