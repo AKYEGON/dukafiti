@@ -644,15 +644,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
           price: item.price
         });
         
-        // Update product stock (decrement for all payment types)
-        await storage.updateProductStock(item.productId, -item.quantity);
+        // Get the product to check if it has unknown quantity
+        const productInfo = await storage.getProduct(item.productId);
         
-        // Get updated product info for inventory event
-        const updatedProduct = await storage.getProduct(item.productId);
-        if (updatedProduct) {
+        // Update product stock ONLY if it's not an unknown quantity item
+        if (productInfo && productInfo.stock !== null) {
+          await storage.updateProductStock(item.productId, -item.quantity);
+          
+          // Get updated product info for inventory event
+          const updatedProduct = await storage.getProduct(item.productId);
+          if (updatedProduct) {
+            updatedProducts.push({
+              productId: item.productId,
+              newQuantity: updatedProduct.stock
+            });
+          }
+        } else {
+          // For unknown quantity items, don't update stock but still broadcast the event
           updatedProducts.push({
             productId: item.productId,
-            newQuantity: updatedProduct.stock
+            newQuantity: null // Keep as unknown quantity
           });
         }
         

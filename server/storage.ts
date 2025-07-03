@@ -183,6 +183,13 @@ export class DatabaseStorage implements IStorage {
   }
 
   async updateProductStock(id: number, stockChange: number): Promise<Product | undefined> {
+    // First get the product to check if it has unknown quantity
+    const existingProduct = await this.getProduct(id);
+    if (!existingProduct || existingProduct.stock === null) {
+      // Don't update stock for unknown quantity items
+      return existingProduct;
+    }
+    
     const [product] = await db.update(products)
       .set({ stock: sql`${products.stock} + ${stockChange}` })
       .where(eq(products.id, id))
