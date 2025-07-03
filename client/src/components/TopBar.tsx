@@ -122,7 +122,7 @@ export function TopBar({ onToggleSidebar, isSidebarCollapsed }: TopBarProps) {
     },
     onSuccess: () => {
       queryClient.clear();
-      setLocation('/login');
+      setLocation('/');
     },
   });
 

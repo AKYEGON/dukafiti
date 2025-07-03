@@ -259,6 +259,10 @@ Changelog:
 - July 3, 2025. Fixed critical credit sales data format mismatch between frontend and backend API
 - July 3, 2025. Updated frontend to send customer data as single string field instead of separate name/phone fields
 - July 3, 2025. Verified all database operations, product sales, customer management, and credit transactions work properly
+- July 3, 2025. Fixed product search functionality on Sales page to use correct /api/products/search endpoint
+- July 3, 2025. Enhanced backend search with intelligent matching across name, SKU, category, and description fields
+- July 3, 2025. Made sale confirmation modal scrollable to ensure Confirm button accessibility on all screen sizes
+- July 3, 2025. Fixed logout redirect to navigate users back to home page instead of login page
 - July 2, 2025. Created PostgreSQL database with proper schema deployment using Drizzle Kit
 - July 2, 2025. Updated database configuration from Neon to PostgreSQL with pg driver
 - July 2, 2025. Seeded database with sample users, products, customers, and notifications for testing
