@@ -168,3 +168,16 @@ export async function initializeDatabase() {
     throw error;
   }
 }
+
+// Run initialization if this file is executed directly
+if (import.meta.url === `file://${process.argv[1]}`) {
+  initializeDatabase()
+    .then(() => {
+      console.log("Database initialization completed successfully!");
+      process.exit(0);
+    })
+    .catch((error) => {
+      console.error("Database initialization failed:", error);
+      process.exit(1);
+    });
+}

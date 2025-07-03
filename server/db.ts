@@ -8,4 +8,5 @@ export const pool = new Pool({
   connectionString: DATABASE_URL,
   ssl: DATABASE_URL.includes('localhost') ? false : { rejectUnauthorized: false }
 });
+
 export const db = drizzle(pool, { schema });

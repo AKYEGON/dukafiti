@@ -100,6 +100,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       anonKey: process.env.SUPABASE_ANON_KEY,
     });
   });
+
+  // Database initialization endpoint (internal use)
+  app.post("/api/init-db", async (req, res) => {
+    try {
+      const { initializeDatabase } = await import("./init-db");
+      await initializeDatabase();
+      res.json({ success: true, message: "Database initialized successfully" });
+    } catch (error) {
+      console.error("Database initialization error:", error);
+      res.status(500).json({ success: false, message: "Database initialization failed", error: error.message });
+    }
+  });
   
   // User registration route
   app.post("/api/register", async (req, res) => {
