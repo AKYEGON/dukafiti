@@ -7,7 +7,7 @@ import { setupVite, serveStatic, log } from "./vite";
 // Extend session type to include user
 declare module 'express-session' {
   interface SessionData {
-    user?: { phone: string; email?: string; username?: string };
+    user?: { id: number; phone: string; email?: string; username?: string };
   }
 }
 
@@ -17,15 +17,15 @@ const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-// Configure express-session
+// Configure express-session with persistent login
 app.use(session({
   secret: process.env.SESSION_SECRET || 'default-secret-key-change-in-production',
   resave: false,
   saveUninitialized: false,
   cookie: {
-    maxAge: 24 * 60 * 60 * 1000, // 24 hours in milliseconds
+    maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days in milliseconds
     httpOnly: true,
-    secure: false, // Set to false for development
+    secure: process.env.NODE_ENV === 'production', // Secure only in production
     sameSite: 'lax'
   }
 }));

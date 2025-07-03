@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { useLocation } from 'wouter';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { formatDistanceToNow } from 'date-fns';
+import { useAuth } from '@/contexts/AuthContext';
 import { 
   Search, 
   Bell, 
@@ -19,11 +20,7 @@ import { useOutsideClick } from '@/hooks/useOutsideClick';
 import { SidebarToggleIcon } from '@/components/icons/sidebar-toggle-icon';
 import type { SearchResult, Notification } from '@shared/schema';
 
-interface User {
-  email?: string;
-  username?: string;
-  phone?: string;
-}
+
 
 interface TopBarProps {
   onToggleSidebar?: () => void;
@@ -32,7 +29,7 @@ interface TopBarProps {
 
 export function TopBar({ onToggleSidebar, isSidebarCollapsed }: TopBarProps) {
   const [, setLocation] = useLocation();
-  const queryClient = useQueryClient();
+  const { user, logout } = useAuth();
   
   // Search state
   const [searchQuery, setSearchQuery] = useState('');
@@ -70,11 +67,7 @@ export function TopBar({ onToggleSidebar, isSidebarCollapsed }: TopBarProps) {
   const searchInputRef = useRef<HTMLInputElement>(null);
   const logoutModalRef = useRef<HTMLDivElement>(null);
 
-  // Fetch user data
-  const { data: user } = useQuery<User>({
-    queryKey: ['/api/me'],
-    enabled: true,
-  });
+
 
   // Fetch notifications
   const { data: notifications = [] } = useQuery<Notification[]>({
@@ -110,32 +103,10 @@ export function TopBar({ onToggleSidebar, isSidebarCollapsed }: TopBarProps) {
     }
   }, [debouncedSearchQuery]);
 
-  // Logout mutation
-  const logoutMutation = useMutation({
-    mutationFn: async () => {
-      const response = await fetch('/api/logout', {
-        method: 'POST',
-        credentials: 'include',
-      });
-      if (!response.ok) throw new Error('Logout failed');
-      return response.json();
-    },
-    onSuccess: () => {
-      // Invalidate auth query to trigger state change
-      queryClient.invalidateQueries({ queryKey: ['/api/me'] });
-      // Clear all cached data
-      queryClient.clear();
-      // Force navigation to home page
-      setLocation('/');
-      // Force page reload to ensure clean state
-      window.location.reload();
-    },
-  });
-
-  const handleLogout = () => {
+  const handleLogout = async () => {
     setIsLogoutModalOpen(false);
     setIsProfileOpen(false);
-    logoutMutation.mutate();
+    await logout();
   };
 
   const handleSearch = (query: string) => {
@@ -457,10 +428,9 @@ export function TopBar({ onToggleSidebar, isSidebarCollapsed }: TopBarProps) {
               </button>
               <button
                 onClick={handleLogout}
-                disabled={logoutMutation.isPending}
-                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors"
+                className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
               >
-                {logoutMutation.isPending ? 'Logging out...' : 'Confirm Logout'}
+                Confirm Logout
               </button>
             </div>
           </div>

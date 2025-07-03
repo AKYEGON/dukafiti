@@ -8,7 +8,8 @@ import { Sidebar } from "@/components/layout/sidebar";
 import { MobileBottomNav } from "@/components/layout/mobile-bottom-nav";
 import { TopBar } from "@/components/TopBar";
 
-import { AuthProvider, useAuth } from "@/hooks/use-auth";
+import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { useWebSocket } from "@/hooks/use-websocket";
 import { ThemeProvider } from "@/contexts/theme-context";
 import { OfflineIndicator } from "@/components/offline-indicator";
@@ -90,37 +91,67 @@ function Router() {
       <div className="min-h-screen flex items-center justify-center bg-background text-foreground">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-2 text-muted-foreground">Loading...</p>
+          <p className="mt-2 text-muted-foreground">Checking session...</p>
         </div>
       </div>
     );
   }
 
-  // Handle onboarding route
-  if (location === "/onboarding") {
-    return <Onboarding />;
-  }
-
-  // Protected routes - redirect to HOME (not login) if not authenticated
-  // This ensures logout takes users to the landing page
-  const protectedRoutes = ['/dashboard', '/inventory', '/sales', '/customers', '/reports', '/settings'];
-  if (protectedRoutes.includes(location) && !isAuthenticated) {
-    setLocation('/');
-    return null;
-  }
-
-  // Redirect authenticated users from login/register pages to dashboard
+  // Redirect authenticated users from auth pages to dashboard
   if (isAuthenticated && (location === '/login' || location === '/register')) {
     setLocation('/dashboard');
     return null;
   }
 
-  // Redirect logic based on authentication
-  if (isAuthenticated) {
-    return <AuthenticatedApp />;
-  } else {
-    return <UnauthenticatedApp />;
-  }
+  // Main routing logic
+  return (
+    <Switch>
+      {/* Public routes */}
+      <Route path="/" component={isAuthenticated ? () => { setLocation('/dashboard'); return null; } : Home} />
+      <Route path="/login" component={Login} />
+      <Route path="/register" component={Register} />
+      <Route path="/onboarding" component={Onboarding} />
+      
+      {/* Protected routes */}
+      <Route path="/dashboard">
+        <ProtectedRoute>
+          <AuthenticatedApp />
+        </ProtectedRoute>
+      </Route>
+      <Route path="/inventory">
+        <ProtectedRoute>
+          <AuthenticatedApp />
+        </ProtectedRoute>
+      </Route>
+      <Route path="/sales">
+        <ProtectedRoute>
+          <AuthenticatedApp />
+        </ProtectedRoute>
+      </Route>
+      <Route path="/customers">
+        <ProtectedRoute>
+          <AuthenticatedApp />
+        </ProtectedRoute>
+      </Route>
+      <Route path="/reports">
+        <ProtectedRoute>
+          <AuthenticatedApp />
+        </ProtectedRoute>
+      </Route>
+      <Route path="/settings">
+        <ProtectedRoute>
+          <AuthenticatedApp />
+        </ProtectedRoute>
+      </Route>
+      <Route path="/notifications">
+        <ProtectedRoute>
+          <AuthenticatedApp />
+        </ProtectedRoute>
+      </Route>
+      
+      <Route component={NotFound} />
+    </Switch>
+  );
 }
 
 function App() {

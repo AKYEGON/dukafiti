@@ -14,7 +14,7 @@ const wsClients = new Set<WebSocket>();
 // Extend session type to include user
 declare module 'express-session' {
   interface SessionData {
-    user?: { phone: string; email?: string; username?: string };
+    user?: { id: number; phone: string; email?: string; username?: string };
   }
 }
 
@@ -113,11 +113,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Check authentication status
-  app.get("/api/me", (req, res) => {
-    if (req.session.user) {
-      res.json({ authenticated: true, user: req.session.user });
-    } else {
-      res.status(401).json({ authenticated: false });
+  app.get("/api/me", async (req, res) => {
+    try {
+      if (!req.session.user) {
+        return res.status(401).json({ authenticated: false });
+      }
+
+      // Get full user data from database
+      const user = await getCurrentUser(req);
+      if (!user) {
+        // Clear invalid session
+        req.session.destroy((err) => {
+          if (err) console.error('Session destroy error:', err);
+        });
+        return res.status(401).json({ authenticated: false });
+      }
+
+      // Get store profile if exists
+      const storeProfile = await storage.getStoreProfile(user.id);
+      
+      res.json({ 
+        authenticated: true, 
+        user: { 
+          id: user.id,
+          email: user.email,
+          username: user.username,
+          phone: user.phone,
+          storeProfile: storeProfile
+        } 
+      });
+    } catch (error) {
+      console.error("Authentication check error:", error);
+      res.status(500).json({ authenticated: false });
     }
   });
 
@@ -142,11 +169,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "Invalid credentials" });
       }
 
-      // Set user session  
+      // Set user session with proper data
       req.session.user = { 
+        id: user.id,
         phone: user.phone || email, 
-        email: user.username ? user.username : undefined,
-        username: user.username ? user.username : undefined 
+        email: user.email,
+        username: user.username
       };
 
       res.status(200).json({ message: "Login successful", user: { email: user.email, username: user.username } });
@@ -1923,6 +1951,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.error('Logout error:', err);
         return res.status(500).json({ error: 'Failed to logout' });
       }
+      // Clear the session cookie
+      res.clearCookie('connect.sid');
       res.json({ success: true });
     });
   });
