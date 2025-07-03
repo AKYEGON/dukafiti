@@ -1,5 +1,5 @@
 import React from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/auth-context';
 import { useLocation } from 'wouter';
 
 interface ProtectedRouteProps {
@@ -7,16 +7,16 @@ interface ProtectedRouteProps {
 }
 
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
-  const { user, isLoading } = useAuth();
+  const { user, loading } = useAuth();
   const [, navigate] = useLocation();
 
   React.useEffect(() => {
-    if (!isLoading && !user) {
+    if (!loading && !user) {
       navigate('/login');
     }
-  }, [user, isLoading, navigate]);
+  }, [user, loading, navigate]);
 
-  if (isLoading) {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <div className="text-center">

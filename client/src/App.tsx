@@ -8,7 +8,7 @@ import { Sidebar } from "@/components/layout/sidebar";
 import { MobileBottomNav } from "@/components/layout/mobile-bottom-nav";
 import { TopBar } from "@/components/TopBar";
 
-import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { AuthProvider, useAuth } from "@/contexts/auth-context";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { useWebSocket } from "@/hooks/use-websocket";
 import { ThemeProvider } from "@/contexts/theme-context";
@@ -83,11 +83,11 @@ function UnauthenticatedApp() {
 }
 
 function Router() {
-  const { user, isLoading } = useAuth();
+  const { user, loading } = useAuth();
   const [location, setLocation] = useLocation();
 
   // Show loading spinner while checking auth
-  if (isLoading) {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background text-foreground">
         <div className="text-center">
