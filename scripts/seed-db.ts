@@ -7,10 +7,10 @@ async function seedDatabase() {
     console.log("Seeding database with sample data...");
 
     // Create a default user
-    const hashedPassword = await bcrypt.hash("password123", 10);
+    const hashedPassword = await bcrypt.hash("password", 10);
     const [user] = await db.insert(users).values({
-      username: "admin",
-      email: "admin@dukasmart.com",
+      username: "test",
+      email: "test@example.com",
       passwordHash: hashedPassword,
       phone: "+254700000000"
     }).returning();
