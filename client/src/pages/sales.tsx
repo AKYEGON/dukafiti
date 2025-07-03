@@ -12,7 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 // Use SaleLineItem from the components instead of local CartItem
 
-// Enhanced Confirmation Modal with Customer Autocomplete
+// Confirmation modal component
 const ConfirmationModal = ({ 
   isOpen, 
   onClose, 
@@ -25,45 +25,17 @@ const ConfirmationModal = ({
   onClose: () => void;
   cartItems: SaleLineItem[];
   paymentMethod: 'cash' | 'credit' | 'mobileMoney';
-  onConfirm: (customer?: { name: string; phone?: string; isNew?: boolean }) => void;
+  onConfirm: (customer?: { name: string; phone?: string }) => void;
   isProcessing: boolean;
 }) => {
-  const [customerSearch, setCustomerSearch] = useState('');
-  const [selectedCustomer, setSelectedCustomer] = useState<{id: number; name: string; phone: string | null} | null>(null);
-  const [showAddNew, setShowAddNew] = useState(false);
-  const [newCustomerName, setNewCustomerName] = useState('');
-  const [newCustomerPhone, setNewCustomerPhone] = useState('');
-  const [showDropdown, setShowDropdown] = useState(false);
+  const [customerName, setCustomerName] = useState('');
+  const [customerPhone, setCustomerPhone] = useState('');
 
-  // Fetch customers for autocomplete
-  const { data: customers = [] } = useQuery<any[]>({
-    queryKey: ["/api/customers"],
-    enabled: paymentMethod === 'credit' && isOpen
-  });
-
-  // Fetch fresh product data for stock validation
+  // Get fresh product data for accurate stock validation
   const { data: freshProducts = [] } = useQuery<Product[]>({
     queryKey: ["/api/products"],
-    enabled: isOpen
+    enabled: isOpen // Only fetch when modal is open
   });
-
-  // Filter customers based on search
-  const filteredCustomers = customers.filter(customer =>
-    customer.name.toLowerCase().includes(customerSearch.toLowerCase()) ||
-    (customer.phone && customer.phone.includes(customerSearch))
-  ).slice(0, 5); // Limit to 5 results
-
-  // Reset state when modal opens/closes
-  useEffect(() => {
-    if (isOpen) {
-      setCustomerSearch('');
-      setSelectedCustomer(null);
-      setShowAddNew(false);
-      setNewCustomerName('');
-      setNewCustomerPhone('');
-      setShowDropdown(false);
-    }
-  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -85,97 +57,56 @@ const ConfirmationModal = ({
     }
   };
 
-  // Stock validation using fresh product data
+  // Use fresh product data for stock validation instead of stale cart product data
   const stockIssues = cartItems.filter(item => {
     const freshProduct = freshProducts.find(p => p.id === item.product.id);
-    if (!freshProduct) return false;
-    if (freshProduct.stock === null) return false; // Skip unknown quantity items
+    if (!freshProduct) return false; // Product not found, skip validation
+    
+    // Skip validation for unknown quantity items (null stock)
+    if (freshProduct.stock === null) return false;
+    
+    // Check if requested quantity exceeds available stock
     return item.quantity > (freshProduct.stock || 0);
   });
   const hasStockIssues = stockIssues.length > 0;
 
-  const handleCustomerSearchChange = (value: string) => {
-    setCustomerSearch(value);
-    setSelectedCustomer(null);
-    setShowAddNew(false);
-    setShowDropdown(value.length > 0);
-  };
-
-  const handleCustomerSelect = (customer: any) => {
-    setSelectedCustomer(customer);
-    setCustomerSearch(`${customer.name} - ${customer.phone || 'No phone'}`);
-    setShowDropdown(false);
-    setShowAddNew(false);
-  };
-
-  const handleAddNewCustomer = () => {
-    setShowAddNew(true);
-    setShowDropdown(false);
-    setSelectedCustomer(null);
-  };
-
-  const isValidForConfirm = () => {
-    if (paymentMethod !== 'credit') return true;
-    if (selectedCustomer) return true;
-    if (showAddNew && newCustomerName.trim()) return true;
-    return false;
-  };
-
   const handleConfirm = () => {
-    if (hasStockIssues) return;
+    // Double-check stock before confirming
+    if (hasStockIssues) {
+      return; // Button should be disabled anyway
+    }
     
-    if (paymentMethod === 'credit') {
-      if (selectedCustomer) {
-        onConfirm({ name: selectedCustomer.name, phone: selectedCustomer.phone || undefined });
-      } else if (showAddNew && newCustomerName.trim()) {
-        onConfirm({ 
-          name: newCustomerName.trim(), 
-          phone: newCustomerPhone.trim() || undefined,
-          isNew: true 
-        });
-      }
+    if (paymentMethod === 'credit' && customerName.trim()) {
+      onConfirm({ name: customerName.trim(), phone: customerPhone.trim() });
     } else {
       onConfirm();
     }
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-white dark:bg-[#1F1F1F] rounded-lg shadow-lg p-6 w-full max-w-md max-h-[90vh] overflow-y-auto">
-        <h3 className="text-lg font-semibold mb-4 flex items-center gap-2">
-          {getPaymentIcon()}
-          Confirm Sale
-        </h3>
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/50">
+      <div className="bg-white dark:bg-[#1F1F1F] rounded-t-xl p-6 shadow-lg w-full max-w-md animate-in slide-in-from-bottom duration-300">
+        <h3 className="text-lg font-semibold mb-4">Confirm Sale</h3>
         
-        {/* Items Summary */}
-        <div className="space-y-2 mb-4">
-          <h4 className="font-medium text-sm text-gray-700 dark:text-gray-300">Items:</h4>
-          <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-3 space-y-2 max-h-40 overflow-y-auto">
-            {cartItems.map((item) => (
-              <div key={item.id} className="flex justify-between items-center text-sm">
-                <div className="flex-1">
-                  <div className="font-medium">{item.product.name}</div>
-                  <div className="text-gray-500 dark:text-gray-400">
-                    Qty: {item.quantity} × {formatCurrency(item.unitPrice)}
-                  </div>
-                </div>
-                <div className="font-medium">
-                  {formatCurrency(item.total)}
-                </div>
-              </div>
-            ))}
-          </div>
+        {/* Items list */}
+        <div className="space-y-2 mb-4 max-h-48 overflow-y-auto">
+          {cartItems.map(item => (
+            <div key={item.id} className="flex justify-between text-sm">
+              <span>{item.product.name} × {item.quantity}</span>
+              <span>{formatCurrency(item.total)}</span>
+            </div>
+          ))}
         </div>
         
         {/* Total */}
         <div className="border-t pt-3 mb-4">
           <div className="flex justify-between font-semibold text-lg">
             <span>Total</span>
-            <span className="text-green-600">{formatCurrency(total.toFixed(2))}</span>
+            <span>{formatCurrency(total.toFixed(2))}</span>
           </div>
         </div>
         
-        {/* Payment Method */}
+        {/* Payment method */}
         <div className="flex items-center gap-2 mb-4 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
           {getPaymentIcon()}
           <span className="font-medium">{getPaymentLabel()}</span>
@@ -196,95 +127,46 @@ const ConfirmationModal = ({
           </div>
         )}
 
-        {/* Customer Selection for Credit Sales */}
+        {/* Customer info for credit sales */}
         {paymentMethod === 'credit' && (
-          <div className="mb-4">
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Customer (search or add new)
-            </label>
-            
-            {/* Customer Search Input */}
-            <div className="relative">
-              <input
-                type="text"
-                value={customerSearch}
-                onChange={(e) => handleCustomerSearchChange(e.target.value)}
-                onFocus={() => setShowDropdown(customerSearch.length > 0)}
-                placeholder="Type customer name or phone..."
-                aria-label="Customer search"
-                className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 focus:ring-2 focus:ring-green-600 focus:border-green-600"
-              />
-              
-              {/* Dropdown */}
-              {showDropdown && (
-                <div className="absolute top-full left-0 right-0 z-50 mt-1 bg-white dark:bg-[#2A2A2A] border rounded-md shadow-sm">
-                  {/* Existing customers */}
-                  {filteredCustomers.map((customer) => (
-                    <div
-                      key={customer.id}
-                      onClick={() => handleCustomerSelect(customer)}
-                      className="px-4 py-2 hover:bg-green-50 dark:hover:bg-green-900/20 cursor-pointer border-b border-gray-100 dark:border-gray-700 last:border-b-0"
-                    >
-                      <div className="font-medium">{customer.name}</div>
-                      <div className="text-sm text-gray-500 dark:text-gray-400">
-                        {customer.phone || 'No phone number'}
-                      </div>
-                    </div>
-                  ))}
-                  
-                  {/* Add New Customer Option */}
-                  <div
-                    onClick={handleAddNewCustomer}
-                    className="px-4 py-2 hover:bg-green-50 dark:hover:bg-green-900/20 cursor-pointer border-t border-gray-200 dark:border-gray-600 bg-green-50 dark:bg-green-900/10"
-                  >
-                    <div className="font-bold text-green-600 dark:text-green-400">
-                      + Add new customer
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-            
-            {/* New Customer Form */}
-            {showAddNew && (
-              <div className="mt-3 space-y-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg transition-all duration-300">
-                <input
-                  type="text"
-                  value={newCustomerName}
-                  onChange={(e) => setNewCustomerName(e.target.value)}
-                  placeholder="Customer Name (required)"
-                  aria-label="New customer name"
-                  className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 focus:ring-2 focus:ring-green-600 focus:border-green-600"
-                />
-                <input
-                  type="text"
-                  value={newCustomerPhone}
-                  onChange={(e) => setNewCustomerPhone(e.target.value)}
-                  placeholder="Customer Phone (optional)"
-                  aria-label="New customer phone"
-                  className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 focus:ring-2 focus:ring-green-600 focus:border-green-600"
-                />
-              </div>
-            )}
+          <div className="space-y-3 mb-4">
+            <input
+              type="text"
+              placeholder="Customer Name (required)"
+              value={customerName}
+              onChange={(e) => setCustomerName(e.target.value)}
+              className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800"
+            />
+            <input
+              type="text"
+              placeholder="Customer Phone (optional)"
+              value={customerPhone}
+              onChange={(e) => setCustomerPhone(e.target.value)}
+              className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800"
+            />
           </div>
         )}
         
-        {/* Action Buttons */}
-        <div className="flex gap-3 pt-4">
-          <Button
-            variant="outline"
-            className="flex-1"
+        {/* Buttons */}
+        <div className="space-y-3">
+          <Button 
+            onClick={handleConfirm}
+            disabled={isProcessing || hasStockIssues || (paymentMethod === 'credit' && !customerName.trim())}
+            className={`w-full h-12 text-lg font-semibold ${
+              hasStockIssues 
+                ? 'bg-gray-400 hover:bg-gray-400 cursor-not-allowed text-white' 
+                : 'bg-green-600 hover:bg-green-700 text-white'
+            }`}
+          >
+            {isProcessing ? 'Processing...' : hasStockIssues ? 'Insufficient Stock' : 'Confirm Sale'}
+          </Button>
+          <Button 
             onClick={onClose}
+            variant="outline"
             disabled={isProcessing}
+            className="w-full h-12"
           >
             Cancel
-          </Button>
-          <Button
-            className="flex-1 bg-green-600 hover:bg-green-700 disabled:bg-gray-400"
-            onClick={handleConfirm}
-            disabled={isProcessing || hasStockIssues || !isValidForConfirm()}
-          >
-            {isProcessing ? "Processing..." : hasStockIssues ? "Stock Issue" : "Confirm Sale"}
           </Button>
         </div>
       </div>
