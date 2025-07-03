@@ -257,32 +257,36 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
               </div>
 
               {/* Unknown Quantity Toggle */}
-              <div className="bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg p-4">
-                <div className="flex items-start space-x-3">
-                  <Checkbox
-                    id="unknown-quantity"
-                    checked={unknownQuantity}
-                    onCheckedChange={(checked) => {
-                      setUnknownQuantity(checked === true);
-                      form.setValue("unknownQuantity", checked === true);
-                      if (checked) {
-                        form.setValue("stock", 0);
-                      }
-                    }}
-                    className="mt-0.5"
-                  />
+              <div className="relative bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-purple-950/30 dark:to-indigo-950/30 border border-purple-200 dark:border-purple-700 rounded-xl p-5 transition-all duration-200 hover:shadow-md">
+                <div className="flex items-start space-x-4">
+                  <div className="relative">
+                    <Checkbox
+                      id="unknown-quantity"
+                      checked={unknownQuantity}
+                      onCheckedChange={(checked) => {
+                        setUnknownQuantity(checked === true);
+                        form.setValue("unknownQuantity", checked === true);
+                        if (checked) {
+                          form.setValue("stock", 0);
+                        }
+                      }}
+                      className="w-5 h-5 data-[state=checked]:bg-purple-600 data-[state=checked]:border-purple-600 data-[state=checked]:text-white border-2 border-purple-300 dark:border-purple-600 rounded-md transition-all duration-200 hover:border-purple-400 dark:hover:border-purple-500"
+                    />
+                  </div>
                   <div className="flex-1">
                     <label
                       htmlFor="unknown-quantity"
-                      className="text-sm font-medium text-purple-900 dark:text-purple-100 leading-none cursor-pointer"
+                      className="block text-sm font-semibold text-purple-900 dark:text-purple-100 leading-tight cursor-pointer hover:text-purple-700 dark:hover:text-purple-200 transition-colors"
                     >
                       Unknown Quantity
                     </label>
-                    <p className="text-xs text-purple-700 dark:text-purple-300 mt-1">
+                    <p className="text-xs text-purple-600 dark:text-purple-300 mt-2 leading-relaxed">
                       Check this for items measured in variable units (e.g., sacks sold by cups, services, or bulk items)
                     </p>
                   </div>
                 </div>
+                {/* Visual accent */}
+                <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-purple-500 to-indigo-500 rounded-l-xl"></div>
               </div>
             </div>
 

@@ -233,6 +233,9 @@ Changelog:
 - July 3, 2025. Updated database schema to allow null stock quantities and skip stock validation for unknown quantity items
 - July 3, 2025. Modified dashboard low-stock alerts to exclude products with unknown quantities
 - July 3, 2025. Added visual indicators in inventory listing to display "—" for unknown quantity items
+- July 3, 2025. Fixed stock validation bug preventing sales of unknown quantity items in frontend and confirmation modal
+- July 3, 2025. Enhanced Product Form modal with professional UX/UI design including gradient backgrounds and styled checkbox
+- July 3, 2025. Successfully completed migration from Replit Agent to standard Replit environment with full functionality
 - July 2, 2025. Created PostgreSQL database with proper schema deployment using Drizzle Kit
 - July 2, 2025. Updated database configuration from Neon to PostgreSQL with pg driver
 - July 2, 2025. Seeded database with sample users, products, customers, and notifications for testing
