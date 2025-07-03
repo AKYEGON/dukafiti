@@ -98,25 +98,25 @@ export default function Inventory() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Sticky Top Toolbar */}
-      <div className="sticky top-0 z-10 bg-background border-b border-border p-4">
-        <div className="flex items-center justify-between gap-4">
-          <h1 className="text-xl font-semibold">Inventory</h1>
+      {/* Responsive Sticky Top Toolbar */}
+      <div className="sticky top-0 z-10 bg-background border-b border-border px-4 sm:px-6 py-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <h1 className="text-xl sm:text-2xl font-semibold">Inventory</h1>
           
-          <div className="flex items-center gap-4 flex-1 max-w-md">
+          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 flex-1 sm:max-w-lg">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
               <Input
                 placeholder="Search products..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="pl-10"
+                className="pl-10 min-h-[48px]"
               />
             </div>
             
             <Button
               onClick={() => setShowProductForm(true)}
-              className="bg-purple-600 hover:bg-purple-700 text-white min-h-[48px] px-4"
+              className="bg-purple-600 hover:bg-purple-700 text-white min-h-[48px] px-4 whitespace-nowrap"
             >
               <Plus className="h-4 w-4 mr-2" />
               Add Product
@@ -125,9 +125,9 @@ export default function Inventory() {
         </div>
         
         {/* Sort dropdown */}
-        <div className="mt-4 flex justify-end">
+        <div className="mt-4 flex justify-start sm:justify-end">
           <Select value={sortBy} onValueChange={(value: SortOption) => setSortBy(value)}>
-            <SelectTrigger className="w-48">
+            <SelectTrigger className="w-full sm:w-48 min-h-[48px]">
               <SelectValue placeholder="Sort by..." />
             </SelectTrigger>
             <SelectContent>
@@ -140,12 +140,12 @@ export default function Inventory() {
         </div>
       </div>
 
-      {/* Main Content */}
-      <div className="p-4">
+      {/* Main Content with Responsive Container */}
+      <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-6">
         {isLoading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {[...Array(6)].map((_, i) => (
-              <div key={i} className="bg-white dark:bg-[#1F1F1F] border border-gray-200 dark:border-gray-700 rounded-lg p-4">
+              <div key={i} className="bg-white dark:bg-[#1F1F1F] border border-gray-200 dark:border-gray-700 rounded-lg p-4 sm:p-6">
                 <Skeleton className="h-6 w-3/4 mb-3" />
                 <Skeleton className="h-4 w-1/2 mb-2" />
                 <Skeleton className="h-4 w-1/3 mb-2" />
@@ -165,7 +165,7 @@ export default function Inventory() {
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {filteredAndSortedProducts.map((product) => (
               <div
                 key={product.id}

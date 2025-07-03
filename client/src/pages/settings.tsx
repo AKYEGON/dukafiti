@@ -201,20 +201,21 @@ export default function SettingsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background p-6 lg:p-12">
-      <div className="space-y-8">
-        {/* Header */}
-        <div className="flex items-center gap-3">
-          <div className="p-3 bg-purple-500/10 rounded-lg">
-            <Store className="h-7 w-7 text-purple-600" />
+    <div className="min-h-screen bg-background">
+      <div className="container mx-auto px-4 sm:px-6 md:px-8 py-6 lg:py-12">
+        <div className="space-y-6 sm:space-y-8">
+          {/* Header */}
+          <div className="flex items-center gap-3">
+            <div className="p-3 bg-purple-500/10 rounded-lg">
+              <Store className="h-7 w-7 text-purple-600" />
+            </div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Settings</h1>
           </div>
-          <h1 className="text-3xl font-bold text-foreground">Settings</h1>
-        </div>
 
-        {/* Main Grid Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          
-          {/* Store Profile Section */}
+          {/* Responsive Grid Layout */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+            
+            {/* Store Profile Section */}
           <EditableSection
             title="Store Profile"
             icon={Store}
@@ -351,6 +352,7 @@ export default function SettingsPage() {
                 </Button>
               </div>
             </EditableSection>
+          </div>
           </div>
         </div>
       </div>

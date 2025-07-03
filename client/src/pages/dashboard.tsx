@@ -183,11 +183,11 @@ export default function Dashboard() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* Mobile: px-4 py-4, Desktop: container mx-auto p-6 */}
-      <div className="px-4 py-4 sm:container sm:mx-auto sm:p-6">
-        <div className="grid grid-cols-1 gap-8">
-          {/* Summary Cards - F/Z Pattern: Most critical metric at top-left */}
-          <section className="grid grid-cols-2 sm:grid-cols-4 gap-4" role="region" aria-label="Key performance indicators">
+      {/* Responsive Container */}
+      <div className="container mx-auto px-4 sm:px-6 md:px-8 py-4 sm:py-6">
+        <div className="grid grid-cols-1 gap-4 sm:gap-6 md:gap-8">
+          {/* Summary Cards - Mobile: 2 cols, Tablet: 3 cols, Desktop: 4 cols */}
+          <section className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 sm:gap-6" role="region" aria-label="Key performance indicators">
             <SummaryCard
               title="Total Revenue"
               value={detailedMetrics?.revenue ? formatCurrencyUtil(detailedMetrics.revenue.today) : formatCurrency(metrics?.totalRevenue || "0")}
@@ -218,8 +218,8 @@ export default function Dashboard() {
             />
           </section>
 
-          {/* Quick Actions */}
-          <section className="flex flex-wrap gap-4" role="region" aria-label="Quick actions">
+          {/* Quick Actions - Mobile: 1 col, Tablet: 2 per row, Desktop: flex wrap */}
+          <section className="grid grid-cols-1 sm:grid-cols-2 lg:flex lg:flex-wrap gap-4" role="region" aria-label="Quick actions">
             <QuickActionButton
               onClick={handleAddProduct}
               icon={Plus}

@@ -26,9 +26,40 @@
     min-height: 48px; /* 48px minimum touch target */
   }
   
+  /* Tablet-specific optimizations */
+  @media (min-width: 768px) and (max-width: 1024px) {
+    input, textarea, select, button {
+      min-height: 44px; /* Slightly smaller on tablet */
+    }
+  }
+  
+  /* Enhanced touch targets for mobile */
+  @media (max-width: 767px) {
+    input, textarea, select, button {
+      min-height: 50px; /* Larger touch targets on mobile */
+    }
+  }
+  
   /* Better text visibility across themes */
   p, span, div {
     @apply text-foreground;
+  }
+  
+  /* Responsive container with proper max-widths */
+  .container {
+    max-width: 100%;
+  }
+  
+  @media (min-width: 640px) { 
+    .container { max-width: 640px; } 
+  }
+  
+  @media (min-width: 768px) { 
+    .container { max-width: 768px; } 
+  }
+  
+  @media (min-width: 1024px) { 
+    .container { max-width: 1024px; } 
   }
 }
 

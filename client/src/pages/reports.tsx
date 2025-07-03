@@ -229,18 +229,19 @@ export default function Reports() {
   };
 
   return (
-    <div className="min-h-screen bg-background p-6 lg:p-12">
-      <div className="space-y-8">
-        {/* Header */}
-        <div>
-          <h1 className="text-2xl font-bold text-neutral-900 dark:text-neutral-100 mb-2">Reports</h1>
-          <p className="text-neutral-600 dark:text-neutral-400">View your business analytics and performance</p>
-        </div>
+    <div className="min-h-screen bg-background">
+      <div className="container mx-auto px-4 sm:px-6 md:px-8 py-6 lg:py-12">
+        <div className="space-y-6 sm:space-y-8">
+          {/* Header */}
+          <div>
+            <h1 className="text-2xl font-bold text-neutral-900 dark:text-neutral-100 mb-2">Reports</h1>
+            <p className="text-neutral-600 dark:text-neutral-400">View your business analytics and performance</p>
+          </div>
 
-        {/* Single Column Layout for All Screen Sizes */}
-        <div className="space-y-8">
-          
-          {/* Timeframe Selector */}
+          {/* Responsive Layout */}
+          <div className="space-y-6 sm:space-y-8">
+            
+            {/* Timeframe Selector */}
           <div className="flex items-center gap-4">
             <label className="text-sm font-medium text-neutral-900 dark:text-neutral-100">Timeframe:</label>
             <Select value={summaryPeriod} onValueChange={(value: 'today' | 'weekly' | 'monthly') => setSummaryPeriod(value)}>
@@ -572,6 +573,7 @@ export default function Reports() {
               <FileSpreadsheet className="h-4 w-4 mr-2" />
               {exportingCSV === 'detailed' ? 'Exporting...' : 'Export Detailed CSV'}
             </Button>
+          </div>
           </div>
         </div>
       </div>
