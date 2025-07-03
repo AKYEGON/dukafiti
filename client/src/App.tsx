@@ -8,7 +8,7 @@ import { Sidebar } from "@/components/layout/sidebar";
 import { MobileBottomNav } from "@/components/layout/mobile-bottom-nav";
 import { TopBar } from "@/components/TopBar";
 
-import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { AuthProvider, useAuth } from "@/contexts/auth-context";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { useWebSocket } from "@/hooks/use-websocket";
 import { ThemeProvider } from "@/contexts/theme-context";
@@ -24,6 +24,7 @@ import NotificationsPage from "@/pages/notifications";
 import Home from "@/pages/home";
 import Login from "@/pages/login";
 import Register from "@/pages/register";
+import AuthCallback from "@/pages/auth-callback";
 import Onboarding from "@/pages/onboarding";
 import NotFound from "@/pages/not-found";
 import SettingsPage from "@/pages/settings";
@@ -82,11 +83,11 @@ function UnauthenticatedApp() {
 }
 
 function Router() {
-  const { isAuthenticated, isLoading } = useAuth();
+  const { user, loading } = useAuth();
   const [location, setLocation] = useLocation();
 
   // Show loading spinner while checking auth
-  if (isLoading) {
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background text-foreground">
         <div className="text-center">
@@ -98,7 +99,7 @@ function Router() {
   }
 
   // Redirect authenticated users from auth pages to dashboard
-  if (isAuthenticated && (location === '/login' || location === '/register')) {
+  if (user && (location === '/login' || location === '/register')) {
     setLocation('/dashboard');
     return null;
   }
@@ -107,9 +108,10 @@ function Router() {
   return (
     <Switch>
       {/* Public routes */}
-      <Route path="/" component={isAuthenticated ? () => { setLocation('/dashboard'); return null; } : Home} />
+      <Route path="/" component={user ? () => { setLocation('/dashboard'); return null; } : Home} />
       <Route path="/login" component={Login} />
       <Route path="/register" component={Register} />
+      <Route path="/auth/callback" component={AuthCallback} />
       <Route path="/onboarding" component={Onboarding} />
       
       {/* Protected routes */}

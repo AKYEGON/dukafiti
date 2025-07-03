@@ -1,38 +1,37 @@
 import React from 'react';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/auth-context';
 import { useLocation } from 'wouter';
-import { useEffect } from 'react';
 
 interface ProtectedRouteProps {
   children: React.ReactNode;
 }
 
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
-  const { isAuthenticated, isLoading } = useAuth();
-  const [, setLocation] = useLocation();
+  const { user, loading } = useAuth();
+  const [, navigate] = useLocation();
 
-  useEffect(() => {
-    if (!isLoading && !isAuthenticated) {
-      setLocation('/login');
+  React.useEffect(() => {
+    if (!loading && !user) {
+      navigate('/login');
     }
-  }, [isAuthenticated, isLoading, setLocation]);
+  }, [user, loading, navigate]);
 
-  // Show loading spinner while checking auth
-  if (isLoading) {
+  if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background text-foreground">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-2 text-muted-foreground">Checking session...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-400">Loading...</p>
         </div>
       </div>
     );
   }
 
-  // Don't render protected content if not authenticated
-  if (!isAuthenticated) {
-    return null;
+  if (!user) {
+    return null; // Will redirect to login via useEffect
   }
 
   return <>{children}</>;
 };
+
+export default ProtectedRoute;
