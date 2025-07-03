@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Switch, Route, useLocation } from "wouter";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "./lib/queryClient";
@@ -7,6 +7,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { Sidebar } from "@/components/layout/sidebar";
 import { MobileBottomNav } from "@/components/layout/mobile-bottom-nav";
 import { TopBar } from "@/components/TopBar";
+import { config } from "./lib/config";
 
 import { AuthProvider, useAuth } from "@/contexts/SimpleAuthContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
@@ -36,6 +37,13 @@ function AuthenticatedApp() {
   
   // Initialize Supabase real-time subscriptions
   useSupabaseRealtime();
+  
+  // Console log environment variables for debugging
+  useEffect(() => {
+    console.log('API Base URL:', config.api.baseUrl);
+    console.log('Supabase URL:', config.supabase.url);
+    console.log('Environment:', config.app.isDevelopment ? 'Development' : 'Production');
+  }, []);
   
   // Sidebar collapse state
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
