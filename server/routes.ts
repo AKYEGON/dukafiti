@@ -1081,9 +1081,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .limit(10);
       
       res.json(topProducts.map(product => ({
-        name: product.name,
+        productName: product.name,
         unitsSold: product.unitsSold,
-        revenue: parseFloat(product.revenue || '0').toFixed(2)
+        totalRevenue: parseFloat(product.revenue || '0').toFixed(2)
       })));
     } catch (error) {
       console.error('Top products reports error:', error);
