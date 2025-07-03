@@ -13,6 +13,7 @@ interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  login: (email: string, password: string) => Promise<{ error?: any }>;
   logout: () => Promise<void>;
   checkAuth: () => Promise<void>;
 }
@@ -73,6 +74,34 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   }, [error]);
 
+  const login = async (email: string, password: string) => {
+    try {
+      const response = await fetch('/api/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ email, password }),
+      });
+      
+      if (response.ok) {
+        const userData = await response.json();
+        setUser(userData.user);
+        setIsAuthenticated(true);
+        // Invalidate and refetch user data
+        queryClient.invalidateQueries({ queryKey: ['/api/me'] });
+        return { error: null };
+      } else {
+        const errorData = await response.json();
+        return { error: { message: errorData.error || 'Login failed' } };
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      return { error: { message: 'Network error occurred' } };
+    }
+  };
+
   const logout = async () => {
     try {
       const response = await fetch('/api/logout', {
@@ -104,6 +133,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     user,
     isAuthenticated,
     isLoading,
+    login,
     logout,
     checkAuth,
   };
