@@ -151,18 +151,10 @@ export function CustomerForm({ open, onOpenChange, customer }: CustomerFormProps
   });
 
   const onSubmit = (data: CustomerFormData) => {
-    console.log("=== FORM SUBMISSION DEBUG ===");
-    console.log("Raw form data:", data);
-    console.log("Balance field value:", data.balance);
-    console.log("Balance type:", typeof data.balance);
-    
     // Keep the balance field as-is, let the mutation handle defaults
     const processedData = {
       ...data
     };
-    
-    console.log("Processed data:", processedData);
-    console.log("=== END FORM DEBUG ===");
     
     if (customer) {
       updateCustomer.mutate(processedData);
@@ -236,7 +228,6 @@ export function CustomerForm({ open, onOpenChange, customer }: CustomerFormProps
                           {...field} 
                           value={field.value || ''}
                           onChange={(e) => {
-                            console.log("Balance field changed:", e.target.value);
                             field.onChange(e.target.value);
                           }}
                           className="bg-input border-border text-foreground placeholder-muted-foreground pl-12"

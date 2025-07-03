@@ -24,13 +24,13 @@ class OfflineQueue {
       const request = indexedDB.open(this.dbName, this.dbVersion);
 
       request.onerror = () => {
-        console.error('IndexedDB failed to open:', request.error);
+        // IndexedDB failed to open
         reject(request.error);
       };
 
       request.onsuccess = () => {
         this.db = request.result;
-        console.log('IndexedDB opened successfully');
+        // IndexedDB opened successfully
         resolve();
       };
 
@@ -41,7 +41,7 @@ class OfflineQueue {
         if (!db.objectStoreNames.contains(this.storeName)) {
           const store = db.createObjectStore(this.storeName, { keyPath: 'id' });
           store.createIndex('timestamp', 'timestamp', { unique: false });
-          console.log('IndexedDB object store created');
+          // IndexedDB object store created
         }
       };
     });

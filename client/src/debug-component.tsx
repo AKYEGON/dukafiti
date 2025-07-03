@@ -1,5 +1,5 @@
 export function DebugComponent() {
-  console.log("DebugComponent is rendering successfully");
+  // Debug component rendering
   return (
     <div style={{ 
       position: 'fixed', 

@@ -17,7 +17,7 @@ export function useWebSocket() {
     wsRef.current = ws;
 
     ws.onopen = () => {
-      console.log("WebSocket connected");
+      // WebSocket connection established
     };
 
     ws.onmessage = (event) => {

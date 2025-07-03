@@ -130,7 +130,7 @@ export default function Sales() {
   }, []);
 
   const handleProductSelect = (product: Product) => {
-    console.log('Product selected:', product);
+    // Product selected for cart
     
     // Check if product already exists in cart
     const existingItem = cartItems.find(item => item.product.id === product.id);

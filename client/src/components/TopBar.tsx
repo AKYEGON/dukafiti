@@ -268,7 +268,7 @@ export function TopBar({ onToggleSidebar, isSidebarCollapsed }: TopBarProps) {
                           <div className={`font-medium truncate ${
                             isSelected ? 'text-white' : 'text-gray-900 dark:text-gray-100'
                           }`}>
-                            {highlightText(result.title, searchQuery)}
+                            {highlightText(result.name || result.title, searchQuery)}
                           </div>
                           <div className={`text-sm truncate ${
                             isSelected ? 'text-white/80' : 'text-gray-500 dark:text-gray-400'
