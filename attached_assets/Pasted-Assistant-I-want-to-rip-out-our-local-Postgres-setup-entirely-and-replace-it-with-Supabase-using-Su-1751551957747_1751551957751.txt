@@ -1,0 +1,125 @@
+Assistant, I want to rip out our local Postgres setup entirely and replace it with Supabase—using Supabase for **all** data storage, authentication, and real‑time updates. Please audit the code for leftover Postgres logic, fix any errors, and deliver a fully functional Supabase–only backend and frontend. Use the following environment variables:
+
+SUPABASE_URL postgresql://postgres:alvinkibet@db.kwdzbssuovwemthmiuht.supabase.co:5432/postgres
+SUPABASE_ANON_KEY eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt3ZHpic3N1b3Z3ZW10aG1pdWh0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE1NDEyMDYsImV4cCI6MjA2NzExNzIwNn0.7AGomhrpXHBnSgJ15DxFMi80E479S9w9mIeqMnsvNrA
+SUPABASE_SERVICE_ROLE_KEY eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt3ZHpic3N1b3Z3ZW10aG1pdWh0Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc1MTU0MTIwNiwiZXhwIjoyMDY3MTE3MjA2fQ.zSvksJ4fZLhaXKs8Ir_pq-yse-8x1NTKFTCWdiSLweQ
+
+yaml
+Copy
+Edit
+
+---
+
+## 1. Remove Postgres Dependencies & Code  
+- Uninstall any Postgres libraries (`pg`, `knex`, `sequelize`, etc.).  
+- Delete or archive any database connection files (e.g. `db.js`, `knexfile.js`).  
+- Remove all SQL migration and seed scripts tied to Postgres.  
+
+## 2. Backend: Supabase Client & Data Models  
+- Create `supabaseClient.js` at project root:
+  ```js
+  // supabaseClient.js
+  const { createClient } = require('@supabase/supabase-js');
+  module.exports = createClient(
+    process.env.SUPABASE_URL,
+    process.env.SUPABASE_SERVICE_ROLE_KEY
+  );
+Replace every Postgres query in your Express routes with Supabase calls:
+
+Products:
+
+js
+Copy
+Edit
+const supabase = require('./supabaseClient');
+// GET /api/products
+const { data: products, error } = await supabase
+  .from('products').select('*').order('name');
+Sales, Customers, Settings, Reports, Notifications, Subscriptions, etc.—use supabase.from('<table>').select()/insert()/update()/delete() accordingly.
+
+For any raw SQL previously used, translate into Supabase query builder methods.
+
+3. Database Schema & Migrations
+In Supabase dashboard, create tables matching your previous schema:
+
+products, sales, customers, settings, notifications, subscriptions, etc.
+
+Ensure columns, data types, relationships, and policies align with your app’s logic.
+
+(Optional) Add a supabase/migrations/ folder with SQL files and document supabase db push in your README.
+
+4. Frontend: Supabase Integration
+In src/supabaseClient.js, initialize the client:
+
+js
+Copy
+Edit
+import { createClient } from '@supabase/supabase-js';
+export const supabase = createClient(
+  process.env.REACT_APP_SUPABASE_URL,
+  process.env.REACT_APP_SUPABASE_ANON_KEY
+);
+Everywhere you fetch or mutate data (products, sales, customers, settings, reports, notifications, subscriptions), replace the old REST calls or local mocks with direct Supabase calls:
+
+js
+Copy
+Edit
+const { data, error } = await supabase
+  .from('sales')
+  .select('*')
+  .eq('status', 'active');
+5. Real‑Time Subscriptions
+For live updates (inventory changes, new sales, notifications), use Supabase’s real‑time listeners:
+
+js
+Copy
+Edit
+supabase
+  .from('sales')
+  .on('INSERT', payload => { /* update UI */ })
+  .subscribe();
+6. Auth & Session
+Fully migrate to Supabase Auth: remove any custom session or JWT code.
+
+Use supabase.auth methods for signup, login, logout, password reset, and session persistence.
+
+Protect backend endpoints by validating Authorization: Bearer <token> via Supabase’s service API or middleware.
+
+7. Error Handling & Validation
+Audit each route and component for error cases.
+
+Use consistent patterns: check error from Supabase responses; throw or return 500 with a clear message.
+
+In the UI, show toast notifications for any fetch/mutation errors.
+
+8. Testing & QA
+Write or update unit tests (if any) to use a Supabase test instance or a mocked client.
+
+Manually test all CRUD flows:
+
+Add/Edit/Delete Products
+
+Record Cash/M-Pesa/Credit Sales
+
+Manage Customers & Repayments
+
+View and Dismiss Notifications
+
+Subscription signup & billing cycles
+
+Confirm real‑time updates propagate across multiple browser tabs.
+
+9. QA Checklist
+ No Postgres or SQL‑based code remains.
+
+ Supabase client reads env vars correctly in both backend and frontend.
+
+ All CRUD operations use .from().select()/insert()/update()/delete().
+
+ Realtime subscriptions update UI as expected.
+
+ Auth flows use Supabase Auth exclusively.
+
+ Environment variables documented in .env.example and README.
+
+ App deploys to Vercel/Render/Railway without errors.

@@ -1,72 +1,22 @@
 import { supabase } from "../server/supabase";
 
-async function seedDatabase() {
+async function seedSupabaseDatabase() {
   try {
-    console.log("Seeding database with sample data...");
+    console.log("Seeding Supabase database with sample data...");
 
-    // Create a default user in Supabase Auth
+    // Create a test user in Supabase Auth
     const { data: authUser, error: authError } = await supabase.auth.admin.createUser({
       email: "test@example.com",
       password: "password",
       user_metadata: { name: "Test User" }
     });
 
-    if (authError) {
+    if (authError && !authError.message.includes('already registered')) {
       console.error("Error creating auth user:", authError);
       return;
     }
 
-    console.log("Created auth user:", authUser.user?.email);
-
-    // Create user profile in database
-    const { data: user, error: userError } = await supabase
-      .from('users')
-      .insert([{
-        email: "test@example.com",
-        username: "test",
-        passwordHash: "managed_by_supabase",
-        phone: "+254700000000"
-      }])
-      .select()
-      .single();
-
-    if (userError) {
-      console.error("Error creating user profile:", userError);
-      return;
-    }
-
-    console.log("Created user profile:", user.username);
-
-    // Create store profile
-    const { error: storeError } = await supabase
-      .from('store_profiles')
-      .insert([{
-        userId: user.id,
-        storeName: "DukaFiti Demo Store",
-        ownerName: "Test User",
-        storeType: "retail",
-        location: "Nairobi, Kenya",
-        description: "A sample retail store"
-      }]);
-
-    if (storeError) {
-      console.error("Error creating store profile:", storeError);
-    }
-
-    // Create user settings
-    const { error: settingsError } = await supabase
-      .from('user_settings')
-      .insert([{
-        userId: user.id,
-        theme: "light",
-        currency: "KES",
-        language: "en",
-        notifications: true
-      }]);
-
-    if (settingsError) {
-      console.error("Error creating user settings:", settingsError);
-    }
+    console.log("Auth user ready:", authUser?.user?.email || "test@example.com");
 
     // Create sample products
     const sampleProducts = [
@@ -77,8 +27,8 @@ async function seedDatabase() {
         price: "50.00",
         stock: 100,
         category: "Beverages",
-        lowStockThreshold: 10,
-        salesCount: 0
+        low_stock_threshold: 10,
+        sales_count: 0
       },
       {
         name: "Bread Loaf",
@@ -87,8 +37,8 @@ async function seedDatabase() {
         price: "60.00",
         stock: 50,
         category: "Bakery",
-        lowStockThreshold: 5,
-        salesCount: 0
+        low_stock_threshold: 5,
+        sales_count: 0
       },
       {
         name: "Milk 1L",
@@ -97,14 +47,14 @@ async function seedDatabase() {
         price: "80.00",
         stock: 30,
         category: "Dairy",
-        lowStockThreshold: 5,
-        salesCount: 0
+        low_stock_threshold: 5,
+        sales_count: 0
       }
     ];
 
     const { error: productsError } = await supabase
       .from('products')
-      .insert(sampleProducts);
+      .upsert(sampleProducts, { onConflict: 'sku' });
 
     if (productsError) {
       console.error("Error creating products:", productsError);
@@ -132,7 +82,7 @@ async function seedDatabase() {
 
     const { error: customersError } = await supabase
       .from('customers')
-      .insert(sampleCustomers);
+      .upsert(sampleCustomers, { onConflict: 'email' });
 
     if (customersError) {
       console.error("Error creating customers:", customersError);
@@ -140,13 +90,12 @@ async function seedDatabase() {
       console.log("Created sample customers");
     }
 
-    console.log("Created sample customers");
-    console.log("Database seeding completed successfully!");
+    console.log("Supabase database seeding completed successfully!");
 
   } catch (error) {
-    console.error("Error seeding database:", error);
+    console.error("Error seeding Supabase database:", error);
     process.exit(1);
   }
 }
 
-seedDatabase();
+seedSupabaseDatabase();

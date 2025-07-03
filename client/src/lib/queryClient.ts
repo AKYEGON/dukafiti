@@ -1,5 +1,6 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
 import { offlineCapableFetch } from "./enhanced-offline-queue";
+import { supabase } from "../supabaseClient";
 
 async function throwIfResNotOk(res: Response) {
   // Handle queued responses (status 202)
@@ -30,9 +31,19 @@ export async function apiRequest(
     description?: string;
   }
 ): Promise<Response> {
+  // Get Supabase session token
+  const { data: { session } } = await supabase.auth.getSession();
+  
+  const headers: Record<string, string> = data ? { "Content-Type": "application/json" } : {};
+  
+  // Add authorization header if we have a session
+  if (session?.access_token) {
+    headers.Authorization = `Bearer ${session.access_token}`;
+  }
+
   const options: RequestInit = {
     method,
-    headers: data ? { "Content-Type": "application/json" } : {},
+    headers,
     body: data ? JSON.stringify(data) : undefined,
     credentials: "include",
   };
@@ -48,7 +59,18 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
+    // Get Supabase session token
+    const { data: { session } } = await supabase.auth.getSession();
+    
+    const headers: Record<string, string> = {};
+    
+    // Add authorization header if we have a session
+    if (session?.access_token) {
+      headers.Authorization = `Bearer ${session.access_token}`;
+    }
+
     const res = await offlineCapableFetch(queryKey[0] as string, {
+      headers,
       credentials: "include",
     });
 

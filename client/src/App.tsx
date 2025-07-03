@@ -11,6 +11,7 @@ import { TopBar } from "@/components/TopBar";
 import { AuthProvider, useAuth } from "@/contexts/auth-context";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { useWebSocket } from "@/hooks/use-websocket";
+import { useSupabaseRealtime } from "@/hooks/useSupabaseRealtime";
 import { ThemeProvider } from "@/contexts/theme-context";
 import { OfflineBanner } from "@/components/OfflineBanner";
 import { ErrorBoundary } from "@/components/error-boundary";
@@ -32,6 +33,9 @@ import SettingsPage from "@/pages/settings";
 function AuthenticatedApp() {
   // Initialize WebSocket connection for real-time notifications
   useWebSocket();
+  
+  // Initialize Supabase real-time subscriptions
+  useSupabaseRealtime();
   
   // Sidebar collapse state
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);

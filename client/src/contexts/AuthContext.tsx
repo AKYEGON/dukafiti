@@ -1,12 +1,13 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQueryClient } from '@tanstack/react-query';
+import { supabase } from '../supabaseClient';
+import type { User as SupabaseUser, Session } from '@supabase/supabase-js';
 
 interface User {
-  id: number;
+  id: string;
   email: string;
   username?: string;
   phone?: string;
-  storeProfile?: any;
 }
 
 interface AuthContextType {
@@ -15,7 +16,9 @@ interface AuthContextType {
   isLoading: boolean;
   login: (email: string, password: string) => Promise<{ error?: any }>;
   logout: () => Promise<void>;
-  checkAuth: () => Promise<void>;
+  checkAuth: () => Promise<Session | null>;
+  supabaseUser: SupabaseUser | null;
+  session: Session | null;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -34,66 +37,66 @@ interface AuthProviderProps {
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
+  const [supabaseUser, setSupabaseUser] = useState<SupabaseUser | null>(null);
+  const [session, setSession] = useState<any>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const queryClient = useQueryClient();
 
-  // Query to check authentication status
-  const { data, isLoading, error, refetch } = useQuery({
-    queryKey: ['/api/me'],
-    queryFn: async () => {
-      const response = await fetch('/api/me', {
-        credentials: 'include',
-      });
+  useEffect(() => {
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setSupabaseUser(session?.user ?? null);
+      setIsAuthenticated(!!session);
       
-      if (!response.ok) {
-        throw new Error('Not authenticated');
+      if (session?.user) {
+        setUser({
+          id: session.user.id,
+          email: session.user.email!,
+          username: session.user.user_metadata?.name || session.user.email?.split('@')[0]
+        });
       }
+      setIsLoading(false);
+    });
+
+    // Listen for auth changes
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      setSupabaseUser(session?.user ?? null);
+      setIsAuthenticated(!!session);
       
-      return response.json();
-    },
-    retry: false,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-  });
+      if (session?.user) {
+        setUser({
+          id: session.user.id,
+          email: session.user.email!,
+          username: session.user.user_metadata?.name || session.user.email?.split('@')[0]
+        });
+      } else {
+        setUser(null);
+      }
+      setIsLoading(false);
+    });
 
-  // Update auth state when query data changes
-  useEffect(() => {
-    if (data && data.authenticated) {
-      setUser(data.user);
-      setIsAuthenticated(true);
-    } else {
-      setUser(null);
-      setIsAuthenticated(false);
-    }
-  }, [data]);
-
-  // Clear auth state on error
-  useEffect(() => {
-    if (error) {
-      setUser(null);
-      setIsAuthenticated(false);
-    }
-  }, [error]);
+    return () => subscription.unsubscribe();
+  }, []);
 
   const login = async (email: string, password: string) => {
     try {
-      const response = await fetch('/api/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify({ email, password }),
+      const { data, error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
       });
-      
-      if (response.ok) {
-        // Invalidate and refetch user data to update authentication state
-        await queryClient.invalidateQueries({ queryKey: ['/api/me'] });
-        await refetch(); // Explicitly refetch to update the auth state
-        return { error: null };
-      } else {
-        const errorData = await response.json();
-        return { error: { message: errorData.message || 'Login failed' } };
+
+      if (error) {
+        return { error: { message: error.message } };
       }
+
+      // Clear React Query cache to force refetch with new auth token
+      queryClient.clear();
+      return { error: null };
     } catch (error) {
       console.error('Login error:', error);
       return { error: { message: 'Network error occurred' } };
@@ -102,29 +105,25 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const logout = async () => {
     try {
-      const response = await fetch('/api/logout', {
-        method: 'POST',
-        credentials: 'include',
-      });
+      const { error } = await supabase.auth.signOut();
       
-      if (response.ok) {
-        // Clear user state
-        setUser(null);
-        setIsAuthenticated(false);
-        
-        // Clear React Query cache
-        queryClient.clear();
-        
-        // Navigate to home page
-        window.location.href = '/';
+      if (error) {
+        console.error('Logout error:', error);
       }
+      
+      // Clear React Query cache
+      queryClient.clear();
+      
+      // Navigate to home page
+      window.location.href = '/';
     } catch (error) {
       console.error('Logout error:', error);
     }
   };
 
   const checkAuth = async () => {
-    await refetch();
+    const { data: { session } } = await supabase.auth.getSession();
+    return session;
   };
 
   const value: AuthContextType = {
@@ -134,6 +133,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     login,
     logout,
     checkAuth,
+    supabaseUser,
+    session,
   };
 
   return (

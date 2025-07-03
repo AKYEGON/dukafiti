@@ -1,11 +1,8 @@
-import { Pool } from 'pg';
-import { drizzle } from 'drizzle-orm/node-postgres';
+import { drizzle } from 'drizzle-orm/postgres-js';
+import postgres from 'postgres';
 import * as schema from "@shared/schema";
 
-const DATABASE_URL = process.env.SUPABASE_DATABASE_URL || process.env.DATABASE_URL!;
+const DATABASE_URL = process.env.SUPABASE_DATABASE_URL || 'postgresql://postgres:alvinkibet@db.kwdzbssuovwemthmiuht.supabase.co:5432/postgres';
 
-export const pool = new Pool({ 
-  connectionString: DATABASE_URL,
-  ssl: DATABASE_URL.includes('localhost') ? false : { rejectUnauthorized: false }
-});
-export const db = drizzle(pool, { schema });
+const sql = postgres(DATABASE_URL, { ssl: 'require' });
+export const db = drizzle(sql, { schema });
