@@ -1,7 +1,10 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
-import { storage } from "./supabase-storage";
+import { DatabaseStorage } from "./storage";
+
+// Initialize database storage
+const storage = new DatabaseStorage();
 import { insertProductSchema, insertCustomerSchema, insertOrderSchema, insertOrderItemSchema, insertUserSchema } from "@shared/schema";
 import { z } from "zod";
 import bcrypt from "bcryptjs";
@@ -29,7 +32,7 @@ function broadcastToClients(message: any) {
   });
 }
 
-// Use Supabase auth by default, legacy auth as aliases
+// Use imported auth functions  
 const requireAuth = requireSupabaseAuth;
 const getCurrentUser = getSupabaseUser;
 
@@ -109,18 +112,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json({ success: true, message: "Database initialized successfully" });
     } catch (error) {
       console.error("Database initialization error:", error);
-      res.status(500).json({ success: false, message: "Database initialization failed", error: error.message });
+      res.status(500).json({ success: false, message: "Database initialization failed", error: (error as Error).message });
     }
   });
 
-  // Debug endpoint to test Supabase connection
+  // Debug endpoint to test database connection
   app.get("/api/debug/users", async (req, res) => {
     try {
-      const users = await storage.getUsers();
-      res.json({ success: true, users, count: users.length });
+      // Simple test to verify database connection
+      const testUser = await storage.getUserByEmail("test@example.com");
+      res.json({ success: true, message: "Database connection working", hasTestUser: !!testUser });
     } catch (error) {
       console.error("Debug users error:", error);
-      res.status(500).json({ success: false, error: error.message });
+      res.status(500).json({ success: false, error: (error as Error).message });
     }
   });
   

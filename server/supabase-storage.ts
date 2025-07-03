@@ -26,15 +26,24 @@ import { createClient } from '@supabase/supabase-js';
 import { IStorage } from "./storage";
 
 // Initialize Supabase client
-let supabaseUrl = process.env.SUPABASE_URL!;
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!;
+let supabaseUrl = process.env.SUPABASE_URL;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+
+// Check if Supabase credentials are available
+if (!supabaseUrl || !supabaseServiceKey) {
+  console.warn('Supabase credentials not found, falling back to PostgreSQL storage');
+}
 
 // Fix URL if it's a database connection string
-if (supabaseUrl.includes('postgresql://')) {
+if (supabaseUrl && supabaseUrl.includes('postgresql://')) {
   const match = supabaseUrl.match(/db\.([^.]+)\.supabase\.co/);
   if (match) {
     supabaseUrl = `https://${match[1]}.supabase.co`;
   }
+}
+
+if (!supabaseUrl || !supabaseServiceKey) {
+  throw new Error('Supabase credentials are required. Please set SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY environment variables.');
 }
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey, {
