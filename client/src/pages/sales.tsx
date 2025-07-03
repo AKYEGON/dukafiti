@@ -273,17 +273,15 @@ export default function Sales() {
       }
     }
     
-    // Prepare sale data with proper customer information for credit sales
+    // Prepare sale data with correct field names that match backend
     const saleData = {
       items: cartItems.map(item => ({
-        productId: item.product.id,
-        qty: item.quantity
+        id: item.product.id,
+        quantity: item.quantity
       })),
       paymentType: paymentMethod as 'cash' | 'credit' | 'mobileMoney',
-      // For credit sales, send customer as a string with name and optional phone
-      customer: paymentMethod === 'credit' 
-        ? (customer?.phone ? `${customerName}, ${customer.phone}` : customerName)
-        : undefined
+      customerName: customer?.name || '',
+      customerPhone: customer?.phone || ''
     };
 
     console.log('Sale data being sent:', saleData);
@@ -314,7 +312,7 @@ export default function Sales() {
 
   const createSaleMutation = useMutation({
     mutationFn: async (saleData: { 
-      items: Array<{ productId: number; qty: number }>;
+      items: Array<{ id: number; quantity: number }>;
       paymentType: 'cash' | 'credit' | 'mobileMoney';
       customerName?: string;
       customerPhone?: string;
@@ -324,9 +322,9 @@ export default function Sales() {
         // Queue sale for offline processing
         const queuedSaleId = await offlineQueue.queueSale({
           items: saleData.items.map(item => ({
-            productId: item.productId,
-            quantity: item.qty,
-            price: cartItems.find(cartItem => cartItem.product.id === item.productId)?.unitPrice || "0"
+            productId: item.id,
+            quantity: item.quantity,
+            price: cartItems.find(cartItem => cartItem.product.id === item.id)?.unitPrice || "0"
           })),
           paymentType: saleData.paymentType as 'cash' | 'credit' | 'mobileMoney',
           customerName: saleData.customerName,
