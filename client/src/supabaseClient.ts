@@ -1,6 +1,28 @@
 import { createClient } from '@supabase/supabase-js';
+import { config, validateConfig } from './lib/config';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://kwdzbssuovwemthmiuht.supabase.co';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt3ZHpic3N1b3Z3ZW10aG1pdWh0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE1NDEyMDYsImV4cCI6MjA2NzExNzIwNn0.7AGomhrpXHBnSgJ15DxFMi80E479S9w9mIeqMnsvNrA';
+// Validate configuration
+const configValidation = validateConfig();
+if (!configValidation.isValid) {
+  console.error('Configuration validation failed:', configValidation.errors);
+  if (config.app.isProduction) {
+    throw new Error('Invalid configuration for production deployment');
+  }
+}
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
+export const supabase = createClient(
+  config.supabase.url,
+  config.supabase.anonKey,
+  {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: false, // Prevent issues with URL-based auth detection
+    },
+    global: {
+      headers: {
+        'x-client-name': 'dukafiti-web'
+      }
+    }
+  }
+);

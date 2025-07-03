@@ -1,18 +1,7 @@
 import { createRoot } from "react-dom/client";
 import App from "./App";
 import "./index.css";
-
-// Handle unhandled promise rejections to prevent app crashes
-window.addEventListener('unhandledrejection', (event) => {
-  console.warn('Unhandled promise rejection:', event.reason);
-  // Prevent the default behavior (which logs the error to console)
-  event.preventDefault();
-});
-
-// Handle uncaught errors
-window.addEventListener('error', (event) => {
-  console.warn('Uncaught error:', event.error);
-});
+import { errorHandler } from "./lib/error-handler";
 
 // Force service worker cache update and clear old caches
 if ('serviceWorker' in navigator) {

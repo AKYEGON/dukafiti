@@ -1,6 +1,9 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../supabaseClient';
+import { authFallback } from '../lib/auth-fallback';
+import { config } from '../lib/config';
+import { errorHandler } from '../lib/error-handler';
 import type { User as SupabaseUser, Session } from '@supabase/supabase-js';
 
 interface User {
@@ -45,8 +48,49 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const queryClient = useQueryClient();
 
   useEffect(() => {
+    let mounted = true;
+    
+    // Set a timeout to prevent infinite loading
+    const timeout = setTimeout(() => {
+      if (mounted && isLoading) {
+        console.warn('Auth loading timeout, checking for fallback auth');
+        errorHandler.logError(new Error('Authentication timeout'), 'auth');
+        
+        // Check for fallback auth in development
+        if (config.auth.fallbackEnabled) {
+          const fallbackUser = authFallback.getFallbackUser();
+          if (fallbackUser) {
+            console.info('Using fallback authentication');
+            setUser(fallbackUser);
+            setIsAuthenticated(true);
+          }
+        }
+        
+        setIsLoading(false);
+      }
+    }, config.auth.loadingTimeout);
+    
     // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      if (!mounted) return;
+      
+      clearTimeout(timeout);
+      
+      if (error) {
+        console.error('Auth session error:', error);
+        
+        // Try fallback auth in development
+        const fallbackUser = authFallback.getFallbackUser();
+        if (fallbackUser) {
+          console.info('Using fallback authentication due to error');
+          setUser(fallbackUser);
+          setIsAuthenticated(true);
+        }
+        
+        setIsLoading(false);
+        return;
+      }
+      
       setSession(session);
       setSupabaseUser(session?.user ?? null);
       setIsAuthenticated(!!session);
@@ -57,7 +101,29 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           email: session.user.email!,
           username: session.user.user_metadata?.name || session.user.email?.split('@')[0]
         });
+      } else {
+        // Check for fallback auth if no session
+        const fallbackUser = authFallback.getFallbackUser();
+        if (fallbackUser) {
+          console.info('Using fallback authentication');
+          setUser(fallbackUser);
+          setIsAuthenticated(true);
+        }
       }
+      setIsLoading(false);
+    }).catch(error => {
+      if (!mounted) return;
+      clearTimeout(timeout);
+      console.error('Auth session error:', error);
+      
+      // Try fallback auth in development
+      const fallbackUser = authFallback.getFallbackUser();
+      if (fallbackUser) {
+        console.info('Using fallback authentication due to error');
+        setUser(fallbackUser);
+        setIsAuthenticated(true);
+      }
+      
       setIsLoading(false);
     });
 
@@ -65,6 +131,8 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (!mounted) return;
+      
       setSession(session);
       setSupabaseUser(session?.user ?? null);
       setIsAuthenticated(!!session);
@@ -81,8 +149,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       setIsLoading(false);
     });
 
-    return () => subscription.unsubscribe();
-  }, []);
+    return () => {
+      mounted = false;
+      clearTimeout(timeout);
+      subscription.unsubscribe();
+    };
+  }, [isLoading]);
 
   const login = async (email: string, password: string) => {
     try {
