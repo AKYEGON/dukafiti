@@ -2,17 +2,19 @@
   "version": 2,
   "builds": [
     {
-      "src": "server/index.ts",
-      "use": "@vercel/node",
-      "config": {
-        "includeFiles": ["server/**"]
-      }
-    },
-    {
       "src": "package.json",
       "use": "@vercel/static-build",
       "config": {
-        "distDir": "dist/public"
+        "distDir": "dist/public",
+        "buildCommand": "npm run build:client"
+      }
+    },
+    {
+      "src": "server/index.ts",
+      "use": "@vercel/node",
+      "config": {
+        "includeFiles": ["server/**", "dist/**"],
+        "excludeFiles": ["client/**", "attached_assets/**"]
       }
     }
   ],
@@ -22,17 +24,20 @@
       "dest": "/server/index.ts"
     },
     {
+      "src": "/ws",
+      "dest": "/server/index.ts"
+    },
+    {
       "src": "/(.*)",
       "dest": "/dist/public/$1"
     }
   ],
-  "env": {
-    "VITE_SUPABASE_URL": "@vite_supabase_url",
-    "VITE_SUPABASE_ANON_KEY": "@vite_supabase_anon_key",
-    "SUPABASE_URL": "@supabase_url",
-    "SUPABASE_ANON_KEY": "@supabase_anon_key",
-    "SUPABASE_SERVICE_ROLE_KEY": "@supabase_service_role_key"
+  "functions": {
+    "server/index.ts": {
+      "maxDuration": 30
+    }
   },
-  "installCommand": "npm install",
-  "buildCommand": "npm run build"
+  "env": {
+    "NODE_ENV": "production"
+  }
 }
