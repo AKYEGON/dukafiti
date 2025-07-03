@@ -272,6 +272,8 @@ Changelog:
 - July 3, 2025. Updated brand name throughout Home, Login, Register, Sidebar, and Onboarding pages
 - July 3, 2025. Implemented new slogan "Duka Fiti ni Duka Bora" throughout authentication and landing pages
 - July 3, 2025. Updated service worker, offline queue, and PWA manifest to reflect new DukaFiti branding
+- July 3, 2025. Updated database configuration to support Supabase connection with fallback to local PostgreSQL
+- July 3, 2025. Completed migration from Replit Agent to standard Replit environment with enhanced database flexibility
 - July 2, 2025. Created PostgreSQL database with proper schema deployment using Drizzle Kit
 - July 2, 2025. Updated database configuration from Neon to PostgreSQL with pg driver
 - July 2, 2025. Seeded database with sample users, products, customers, and notifications for testing
