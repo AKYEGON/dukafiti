@@ -203,13 +203,17 @@ export class DatabaseStorage implements IStorage {
   }
 
   async searchProducts(query: string): Promise<Product[]> {
+    const searchTerm = query.toLowerCase().trim();
+    
+    // Enhanced search with better matching
     return await db.select().from(products).where(
       or(
-        ilike(products.name, `%${query}%`),
-        ilike(products.sku, `%${query}%`),
-        ilike(products.category, `%${query}%`)
+        ilike(products.name, `%${searchTerm}%`),
+        ilike(products.sku, `%${searchTerm}%`),
+        ilike(products.category, `%${searchTerm}%`),
+        ilike(products.description, `%${searchTerm}%`)
       )
-    );
+    ).orderBy(desc(products.salesCount));
   }
 
   async getFrequentProducts(): Promise<Array<{ id: number; name: string; price: string }>> {

@@ -54,9 +54,9 @@ export default function Sales() {
 
       setSearchLoading(true);
       try {
-        const response = await apiRequest("GET", `/api/search?q=${encodeURIComponent(query)}&type=products&limit=8`);
+        const response = await apiRequest("GET", `/api/products/search?q=${encodeURIComponent(query)}`);
         const data = await response.json();
-        setSearchResults(data.products || []);
+        setSearchResults(data || []);
         setShowSearchDropdown(true);
         setSelectedSearchIndex(-1);
       } catch (error) {

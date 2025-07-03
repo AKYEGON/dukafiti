@@ -259,13 +259,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/products/search", requireAuth, async (req, res) => {
     try {
       const query = req.query.q as string;
+      console.log(`Product search query: "${query}"`);
+      
       if (!query || query.trim().length < 1) {
+        console.log("Search query too short, returning empty array");
         return res.json([]);
       }
       
       const searchResults = await storage.searchProducts(query.trim());
+      console.log(`Found ${searchResults.length} products for query "${query}":`, searchResults.map(p => p.name));
+      
       // Limit to 8 results as requested
-      res.json(searchResults.slice(0, 8));
+      const limitedResults = searchResults.slice(0, 8);
+      res.json(limitedResults);
     } catch (error) {
       console.error("Error searching products:", error);
       res.status(500).json({ message: "Failed to search products" });
