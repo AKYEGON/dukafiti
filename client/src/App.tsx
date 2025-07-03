@@ -12,7 +12,7 @@ import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { useWebSocket } from "@/hooks/use-websocket";
 import { ThemeProvider } from "@/contexts/theme-context";
-import { OfflineIndicator } from "@/components/offline-indicator";
+import { OfflineBanner } from "@/components/OfflineBanner";
 import { ErrorBoundary } from "@/components/error-boundary";
 
 import Dashboard from "@/pages/dashboard";
@@ -162,7 +162,7 @@ function App() {
           <AuthProvider>
             <TooltipProvider>
               <Router />
-              <OfflineIndicator />
+              <OfflineBanner />
               <Toaster />
             </TooltipProvider>
           </AuthProvider>
