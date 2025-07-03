@@ -237,15 +237,15 @@ export default function Customers() {
                         </div>
                         
                         {/* Action Buttons */}
-                        <div className="flex gap-2">
+                        <div className="flex gap-2 w-full">
                           <Button 
                             onClick={() => handleEditCustomer(customer)}
                             variant="outline" 
                             size="sm"
-                            className="flex-1 min-h-[40px] border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 text-xs xl:text-sm"
+                            className="min-h-[40px] border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 text-xs xl:text-sm px-3"
                             aria-label={`Edit ${customer.name} details`}
                           >
-                            <Eye className="mr-1 xl:mr-2 h-4 w-4 flex-shrink-0" />
+                            <Eye className="mr-1 h-4 w-4 flex-shrink-0" />
                             Edit
                           </Button>
                           
@@ -253,10 +253,10 @@ export default function Customers() {
                             <Button 
                               onClick={() => handleRecordRepayment(customer)}
                               size="sm"
-                              className="flex-1 min-h-[40px] bg-green-600 hover:bg-green-700 text-white text-xs xl:text-sm whitespace-nowrap"
+                              className="flex-1 min-h-[40px] bg-green-600 hover:bg-green-700 text-white text-xs xl:text-sm px-2"
                               aria-label={`Record repayment for ${customer.name}`}
                             >
-                              <CreditCard className="mr-1 xl:mr-2 h-4 w-4 flex-shrink-0" />
+                              <CreditCard className="mr-1 h-3 w-3 flex-shrink-0" />
                               <span className="truncate">Record Repayment</span>
                             </Button>
                           )}
