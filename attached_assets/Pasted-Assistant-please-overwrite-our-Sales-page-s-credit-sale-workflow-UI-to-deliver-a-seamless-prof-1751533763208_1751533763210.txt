@@ -1,0 +1,50 @@
+Assistant, please overwrite our **Sales** page’s credit‑sale workflow UI to deliver a seamless, professional customer‑selection and add‑customer experience—no new features, only refined UX/UI. Follow these specs exactly:
+
+---
+
+## 1. Credit Flow Trigger & Button  
+- When the user selects “Credit” as payment method on the Sales page, immediately open a **Customer Picker** modal (instead of the generic confirmation modal).  
+- The “Sell” button remains disabled until a customer is selected.
+
+## 2. Customer Picker Modal  
+- **Layout**:  
+  - Header: “Select Customer for Credit Sale” (`text-xl font-semibold text-center`).  
+  - Search Input at top: `placeholder="Search customers…"`, debounced 300 ms calling `/api/customers?q=…`.  
+  - Below, scrollable list of matching customers in `max-h-64 overflow-y-auto`.  
+- **List Items**:  
+  - Each entry is a card-like button:  
+    - `flex items-center justify-between px-4 py-3 mb-2 bg-white dark:bg-[#1F1F1F] border border-gray-200 dark:border-gray-700 rounded-lg hover:bg-primaryGreen-light dark:hover:bg-primaryGreen-dark cursor-pointer transition`  
+    - Left: Customer Name & Phone; Right: Outstanding Balance (`text-sm text-gray-600 dark:text-gray-400`).  
+  - Highlight the hovered/focused item with `ring-2 ring-primaryGreen`.
+
+- **“Add New Customer” Inline**  
+  - At the bottom of the list, a persistent button:  
+    - `bg-primaryPurple text-white px-4 py-2 rounded-md w-full text-center hover:bg-primaryPurple-dark` labeled “Add New Customer”.  
+  - Clicking it seamlessly morphs the modal into the **Add Customer** form, replacing the list in-place.
+
+## 3. Add Customer Form (Inline Modal Transition)  
+- **Fields**: Name & Phone (both required), styled as `w-full px-3 py-2 border rounded focus:ring-2 focus:ring-primaryGreen`.  
+- Buttons below: “Cancel” (gray outline) and “Save & Select” (green full-width).  
+- On Save: POST `/api/customers` → on success, add the new customer to the top of the list, pre-select them, and exit form back to list view.
+
+## 4. Selection & Confirmation  
+- Once a customer is clicked or saved, close the modal and show a small toast: “Customer [Name] selected for credit sale.”  
+- The chosen customer’s name appears next to the “Credit” button in the sales header.  
+- The “Sell” button now enables and, on tap, proceeds to the existing confirmation modal.
+
+## 5. Accessibility & Keyboard  
+- Modal traps focus; Esc closes it.  
+- List and form fields are keyboard‑navigable; Enter on a list item selects it; Tab moves through inputs and buttons.  
+- Use appropriate `aria-*` roles (`role="dialog"`, `role="listbox"`, `aria-selected`).
+
+## 6. QA Checklist  
+- [ ] Selecting “Credit” immediately opens the Customer Picker modal.  
+- [ ] Search filters the customer list correctly.  
+- [ ] “Add New Customer” transforms into an inline form and back.  
+- [ ] Saving a new customer adds & selects them automatically.  
+- [ ] Modal closes on selection and displays toast.  
+- [ ] “Sell” remains disabled until a customer is selected.  
+- [ ] Keyboard navigation and focus trapping work as specified.  
+- [ ] Dark mode styling applies to all modal states.
+
+Generate the updated React components (`CustomerPickerModal.jsx`, inline add form), styling (Tailwind classes), and integration in `Sales.jsx` to implement this refined credit‑sale customer flow.```

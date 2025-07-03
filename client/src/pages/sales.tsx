@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
-import { ShoppingCart, CreditCard, Smartphone, Banknote, Search, ChevronDown, ChevronUp } from "lucide-react";
+import { ShoppingCart, CreditCard, Smartphone, Banknote, Search, ChevronDown, ChevronUp, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { type Product } from "@shared/schema";
@@ -9,6 +9,7 @@ import { type SaleLineItem } from "@/components/sales/sale-line-item";
 import { formatCurrency } from "@/lib/utils";
 import { offlineQueue, isOnline } from "@/lib/offline-queue";
 import { Skeleton } from "@/components/ui/skeleton";
+import { CustomerPickerModal } from "@/components/sales/CustomerPickerModal";
 
 // Use SaleLineItem from the components instead of local CartItem
 
@@ -19,7 +20,8 @@ const ConfirmationModal = ({
   cartItems, 
   paymentMethod, 
   onConfirm,
-  isProcessing 
+  isProcessing,
+  selectedCustomer
 }: {
   isOpen: boolean;
   onClose: () => void;
@@ -27,9 +29,8 @@ const ConfirmationModal = ({
   paymentMethod: 'cash' | 'credit' | 'mobileMoney';
   onConfirm: (customer?: { name: string; phone?: string }) => void;
   isProcessing: boolean;
+  selectedCustomer?: Customer | null;
 }) => {
-  const [customerName, setCustomerName] = useState('');
-  const [customerPhone, setCustomerPhone] = useState('');
 
   // Get fresh product data for accurate stock validation
   const { data: freshProducts = [] } = useQuery<Product[]>({
@@ -76,8 +77,8 @@ const ConfirmationModal = ({
       return; // Button should be disabled anyway
     }
     
-    if (paymentMethod === 'credit' && customerName.trim()) {
-      onConfirm({ name: customerName.trim(), phone: customerPhone.trim() });
+    if (paymentMethod === 'credit' && selectedCustomer) {
+      onConfirm({ name: selectedCustomer.name, phone: selectedCustomer.phone });
     } else {
       onConfirm();
     }
@@ -128,22 +129,19 @@ const ConfirmationModal = ({
         )}
 
         {/* Customer info for credit sales */}
-        {paymentMethod === 'credit' && (
-          <div className="space-y-3 mb-4">
-            <input
-              type="text"
-              placeholder="Customer Name (required)"
-              value={customerName}
-              onChange={(e) => setCustomerName(e.target.value)}
-              className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800"
-            />
-            <input
-              type="text"
-              placeholder="Customer Phone (optional)"
-              value={customerPhone}
-              onChange={(e) => setCustomerPhone(e.target.value)}
-              className="w-full p-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800"
-            />
+        {paymentMethod === 'credit' && selectedCustomer && (
+          <div className="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+            <div className="flex items-center gap-2 mb-2">
+              <User className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+              <span className="font-medium text-blue-800 dark:text-blue-200">Credit Sale Customer</span>
+            </div>
+            <div className="text-sm text-blue-700 dark:text-blue-300">
+              <div className="font-medium">{selectedCustomer.name}</div>
+              <div>{selectedCustomer.phone}</div>
+              {selectedCustomer.balance > 0 && (
+                <div className="text-xs mt-1">Outstanding balance: KES {selectedCustomer.balance.toFixed(2)}</div>
+              )}
+            </div>
           </div>
         )}
         
@@ -151,7 +149,7 @@ const ConfirmationModal = ({
         <div className="space-y-3">
           <Button 
             onClick={handleConfirm}
-            disabled={isProcessing || hasStockIssues || (paymentMethod === 'credit' && !customerName.trim())}
+            disabled={isProcessing || hasStockIssues || (paymentMethod === 'credit' && !selectedCustomer)}
             className={`w-full h-12 text-lg font-semibold ${
               hasStockIssues 
                 ? 'bg-gray-400 hover:bg-gray-400 cursor-not-allowed text-white' 
@@ -174,10 +172,22 @@ const ConfirmationModal = ({
   );
 };
 
+interface Customer {
+  id: number;
+  name: string;
+  phone: string;
+  email?: string;
+  balance: number;
+}
+
 export default function Sales() {
   const [cartItems, setCartItems] = useState<SaleLineItem[]>([]);
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<'cash' | 'credit' | 'mobileMoney' | ''>('');
+  
+  // Customer picker state for credit sales
+  const [showCustomerPicker, setShowCustomerPicker] = useState(false);
+  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   
   // Smart search state
   const [searchQuery, setSearchQuery] = useState('');
@@ -582,23 +592,47 @@ export default function Sales() {
         qty: item.quantity,
       })),
       paymentType: paymentMethod as 'cash' | 'credit' | 'mobileMoney',
-      customer: customerName,
+      customer: customer?.name || null,
     };
 
     createSaleMutation.mutate(saleData);
   };
 
+  // Customer picker handlers
+  const handleCustomerSelect = (customer: Customer) => {
+    setSelectedCustomer(customer);
+    setShowCustomerPicker(false);
+  };
+
+  const handleCustomerPickerClose = () => {
+    setShowCustomerPicker(false);
+    // If no customer was selected, reset payment method
+    if (!selectedCustomer) {
+      setPaymentMethod('');
+    }
+  };
+
+  // Reset customer when payment method changes
+  const handlePaymentMethodChange = (method: 'cash' | 'credit' | 'mobileMoney') => {
+    if (method !== 'credit') {
+      setSelectedCustomer(null);
+    }
+    setPaymentMethod(method);
+  };
+
   const cartTotal = cartItems.reduce((sum, item) => sum + parseFloat(item.total), 0);
   const isCartEmpty = cartItems.length === 0;
-  const canProceed = !isCartEmpty && paymentMethod !== '';
+  const canProceed = !isCartEmpty && paymentMethod !== '' && (paymentMethod !== 'credit' || selectedCustomer !== null);
 
   // Button click handler with ripple effect
   const handleSellButtonClick = () => {
     if (!canProceed) {
       if (isCartEmpty) {
         toast({ title: "Cart is empty", description: "Scan or select items to start a sale", variant: "destructive" });
-      } else {
+      } else if (paymentMethod === '') {
         toast({ title: "Select payment method", variant: "destructive" });
+      } else if (paymentMethod === 'credit' && !selectedCustomer) {
+        toast({ title: "Select customer", description: "Please select a customer for credit sale", variant: "destructive" });
       }
       return;
     }
@@ -825,7 +859,7 @@ export default function Sales() {
             <h3 className="text-lg font-semibold mb-3">Payment Method</h3>
             <div className="space-y-2">
               <button
-                onClick={() => setPaymentMethod('cash')}
+                onClick={() => handlePaymentMethodChange('cash')}
                 className={`w-full h-12 rounded-lg font-medium transition-all duration-200 flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-green-600 ${
                   paymentMethod === 'cash'
                     ? 'bg-green-600 text-white'
@@ -837,7 +871,7 @@ export default function Sales() {
               </button>
               
               <button
-                onClick={() => setPaymentMethod('mobileMoney')}
+                onClick={() => handlePaymentMethodChange('mobileMoney')}
                 className={`w-full h-12 rounded-lg font-medium transition-all duration-200 flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-green-600 ${
                   paymentMethod === 'mobileMoney'
                     ? 'bg-green-600 text-white'
@@ -849,7 +883,10 @@ export default function Sales() {
               </button>
               
               <button
-                onClick={() => setPaymentMethod('credit')}
+                onClick={() => {
+                  setPaymentMethod('credit');
+                  setShowCustomerPicker(true);
+                }}
                 className={`w-full h-12 rounded-lg font-medium transition-all duration-200 flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-green-600 ${
                   paymentMethod === 'credit'
                     ? 'bg-green-600 text-white'
@@ -858,6 +895,11 @@ export default function Sales() {
               >
                 <CreditCard className="h-5 w-5" />
                 Credit
+                {selectedCustomer && paymentMethod === 'credit' && (
+                  <span className="ml-2 text-xs bg-white/20 rounded px-2 py-1">
+                    {selectedCustomer.name}
+                  </span>
+                )}
               </button>
             </div>
           </div>
@@ -876,7 +918,12 @@ export default function Sales() {
               : 'bg-gray-400 text-gray-600 cursor-not-allowed'
           }`}
         >
-          {createSaleMutation.isPending ? 'Processing...' : 'Complete Sale'}
+          {createSaleMutation.isPending 
+            ? 'Processing...' 
+            : paymentMethod === 'credit' && !selectedCustomer 
+            ? 'Select Customer First' 
+            : 'Complete Sale'
+          }
         </button>
       </div>
 
@@ -888,6 +935,14 @@ export default function Sales() {
         paymentMethod={paymentMethod as 'cash' | 'credit' | 'mobileMoney'}
         onConfirm={handleConfirmSale}
         isProcessing={createSaleMutation.isPending}
+        selectedCustomer={selectedCustomer}
+      />
+
+      {/* Customer Picker Modal */}
+      <CustomerPickerModal
+        isOpen={showCustomerPicker}
+        onClose={handleCustomerPickerClose}
+        onSelectCustomer={handleCustomerSelect}
       />
     </div>
   );
