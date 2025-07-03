@@ -121,8 +121,12 @@ export function TopBar({ onToggleSidebar, isSidebarCollapsed }: TopBarProps) {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.clear();
+      // Navigate to home page first
       setLocation('/');
+      // Then clear cache to avoid race conditions
+      setTimeout(() => {
+        queryClient.clear();
+      }, 50);
     },
   });
 
