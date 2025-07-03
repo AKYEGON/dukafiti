@@ -263,6 +263,99 @@ export async function registerSupabaseRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Sales endpoint (used by frontend)
+  app.post("/api/sales", requireAuth, async (req, res) => {
+    try {
+      const { items, paymentType, customerName, customerPhone } = req.body;
+      
+      // Calculate total
+      let total = 0;
+      const products = await supabaseDb.getProducts();
+      
+      for (const item of items) {
+        const product = products.find(p => p.id === item.id);
+        if (product) {
+          total += parseFloat(product.price) * item.quantity;
+        }
+      }
+      
+      // Map payment types
+      const paymentMethod = paymentType === 'mobileMoney' ? 'mobile_money' : paymentType;
+      
+      // Create order
+      const order = await supabaseDb.createOrder({
+        customer_name: customerName || customerPhone || 'Walk-in Customer',
+        total: total.toFixed(2),
+        payment_method: paymentMethod,
+        status: 'completed',
+      });
+      
+      // Create order items and update product stock
+      for (const item of items) {
+        const product = products.find(p => p.id === item.id);
+        if (product) {
+          // Create order item
+          await supabaseDb.createOrderItem({
+            order_id: order.id,
+            product_id: item.id,
+            product_name: product.name,
+            quantity: item.quantity,
+            price: product.price,
+          });
+          
+          // Update product stock and sales count
+          if (product.stock !== null) {
+            await supabaseDb.updateProduct(item.id, {
+              stock: Math.max(0, product.stock - item.quantity),
+              sales_count: product.sales_count + item.quantity,
+            });
+          } else {
+            await supabaseDb.updateProduct(item.id, {
+              sales_count: product.sales_count + item.quantity,
+            });
+          }
+        }
+      }
+      
+      // Handle credit sales - update customer balance
+      if (paymentMethod === 'credit' && (customerName || customerPhone)) {
+        try {
+          const customerData = customerName || customerPhone;
+          const customer = await supabaseDb.findCustomerByNameOrPhone(customerData);
+          
+          if (customer) {
+            // Update existing customer balance
+            const newBalance = parseFloat(customer.balance) + total;
+            await supabaseDb.updateCustomer(customer.id, {
+              balance: newBalance.toFixed(2)
+            });
+          } else {
+            // Create new customer with credit balance
+            await supabaseDb.createCustomer({
+              name: customerName || 'Unknown',
+              phone: customerPhone || '',
+              email: '',
+              balance: total.toFixed(2)
+            });
+          }
+        } catch (error) {
+          console.error('Error updating customer balance:', error);
+        }
+      }
+      
+      // Broadcast notification
+      broadcastToClients({
+        type: 'sale_completed',
+        data: { orderId: order.id, total, customerName: customerName || customerPhone }
+      });
+      
+      res.json({ success: true, orderId: order.id, total: total.toFixed(2) });
+    } catch (error) {
+      console.error('Error creating sale:', error);
+      res.status(500).json({ error: 'Failed to create sale' });
+    }
+  });
+
   // Dashboard metrics
   app.get("/api/dashboard/metrics", requireAuth, async (req, res) => {
     try {

@@ -104,6 +104,17 @@ export const supabaseDb = {
     return data;
   },
 
+  async findCustomerByNameOrPhone(nameOrPhone: string) {
+    const { data, error } = await supabase
+      .from('customers')
+      .select('*')
+      .or(`name.ilike.%${nameOrPhone}%,phone.ilike.%${nameOrPhone}%`)
+      .limit(1);
+    
+    if (error) throw error;
+    return data && data.length > 0 ? data[0] : null;
+  },
+
   // Orders
   async getOrders(limit?: number) {
     let query = supabase.from('orders').select('*').order('created_at', { ascending: false });
