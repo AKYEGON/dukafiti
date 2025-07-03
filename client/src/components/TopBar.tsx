@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useLocation } from 'wouter';
 import { useQuery } from '@tanstack/react-query';
 import { formatDistanceToNow } from 'date-fns';
-import { useAuth } from '@/contexts/auth-context';
+import { useAuth } from '@/contexts/AuthContext';
 import { 
   Search, 
   Bell, 
@@ -29,7 +29,7 @@ interface TopBarProps {
 
 export function TopBar({ onToggleSidebar, isSidebarCollapsed }: TopBarProps) {
   const [, setLocation] = useLocation();
-  const { user, signOut } = useAuth();
+  const { user, logout } = useAuth();
   
   // Search state
   const [searchQuery, setSearchQuery] = useState('');
@@ -106,7 +106,7 @@ export function TopBar({ onToggleSidebar, isSidebarCollapsed }: TopBarProps) {
   const handleLogout = async () => {
     setIsLogoutModalOpen(false);
     setIsProfileOpen(false);
-    await signOut();
+    await logout();
     setLocation('/');
   };
 
