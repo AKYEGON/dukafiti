@@ -229,6 +229,10 @@ Changelog:
 - July 2, 2025. Added comprehensive sales error handling with specific error messages and stock validation
 - July 2, 2025. Implemented stock validation in sales confirmation modal to prevent insufficient stock sales
 - July 2, 2025. Added "Add Product" button to inventory page header for easy product creation access
+- July 3, 2025. Enhanced Inventory Add/Edit Product modal with "Unknown Quantity" toggle for items measured in variable units
+- July 3, 2025. Updated database schema to allow null stock quantities and skip stock validation for unknown quantity items
+- July 3, 2025. Modified dashboard low-stock alerts to exclude products with unknown quantities
+- July 3, 2025. Added visual indicators in inventory listing to display "—" for unknown quantity items
 - July 2, 2025. Created PostgreSQL database with proper schema deployment using Drizzle Kit
 - July 2, 2025. Updated database configuration from Neon to PostgreSQL with pg driver
 - July 2, 2025. Seeded database with sample users, products, customers, and notifications for testing

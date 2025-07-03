@@ -178,8 +178,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/products", requireAuth, async (req, res) => {
     try {
-      const productData = insertProductSchema.parse(req.body);
-      const product = await storage.createProduct(productData);
+      const requestData = insertProductSchema.parse(req.body);
+      
+      // Handle unknown quantity logic
+      const productData = {
+        ...requestData,
+        stock: requestData.unknownQuantity ? null : requestData.stock,
+      };
+      
+      // Remove unknownQuantity from the data before sending to storage
+      const { unknownQuantity, ...cleanProductData } = productData;
+      
+      const product = await storage.createProduct(cleanProductData);
       res.status(201).json(product);
     } catch (error: any) {
       console.error("Product creation error:", error);
@@ -197,8 +207,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.put("/api/products/:id", requireAuth, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      const productData = insertProductSchema.partial().parse(req.body);
-      const product = await storage.updateProduct(id, productData);
+      const requestData = insertProductSchema.partial().parse(req.body);
+      
+      // Handle unknown quantity logic
+      const productData = {
+        ...requestData,
+        stock: requestData.unknownQuantity ? null : requestData.stock,
+      };
+      
+      // Remove unknownQuantity from the data before sending to storage
+      const { unknownQuantity, ...cleanProductData } = productData;
+      
+      const product = await storage.updateProduct(id, cleanProductData);
       if (!product) {
         return res.status(404).json({ message: "Product not found" });
       }
@@ -547,7 +567,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           return res.status(400).json({ message: `Product with ID ${item.productId} not found` });
         }
         
-        if (item.qty > product.stock) {
+        // Skip stock validation for products with unknown quantities
+        if (product.stock !== null && item.qty > product.stock) {
           return res.status(400).json({ message: `Insufficient stock for ${product.name}. Available: ${product.stock}, Requested: ${item.qty}` });
         }
         

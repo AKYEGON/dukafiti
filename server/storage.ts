@@ -384,11 +384,11 @@ export class DatabaseStorage implements IStorage {
       totalCustomers: sql<number>`COUNT(*)`
     }).from(customers);
 
-    // Get low stock count
+    // Get low stock count (exclude products with unknown quantities)
     const [lowStockResult] = await db.select({
       lowStockCount: sql<number>`COUNT(*)`
     }).from(products)
-    .where(sql`${products.stock} <= ${products.lowStockThreshold}`);
+    .where(sql`${products.stock} IS NOT NULL AND ${products.stock} <= ${products.lowStockThreshold}`);
 
     return {
       totalRevenue: revenueResult?.totalRevenue || "0.00",

@@ -9,7 +9,7 @@ export const products = pgTable("products", {
   sku: text("sku").notNull().unique(),
   description: text("description"),
   price: decimal("price", { precision: 10, scale: 2 }).notNull(),
-  stock: integer("stock").notNull().default(0),
+  stock: integer("stock"), // Allow null for unknown quantities
   category: text("category").notNull(),
   lowStockThreshold: integer("low_stock_threshold").notNull().default(10),
   salesCount: integer("sales_count").notNull().default(0),
@@ -152,6 +152,9 @@ export const insertProductSchema = createInsertSchema(products).omit({
   id: true,
   createdAt: true,
   salesCount: true,
+}).extend({
+  // Allow for unknown quantity handling on frontend
+  unknownQuantity: z.boolean().optional(),
 });
 
 export const insertCustomerSchema = createInsertSchema(customers).omit({

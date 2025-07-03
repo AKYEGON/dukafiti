@@ -182,11 +182,18 @@ export default function Inventory() {
                 {/* Stock and Threshold */}
                 <div className="space-y-1 mb-4">
                   <p className="text-sm text-muted-foreground">
-                    <span className="font-medium">Qty:</span> {product.stock}
+                    <span className="font-medium">Qty:</span> {product.stock === null ? "—" : product.stock}
                   </p>
-                  <p className="text-sm text-muted-foreground">
-                    <span className="font-medium">Low Stock:</span> {product.lowStockThreshold}
-                  </p>
+                  {product.stock !== null && (
+                    <p className="text-sm text-muted-foreground">
+                      <span className="font-medium">Low Stock:</span> {product.lowStockThreshold}
+                    </p>
+                  )}
+                  {product.stock === null && (
+                    <p className="text-sm text-amber-600 dark:text-amber-400">
+                      <span className="font-medium">Unknown quantity</span>
+                    </p>
+                  )}
                 </div>
                 
                 {/* Action Buttons */}

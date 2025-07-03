@@ -1,7 +1,7 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { insertProductSchema, type InsertProduct, type Product } from "@shared/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -22,6 +22,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 
 interface ProductFormProps {
   open: boolean;
@@ -32,6 +33,7 @@ interface ProductFormProps {
 export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [unknownQuantity, setUnknownQuantity] = useState(false);
 
   const form = useForm<InsertProduct>({
     resolver: zodResolver(insertProductSchema),
@@ -43,23 +45,28 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
       stock: 0,
       category: "",
       lowStockThreshold: 10,
+      unknownQuantity: false,
     },
   });
 
   // Reset form with product data when editing
   useEffect(() => {
     if (product) {
+      const hasUnknownQuantity = product.stock === null;
+      setUnknownQuantity(hasUnknownQuantity);
       form.reset({
         name: product.name || "",
         sku: product.sku || "",
         description: product.description || "",
         price: product.price || "0",
-        stock: product.stock || 0,
+        stock: hasUnknownQuantity ? 0 : (product.stock || 0),
         category: product.category || "",
         lowStockThreshold: product.lowStockThreshold || 10,
+        unknownQuantity: hasUnknownQuantity,
       });
     } else {
       // Reset to empty form when creating new product
+      setUnknownQuantity(false);
       form.reset({
         name: "",
         sku: "",
@@ -68,6 +75,7 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
         stock: 0,
         category: "",
         lowStockThreshold: 10,
+        unknownQuantity: false,
       });
     }
   }, [product, form]);
@@ -108,10 +116,17 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
   });
 
   const onSubmit = (data: InsertProduct) => {
+    // Handle unknown quantity logic
+    const processedData = {
+      ...data,
+      stock: unknownQuantity ? null : data.stock,
+      unknownQuantity: unknownQuantity,
+    };
+    
     if (product) {
-      updateMutation.mutate(data);
+      updateMutation.mutate(processedData);
     } else {
-      createMutation.mutate(data);
+      createMutation.mutate(processedData);
     }
   };
 
@@ -198,7 +213,15 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
                       <Input 
                         type="number" 
                         {...field} 
-                        onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
+                        value={unknownQuantity ? "" : (field.value || "")}
+                        placeholder={unknownQuantity ? "Unspecified" : "Enter stock quantity"}
+                        disabled={unknownQuantity}
+                        onChange={(e) => {
+                          if (!unknownQuantity) {
+                            field.onChange(parseInt(e.target.value) || 0);
+                          }
+                        }}
+                        className={unknownQuantity ? "bg-gray-100 dark:bg-gray-700 text-gray-500" : ""}
                       />
                     </FormControl>
                     <FormMessage />
@@ -206,6 +229,30 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
                 )}
               />
             </div>
+
+            {/* Unknown Quantity Toggle */}
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="unknown-quantity"
+                checked={unknownQuantity}
+                onCheckedChange={(checked) => {
+                  setUnknownQuantity(checked === true);
+                  form.setValue("unknownQuantity", checked === true);
+                  if (checked) {
+                    form.setValue("stock", 0);
+                  }
+                }}
+              />
+              <label
+                htmlFor="unknown-quantity"
+                className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+              >
+                Unknown Quantity
+              </label>
+            </div>
+            <p className="text-xs text-gray-500 -mt-2">
+              Check this for items measured in variable units (e.g., sacks sold by cups)
+            </p>
 
             <div className="grid grid-cols-2 gap-4">
               <FormField
