@@ -7,7 +7,7 @@ import { insertProductSchema, insertCustomerSchema, insertOrderSchema, insertOrd
 import { z } from "zod";
 import { v4 as uuidv4 } from "uuid";
 import { Parser as Json2csvParser } from "json2csv";
-import { eq, desc, asc, and, like, or, sql } from "drizzle-orm";
+import { eq, desc, asc, and, like, or, sql, gte, lte } from "drizzle-orm";
 import bcrypt from "bcryptjs";
 
 // WebSocket clients store
@@ -874,6 +874,326 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error searching products:', error);
       res.status(500).json({ error: 'Failed to search products' });
+    }
+  });
+
+  // Reports API endpoints
+  app.get('/api/reports/summary', requireAuth, async (req, res) => {
+    try {
+      const period = req.query.period || 'today';
+      
+      let startDate: Date;
+      let endDate = new Date();
+      
+      switch (period) {
+        case 'weekly':
+          startDate = new Date();
+          startDate.setDate(startDate.getDate() - 7);
+          break;
+        case 'monthly':
+          startDate = new Date();
+          startDate.setDate(startDate.getDate() - 30);
+          break;
+        default: // today
+          startDate = new Date();
+          startDate.setHours(0, 0, 0, 0);
+          endDate.setHours(23, 59, 59, 999);
+      }
+      
+      const filteredOrders = await db
+        .select()
+        .from(orders)
+        .where(
+          and(
+            gte(orders.createdAt, startDate),
+            lte(orders.createdAt, endDate)
+          )
+        );
+      
+      let totalSales = 0;
+      let cashSales = 0;
+      let mobileMoneySales = 0;
+      let creditSales = 0;
+      
+      filteredOrders.forEach(order => {
+        const amount = parseFloat(order.total);
+        totalSales += amount;
+        
+        if (order.status === 'paid' || order.status === 'completed') {
+          if (order.paymentMethod === 'cash') {
+            cashSales += amount;
+          } else if (order.paymentMethod === 'mobileMoney') {
+            mobileMoneySales += amount;
+          }
+        }
+        
+        if (order.paymentMethod === 'credit') {
+          creditSales += amount;
+        }
+      });
+      
+      res.json({
+        totalSales: totalSales.toFixed(2),
+        cashSales: cashSales.toFixed(2),
+        mobileMoneySales: mobileMoneySales.toFixed(2),
+        creditSales: creditSales.toFixed(2)
+      });
+    } catch (error) {
+      console.error('Summary reports error:', error);
+      res.status(500).json({ message: 'Failed to fetch summary data' });
+    }
+  });
+
+  app.get('/api/reports/trend', requireAuth, async (req, res) => {
+    try {
+      const period = req.query.period || 'daily';
+      
+      let trendData: Array<{ label: string; value: number }> = [];
+      
+      switch (period) {
+        case 'daily':
+          // 24 hours
+          trendData = Array.from({ length: 24 }, (_, i) => ({
+            label: `${i.toString().padStart(2, '0')}:00`,
+            value: 0
+          }));
+          
+          const today = new Date();
+          const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+          
+          const todayOrders = await db
+            .select()
+            .from(orders)
+            .where(gte(orders.createdAt, startOfDay));
+          
+          todayOrders.forEach(order => {
+            const hour = new Date(order.createdAt).getHours();
+            trendData[hour].value += parseFloat(order.total);
+          });
+          break;
+          
+        case 'weekly':
+          // 7 days
+          const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+          trendData = dayNames.map(day => ({ label: day, value: 0 }));
+          
+          const weekStart = new Date();
+          weekStart.setDate(weekStart.getDate() - 7);
+          
+          const weekOrders = await db
+            .select()
+            .from(orders)
+            .where(gte(orders.createdAt, weekStart));
+          
+          weekOrders.forEach(order => {
+            const dayOfWeek = new Date(order.createdAt).getDay();
+            trendData[dayOfWeek].value += parseFloat(order.total);
+          });
+          break;
+          
+        case 'monthly':
+          // 30 days
+          trendData = Array.from({ length: 30 }, (_, i) => ({
+            label: (i + 1).toString(),
+            value: 0
+          }));
+          
+          const monthStart = new Date();
+          monthStart.setDate(monthStart.getDate() - 30);
+          
+          const monthOrders = await db
+            .select()
+            .from(orders)
+            .where(gte(orders.createdAt, monthStart));
+          
+          monthOrders.forEach(order => {
+            const dayOfMonth = new Date(order.createdAt).getDate() - 1;
+            if (dayOfMonth >= 0 && dayOfMonth < 30) {
+              trendData[dayOfMonth].value += parseFloat(order.total);
+            }
+          });
+          break;
+      }
+      
+      res.json(trendData);
+    } catch (error) {
+      console.error('Trend reports error:', error);
+      res.status(500).json({ message: 'Failed to fetch trend data' });
+    }
+  });
+
+  app.get('/api/reports/top-items', requireAuth, async (req, res) => {
+    try {
+      const topItems = await db
+        .select({
+          name: products.name,
+          unitsSold: products.salesCount,
+          revenue: sql<string>`CAST(${products.salesCount} * CAST(${products.price} AS DECIMAL) AS TEXT)`,
+        })
+        .from(products)
+        .orderBy(desc(products.salesCount))
+        .limit(10);
+      
+      res.json(topItems.map(item => ({
+        name: item.name,
+        unitsSold: item.unitsSold,
+        revenue: parseFloat(item.revenue || '0').toFixed(2)
+      })));
+    } catch (error) {
+      console.error('Top items reports error:', error);
+      res.status(500).json({ message: 'Failed to fetch top items' });
+    }
+  });
+
+  app.get('/api/reports/top-customers', requireAuth, async (req, res) => {
+    try {
+      const topCustomers = await db
+        .select({
+          customerName: customers.name,
+          totalOwed: customers.balance,
+        })
+        .from(customers)
+        .where(sql`CAST(${customers.balance} AS DECIMAL) > 0`)
+        .orderBy(desc(sql`CAST(${customers.balance} AS DECIMAL)`))
+        .limit(5);
+      
+      res.json(topCustomers.map(customer => ({
+        customerName: customer.customerName,
+        totalOwed: parseFloat(customer.totalOwed).toFixed(2),
+        outstandingOrders: 1
+      })));
+    } catch (error) {
+      console.error('Top customers reports error:', error);
+      res.status(500).json({ message: 'Failed to fetch top customers' });
+    }
+  });
+
+  app.get('/api/reports/top-products', requireAuth, async (req, res) => {
+    try {
+      const topProducts = await db
+        .select({
+          name: products.name,
+          unitsSold: products.salesCount,
+          revenue: sql<string>`CAST(${products.salesCount} * CAST(${products.price} AS DECIMAL) AS TEXT)`,
+        })
+        .from(products)
+        .orderBy(desc(products.salesCount))
+        .limit(10);
+      
+      res.json(topProducts.map(product => ({
+        name: product.name,
+        unitsSold: product.unitsSold,
+        revenue: parseFloat(product.revenue || '0').toFixed(2)
+      })));
+    } catch (error) {
+      console.error('Top products reports error:', error);
+      res.status(500).json({ message: 'Failed to fetch top products' });
+    }
+  });
+
+  app.get('/api/reports/credits', requireAuth, async (req, res) => {
+    try {
+      const customerCredits = await db
+        .select({
+          name: customers.name,
+          phone: customers.phone,
+          balance: customers.balance,
+        })
+        .from(customers)
+        .where(sql`CAST(${customers.balance} AS DECIMAL) > 0`)
+        .orderBy(desc(sql`CAST(${customers.balance} AS DECIMAL)`));
+      
+      res.json(customerCredits.map(customer => ({
+        name: customer.name,
+        phone: customer.phone || 'N/A',
+        balance: customer.balance
+      })));
+    } catch (error) {
+      console.error('Customer credits reports error:', error);
+      res.status(500).json({ message: 'Failed to fetch customer credits' });
+    }
+  });
+
+  app.get('/api/reports/orders', requireAuth, async (req, res) => {
+    try {
+      const { period = 'daily', page = '1', limit = '20' } = req.query;
+      const today = new Date();
+      let startDate: Date;
+
+      switch (period) {
+        case 'weekly':
+          startDate = new Date(today);
+          startDate.setDate(today.getDate() - 7);
+          break;
+        case 'monthly':
+          startDate = new Date(today);
+          startDate.setDate(today.getDate() - 30);
+          break;
+        default: // daily
+          startDate = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+      }
+
+      const pageNum = parseInt(page as string, 10);
+      const limitNum = parseInt(limit as string, 10);
+      const offset = (pageNum - 1) * limitNum;
+
+      const filteredOrders = await db
+        .select({
+          id: orders.id,
+          customerName: orders.customerName,
+          total: orders.total,
+          paymentMethod: orders.paymentMethod,
+          status: orders.status,
+          reference: orders.reference,
+          createdAt: orders.createdAt,
+        })
+        .from(orders)
+        .where(gte(orders.createdAt, startDate))
+        .orderBy(desc(orders.createdAt))
+        .limit(limitNum)
+        .offset(offset);
+
+      // Get order items for each order
+      const ordersWithItems = await Promise.all(
+        filteredOrders.map(async (order) => {
+          const items = await db
+            .select({
+              productName: orderItems.productName,
+              quantity: orderItems.quantity,
+            })
+            .from(orderItems)
+            .where(eq(orderItems.orderId, order.id));
+
+          return {
+            orderId: order.id,
+            date: order.createdAt.toISOString().split('T')[0],
+            customerName: order.customerName,
+            total: order.total,
+            paymentMethod: order.paymentMethod,
+            status: order.status,
+            reference: order.reference,
+            products: items.map(item => ({
+              name: item.productName,
+              quantity: item.quantity
+            }))
+          };
+        })
+      );
+
+      const totalCount = await db
+        .select({ count: sql<number>`COUNT(*)` })
+        .from(orders)
+        .where(gte(orders.createdAt, startDate));
+
+      res.json({
+        orders: ordersWithItems,
+        total: totalCount[0]?.count || 0,
+        page: pageNum,
+        totalPages: Math.ceil((totalCount[0]?.count || 0) / limitNum)
+      });
+    } catch (error) {
+      console.error('Orders reports error:', error);
+      res.status(500).json({ message: 'Failed to fetch orders' });
     }
   });
 
