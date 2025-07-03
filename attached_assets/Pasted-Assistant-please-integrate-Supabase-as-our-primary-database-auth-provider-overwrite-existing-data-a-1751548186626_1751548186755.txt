@@ -1,0 +1,94 @@
+Assistant, please integrate Supabase as our primary database/auth provider—overwrite existing data‑access code and wiring so that both frontend and backend use Supabase. Assume the following environment variables are set:
+
+SUPABASE_URL
+SUPABASE_ANON_KEY
+SUPABASE_SERVICE_ROLE_KEY
+
+yaml
+Copy
+Edit
+
+Generate all necessary code changes:
+
+---
+
+## 1. Install Dependencies  
+- Run in root:
+npm install @supabase/supabase-js
+
+diff
+Copy
+Edit
+- In React client directory:
+npm install @supabase/supabase-js
+
+yaml
+Copy
+Edit
+
+---
+
+## 2. Backend Supabase Client Setup  
+- Create a new module `supabaseClient.js` at project root:
+```js
+// supabaseClient.js
+const { createClient } = require('@supabase/supabase-js');
+const supabaseUrl = process.env.SUPABASE_URL;
+const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+module.exports = createClient(supabaseUrl, serviceRoleKey);
+In server.js (or wherever you accessed Replit DB), replace all Replit DB calls with Supabase queries:
+
+Products:
+
+js
+Copy
+Edit
+const supabase = require('./supabaseClient');
+// Fetch products
+const { data: products, error } = await supabase
+  .from('products')
+  .select('*');
+Sales, Customers, Settings, etc.—use supabase.from('<table>').select()/insert()/update()/delete() accordingly.
+
+3. Frontend Supabase Client & Auth
+In src/supabaseClient.js:
+
+js
+Copy
+Edit
+import { createClient } from '@supabase/supabase-js';
+export const supabase = createClient(
+  process.env.REACT_APP_SUPABASE_URL,
+  process.env.REACT_APP_SUPABASE_ANON_KEY
+);
+Update authentication flows to use supabase.auth (as per magic‑link or email/password flows previously defined).
+
+Wherever you fetched Replit DB or API for data, switch to direct Supabase calls:
+
+js
+Copy
+Edit
+import { supabase } from './supabaseClient';
+// Example: fetch inventory
+const { data: products, error } = await supabase
+  .from('products')
+  .select('*');
+4. Environment & Deployment
+Ensure .env (backend) and .env.local (frontend) contain the three Supabase variables.
+
+Remove or disable any Replit DB or local JSON mocks.
+
+5. QA Checklist
+ Supabase client initialized correctly in backend and frontend.
+
+ All CRUD operations for products, sales, customers, and settings use Supabase tables.
+
+ Auth flows (signup, login, logout) use Supabase Auth.
+
+ Environment variables read properly in both contexts.
+
+ No Replit DB code remains.
+
+ Manual testing: creating/editing products, recording sales, managing customers all persist in Supabase.
+
+Please generate the updated supabaseClient.js files, show examples for products and sales routes, and list any changes needed in React components to switch over to Supabase.```

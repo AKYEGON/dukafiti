@@ -112,6 +112,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ success: false, message: "Database initialization failed", error: error.message });
     }
   });
+
+  // Debug endpoint to test Supabase connection
+  app.get("/api/debug/users", async (req, res) => {
+    try {
+      const users = await storage.getUsers();
+      res.json({ success: true, users, count: users.length });
+    } catch (error) {
+      console.error("Debug users error:", error);
+      res.status(500).json({ success: false, error: error.message });
+    }
+  });
   
   // User registration route
   app.post("/api/register", async (req, res) => {

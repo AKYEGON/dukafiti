@@ -57,6 +57,15 @@ export class SupabaseStorage implements IStorage {
     return data as User;
   }
 
+  async getUsers(): Promise<User[]> {
+    const { data, error } = await supabase
+      .from('users')
+      .select('*');
+    
+    if (error) throw error;
+    return data as User[];
+  }
+
   async getUserByUsername(username: string): Promise<User | undefined> {
     const { data, error } = await supabase
       .from('users')
@@ -87,18 +96,44 @@ export class SupabaseStorage implements IStorage {
       .single();
     
     if (error) return undefined;
-    return data as User;
+    
+    // Map snake_case back to camelCase
+    return {
+      id: data.id,
+      username: data.username,
+      email: data.email,
+      passwordHash: data.password_hash,
+      phone: data.phone,
+      createdAt: data.created_at
+    } as User;
   }
 
   async createUser(user: InsertUser): Promise<User> {
+    // Map camelCase to snake_case for database
+    const dbUser = {
+      username: user.username,
+      email: user.email,
+      password_hash: user.passwordHash,
+      phone: user.phone
+    };
+    
     const { data, error } = await supabase
       .from('users')
-      .insert(user)
+      .insert(dbUser)
       .select('*')
       .single();
     
     if (error) throw error;
-    return data as User;
+    
+    // Map snake_case back to camelCase
+    return {
+      id: data.id,
+      username: data.username,
+      email: data.email,
+      passwordHash: data.password_hash,
+      phone: data.phone,
+      createdAt: data.created_at
+    } as User;
   }
 
   // Products
@@ -655,6 +690,113 @@ export class SupabaseStorage implements IStorage {
 
     if (error) return [];
     return data || [];
+  }
+
+  // Additional missing methods for interface compliance
+  async deleteOrder(id: number): Promise<boolean> {
+    const { error } = await supabase
+      .from('orders')
+      .delete()
+      .eq('id', id);
+    
+    return !error;
+  }
+
+  async getAllOrderItems(): Promise<OrderItem[]> {
+    const { data, error } = await supabase
+      .from('order_items')
+      .select('*');
+    
+    if (error) throw error;
+    return data as OrderItem[];
+  }
+
+  async getPayment(id: number): Promise<Payment | undefined> {
+    const { data, error } = await supabase
+      .from('payments')
+      .select('*')
+      .eq('id', id)
+      .single();
+    
+    if (error) return undefined;
+    return data as Payment;
+  }
+
+  async getPaymentsByCustomer(customerId: number): Promise<Payment[]> {
+    const { data, error } = await supabase
+      .from('payments')
+      .select('*')
+      .eq('customer_id', customerId);
+    
+    if (error) throw error;
+    return data as Payment[];
+  }
+
+  async getBusinessProfile(userId: number): Promise<BusinessProfile | undefined> {
+    const { data, error } = await supabase
+      .from('business_profiles')
+      .select('*')
+      .eq('user_id', userId)
+      .single();
+    
+    if (error) return undefined;
+    return data as BusinessProfile;
+  }
+
+  async saveBusinessProfile(profile: any): Promise<BusinessProfile> {
+    const { data, error } = await supabase
+      .from('business_profiles')
+      .upsert(profile)
+      .select('*')
+      .single();
+    
+    if (error) throw error;
+    return data as BusinessProfile;
+  }
+
+  async saveStoreProfile(profile: any): Promise<StoreProfile> {
+    const { data, error } = await supabase
+      .from('store_profiles')
+      .upsert(profile)
+      .select('*')
+      .single();
+    
+    if (error) throw error;
+    return data as StoreProfile;
+  }
+
+  async saveUserSettings(settings: any): Promise<UserSettings> {
+    const { data, error } = await supabase
+      .from('user_settings')
+      .upsert(settings)
+      .select('*')
+      .single();
+    
+    if (error) throw error;
+    return data as UserSettings;
+  }
+
+  async getDetailedDashboardMetrics(userId: number): Promise<DashboardMetrics> {
+    return await this.getDashboardMetrics();
+  }
+
+  async markAllNotificationsAsRead(userId: number): Promise<boolean> {
+    const { error } = await supabase
+      .from('notifications')
+      .update({ is_read: true })
+      .eq('user_id', userId)
+      .eq('is_read', false);
+    
+    return !error;
+  }
+
+  async deleteNotification(id: number): Promise<boolean> {
+    const { error } = await supabase
+      .from('notifications')
+      .delete()
+      .eq('id', id);
+    
+    return !error;
   }
 }
 
