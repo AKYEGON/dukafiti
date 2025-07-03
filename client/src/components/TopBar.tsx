@@ -121,12 +121,11 @@ export function TopBar({ onToggleSidebar, isSidebarCollapsed }: TopBarProps) {
       return response.json();
     },
     onSuccess: () => {
-      // Navigate to home page first
-      setLocation('/');
-      // Then clear cache to avoid race conditions
-      setTimeout(() => {
-        queryClient.clear();
-      }, 50);
+      // Invalidate auth query to trigger state change
+      queryClient.invalidateQueries({ queryKey: ['/api/me'] });
+      // Clear all cached data
+      queryClient.clear();
+      // The Router will handle the redirect to home page when auth state changes
     },
   });
 

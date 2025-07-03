@@ -101,10 +101,11 @@ function Router() {
     return <Onboarding />;
   }
 
-  // Protected routes - redirect to login if not authenticated
+  // Protected routes - redirect to HOME (not login) if not authenticated
+  // This ensures logout takes users to the landing page
   const protectedRoutes = ['/dashboard', '/inventory', '/sales', '/customers', '/reports', '/settings'];
   if (protectedRoutes.includes(location) && !isAuthenticated) {
-    setLocation('/login');
+    setLocation('/');
     return null;
   }
 
