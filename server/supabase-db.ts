@@ -21,13 +21,38 @@ export const supabaseDb = {
   },
 
   async createProduct(product: any) {
-    const { data, error } = await supabase.from('products').insert(product).select().single();
+    // Map camelCase to snake_case for database
+    const dbProduct = {
+      name: product.name,
+      sku: product.sku,
+      description: product.description,
+      price: product.price,
+      stock: product.stock,
+      category: product.category,
+      low_stock_threshold: product.lowStockThreshold || product.low_stock_threshold || 10,
+      sales_count: product.salesCount || product.sales_count || 0,
+    };
+    
+    const { data, error } = await supabase.from('products').insert(dbProduct).select().single();
     if (error) throw error;
     return data;
   },
 
   async updateProduct(id: number, updates: any) {
-    const { data, error } = await supabase.from('products').update(updates).eq('id', id).select().single();
+    // Map camelCase to snake_case for database
+    const dbUpdates: any = {};
+    if (updates.name !== undefined) dbUpdates.name = updates.name;
+    if (updates.sku !== undefined) dbUpdates.sku = updates.sku;
+    if (updates.description !== undefined) dbUpdates.description = updates.description;
+    if (updates.price !== undefined) dbUpdates.price = updates.price;
+    if (updates.stock !== undefined) dbUpdates.stock = updates.stock;
+    if (updates.category !== undefined) dbUpdates.category = updates.category;
+    if (updates.lowStockThreshold !== undefined) dbUpdates.low_stock_threshold = updates.lowStockThreshold;
+    if (updates.low_stock_threshold !== undefined) dbUpdates.low_stock_threshold = updates.low_stock_threshold;
+    if (updates.salesCount !== undefined) dbUpdates.sales_count = updates.salesCount;
+    if (updates.sales_count !== undefined) dbUpdates.sales_count = updates.sales_count;
+    
+    const { data, error } = await supabase.from('products').update(dbUpdates).eq('id', id).select().single();
     if (error) throw error;
     return data;
   },
@@ -51,13 +76,30 @@ export const supabaseDb = {
   },
 
   async createCustomer(customer: any) {
-    const { data, error } = await supabase.from('customers').insert(customer).select().single();
+    // Map camelCase to snake_case for database
+    const dbCustomer = {
+      name: customer.name,
+      email: customer.email,
+      phone: customer.phone,
+      address: customer.address,
+      balance: customer.balance || "0.00",
+    };
+    
+    const { data, error } = await supabase.from('customers').insert(dbCustomer).select().single();
     if (error) throw error;
     return data;
   },
 
   async updateCustomer(id: number, updates: any) {
-    const { data, error } = await supabase.from('customers').update(updates).eq('id', id).select().single();
+    // Map camelCase to snake_case for database
+    const dbUpdates: any = {};
+    if (updates.name !== undefined) dbUpdates.name = updates.name;
+    if (updates.email !== undefined) dbUpdates.email = updates.email;
+    if (updates.phone !== undefined) dbUpdates.phone = updates.phone;
+    if (updates.address !== undefined) dbUpdates.address = updates.address;
+    if (updates.balance !== undefined) dbUpdates.balance = updates.balance;
+    
+    const { data, error } = await supabase.from('customers').update(dbUpdates).eq('id', id).select().single();
     if (error) throw error;
     return data;
   },
@@ -73,7 +115,17 @@ export const supabaseDb = {
   },
 
   async createOrder(order: any) {
-    const { data, error } = await supabase.from('orders').insert(order).select().single();
+    // Map camelCase to snake_case for database
+    const dbOrder = {
+      customer_id: order.customerId || order.customer_id,
+      customer_name: order.customerName || order.customer_name,
+      total: order.total,
+      payment_method: order.paymentMethod || order.payment_method || 'cash',
+      status: order.status || 'pending',
+      reference: order.reference,
+    };
+    
+    const { data, error } = await supabase.from('orders').insert(dbOrder).select().single();
     if (error) throw error;
     return data;
   },
@@ -86,7 +138,16 @@ export const supabaseDb = {
   },
 
   async createOrderItem(orderItem: any) {
-    const { data, error } = await supabase.from('order_items').insert(orderItem).select().single();
+    // Map camelCase to snake_case for database
+    const dbOrderItem = {
+      order_id: orderItem.orderId || orderItem.order_id,
+      product_id: orderItem.productId || orderItem.product_id,
+      product_name: orderItem.productName || orderItem.product_name,
+      quantity: orderItem.quantity,
+      price: orderItem.price,
+    };
+    
+    const { data, error } = await supabase.from('order_items').insert(dbOrderItem).select().single();
     if (error) throw error;
     return data;
   },
@@ -99,7 +160,15 @@ export const supabaseDb = {
   },
 
   async createUser(user: any) {
-    const { data, error } = await supabase.from('users').insert(user).select().single();
+    // Map camelCase to snake_case for database
+    const dbUser = {
+      username: user.username,
+      email: user.email,
+      password_hash: user.passwordHash || user.password_hash,
+      phone: user.phone,
+    };
+    
+    const { data, error } = await supabase.from('users').insert(dbUser).select().single();
     if (error) throw error;
     return data;
   },
@@ -112,7 +181,15 @@ export const supabaseDb = {
   },
 
   async updateUserSettings(userId: number, updates: any) {
-    const { data, error } = await supabase.from('user_settings').update(updates).eq('user_id', userId).select().single();
+    // Map camelCase to snake_case for database
+    const dbUpdates: any = {};
+    if (updates.theme !== undefined) dbUpdates.theme = updates.theme;
+    if (updates.currency !== undefined) dbUpdates.currency = updates.currency;
+    if (updates.language !== undefined) dbUpdates.language = updates.language;
+    if (updates.notifications !== undefined) dbUpdates.notifications = updates.notifications;
+    if (updates.mpesaEnabled !== undefined) dbUpdates.mpesa_enabled = updates.mpesaEnabled;
+    
+    const { data, error } = await supabase.from('user_settings').update(dbUpdates).eq('user_id', userId).select().single();
     if (error) throw error;
     return data;
   },
@@ -125,13 +202,43 @@ export const supabaseDb = {
   },
 
   async updateStoreProfile(userId: number, updates: any) {
-    const { data, error } = await supabase.from('store_profiles').update(updates).eq('user_id', userId).select().single();
+    // Map camelCase to snake_case for database
+    const dbUpdates: any = {};
+    if (updates.storeName !== undefined) dbUpdates.store_name = updates.storeName;
+    if (updates.store_name !== undefined) dbUpdates.store_name = updates.store_name;
+    if (updates.ownerName !== undefined) dbUpdates.owner_name = updates.ownerName;
+    if (updates.owner_name !== undefined) dbUpdates.owner_name = updates.owner_name;
+    if (updates.storeType !== undefined) dbUpdates.store_type = updates.storeType;
+    if (updates.store_type !== undefined) dbUpdates.store_type = updates.store_type;
+    if (updates.location !== undefined) dbUpdates.location = updates.location;
+    if (updates.description !== undefined) dbUpdates.description = updates.description;
+    if (updates.paybillTillNumber !== undefined) dbUpdates.paybill_till_number = updates.paybillTillNumber;
+    if (updates.paybill_till_number !== undefined) dbUpdates.paybill_till_number = updates.paybill_till_number;
+    if (updates.consumerKey !== undefined) dbUpdates.consumer_key = updates.consumerKey;
+    if (updates.consumer_key !== undefined) dbUpdates.consumer_key = updates.consumer_key;
+    if (updates.consumerSecret !== undefined) dbUpdates.consumer_secret = updates.consumerSecret;
+    if (updates.consumer_secret !== undefined) dbUpdates.consumer_secret = updates.consumer_secret;
+    
+    const { data, error } = await supabase.from('store_profiles').update(dbUpdates).eq('user_id', userId).select().single();
     if (error) throw error;
     return data;
   },
 
   async createStoreProfile(profile: any) {
-    const { data, error } = await supabase.from('store_profiles').insert(profile).select().single();
+    // Map camelCase to snake_case for database
+    const dbProfile = {
+      user_id: profile.userId || profile.user_id,
+      store_name: profile.storeName || profile.store_name,
+      owner_name: profile.ownerName || profile.owner_name,
+      store_type: profile.storeType || profile.store_type || 'retail',
+      location: profile.location,
+      description: profile.description,
+      paybill_till_number: profile.paybillTillNumber || profile.paybill_till_number,
+      consumer_key: profile.consumerKey || profile.consumer_key,
+      consumer_secret: profile.consumerSecret || profile.consumer_secret,
+    };
+    
+    const { data, error } = await supabase.from('store_profiles').insert(dbProfile).select().single();
     if (error) throw error;
     return data;
   },
