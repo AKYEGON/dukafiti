@@ -280,9 +280,10 @@ export default function Sales() {
         qty: item.quantity
       })),
       paymentType: paymentMethod as 'cash' | 'credit' | 'mobileMoney',
-      // Ensure customer name is provided for credit sales
-      customerName: paymentMethod === 'credit' ? (customerName || '') : customerName,
-      customerPhone: customer?.phone
+      // For credit sales, send customer as a string with name and optional phone
+      customer: paymentMethod === 'credit' 
+        ? (customer?.phone ? `${customerName}, ${customer.phone}` : customerName)
+        : undefined
     };
 
     console.log('Sale data being sent:', saleData);
