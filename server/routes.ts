@@ -79,8 +79,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Supabase configuration endpoint
   app.get("/api/supabase-config", (req, res) => {
+    // Extract the project reference from the database URL if needed
+    let supabaseUrl = process.env.SUPABASE_URL;
+    
+    // If the URL is a database connection string, convert it to API URL
+    if (supabaseUrl && supabaseUrl.includes('postgresql://')) {
+      const match = supabaseUrl.match(/db\.([^.]+)\.supabase\.co/);
+      if (match) {
+        supabaseUrl = `https://${match[1]}.supabase.co`;
+      }
+    }
+    
     res.json({
-      url: process.env.SUPABASE_URL,
+      url: supabaseUrl,
       anonKey: process.env.SUPABASE_ANON_KEY,
     });
   });
