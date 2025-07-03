@@ -223,10 +223,10 @@ export function TopBar({ onToggleSidebar, isSidebarCollapsed }: TopBarProps) {
 
   return (
     <>
-      <div className="bg-white dark:bg-[#1F1F1F] border-b border-gray-200 dark:border-gray-700 px-4 py-3 flex items-center gap-4 relative z-40">
+      <div className="bg-white dark:bg-[#1F1F1F] border-b border-gray-200 dark:border-gray-700 px-4 py-3 flex items-center relative z-40">
         
         {/* Left Section - Sidebar Toggle (visible on tablet and desktop) */}
-        <div className="hidden md:flex items-center">
+        <div className="hidden md:flex items-center mr-4">
           <button
             onClick={onToggleSidebar}
             className={`w-8 h-8 rounded-lg flex items-center justify-center text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200 ease-in-out ${
@@ -239,7 +239,7 @@ export function TopBar({ onToggleSidebar, isSidebarCollapsed }: TopBarProps) {
         </div>
 
         {/* Center Section - Search Bar (All Devices) */}
-        <div className="flex-1 max-w-md mx-auto md:mx-8 relative" ref={searchRef}>
+        <div className="flex-1 max-w-md relative" ref={searchRef}>
           <div className="relative w-full">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
             <input
@@ -320,7 +320,7 @@ export function TopBar({ onToggleSidebar, isSidebarCollapsed }: TopBarProps) {
         </div>
 
         {/* Right Section - Actions */}
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 ml-4">
 
           {/* Notifications */}
           <div className="relative" ref={notificationRef}>
