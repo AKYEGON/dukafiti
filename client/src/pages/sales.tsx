@@ -51,7 +51,15 @@ const ConfirmationModal = ({
     }
   };
 
+  const stockIssues = cartItems.filter(item => item.quantity > item.product.stock);
+  const hasStockIssues = stockIssues.length > 0;
+
   const handleConfirm = () => {
+    // Double-check stock before confirming
+    if (hasStockIssues) {
+      return; // Button should be disabled anyway
+    }
+    
     if (paymentMethod === 'credit' && customerName.trim()) {
       onConfirm({ name: customerName.trim(), phone: customerPhone.trim() });
     } else {
@@ -88,6 +96,18 @@ const ConfirmationModal = ({
           <span className="font-medium">{getPaymentLabel()}</span>
         </div>
         
+        {/* Stock Issues Warning */}
+        {hasStockIssues && (
+          <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+            <p className="text-red-800 dark:text-red-200 font-medium text-sm">Stock Issue:</p>
+            {stockIssues.map(item => (
+              <p key={item.id} className="text-red-700 dark:text-red-300 text-sm">
+                {item.product.name}: Need {item.quantity}, Available {item.product.stock}
+              </p>
+            ))}
+          </div>
+        )}
+
         {/* Customer info for credit sales */}
         {paymentMethod === 'credit' && (
           <div className="space-y-3 mb-4">
@@ -112,10 +132,14 @@ const ConfirmationModal = ({
         <div className="space-y-3">
           <Button 
             onClick={handleConfirm}
-            disabled={isProcessing || (paymentMethod === 'credit' && !customerName.trim())}
-            className="w-full bg-green-600 hover:bg-green-700 text-white h-12 text-lg font-semibold"
+            disabled={isProcessing || hasStockIssues || (paymentMethod === 'credit' && !customerName.trim())}
+            className={`w-full h-12 text-lg font-semibold ${
+              hasStockIssues 
+                ? 'bg-gray-400 hover:bg-gray-400 cursor-not-allowed text-white' 
+                : 'bg-green-600 hover:bg-green-700 text-white'
+            }`}
           >
-            {isProcessing ? 'Processing...' : 'Confirm Sale'}
+            {isProcessing ? 'Processing...' : hasStockIssues ? 'Insufficient Stock' : 'Confirm Sale'}
           </Button>
           <Button 
             onClick={onClose}
@@ -365,8 +389,24 @@ export default function Sales() {
       }
     },
     onError: (error: any) => {
-      const errorMessage = error?.response?.data?.message || "Failed to complete sale";
-      toast({ title: errorMessage, variant: "destructive" });
+      console.error('Sale error:', error);
+      let errorMessage = "Failed to complete sale";
+      
+      // Extract more specific error messages
+      if (error?.message) {
+        errorMessage = error.message;
+      } else if (error?.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (typeof error === 'string') {
+        errorMessage = error;
+      }
+      
+      toast({ 
+        title: "Sale Failed", 
+        description: errorMessage,
+        variant: "destructive",
+        duration: 5000
+      });
     },
   });
 

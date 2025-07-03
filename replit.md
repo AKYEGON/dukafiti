@@ -225,6 +225,10 @@ Changelog:
 - July 2, 2025. Created PostgreSQL database and deployed complete schema with all required tables
 - July 2, 2025. Seeded database with sample users, products, customers, and notifications for immediate functionality
 - July 2, 2025. Verified full application functionality with Express server running on port 5000
+- July 2, 2025. Enhanced Reports Export CSV with detailed order and line item data using json2csv library
+- July 2, 2025. Added comprehensive sales error handling with specific error messages and stock validation
+- July 2, 2025. Implemented stock validation in sales confirmation modal to prevent insufficient stock sales
+- July 2, 2025. Added "Add Product" button to inventory page header for easy product creation access
 - July 2, 2025. Created PostgreSQL database with proper schema deployment using Drizzle Kit
 - July 2, 2025. Updated database configuration from Neon to PostgreSQL with pg driver
 - July 2, 2025. Seeded database with sample users, products, customers, and notifications for testing
