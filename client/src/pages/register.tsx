@@ -55,7 +55,7 @@ export default function Register() {
     onSuccess: () => {
       toast({
         title: "Account Created!",
-        description: "Welcome to DukaSmart. You can now sign in.",
+        description: "Welcome to DukaFiti. You can now sign in.",
       });
       setLocation("/login");
     },
@@ -83,8 +83,8 @@ export default function Register() {
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primaryPurple shadow-lg">
             <Store className="h-8 w-8 text-white" />
           </div>
-          <h1 className="text-3xl font-bold text-primaryPurple text-center">DukaSmart</h1>
-          <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">Create your business account</p>
+          <h1 className="text-3xl font-bold text-primaryPurple text-center">DukaFiti</h1>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">Duka Fiti ni Duka Bora - Create your business account</p>
         </div>
 
         {/* Register Form */}

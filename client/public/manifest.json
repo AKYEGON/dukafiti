@@ -1,7 +1,7 @@
 {
-  "name": "DukaSmart",
-  "short_name": "DukaSmart",
-  "description": "Comprehensive business management platform for inventory, sales, and customer management",
+  "name": "DukaFiti",
+  "short_name": "DukaFiti",
+  "description": "DukaFiti - Duka Fiti ni Duka Bora. Comprehensive business management platform for inventory, sales, and customer management",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#000000",

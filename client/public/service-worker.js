@@ -115,7 +115,7 @@ self.addEventListener('fetch', (event) => {
 // IndexedDB helper functions for service worker
 function openDB() {
   return new Promise((resolve, reject) => {
-    const request = indexedDB.open('DukaSmartOffline', 1);
+    const request = indexedDB.open('DukaFitiOffline', 1);
     
     request.onerror = () => reject(request.error);
     request.onsuccess = () => resolve(request.result);
@@ -229,7 +229,7 @@ self.addEventListener('push', (event) => {
     console.log('Service Worker: Push received:', data);
     
     const options = {
-      body: data.body || 'New notification from DukaSmart',
+      body: data.body || 'New notification from DukaFiti',
       icon: '/icons/icon-192.png',
       badge: '/icons/icon-192.png',
       vibrate: [100, 50, 100],
@@ -252,7 +252,7 @@ self.addEventListener('push', (event) => {
     };
 
     event.waitUntil(
-      self.registration.showNotification(data.title || 'DukaSmart', options)
+      self.registration.showNotification(data.title || 'DukaFiti', options)
     );
   }
 });

@@ -14,7 +14,7 @@ export interface PendingSale {
 }
 
 class OfflineQueue {
-  private dbName = 'DukaSmartOffline';
+  private dbName = 'DukaFitiOffline';
   private dbVersion = 1;
   private storeName = 'pendingSales';
   private db: IDBDatabase | null = null;

@@ -17,7 +17,7 @@ const getPageTitle = (location: string) => {
   const page = navigation.find(item => item.href === location);
   if (page) return page.name;
   if (location === "/" || location === "/dashboard") return "Dashboard";
-  return "DukaSmart";
+  return "DukaFiti";
 };
 
 interface SidebarProps {
@@ -75,8 +75,8 @@ export function Sidebar({ className, collapsed = false, toggleSidebar }: Sidebar
                 <Store className="text-white" size={20} />
               </div>
               <div>
-                <h1 className="text-xl font-bold text-purple-600">DukaSmart</h1>
-                <p className="text-sm text-neutral-600 dark:text-neutral-400">Business Platform</p>
+                <h1 className="text-xl font-bold text-purple-600">DukaFiti</h1>
+                <p className="text-sm text-neutral-600 dark:text-neutral-400">Duka Fiti ni Duka Bora</p>
               </div>
             </div>
           )}

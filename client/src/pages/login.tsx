@@ -77,8 +77,8 @@ export default function Login() {
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primaryPurple shadow-lg">
             <Store className="h-8 w-8 text-white" />
           </div>
-          <h1 className="text-3xl font-bold text-primaryPurple text-center">DukaSmart</h1>
-          <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">Smart POS for Kenyan Dukawalas</p>
+          <h1 className="text-3xl font-bold text-primaryPurple text-center">DukaFiti</h1>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">Duka Fiti ni Duka Bora</p>
         </div>
 
         {/* Login Form */}

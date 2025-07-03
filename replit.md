@@ -1,8 +1,8 @@
-# DukaSmart Business Platform
+# DukaFiti Business Platform
 
 ## Overview
 
-DukaSmart is a comprehensive business management platform built with a modern full-stack architecture. The application provides inventory management, sales tracking, customer management, and business analytics through an intuitive web interface. It's designed as a single-page application with a REST API backend.
+DukaFiti is a comprehensive business management platform built with a modern full-stack architecture. The application provides inventory management, sales tracking, customer management, and business analytics through an intuitive web interface. It's designed as a single-page application with a REST API backend.
 
 ## System Architecture
 
@@ -268,6 +268,10 @@ Changelog:
 - July 3, 2025. Deployed complete database schema with all required tables using Drizzle Kit migrations
 - July 3, 2025. Seeded database with sample users, products, customers, and notifications for immediate functionality
 - July 3, 2025. Fixed TopBar layout to ensure notification bell and profile icons stay positioned at far right
+- July 3, 2025. Completed comprehensive rebranding from DukaSmart to DukaFiti across entire application
+- July 3, 2025. Updated brand name throughout Home, Login, Register, Sidebar, and Onboarding pages
+- July 3, 2025. Implemented new slogan "Duka Fiti ni Duka Bora" throughout authentication and landing pages
+- July 3, 2025. Updated service worker, offline queue, and PWA manifest to reflect new DukaFiti branding
 - July 2, 2025. Created PostgreSQL database with proper schema deployment using Drizzle Kit
 - July 2, 2025. Updated database configuration from Neon to PostgreSQL with pg driver
 - July 2, 2025. Seeded database with sample users, products, customers, and notifications for testing

@@ -32,7 +32,7 @@ export default function Onboarding() {
             <CheckCircle className="h-8 w-8 text-green-600" />
           </div>
           <CardTitle className="text-3xl font-bold text-green-600">
-            Welcome to DukaSmart!
+            Welcome to DukaFiti!
           </CardTitle>
           <CardDescription className="text-lg">
             Your business management platform is ready to go

@@ -31,7 +31,7 @@ export default function Home() {
 
   const testimonials = [
     {
-      quote: "DukaSmart helped me increase my profits by 40% in just 3 months. The inventory alerts saved me from stockouts during peak season.",
+      quote: "DukaFiti helped me increase my profits by 40% in just 3 months. The inventory alerts saved me from stockouts during peak season.",
       author: "Mary Wanjiku",
       business: "Wanjiku General Store, Nairobi"
     },
@@ -51,7 +51,7 @@ export default function Home() {
             {/* Logo */}
             <div className="flex-shrink-0">
               <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-                Duka<span className="text-green-600">Smart</span>
+                Duka<span className="text-green-600">Fiti</span>
               </h1>
             </div>
 
@@ -98,7 +98,7 @@ export default function Home() {
           <div className="lg:grid lg:grid-cols-12 lg:gap-8 items-center">
             <div className="lg:col-span-6">
               <h1 className="text-4xl lg:text-6xl font-bold text-gray-900 dark:text-white leading-tight mb-6">
-                DukaSmart – Smart POS for Kenyan <span className="text-green-600">Dukawalas</span>
+                DukaFiti – <span className="text-green-600">Duka Fiti ni Duka Bora</span>
               </h1>
               <p className="text-xl text-gray-600 dark:text-gray-300 leading-relaxed mb-8">
                 Grow your business with intelligent inventory management, real-time sales tracking, and customer insights designed specifically for Kenyan retailers.
@@ -216,7 +216,7 @@ export default function Home() {
               Trusted by Kenyan Business Owners
             </h2>
             <p className="text-xl text-gray-600 dark:text-gray-300">
-              See how DukaSmart is helping dukas across Kenya grow their business
+              See how DukaFiti is helping dukas across Kenya grow their business
             </p>
           </div>
 
@@ -250,7 +250,7 @@ export default function Home() {
             Ready to Transform Your Duka?
           </h2>
           <p className="text-xl text-white/90 mb-8">
-            Join thousands of Kenyan retailers who are already growing with DukaSmart
+            Join thousands of Kenyan retailers who are already growing with DukaFiti
           </p>
           <Button
             onClick={() => setLocation("/register")}
@@ -267,13 +267,13 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center">
             <h3 className="text-2xl font-bold mb-2">
-              Duka<span className="text-green-400">Smart</span>
+              Duka<span className="text-green-400">Fiti</span>
             </h3>
             <p className="text-gray-400 mb-6">
-              Smart POS solutions for Kenyan businesses
+              Duka Fiti ni Duka Bora - Smart POS solutions for Kenyan businesses
             </p>
             <div className="flex justify-center space-x-6 text-sm text-gray-400">
-              <span>© 2025 DukaSmart</span>
+              <span>© 2025 DukaFiti</span>
               <span>•</span>
               <span>Built for Kenya</span>
               <span>•</span>
