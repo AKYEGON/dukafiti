@@ -619,7 +619,7 @@ export default function Sales() {
   return (
     <div className="min-h-screen bg-background">
       {/* Responsive Single-Column Flow */}
-      <div className="container mx-auto px-4 sm:px-6 md:px-8 py-4 sm:py-6 space-y-4 sm:space-y-6 pb-24 max-w-2xl">{/* pb-24 for sticky button space */}
+      <div className="container mx-auto px-4 sm:px-6 md:px-8 py-4 sm:py-6 space-y-4 sm:space-y-6 pb-32 max-w-2xl">{/* pb-32 for extra sticky button space */}
         
         {/* 1. Quick-Select Panel (Top 6) */}
         <div className="bg-white dark:bg-[#1F1F1F] rounded-lg p-4 shadow-sm">
