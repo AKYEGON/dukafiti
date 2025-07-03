@@ -125,7 +125,10 @@ export function TopBar({ onToggleSidebar, isSidebarCollapsed }: TopBarProps) {
       queryClient.invalidateQueries({ queryKey: ['/api/me'] });
       // Clear all cached data
       queryClient.clear();
-      // The Router will handle the redirect to home page when auth state changes
+      // Force navigation to home page
+      setLocation('/');
+      // Force page reload to ensure clean state
+      window.location.reload();
     },
   });
 
