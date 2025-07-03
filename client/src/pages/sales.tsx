@@ -51,7 +51,9 @@ const ConfirmationModal = ({
     }
   };
 
-  const stockIssues = cartItems.filter(item => item.quantity > item.product.stock);
+  const stockIssues = cartItems.filter(item => 
+    item.product.stock !== null && item.quantity > (item.product.stock || 0)
+  );
   const hasStockIssues = stockIssues.length > 0;
 
   const handleConfirm = () => {
@@ -102,7 +104,7 @@ const ConfirmationModal = ({
             <p className="text-red-800 dark:text-red-200 font-medium text-sm">Stock Issue:</p>
             {stockIssues.map(item => (
               <p key={item.id} className="text-red-700 dark:text-red-300 text-sm">
-                {item.product.name}: Need {item.quantity}, Available {item.product.stock}
+                {item.product.name}: Need {item.quantity}, Available {item.product.stock || 0}
               </p>
             ))}
           </div>
@@ -481,8 +483,10 @@ export default function Sales() {
       return;
     }
 
-    // Check for stock issues
-    const stockIssues = cartItems.filter(item => item.quantity > item.product.stock);
+    // Check for stock issues (skip products with unknown quantities)
+    const stockIssues = cartItems.filter(item => 
+      item.product.stock !== null && item.quantity > item.product.stock
+    );
     if (stockIssues.length > 0) {
       toast({ 
         title: "Stock issue", 
@@ -677,7 +681,7 @@ export default function Sales() {
                             {product.name}
                           </p>
                           <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                            Stock: {product.stock} • SKU: {product.sku}
+                            Stock: {product.stock !== null ? product.stock : '—'} • SKU: {product.sku}
                           </p>
                         </div>
                         <div className="text-right ml-4 flex-shrink-0">
