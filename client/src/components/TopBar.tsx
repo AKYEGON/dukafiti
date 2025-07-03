@@ -9,7 +9,10 @@ import {
   Settings,
   BarChart3,
   LogOut,
-  X
+  X,
+  Package,
+  Users,
+  ShoppingCart
 } from 'lucide-react';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useOutsideClick } from '@/hooks/useOutsideClick';
@@ -94,7 +97,7 @@ export function TopBar({ onToggleSidebar, isSidebarCollapsed }: TopBarProps) {
       fetch(searchUrl)
         .then(res => res.json())
         .then(data => {
-          setSearchResults(data.results || []);
+          setSearchResults(data || []);
           setIsSearchOpen(true);
         })
         .catch(err => {
@@ -134,10 +137,10 @@ export function TopBar({ onToggleSidebar, isSidebarCollapsed }: TopBarProps) {
     setSelectedIndex(-1);
   };
 
-  const handleSearchSelect = (result: SearchResult) => {
+  const handleSearchSelect = (result: any) => {
     setSearchQuery('');
     setIsSearchOpen(false);
-    setIsMobileSearchOpen(false);
+    setSelectedIndex(-1);
     
     if (result.type === 'product') {
       setLocation('/inventory');
@@ -146,6 +149,43 @@ export function TopBar({ onToggleSidebar, isSidebarCollapsed }: TopBarProps) {
     } else if (result.type === 'order') {
       setLocation('/reports');
     }
+  };
+
+  // Helper function to highlight matching text
+  const highlightText = (text: string, query: string) => {
+    if (!query) return text;
+    
+    const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+    const parts = text.split(regex);
+    
+    return parts.map((part, index) => 
+      regex.test(part) ? (
+        <span key={index} className="font-bold text-green-600 dark:text-green-400">
+          {part}
+        </span>
+      ) : part
+    );
+  };
+
+  // Group search results by type
+  const groupedResults = searchResults.reduce((acc: any, result: any) => {
+    if (!acc[result.type]) {
+      acc[result.type] = [];
+    }
+    acc[result.type].push(result);
+    return acc;
+  }, {});
+
+  const typeLabels: { [key: string]: string } = {
+    product: 'Products',
+    customer: 'Customers', 
+    order: 'Orders'
+  };
+
+  const typeIcons: { [key: string]: any } = {
+    product: Package,
+    customer: Users,
+    order: ShoppingCart
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -163,6 +203,7 @@ export function TopBar({ onToggleSidebar, isSidebarCollapsed }: TopBarProps) {
     } else if (e.key === 'Escape') {
       setIsSearchOpen(false);
       setSelectedIndex(-1);
+      searchInputRef.current?.blur();
     }
   };
 
@@ -179,12 +220,10 @@ export function TopBar({ onToggleSidebar, isSidebarCollapsed }: TopBarProps) {
 
   return (
     <>
-      <div className="bg-white dark:bg-[#1F1F1F] border-b border-gray-200 dark:border-gray-700 px-4 py-3 flex items-center justify-between relative z-40">
+      <div className="bg-white dark:bg-[#1F1F1F] border-b border-gray-200 dark:border-gray-700 px-4 py-3 flex items-center gap-4 relative z-40">
         
-
-
         {/* Left Section - Sidebar Toggle (visible on tablet and desktop) */}
-        <div className="hidden md:flex items-center gap-4">
+        <div className="hidden md:flex items-center">
           <button
             onClick={onToggleSidebar}
             className={`w-8 h-8 rounded-lg flex items-center justify-center text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200 ease-in-out ${
@@ -196,40 +235,83 @@ export function TopBar({ onToggleSidebar, isSidebarCollapsed }: TopBarProps) {
           </button>
         </div>
 
-        {/* Center Section - Search Bar (Desktop) */}
-        <div className="hidden md:flex flex-1 max-w-md mx-8 relative" ref={searchRef}>
+        {/* Center Section - Search Bar (All Devices) */}
+        <div className="flex-1 max-w-md mx-auto md:mx-8 relative" ref={searchRef}>
           <div className="relative w-full">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
             <input
               ref={searchInputRef}
               type="text"
-              placeholder="Search products, customers, orders..."
+              placeholder="Search..."
               value={searchQuery}
               onChange={(e) => handleSearch(e.target.value)}
               onKeyDown={handleKeyDown}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-[#2A2A2A] text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-[#2A2A2A] text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              role="combobox"
+              aria-expanded={isSearchOpen}
+              aria-haspopup="listbox"
+              aria-activedescendant={selectedIndex >= 0 ? `search-option-${selectedIndex}` : undefined}
             />
           </div>
           
           {/* Search Results Dropdown */}
           {isSearchOpen && searchResults.length > 0 && (
-            <div className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-[#2A2A2A] border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-50 max-h-96 overflow-y-auto">
-              {searchResults.slice(0, 8).map((result, index) => (
-                <button
-                  key={`${result.type}-${result.id}`}
-                  onClick={() => handleSearchSelect(result)}
-                  className={`w-full text-left px-4 py-3 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors ${
-                    index === selectedIndex ? 'bg-gray-50 dark:bg-gray-800' : ''
-                  } ${index === 0 ? 'rounded-t-lg' : ''} ${index === searchResults.length - 1 ? 'rounded-b-lg' : ''}`}
-                >
-                  <div className="font-medium text-gray-900 dark:text-gray-100">
-                    {result.name}
+            <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-[#1F1F1F] border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-50 max-h-96 overflow-y-auto" role="listbox">
+              {Object.entries(groupedResults).map(([type, results]: [string, any]) => (
+                <div key={type}>
+                  {/* Category Header */}
+                  <div className="px-4 pt-2 pb-1 text-xs uppercase text-gray-500 dark:text-gray-400 font-medium">
+                    {typeLabels[type] || type}
                   </div>
-                  <div className="text-sm text-gray-500 dark:text-gray-400">
-                    {result.subtitle || result.type}
-                  </div>
-                </button>
+                  
+                  {/* Category Items */}
+                  {(results as any[]).slice(0, 5).map((result, index) => {
+                    const IconComponent = typeIcons[type];
+                    const globalIndex = searchResults.findIndex(r => r.id === result.id);
+                    const isSelected = globalIndex === selectedIndex;
+                    
+                    return (
+                      <button
+                        key={result.id}
+                        id={`search-option-${globalIndex}`}
+                        onClick={() => handleSearchSelect(result)}
+                        className={`w-full text-left px-4 py-2 flex items-center hover:bg-green-50 dark:hover:bg-green-900/20 cursor-pointer transition-colors ${
+                          isSelected ? 'bg-green-500 text-white dark:bg-green-600' : ''
+                        }`}
+                        role="option"
+                        aria-selected={isSelected}
+                      >
+                        {IconComponent && (
+                          <IconComponent className={`w-4 h-4 mr-3 flex-shrink-0 ${
+                            isSelected ? 'text-white' : 'text-gray-400 dark:text-gray-500'
+                          }`} />
+                        )}
+                        <div className="min-w-0 flex-1">
+                          <div className={`font-medium truncate ${
+                            isSelected ? 'text-white' : 'text-gray-900 dark:text-gray-100'
+                          }`}>
+                            {highlightText(result.title, searchQuery)}
+                          </div>
+                          <div className={`text-sm truncate ${
+                            isSelected ? 'text-white/80' : 'text-gray-500 dark:text-gray-400'
+                          }`}>
+                            {result.subtitle}
+                          </div>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
               ))}
+            </div>
+          )}
+          
+          {/* No Results */}
+          {isSearchOpen && searchResults.length === 0 && searchQuery.trim() && (
+            <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-[#1F1F1F] border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-50">
+              <div className="px-4 py-3 text-gray-500 dark:text-gray-400 italic">
+                No matches found
+              </div>
             </div>
           )}
         </div>

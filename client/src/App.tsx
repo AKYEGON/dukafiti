@@ -7,7 +7,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { Sidebar } from "@/components/layout/sidebar";
 import { MobileBottomNav } from "@/components/layout/mobile-bottom-nav";
 import { TopBar } from "@/components/TopBar";
-import { MobileSearchBar } from "@/components/MobileSearchBar";
+
 import { AuthProvider, useAuth } from "@/hooks/use-auth";
 import { useWebSocket } from "@/hooks/use-websocket";
 import { ThemeProvider } from "@/contexts/theme-context";
@@ -47,7 +47,6 @@ function AuthenticatedApp() {
       
       <div className="flex-1 flex flex-col main-content min-w-0">
         <TopBar onToggleSidebar={toggleSidebar} isSidebarCollapsed={sidebarCollapsed} />
-        <MobileSearchBar />
         <main className="flex-1 overflow-y-auto bg-background pb-16 md:pb-0">
           <Switch>
             <Route path="/" component={Dashboard} />
