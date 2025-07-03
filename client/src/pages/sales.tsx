@@ -31,6 +31,12 @@ const ConfirmationModal = ({
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
 
+  // Get fresh product data for accurate stock validation
+  const { data: freshProducts = [] } = useQuery<Product[]>({
+    queryKey: ["/api/products"],
+    enabled: isOpen // Only fetch when modal is open
+  });
+
   if (!isOpen) return null;
 
   const total = cartItems.reduce((sum, item) => sum + parseFloat(item.total), 0);
@@ -51,9 +57,17 @@ const ConfirmationModal = ({
     }
   };
 
-  const stockIssues = cartItems.filter(item => 
-    item.product.stock !== null && item.quantity > (item.product.stock || 0)
-  );
+  // Use fresh product data for stock validation instead of stale cart product data
+  const stockIssues = cartItems.filter(item => {
+    const freshProduct = freshProducts.find(p => p.id === item.product.id);
+    if (!freshProduct) return false; // Product not found, skip validation
+    
+    // Skip validation for unknown quantity items (null stock)
+    if (freshProduct.stock === null) return false;
+    
+    // Check if requested quantity exceeds available stock
+    return item.quantity > (freshProduct.stock || 0);
+  });
   const hasStockIssues = stockIssues.length > 0;
 
   const handleConfirm = () => {
@@ -102,11 +116,14 @@ const ConfirmationModal = ({
         {hasStockIssues && (
           <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
             <p className="text-red-800 dark:text-red-200 font-medium text-sm">Stock Issue:</p>
-            {stockIssues.map(item => (
-              <p key={item.id} className="text-red-700 dark:text-red-300 text-sm">
-                {item.product.name}: Need {item.quantity}, Available {item.product.stock || 0}
-              </p>
-            ))}
+            {stockIssues.map(item => {
+              const freshProduct = freshProducts.find(p => p.id === item.product.id);
+              return (
+                <p key={item.id} className="text-red-700 dark:text-red-300 text-sm">
+                  {item.product.name}: Need {item.quantity}, Available {freshProduct?.stock || 0}
+                </p>
+              );
+            })}
           </div>
         )}
 
@@ -187,6 +204,24 @@ export default function Sales() {
   const quickSelectProducts = frequentProducts.length > 0 
     ? frequentProducts.slice(0, 6) 
     : products.slice(0, 6);
+
+  // Update cart items with fresh product data when products are refreshed
+  useEffect(() => {
+    if (products.length > 0 && cartItems.length > 0) {
+      setCartItems(prevItems => 
+        prevItems.map(item => {
+          const freshProduct = products.find(p => p.id === item.product.id);
+          if (freshProduct) {
+            return {
+              ...item,
+              product: freshProduct // Update with fresh product data
+            };
+          }
+          return item;
+        })
+      );
+    }
+  }, [products]); // Re-run when products data changes
 
   // Debounced search function
   const debouncedSearch = useCallback(
@@ -483,10 +518,18 @@ export default function Sales() {
       return;
     }
 
-    // Check for stock issues (skip products with unknown quantities)
-    const stockIssues = cartItems.filter(item => 
-      item.product.stock !== null && item.quantity > item.product.stock
-    );
+    // Check for stock issues using fresh product data (skip products with unknown quantities)
+    const stockIssues = cartItems.filter(item => {
+      const freshProduct = products.find(p => p.id === item.product.id);
+      if (!freshProduct) return false; // Product not found, skip validation
+      
+      // Skip validation for unknown quantity items (null stock)
+      if (freshProduct.stock === null) return false;
+      
+      // Check if requested quantity exceeds available stock
+      return item.quantity > (freshProduct.stock || 0);
+    });
+    
     if (stockIssues.length > 0) {
       toast({ 
         title: "Stock issue", 
