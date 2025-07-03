@@ -1,19 +1,141 @@
+import Database from "better-sqlite3";
 import bcrypt from "bcryptjs";
 import { db } from "./db";
 import { 
   products, 
   customers, 
   users,
-  userSettings,
-  notifications
+  userSettings
 } from "../shared/schema";
 
 export async function initializeDatabase() {
   try {
     console.log("Initializing database...");
     
-    // Tables are already created by Drizzle Kit push
-    console.log("Database tables already exist from schema deployment");
+    // Create tables using raw SQL since Drizzle migrations aren't working
+    const sqlite = new Database('./database.sqlite');
+    
+    // Create users table
+    sqlite.exec(`
+      CREATE TABLE IF NOT EXISTS users (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        username TEXT NOT NULL UNIQUE,
+        email TEXT NOT NULL UNIQUE,
+        password_hash TEXT NOT NULL,
+        phone TEXT,
+        created_at INTEGER NOT NULL DEFAULT (unixepoch())
+      );
+    `);
+
+    // Create products table
+    sqlite.exec(`
+      CREATE TABLE IF NOT EXISTS products (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        sku TEXT NOT NULL UNIQUE,
+        description TEXT,
+        price REAL NOT NULL,
+        stock INTEGER NOT NULL DEFAULT 0,
+        category TEXT NOT NULL,
+        low_stock_threshold INTEGER NOT NULL DEFAULT 10,
+        sales_count INTEGER NOT NULL DEFAULT 0,
+        created_at INTEGER NOT NULL DEFAULT (unixepoch())
+      );
+    `);
+
+    // Create customers table
+    sqlite.exec(`
+      CREATE TABLE IF NOT EXISTS customers (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL,
+        email TEXT,
+        phone TEXT,
+        address TEXT,
+        balance REAL NOT NULL DEFAULT 0.00,
+        created_at INTEGER NOT NULL DEFAULT (unixepoch())
+      );
+    `);
+
+    // Create orders table
+    sqlite.exec(`
+      CREATE TABLE IF NOT EXISTS orders (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        customer_id INTEGER,
+        customer_name TEXT NOT NULL,
+        total REAL NOT NULL,
+        payment_method TEXT NOT NULL DEFAULT 'cash',
+        status TEXT NOT NULL DEFAULT 'pending',
+        reference TEXT,
+        created_at INTEGER NOT NULL DEFAULT (unixepoch())
+      );
+    `);
+
+    // Create order_items table
+    sqlite.exec(`
+      CREATE TABLE IF NOT EXISTS order_items (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        order_id INTEGER NOT NULL,
+        product_id INTEGER NOT NULL,
+        product_name TEXT NOT NULL,
+        quantity INTEGER NOT NULL,
+        price REAL NOT NULL
+      );
+    `);
+
+    // Create business_profiles table
+    sqlite.exec(`
+      CREATE TABLE IF NOT EXISTS business_profiles (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        business_name TEXT NOT NULL,
+        business_type TEXT NOT NULL,
+        location TEXT,
+        description TEXT,
+        created_at INTEGER NOT NULL DEFAULT (unixepoch())
+      );
+    `);
+
+    // Create payments table
+    sqlite.exec(`
+      CREATE TABLE IF NOT EXISTS payments (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        customer_id INTEGER NOT NULL,
+        amount REAL NOT NULL,
+        method TEXT NOT NULL,
+        reference TEXT,
+        status TEXT NOT NULL DEFAULT 'pending',
+        created_at INTEGER NOT NULL DEFAULT (unixepoch())
+      );
+    `);
+
+    // Create store_profiles table
+    sqlite.exec(`
+      CREATE TABLE IF NOT EXISTS store_profiles (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        store_name TEXT NOT NULL,
+        store_type TEXT NOT NULL,
+        location TEXT,
+        description TEXT,
+        created_at INTEGER NOT NULL DEFAULT (unixepoch())
+      );
+    `);
+
+    // Create user_settings table
+    sqlite.exec(`
+      CREATE TABLE IF NOT EXISTS user_settings (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        theme TEXT NOT NULL DEFAULT 'light',
+        currency TEXT NOT NULL DEFAULT 'KES',
+        language TEXT NOT NULL DEFAULT 'en',
+        notifications INTEGER NOT NULL DEFAULT 1,
+        created_at INTEGER NOT NULL DEFAULT (unixepoch())
+      );
+    `);
+
+    sqlite.close();
+    console.log("Database tables created successfully!");
 
     // Check if we need to create initial data
     const existingUsers = await db.select().from(users).limit(1);
@@ -23,12 +145,12 @@ export async function initializeDatabase() {
       
       // Create default user
       const hashedPassword = await bcrypt.hash("admin123", 10);
-      const [defaultUser] = await db.insert(users).values({
+      const defaultUser = await db.insert(users).values({
         username: "admin",
-        email: "admin@dukafiti.com",
+        email: "admin@dukasmart.com",
         passwordHash: hashedPassword,
         phone: "+254700000000"
-      }).returning();
+      }).returning().get();
       
       console.log("Created default user");
 
@@ -38,7 +160,7 @@ export async function initializeDatabase() {
           name: "Rice 2kg",
           sku: "RICE-2KG",
           description: "Premium quality rice",
-          price: "150.00",
+          price: 150.00,
           stock: 50,
           category: "Grains",
           lowStockThreshold: 10
@@ -47,7 +169,7 @@ export async function initializeDatabase() {
           name: "Cooking Oil 1L",
           sku: "OIL-1L",
           description: "Pure vegetable cooking oil",
-          price: "120.00",
+          price: 120.00,
           stock: 30,
           category: "Cooking",
           lowStockThreshold: 5
@@ -56,37 +178,10 @@ export async function initializeDatabase() {
           name: "Sugar 1kg",
           sku: "SUGAR-1KG",
           description: "White refined sugar",
-          price: "80.00",
+          price: 80.00,
           stock: 25,
           category: "Baking",
           lowStockThreshold: 8
-        },
-        {
-          name: "Milk 1L",
-          sku: "MILK-1L",
-          description: "Fresh whole milk",
-          price: "60.00",
-          stock: 20,
-          category: "Dairy",
-          lowStockThreshold: 5
-        },
-        {
-          name: "Bread",
-          sku: "BREAD-WHITE",
-          description: "White bread loaf",
-          price: "45.00",
-          stock: 15,
-          category: "Bakery",
-          lowStockThreshold: 3
-        },
-        {
-          name: "Eggs (Tray)",
-          sku: "EGGS-TRAY",
-          description: "Fresh eggs - 30 pieces",
-          price: "350.00",
-          stock: 12,
-          category: "Dairy",
-          lowStockThreshold: 2
         }
       ];
 
@@ -103,21 +198,14 @@ export async function initializeDatabase() {
           email: "john@example.com",
           phone: "+254700123456",
           address: "123 Main St, Nairobi",
-          balance: "0.00"
+          balance: 0.00
         },
         {
           name: "Jane Smith",
           email: "jane@example.com", 
           phone: "+254700654321",
           address: "456 Oak Ave, Mombasa",
-          balance: "150.00"
-        },
-        {
-          name: "Mary Wanjiku",
-          email: "mary@example.com",
-          phone: "+254700111222",
-          address: "789 Kenyatta Ave, Nakuru",
-          balance: "75.50"
+          balance: 50.00
         }
       ];
 
@@ -137,28 +225,6 @@ export async function initializeDatabase() {
       });
       
       console.log("Created user settings");
-
-      // Create sample notifications
-      const sampleNotifications = [
-        {
-          userId: defaultUser.id,
-          title: "Welcome to DukaFiti!",
-          message: "Your business management platform is ready to use.",
-          type: "success"
-        },
-        {
-          userId: defaultUser.id,
-          title: "Low Stock Alert",
-          message: "Some items are running low. Check your inventory.",
-          type: "warning"
-        }
-      ];
-
-      for (const notification of sampleNotifications) {
-        await db.insert(notifications).values(notification);
-      }
-      
-      console.log("Created sample notifications");
     }
     
     console.log("Database initialization completed!");
@@ -167,17 +233,4 @@ export async function initializeDatabase() {
     console.error("Database initialization error:", error);
     throw error;
   }
-}
-
-// Run initialization if this file is executed directly
-if (import.meta.url === `file://${process.argv[1]}`) {
-  initializeDatabase()
-    .then(() => {
-      console.log("Database initialization completed successfully!");
-      process.exit(0);
-    })
-    .catch((error) => {
-      console.error("Database initialization failed:", error);
-      process.exit(1);
-    });
 }

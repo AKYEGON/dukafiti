@@ -1,16 +1,12 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
-import { DatabaseStorage } from "./storage";
-
-// Initialize database storage
-const storage = new DatabaseStorage();
+import { storage } from "./storage";
 import { insertProductSchema, insertCustomerSchema, insertOrderSchema, insertOrderItemSchema, insertUserSchema } from "@shared/schema";
 import { z } from "zod";
 import bcrypt from "bcryptjs";
 import { v4 as uuidv4 } from "uuid";
 import { Parser as Json2csvParser } from "json2csv";
-import { requireAuth as requireSupabaseAuth, optionalAuth, getCurrentUser as getSupabaseUser } from "./auth-middleware";
 
 // WebSocket clients store
 const wsClients = new Set<WebSocket>();
@@ -32,20 +28,16 @@ function broadcastToClients(message: any) {
   });
 }
 
-// Use imported auth functions  
-const requireAuth = requireSupabaseAuth;
-const getCurrentUser = getSupabaseUser;
-
-// Legacy authentication middleware for backward compatibility
-function requireAuthLegacy(req: any, res: any, next: any) {
+// Authentication middleware
+function requireAuth(req: any, res: any, next: any) {
   if (!req.session.user) {
     return res.status(401).json({ error: "Authentication required" });
   }
   next();
 }
 
-// Helper function to get current user from session (legacy)
-async function getCurrentUserLegacy(req: any) {
+// Helper function to get current user from session
+async function getCurrentUser(req: any) {
   if (!req.session.user) {
     return null;
   }
@@ -102,30 +94,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       url: supabaseUrl,
       anonKey: process.env.SUPABASE_ANON_KEY,
     });
-  });
-
-  // Database initialization endpoint (internal use)
-  app.post("/api/init-db", async (req, res) => {
-    try {
-      const { initializeDatabase } = await import("./init-db");
-      await initializeDatabase();
-      res.json({ success: true, message: "Database initialized successfully" });
-    } catch (error) {
-      console.error("Database initialization error:", error);
-      res.status(500).json({ success: false, message: "Database initialization failed", error: (error as Error).message });
-    }
-  });
-
-  // Debug endpoint to test database connection
-  app.get("/api/debug/users", async (req, res) => {
-    try {
-      // Simple test to verify database connection
-      const testUser = await storage.getUserByEmail("test@example.com");
-      res.json({ success: true, message: "Database connection working", hasTestUser: !!testUser });
-    } catch (error) {
-      console.error("Debug users error:", error);
-      res.status(500).json({ success: false, error: (error as Error).message });
-    }
   });
   
   // User registration route

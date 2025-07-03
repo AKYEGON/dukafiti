@@ -2,8 +2,8 @@ import { useState } from 'react';
 import { useLocation } from 'wouter';
 
 export default function Login() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [phone, setPhone] = useState('');
+  const [pin, setPin] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
   const [, setLocation] = useLocation();
@@ -19,15 +19,14 @@ export default function Login() {
         headers: {
           'Content-Type': 'application/json',
         },
-        credentials: 'include', // Important for session cookies
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ phone, pin }),
       });
 
       const data = await response.json();
 
       if (response.ok && data.success) {
-        // Redirect to dashboard on successful login
-        setLocation('/dashboard');
+        // Redirect to onboarding on successful login
+        setLocation('/onboarding');
       } else {
         setError(data.message || 'Login failed');
       }
@@ -51,32 +50,32 @@ export default function Login() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-              Email Address
+            <label htmlFor="phone" className="block text-sm font-medium text-gray-700 mb-1">
+              Phone Number
             </label>
             <input
-              type="email"
-              id="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
+              type="text"
+              id="phone"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
               required
               className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
-              placeholder="Enter your email address"
+              placeholder="Enter your phone number"
             />
           </div>
 
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-              Password
+            <label htmlFor="pin" className="block text-sm font-medium text-gray-700 mb-1">
+              PIN
             </label>
             <input
               type="password"
-              id="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              id="pin"
+              value={pin}
+              onChange={(e) => setPin(e.target.value)}
               required
               className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
-              placeholder="Enter your password"
+              placeholder="Enter your PIN"
             />
           </div>
 
