@@ -102,15 +102,15 @@ export function SaleConfirmationModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
+      <DialogContent className="sm:max-w-md max-h-[90vh] overflow-hidden flex flex-col">
+        <DialogHeader className="flex-shrink-0">
           <DialogTitle className="flex items-center gap-2">
             <CreditCard className="w-5 h-5 text-[#00AA00]" />
             Confirm Sale
           </DialogTitle>
         </DialogHeader>
         
-        <div className="space-y-6 pt-4">
+        <div className="space-y-6 pt-4 overflow-y-auto flex-1 pr-2">
           {/* Cart Items Summary */}
           <div className="space-y-2">
             <h3 className="font-medium text-sm text-gray-700">Items:</h3>
@@ -276,25 +276,25 @@ export function SaleConfirmationModal({
               </div>
             </div>
           )}
+        </div>
 
-          {/* Action Buttons */}
-          <div className="flex gap-3 pt-4">
-            <Button
-              variant="outline"
-              className="flex-1"
-              onClick={handleCancel}
-              disabled={isProcessing}
-            >
-              Cancel
-            </Button>
-            <Button
-              className="flex-1 bg-[#00AA00] hover:bg-[#00AA00]/90"
-              onClick={handleConfirm}
-              disabled={(paymentMethod === 'credit' && !customerName.trim()) || isProcessing}
-            >
-              {isProcessing ? "Processing..." : "Confirm Sale"}
-            </Button>
-          </div>
+        {/* Action Buttons - Fixed at bottom */}
+        <div className="flex gap-3 pt-4 mt-4 border-t border-gray-200 flex-shrink-0">
+          <Button
+            variant="outline"
+            className="flex-1"
+            onClick={handleCancel}
+            disabled={isProcessing}
+          >
+            Cancel
+          </Button>
+          <Button
+            className="flex-1 bg-[#00AA00] hover:bg-[#00AA00]/90"
+            onClick={handleConfirm}
+            disabled={(paymentMethod === 'credit' && !customerName.trim()) || isProcessing}
+          >
+            {isProcessing ? "Processing..." : "Confirm Sale"}
+          </Button>
         </div>
       </DialogContent>
     </Dialog>
