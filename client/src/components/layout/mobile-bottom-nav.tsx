@@ -56,7 +56,7 @@ export function MobileBottomNav() {
 
   return (
     <nav 
-      className="fixed bottom-0 left-0 right-0 bg-black border-t border-gray-700 h-16 flex sm:hidden z-[60]"
+      className="fixed bottom-0 left-0 right-0 bg-black border-t border-gray-700 h-16 flex md:hidden z-[60]"
       style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
     >
       {navItems.map((item) => {

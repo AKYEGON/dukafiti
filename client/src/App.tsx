@@ -39,14 +39,14 @@ function AuthenticatedApp() {
   
   return (
     <div className="flex h-screen bg-background text-foreground overflow-hidden">
-      {/* Desktop Sidebar - hidden on mobile */}
-      <div className="hidden sm:block">
+      {/* Sidebar - hidden on mobile, visible on tablet and desktop */}
+      <div className="hidden md:block">
         <Sidebar collapsed={sidebarCollapsed} toggleSidebar={toggleSidebar} />
       </div>
       
       <div className="flex-1 flex flex-col main-content min-w-0">
         <TopBar onToggleSidebar={toggleSidebar} isSidebarCollapsed={sidebarCollapsed} />
-        <main className="flex-1 overflow-y-auto bg-background pb-16 sm:pb-0">
+        <main className="flex-1 overflow-y-auto bg-background pb-16 md:pb-0">
           <Switch>
             <Route path="/" component={Dashboard} />
             <Route path="/dashboard" component={Dashboard} />

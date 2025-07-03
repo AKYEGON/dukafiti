@@ -233,8 +233,8 @@ export function TopBar({ onToggleSidebar, isSidebarCollapsed }: TopBarProps) {
           </div>
         )}
 
-        {/* Left Section - Sidebar Toggle */}
-        <div className="flex items-center gap-4">
+        {/* Left Section - Sidebar Toggle (visible on tablet and desktop) */}
+        <div className="hidden md:flex items-center gap-4">
           <button
             onClick={onToggleSidebar}
             className={`w-8 h-8 rounded-lg flex items-center justify-center text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200 ease-in-out ${
