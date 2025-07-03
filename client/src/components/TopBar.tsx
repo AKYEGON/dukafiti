@@ -8,7 +8,6 @@ import {
   User,
   Settings,
   BarChart3,
-  HelpCircle,
   LogOut,
   X
 } from 'lucide-react';
@@ -385,17 +384,7 @@ export function TopBar({ onToggleSidebar, isSidebarCollapsed }: TopBarProps) {
                   <BarChart3 className="w-4 h-4" />
                   Reports
                 </button>
-                <button
-                  onClick={() => {
-                    setIsProfileOpen(false);
-                    setLocation('/support');
-                  }}
-                  className="w-full text-left px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors flex items-center gap-3 text-gray-700 dark:text-gray-300"
-                  aria-label="Get help and support"
-                >
-                  <HelpCircle className="w-4 h-4" />
-                  Help & Support
-                </button>
+
                 <button
                   onClick={() => {
                     setIsProfileOpen(false);
