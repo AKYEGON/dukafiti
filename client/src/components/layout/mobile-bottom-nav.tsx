@@ -10,33 +10,28 @@ interface NavItem {
   icon: React.ComponentType<{ className?: string }>;
   label: string;
   path: string;
-  activeColor: string;
 }
 
 const navItems: NavItem[] = [
   {
     icon: LayoutDashboard,
-    label: 'Home',
-    path: '/',
-    activeColor: '#00AA00'
+    label: 'Dashboard',
+    path: '/'
   },
   {
     icon: Package,
-    label: 'Stock',
-    path: '/inventory',
-    activeColor: '#00AA00'
+    label: 'Inventory',
+    path: '/inventory'
   },
   {
     icon: ShoppingCart,
-    label: 'Sell',
-    path: '/sales',
-    activeColor: '#00AA00'
+    label: 'Sales',
+    path: '/sales'
   },
   {
     icon: Users,
-    label: 'Clients',
-    path: '/customers',
-    activeColor: '#00AA00'
+    label: 'Customers',
+    path: '/customers'
   }
 ];
 
@@ -56,7 +51,7 @@ export function MobileBottomNav() {
 
   return (
     <nav 
-      className="fixed bottom-0 left-0 right-0 bg-black border-t border-gray-700 h-16 flex md:hidden z-[60]"
+      className="fixed bottom-0 left-0 right-0 z-50 h-16 bg-white dark:bg-[#1F1F1F] border-t border-gray-200 dark:border-gray-700 px-4 flex md:hidden"
       style={{ paddingBottom: 'env(safe-area-inset-bottom)' }}
     >
       {navItems.map((item) => {
@@ -67,14 +62,30 @@ export function MobileBottomNav() {
           <button
             key={item.path}
             onClick={() => handleNavigation(item.path)}
-            className="flex-1 flex flex-col items-center justify-center h-full px-2 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:ring-inset"
-            aria-label={`Navigate to ${item.label}`}
+            className={`
+              flex-1 flex flex-col items-center justify-center min-h-[44px] min-w-[44px] 
+              transition-all duration-200 rounded-t-lg
+              focus:outline-none focus:ring-2 focus:ring-green-500
+              ${active 
+                ? 'bg-green-50 dark:bg-green-900/20' 
+                : 'hover:bg-green-50 dark:hover:bg-green-900/20'
+              }
+            `}
+            aria-label={item.label}
           >
             <Icon 
-              className={`h-5 w-5 mb-1 ${active ? 'text-green-500' : 'text-white'}`}
+              className={`w-6 h-6 ${
+                active 
+                  ? 'text-green-600 dark:text-green-400' 
+                  : 'text-gray-500 dark:text-gray-400'
+              }`}
             />
             <span 
-              className={`text-xs font-medium ${active ? 'text-green-500' : 'text-white'}`}
+              className={`text-xs font-medium mt-1 ${
+                active 
+                  ? 'text-green-600 dark:text-green-400' 
+                  : 'text-gray-500 dark:text-gray-400'
+              }`}
             >
               {item.label}
             </span>

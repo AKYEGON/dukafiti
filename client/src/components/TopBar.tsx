@@ -181,57 +181,7 @@ export function TopBar({ onToggleSidebar, isSidebarCollapsed }: TopBarProps) {
     <>
       <div className="bg-white dark:bg-[#1F1F1F] border-b border-gray-200 dark:border-gray-700 px-4 py-3 flex items-center justify-between relative z-40">
         
-        {/* Mobile Search Overlay */}
-        {isMobileSearchOpen && (
-          <div className="fixed inset-0 bg-white dark:bg-[#1F1F1F] z-50 md:hidden">
-            <div className="flex items-center p-4 border-b border-gray-200 dark:border-gray-700">
-              <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                <input
-                  type="text"
-                  placeholder="Search products, customers, orders..."
-                  value={searchQuery}
-                  onChange={(e) => handleSearch(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-[#2A2A2A] text-gray-900 dark:text-gray-100"
-                  autoFocus
-                />
-              </div>
-              <button
-                onClick={() => setIsMobileSearchOpen(false)}
-                className="ml-3 p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-            
-            {/* Mobile Search Results */}
-            {searchResults.length > 0 && (
-              <div className="p-4">
-                <div className="space-y-2">
-                  {searchResults.slice(0, 8).map((result, index) => (
-                    <button
-                      key={`${result.type}-${result.id}`}
-                      onClick={() => handleSearchSelect(result)}
-                      className={`w-full text-left p-3 rounded-lg border transition-colors ${
-                        index === selectedIndex
-                          ? 'border-purple-200 bg-purple-50 dark:border-purple-800 dark:bg-purple-900/20'
-                          : 'border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800'
-                      }`}
-                    >
-                      <div className="font-medium text-gray-900 dark:text-gray-100">
-                        {result.name}
-                      </div>
-                      <div className="text-sm text-gray-500 dark:text-gray-400">
-                        {result.subtitle || result.type}
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
+
 
         {/* Left Section - Sidebar Toggle (visible on tablet and desktop) */}
         <div className="hidden md:flex items-center gap-4">
@@ -286,14 +236,6 @@ export function TopBar({ onToggleSidebar, isSidebarCollapsed }: TopBarProps) {
 
         {/* Right Section - Actions */}
         <div className="flex items-center gap-2">
-          {/* Mobile Search Button */}
-          <button
-            onClick={() => setIsMobileSearchOpen(true)}
-            className="md:hidden w-10 h-10 rounded-lg flex items-center justify-center text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-            aria-label="Search"
-          >
-            <Search className="w-5 h-5" />
-          </button>
 
           {/* Notifications */}
           <div className="relative" ref={notificationRef}>
