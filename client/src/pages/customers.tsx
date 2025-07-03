@@ -168,7 +168,7 @@ export default function Customers() {
         ) : (
           /* Customer Cards Grid */
           <AnimatePresence>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
               {filteredCustomers.map((customer, index) => {
                 const balance = parseFloat(customer.balance || "0");
                 const hasDebt = balance > 0;
@@ -242,10 +242,10 @@ export default function Customers() {
                             onClick={() => handleEditCustomer(customer)}
                             variant="outline" 
                             size="sm"
-                            className="flex-1 min-h-[40px] border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700"
+                            className="flex-1 min-h-[40px] border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 text-xs xl:text-sm"
                             aria-label={`Edit ${customer.name} details`}
                           >
-                            <Eye className="mr-2 h-4 w-4" />
+                            <Eye className="mr-1 xl:mr-2 h-4 w-4 flex-shrink-0" />
                             Edit
                           </Button>
                           
@@ -253,11 +253,11 @@ export default function Customers() {
                             <Button 
                               onClick={() => handleRecordRepayment(customer)}
                               size="sm"
-                              className="flex-1 min-h-[40px] bg-green-600 hover:bg-green-700 text-white"
+                              className="flex-1 min-h-[40px] bg-green-600 hover:bg-green-700 text-white text-xs xl:text-sm whitespace-nowrap"
                               aria-label={`Record repayment for ${customer.name}`}
                             >
-                              <CreditCard className="mr-2 h-4 w-4" />
-                              Record Repayment
+                              <CreditCard className="mr-1 xl:mr-2 h-4 w-4 flex-shrink-0" />
+                              <span className="truncate">Record Repayment</span>
                             </Button>
                           )}
                         </div>
