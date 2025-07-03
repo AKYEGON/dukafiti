@@ -279,6 +279,154 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Sales endpoint (used by frontend)
+  app.post("/api/sales", requireAuth, async (req, res) => {
+    try {
+      const { items, paymentType, customer, customerName, customerPhone } = req.body;
+      
+      if (!items || !Array.isArray(items) || items.length === 0) {
+        return res.status(400).json({ message: "Items are required" });
+      }
+      
+      if (!paymentType || !['cash', 'credit', 'mpesa', 'mobileMoney'].includes(paymentType)) {
+        return res.status(400).json({ message: "Valid payment type is required" });
+      }
+
+      // For credit sales, require customer information
+      if (paymentType === 'credit' && (!customer && !customerName)) {
+        return res.status(400).json({ message: "Customer required for credit sales" });
+      }
+
+      // Calculate total
+      let total = 0;
+      const processedItems = [];
+
+      for (const item of items) {
+        // Get product details to calculate price
+        const product = await db
+          .select()
+          .from(products)
+          .where(eq(products.id, item.productId || item.id))
+          .limit(1);
+        
+        if (product.length === 0) {
+          return res.status(400).json({ message: `Product not found: ${item.productId || item.id}` });
+        }
+
+        const productData = product[0];
+        const quantity = item.quantity || item.qty;
+        const itemTotal = parseFloat(productData.price) * quantity;
+        total += itemTotal;
+
+        // Check stock for products with known quantities
+        if (productData.stock !== null && productData.stock < quantity) {
+          return res.status(400).json({ 
+            message: `Insufficient stock for ${productData.name}. Available: ${productData.stock}, Requested: ${quantity}` 
+          });
+        }
+
+        processedItems.push({
+          productId: productData.id,
+          productName: productData.name,
+          quantity,
+          price: productData.price,
+        });
+      }
+
+      // Create order
+      const finalCustomerName = customer || customerName || 'Walk-in Customer';
+      const [order] = await db
+        .insert(orders)
+        .values({
+          customerName: finalCustomerName,
+          paymentMethod: paymentType,
+          total: total.toString(),
+          status: 'completed',
+        })
+        .returning();
+      
+      // Create order items and update stock
+      for (const item of processedItems) {
+        await db
+          .insert(orderItems)
+          .values({
+            orderId: order.id,
+            productId: item.productId,
+            productName: item.productName,
+            quantity: item.quantity,
+            price: item.price,
+          });
+        
+        // Update product stock and sales count
+        const product = await db
+          .select()
+          .from(products)
+          .where(eq(products.id, item.productId))
+          .limit(1);
+        
+        if (product[0]) {
+          if (product[0].stock !== null) {
+            // Update stock for products with known quantities
+            await db
+              .update(products)
+              .set({
+                stock: product[0].stock - item.quantity,
+                salesCount: product[0].salesCount + item.quantity,
+              })
+              .where(eq(products.id, item.productId));
+          } else {
+            // For unknown quantity products, just update sales count
+            await db
+              .update(products)
+              .set({
+                salesCount: product[0].salesCount + item.quantity,
+              })
+              .where(eq(products.id, item.productId));
+          }
+        }
+      }
+
+      // Handle credit sales - update customer balance if customer exists
+      if (paymentType === 'credit' && (customer || customerName)) {
+        const customerQuery = await db
+          .select()
+          .from(customers)
+          .where(eq(customers.name, finalCustomerName))
+          .limit(1);
+        
+        if (customerQuery.length > 0) {
+          const currentBalance = parseFloat(customerQuery[0].balance);
+          const newBalance = currentBalance + total;
+          
+          await db
+            .update(customers)
+            .set({ balance: newBalance.toString() })
+            .where(eq(customers.id, customerQuery[0].id));
+        }
+      }
+      
+      // Broadcast notification
+      broadcastToClients({
+        type: 'sale_completed',
+        data: { 
+          orderId: order.id, 
+          total, 
+          customerName: finalCustomerName,
+          paymentMethod: paymentType
+        }
+      });
+      
+      res.json({ 
+        success: true,
+        order,
+        message: 'Sale completed successfully'
+      });
+    } catch (error) {
+      console.error('Error processing sale:', error);
+      res.status(500).json({ error: 'Failed to process sale', message: error instanceof Error ? error.message : 'Unknown error' });
+    }
+  });
+
   // Orders routes
   app.get("/api/orders", requireAuth, async (req, res) => {
     try {
@@ -496,6 +644,87 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Store profile routes
+  app.get("/api/store", requireAuth, async (req, res) => {
+    try {
+      const user = await getCurrentUser(req);
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+      
+      const profile = await db
+        .select()
+        .from(storeProfiles)
+        .where(eq(storeProfiles.userId, user.id))
+        .limit(1);
+      
+      if (profile.length === 0) {
+        return res.json({});
+      }
+      
+      // Transform database fields to frontend field names
+      const transformedProfile = {
+        storeName: profile[0].storeName,
+        ownerName: profile[0].ownerName || '',
+        address: profile[0].location || '',
+        storeType: profile[0].storeType,
+        location: profile[0].location,
+        description: profile[0].description,
+      };
+      
+      res.json(transformedProfile);
+    } catch (error) {
+      console.error('Store profile fetch error:', error);
+      res.status(500).json({ error: 'Failed to fetch store profile' });
+    }
+  });
+
+  app.put("/api/store", requireAuth, async (req, res) => {
+    try {
+      const user = await getCurrentUser(req);
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+      
+      const existingProfile = await db
+        .select()
+        .from(storeProfiles)
+        .where(eq(storeProfiles.userId, user.id))
+        .limit(1);
+      
+      // Map frontend fields to database fields
+      const profileData = {
+        storeName: req.body.storeName,
+        ownerName: req.body.ownerName,
+        storeType: req.body.storeType || 'retail',
+        location: req.body.address,
+        description: req.body.description || '',
+      };
+
+      let profile;
+      if (existingProfile.length > 0) {
+        [profile] = await db
+          .update(storeProfiles)
+          .set(profileData)
+          .where(eq(storeProfiles.userId, user.id))
+          .returning();
+      } else {
+        [profile] = await db
+          .insert(storeProfiles)
+          .values({
+            userId: user.id,
+            ...profileData,
+          })
+          .returning();
+      }
+      
+      res.json(profile);
+    } catch (error) {
+      console.error('Store profile save error:', error);
+      res.status(500).json({ error: 'Failed to save store profile' });
+    }
+  });
+
   // Settings routes
   app.get("/api/settings", requireAuth, async (req, res) => {
     try {
@@ -514,6 +743,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error fetching settings:', error);
       res.status(500).json({ error: 'Failed to fetch settings' });
+    }
+  });
+
+  // Theme settings endpoint
+  app.put("/api/settings/theme", requireAuth, async (req, res) => {
+    try {
+      const user = await getCurrentUser(req);
+      if (!user) {
+        return res.status(404).json({ error: 'User not found' });
+      }
+      
+      const { theme } = req.body;
+      
+      if (!['light', 'dark'].includes(theme)) {
+        return res.status(400).json({ error: 'Theme must be either "light" or "dark"' });
+      }
+      
+      const existingSettings = await db
+        .select()
+        .from(userSettings)
+        .where(eq(userSettings.userId, user.id))
+        .limit(1);
+      
+      if (existingSettings.length > 0) {
+        await db
+          .update(userSettings)
+          .set({ theme })
+          .where(eq(userSettings.userId, user.id));
+      } else {
+        await db
+          .insert(userSettings)
+          .values({
+            userId: user.id,
+            theme,
+            currency: 'KES',
+            language: 'en',
+            notifications: true,
+            mpesaEnabled: false,
+          });
+      }
+      
+      res.json({ theme });
+    } catch (error) {
+      console.error('Theme setting save error:', error);
+      res.status(500).json({ error: 'Failed to save theme setting' });
     }
   });
 
@@ -549,6 +823,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error searching:', error);
       res.status(500).json({ error: 'Failed to search' });
+    }
+  });
+
+  // Frequent products endpoint
+  app.get("/api/products/frequent", requireAuth, async (req, res) => {
+    try {
+      const frequentProducts = await db
+        .select({
+          id: products.id,
+          name: products.name,
+          price: products.price,
+          salesCount: products.salesCount,
+        })
+        .from(products)
+        .orderBy(desc(products.salesCount))
+        .limit(6);
+      
+      res.json(frequentProducts);
+    } catch (error) {
+      console.error('Error fetching frequent products:', error);
+      res.status(500).json({ error: 'Failed to fetch frequent products' });
     }
   });
 
