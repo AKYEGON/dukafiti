@@ -153,17 +153,6 @@ export default function Login() {
                   {fieldState.error && (
                     <FormMessage className="text-red-500 text-xs mt-1" />
                   )}
-                  
-                  {/* Forgot Password Link */}
-                  <div className="text-left mt-2">
-                    <button
-                      type="button"
-                      className="text-xs text-primaryPurple hover:underline focus:outline-none focus:ring-2 focus:ring-primaryPurple rounded transition-all duration-200"
-                      aria-label="Forgot password"
-                    >
-                      Forgot password?
-                    </button>
-                  </div>
                 </FormItem>
               )}
             />
