@@ -213,7 +213,7 @@ export function TopBar({ onToggleSidebar, isSidebarCollapsed }: TopBarProps) {
         </div>
 
         {/* Center Section - Search Bar (All Devices) */}
-        <div className="flex-1 max-w-md relative" ref={searchRef}>
+        <div className="flex-1 max-w-md mx-auto relative" ref={searchRef}>
           <div className="relative w-full">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
             <input
@@ -294,7 +294,7 @@ export function TopBar({ onToggleSidebar, isSidebarCollapsed }: TopBarProps) {
         </div>
 
         {/* Right Section - Actions */}
-        <div className="flex items-center gap-2 ml-4">
+        <div className="flex items-center gap-2 ml-4 flex-shrink-0 min-w-[100px] justify-end">
 
           {/* Notifications */}
           <div className="relative" ref={notificationRef}>
