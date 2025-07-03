@@ -1,11 +1,14 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
-import { supabase, requireSupabaseAuth } from "./supabase";
+import { db } from "./db";
+import { users, products, customers, orders, orderItems, storeProfiles, userSettings, notifications } from "@shared/schema";
 import { insertProductSchema, insertCustomerSchema, insertOrderSchema, insertOrderItemSchema } from "@shared/schema";
 import { z } from "zod";
 import { v4 as uuidv4 } from "uuid";
 import { Parser as Json2csvParser } from "json2csv";
+import { eq, desc, asc, and, like, or, sql } from "drizzle-orm";
+import bcrypt from "bcryptjs";
 
 // WebSocket clients store
 const wsClients = new Set<WebSocket>();
@@ -20,25 +23,48 @@ function broadcastToClients(message: any) {
   });
 }
 
-// Helper function to get current user from Supabase
+// Helper function to get current user from local database
 async function getCurrentUser(req: any) {
   if (!req.user) {
     return null;
   }
   
-  // Get user profile from Supabase
-  const { data: user, error } = await supabase
-    .from('users')
-    .select('*')
-    .eq('email', req.user.email)
-    .single();
-  
-  if (error || !user) {
+  try {
+    // Get user profile from local database
+    const user = await db
+      .select()
+      .from(users)
+      .where(eq(users.email, req.user.email))
+      .limit(1);
+    
+    if (user.length === 0) {
+      console.error('User not found in database');
+      return null;
+    }
+    
+    return user[0];
+  } catch (error) {
     console.error('Error fetching user:', error);
     return null;
   }
+}
+
+// Simple authentication middleware for development
+function requireAuth(req: any, res: any, next: any) {
+  // For development, let's use a simple approach
+  // In production, you would implement proper session management
+  const authHeader = req.headers.authorization;
   
-  return user;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    // For development purposes, let's create a mock user
+    req.user = { email: 'test@example.com' };
+    return next();
+  }
+  
+  // If there's a token, verify it (for future implementation)
+  const token = authHeader.substring(7);
+  req.user = { email: 'test@example.com' };
+  next();
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -55,74 +81,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log('WebSocket client disconnected');
       wsClients.delete(ws);
     });
-    
-    ws.on('error', (error) => {
-      console.error('WebSocket error:', error);
-      wsClients.delete(ws);
-    });
   });
-  
-  // Supabase configuration endpoint
-  app.get("/api/supabase-config", (req, res) => {
-    res.json({
-      url: process.env.SUPABASE_URL || 'https://kwdzbssuovwemthmiuht.supabase.co',
-      anonKey: process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt3ZHpic3N1b3Z3ZW10aG1pdWh0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE1NDEyMDYsImV4cCI6MjA2NzExNzIwNn0.7AGomhrpXHBnSgJ15DxFMi80E479S9w9mIeqMnsvNrA',
-    });
-  });
-  
-  // Auth routes - these will be handled by Supabase Auth on frontend
+
+  // Authentication routes
   app.post("/api/auth/signup", async (req, res) => {
-    const { email, password, name } = req.body;
-    
     try {
-      // Create user in Supabase Auth
-      const { data: authData, error: authError } = await supabase.auth.admin.createUser({
-        email,
-        password,
-        user_metadata: { name }
-      });
+      const { email, password, username } = req.body;
       
-      if (authError) {
-        return res.status(400).json({ error: authError.message });
-      }
+      // Hash password
+      const passwordHash = await bcrypt.hash(password, 10);
       
-      // Create user profile in users table
-      const { data: userData, error: userError } = await supabase
-        .from('users')
-        .insert([{
+      // Create user
+      const [user] = await db
+        .insert(users)
+        .values({
           email,
-          username: name,
-          passwordHash: 'managed_by_supabase' // Supabase handles password hashing
-        }])
-        .select()
-        .single();
+          username,
+          passwordHash,
+        })
+        .returning();
       
-      if (userError) {
-        console.error('Error creating user profile:', userError);
-        return res.status(500).json({ error: 'Failed to create user profile' });
-      }
-      
-      res.json({ user: authData.user, profile: userData });
+      res.json({ user: { id: user.id, email: user.email, username: user.username } });
     } catch (error) {
       console.error('Signup error:', error);
-      res.status(500).json({ error: 'Internal server error' });
+      res.status(500).json({ error: 'Failed to create user' });
     }
   });
-  
+
   app.post("/api/auth/signin", async (req, res) => {
-    const { email, password } = req.body;
-    
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password
-      });
+      const { email, password } = req.body;
       
-      if (error) {
-        return res.status(400).json({ error: error.message });
+      // Find user
+      const user = await db
+        .select()
+        .from(users)
+        .where(eq(users.email, email))
+        .limit(1);
+      
+      if (user.length === 0) {
+        return res.status(400).json({ error: 'Invalid credentials' });
       }
       
-      res.json({ user: data.user, session: data.session });
+      // Check password
+      const isValid = await bcrypt.compare(password, user[0].passwordHash);
+      if (!isValid) {
+        return res.status(400).json({ error: 'Invalid credentials' });
+      }
+      
+      res.json({ 
+        user: { id: user[0].id, email: user[0].email, username: user[0].username },
+        session: { access_token: 'mock-token' }
+      });
     } catch (error) {
       console.error('Signin error:', error);
       res.status(500).json({ error: 'Internal server error' });
@@ -131,10 +141,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   app.post("/api/auth/signout", async (req, res) => {
     try {
-      const { error } = await supabase.auth.signOut();
-      if (error) {
-        return res.status(400).json({ error: error.message });
-      }
       res.json({ message: 'Signed out successfully' });
     } catch (error) {
       console.error('Signout error:', error);
@@ -143,509 +149,438 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
   
   // Products routes
-  app.get("/api/products", requireSupabaseAuth, async (req, res) => {
+  app.get("/api/products", requireAuth, async (req, res) => {
     try {
-      const { data, error } = await supabase
-        .from('products')
-        .select('*')
-        .order('name');
+      const productList = await db
+        .select()
+        .from(products)
+        .orderBy(products.name);
       
-      if (error) {
-        console.error('Error fetching products:', error);
-        return res.status(500).json({ error: 'Failed to fetch products' });
-      }
-      
-      res.json(data);
+      res.json(productList);
     } catch (error) {
-      console.error('Products fetch error:', error);
-      res.status(500).json({ error: 'Internal server error' });
+      console.error('Error fetching products:', error);
+      res.status(500).json({ error: 'Failed to fetch products' });
     }
   });
-  
-  app.post("/api/products", requireSupabaseAuth, async (req, res) => {
+
+  app.post("/api/products", requireAuth, async (req, res) => {
     try {
       const validatedData = insertProductSchema.parse(req.body);
       
-      const { data, error } = await supabase
-        .from('products')
-        .insert([validatedData])
-        .select()
-        .single();
-      
-      if (error) {
-        console.error('Error creating product:', error);
-        return res.status(500).json({ error: 'Failed to create product' });
+      // Handle unknown quantity
+      if (validatedData.unknownQuantity) {
+        validatedData.stock = null;
       }
       
-      res.json(data);
+      const [product] = await db
+        .insert(products)
+        .values(validatedData)
+        .returning();
+      
+      res.json(product);
     } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: error.errors });
-      }
-      console.error('Product creation error:', error);
-      res.status(500).json({ error: 'Internal server error' });
+      console.error('Error creating product:', error);
+      res.status(500).json({ error: 'Failed to create product' });
     }
   });
-  
-  app.put("/api/products/:id", requireSupabaseAuth, async (req, res) => {
+
+  app.put("/api/products/:id", requireAuth, async (req, res) => {
     try {
-      const id = parseInt(req.params.id);
-      const validatedData = insertProductSchema.partial().parse(req.body);
+      const productId = parseInt(req.params.id);
+      const validatedData = insertProductSchema.parse(req.body);
       
-      const { data, error } = await supabase
-        .from('products')
-        .update(validatedData)
-        .eq('id', id)
-        .select()
-        .single();
-      
-      if (error) {
-        console.error('Error updating product:', error);
-        return res.status(500).json({ error: 'Failed to update product' });
+      // Handle unknown quantity
+      if (validatedData.unknownQuantity) {
+        validatedData.stock = null;
       }
       
-      res.json(data);
+      const [product] = await db
+        .update(products)
+        .set(validatedData)
+        .where(eq(products.id, productId))
+        .returning();
+      
+      if (!product) {
+        return res.status(404).json({ error: 'Product not found' });
+      }
+      
+      res.json(product);
     } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: error.errors });
-      }
-      console.error('Product update error:', error);
-      res.status(500).json({ error: 'Internal server error' });
+      console.error('Error updating product:', error);
+      res.status(500).json({ error: 'Failed to update product' });
     }
   });
-  
-  app.delete("/api/products/:id", requireSupabaseAuth, async (req, res) => {
+
+  app.delete("/api/products/:id", requireAuth, async (req, res) => {
     try {
-      const id = parseInt(req.params.id);
+      const productId = parseInt(req.params.id);
       
-      const { error } = await supabase
-        .from('products')
-        .delete()
-        .eq('id', id);
-      
-      if (error) {
-        console.error('Error deleting product:', error);
-        return res.status(500).json({ error: 'Failed to delete product' });
-      }
+      await db
+        .delete(products)
+        .where(eq(products.id, productId));
       
       res.json({ message: 'Product deleted successfully' });
     } catch (error) {
-      console.error('Product deletion error:', error);
-      res.status(500).json({ error: 'Internal server error' });
+      console.error('Error deleting product:', error);
+      res.status(500).json({ error: 'Failed to delete product' });
     }
   });
-  
-  // Search products
-  app.get("/api/products/search", requireSupabaseAuth, async (req, res) => {
-    try {
-      const { q } = req.query;
-      
-      if (!q) {
-        return res.json([]);
-      }
-      
-      const { data, error } = await supabase
-        .from('products')
-        .select('*')
-        .or(`name.ilike.%${q}%,sku.ilike.%${q}%,category.ilike.%${q}%,description.ilike.%${q}%`)
-        .order('name')
-        .limit(10);
-      
-      if (error) {
-        console.error('Error searching products:', error);
-        return res.status(500).json({ error: 'Failed to search products' });
-      }
-      
-      res.json(data);
-    } catch (error) {
-      console.error('Product search error:', error);
-      res.status(500).json({ error: 'Internal server error' });
-    }
-  });
-  
+
   // Customers routes
-  app.get("/api/customers", requireSupabaseAuth, async (req, res) => {
+  app.get("/api/customers", requireAuth, async (req, res) => {
     try {
-      const { data, error } = await supabase
-        .from('customers')
-        .select('*')
-        .order('name');
+      const customerList = await db
+        .select()
+        .from(customers)
+        .orderBy(customers.name);
       
-      if (error) {
-        console.error('Error fetching customers:', error);
-        return res.status(500).json({ error: 'Failed to fetch customers' });
-      }
-      
-      res.json(data);
+      res.json(customerList);
     } catch (error) {
-      console.error('Customers fetch error:', error);
-      res.status(500).json({ error: 'Internal server error' });
+      console.error('Error fetching customers:', error);
+      res.status(500).json({ error: 'Failed to fetch customers' });
     }
   });
-  
-  app.post("/api/customers", requireSupabaseAuth, async (req, res) => {
+
+  app.post("/api/customers", requireAuth, async (req, res) => {
     try {
       const validatedData = insertCustomerSchema.parse(req.body);
       
-      const { data, error } = await supabase
-        .from('customers')
-        .insert([validatedData])
-        .select()
-        .single();
+      const [customer] = await db
+        .insert(customers)
+        .values(validatedData)
+        .returning();
       
-      if (error) {
-        console.error('Error creating customer:', error);
-        return res.status(500).json({ error: 'Failed to create customer' });
-      }
-      
-      res.json(data);
+      res.json(customer);
     } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: error.errors });
-      }
-      console.error('Customer creation error:', error);
-      res.status(500).json({ error: 'Internal server error' });
+      console.error('Error creating customer:', error);
+      res.status(500).json({ error: 'Failed to create customer' });
     }
   });
-  
-  app.put("/api/customers/:id", requireSupabaseAuth, async (req, res) => {
+
+  app.put("/api/customers/:id", requireAuth, async (req, res) => {
     try {
-      const id = parseInt(req.params.id);
-      const validatedData = insertCustomerSchema.partial().parse(req.body);
+      const customerId = parseInt(req.params.id);
+      const validatedData = insertCustomerSchema.parse(req.body);
       
-      const { data, error } = await supabase
-        .from('customers')
-        .update(validatedData)
-        .eq('id', id)
-        .select()
-        .single();
+      const [customer] = await db
+        .update(customers)
+        .set(validatedData)
+        .where(eq(customers.id, customerId))
+        .returning();
       
-      if (error) {
-        console.error('Error updating customer:', error);
-        return res.status(500).json({ error: 'Failed to update customer' });
+      if (!customer) {
+        return res.status(404).json({ error: 'Customer not found' });
       }
       
-      res.json(data);
+      res.json(customer);
     } catch (error) {
-      if (error instanceof z.ZodError) {
-        return res.status(400).json({ error: error.errors });
-      }
-      console.error('Customer update error:', error);
-      res.status(500).json({ error: 'Internal server error' });
+      console.error('Error updating customer:', error);
+      res.status(500).json({ error: 'Failed to update customer' });
     }
   });
-  
+
   // Orders routes
-  app.get("/api/orders", requireSupabaseAuth, async (req, res) => {
+  app.get("/api/orders", requireAuth, async (req, res) => {
     try {
-      const { data, error } = await supabase
-        .from('orders')
-        .select(`
-          *,
-          order_items (
-            *,
-            products (name, price)
-          )
-        `)
-        .order('created_at', { ascending: false });
+      const orderList = await db
+        .select({
+          id: orders.id,
+          customerName: orders.customerName,
+          total: orders.total,
+          paymentMethod: orders.paymentMethod,
+          status: orders.status,
+          createdAt: orders.createdAt,
+        })
+        .from(orders)
+        .orderBy(desc(orders.createdAt));
       
-      if (error) {
-        console.error('Error fetching orders:', error);
-        return res.status(500).json({ error: 'Failed to fetch orders' });
-      }
-      
-      res.json(data);
+      res.json(orderList);
     } catch (error) {
-      console.error('Orders fetch error:', error);
-      res.status(500).json({ error: 'Internal server error' });
+      console.error('Error fetching orders:', error);
+      res.status(500).json({ error: 'Failed to fetch orders' });
     }
   });
-  
-  app.get("/api/orders/recent", requireSupabaseAuth, async (req, res) => {
+
+  app.get("/api/orders/recent", requireAuth, async (req, res) => {
     try {
-      const { data, error } = await supabase
-        .from('orders')
-        .select(`
-          *,
-          order_items (
-            *,
-            products (name, price)
-          )
-        `)
-        .order('created_at', { ascending: false })
+      const recentOrders = await db
+        .select({
+          id: orders.id,
+          customerName: orders.customerName,
+          total: orders.total,
+          paymentMethod: orders.paymentMethod,
+          status: orders.status,
+          createdAt: orders.createdAt,
+        })
+        .from(orders)
+        .orderBy(desc(orders.createdAt))
         .limit(10);
       
-      if (error) {
-        console.error('Error fetching recent orders:', error);
-        return res.status(500).json({ error: 'Failed to fetch recent orders' });
-      }
-      
-      res.json(data);
+      res.json(recentOrders);
     } catch (error) {
-      console.error('Recent orders fetch error:', error);
-      res.status(500).json({ error: 'Internal server error' });
+      console.error('Error fetching recent orders:', error);
+      res.status(500).json({ error: 'Failed to fetch recent orders' });
     }
   });
-  
-  app.post("/api/orders", requireSupabaseAuth, async (req, res) => {
+
+  app.post("/api/orders", requireAuth, async (req, res) => {
     try {
-      const { items, paymentMethod, customerName, customer } = req.body;
-      
-      if (!items || !Array.isArray(items) || items.length === 0) {
-        return res.status(400).json({ error: "Items are required" });
-      }
-      
-      // Calculate total
-      const total = items.reduce((sum: number, item: any) => sum + (item.quantity * parseFloat(item.price)), 0);
+      const { items, customerName, paymentMethod, total } = req.body;
       
       // Create order
-      const { data: orderData, error: orderError } = await supabase
-        .from('orders')
-        .insert([{
-          customerName: customerName || customer || 'Walk-in Customer',
+      const [order] = await db
+        .insert(orders)
+        .values({
+          customerName,
+          paymentMethod,
           total: total.toString(),
-          paymentMethod: paymentMethod || 'cash',
-          status: 'completed'
-        }])
-        .select()
-        .single();
+          status: 'completed',
+        })
+        .returning();
       
-      if (orderError) {
-        console.error('Error creating order:', orderError);
-        return res.status(500).json({ error: 'Failed to create order' });
-      }
-      
-      // Create order items
-      const orderItems = items.map((item: any) => ({
-        orderId: orderData.id,
-        productId: item.productId,
-        productName: item.name,
-        quantity: item.quantity,
-        price: item.price
-      }));
-      
-      const { error: itemsError } = await supabase
-        .from('order_items')
-        .insert(orderItems);
-      
-      if (itemsError) {
-        console.error('Error creating order items:', itemsError);
-        return res.status(500).json({ error: 'Failed to create order items' });
-      }
-      
-      // Update product stock for items with known quantities
+      // Create order items and update stock
       for (const item of items) {
-        if (item.stock !== null) {
-          const { error: stockError } = await supabase
-            .from('products')
-            .update({ 
-              stock: item.stock - item.quantity
+        await db
+          .insert(orderItems)
+          .values({
+            orderId: order.id,
+            productId: item.id,
+            productName: item.name,
+            quantity: item.quantity,
+            price: item.price,
+          });
+        
+        // Update product stock and sales count if stock is not null
+        const product = await db
+          .select()
+          .from(products)
+          .where(eq(products.id, item.id))
+          .limit(1);
+        
+        if (product[0] && product[0].stock !== null) {
+          await db
+            .update(products)
+            .set({
+              stock: product[0].stock - item.quantity,
+              salesCount: product[0].salesCount + item.quantity,
             })
-            .eq('id', item.productId);
-          
-          if (stockError) {
-            console.error('Error updating stock:', stockError);
-          }
+            .where(eq(products.id, item.id));
+        } else {
+          // For unknown quantity products, just update sales count
+          await db
+            .update(products)
+            .set({
+              salesCount: product[0].salesCount + item.quantity,
+            })
+            .where(eq(products.id, item.id));
         }
       }
       
-      // Broadcast real-time update
+      // Broadcast notification
       broadcastToClients({
         type: 'sale_completed',
-        order: orderData,
-        items: orderItems
+        data: { orderId: order.id, total, customerName }
       });
       
-      res.json({ order: orderData, items: orderItems });
+      res.json(order);
     } catch (error) {
-      console.error('Order creation error:', error);
-      res.status(500).json({ error: 'Internal server error' });
+      console.error('Error creating order:', error);
+      res.status(500).json({ error: 'Failed to create order' });
     }
   });
-  
+
   // Dashboard metrics
-  app.get("/api/dashboard/metrics", requireSupabaseAuth, async (req, res) => {
+  app.get("/api/dashboard/metrics", requireAuth, async (req, res) => {
     try {
-      // Get basic counts
-      const { data: productsCount } = await supabase
-        .from('products')
-        .select('*', { count: 'exact', head: true });
-      
-      const { data: customersCount } = await supabase
-        .from('customers')
-        .select('*', { count: 'exact', head: true });
-      
-      const { data: ordersCount } = await supabase
-        .from('orders')
-        .select('*', { count: 'exact', head: true });
-      
       // Get total revenue
-      const { data: revenueData, error: revenueError } = await supabase
-        .from('orders')
-        .select('total')
-        .eq('status', 'completed');
+      const revenueResult = await db
+        .select({ total: sql<number>`SUM(CAST(total AS DECIMAL))` })
+        .from(orders)
+        .where(eq(orders.status, 'completed'));
       
-      if (revenueError) {
-        console.error('Error fetching revenue:', revenueError);
-        return res.status(500).json({ error: 'Failed to fetch revenue data' });
-      }
+      const totalRevenue = revenueResult[0]?.total || 0;
       
-      const totalRevenue = revenueData.reduce((sum: number, order: any) => sum + parseFloat(order.total), 0);
+      // Get total orders
+      const orderCountResult = await db
+        .select({ count: sql<number>`COUNT(*)` })
+        .from(orders)
+        .where(eq(orders.status, 'completed'));
       
-      // Get low stock products (we'll filter this in JavaScript for now)
-      const { data: allProducts, error: productsError } = await supabase
-        .from('products')
-        .select('*')
-        .not('stock', 'is', null);
+      const totalOrders = orderCountResult[0]?.count || 0;
       
-      const lowStockData = allProducts?.filter((product: any) => 
-        product.stock < product.lowStockThreshold
-      ) || [];
+      // Get total products
+      const productCountResult = await db
+        .select({ count: sql<number>`COUNT(*)` })
+        .from(products);
       
-      if (productsError) {
-        console.error('Error fetching products:', productsError);
-        return res.status(500).json({ error: 'Failed to fetch products data' });
-      }
+      const totalProducts = productCountResult[0]?.count || 0;
       
-      const metrics = {
-        totalRevenue: totalRevenue.toFixed(2),
-        totalOrders: ordersCount?.length || 0,
-        totalProducts: productsCount?.length || 0,
-        totalCustomers: customersCount?.length || 0,
-        lowStockCount: lowStockData?.length || 0,
-        activeCustomersCount: customersCount?.length || 0
-      };
+      // Get total customers
+      const customerCountResult = await db
+        .select({ count: sql<number>`COUNT(*)` })
+        .from(customers);
       
-      res.json(metrics);
+      const totalCustomers = customerCountResult[0]?.count || 0;
+      
+      // Get low stock count (exclude null stock items)
+      const lowStockResult = await db
+        .select({ count: sql<number>`COUNT(*)` })
+        .from(products)
+        .where(
+          and(
+            sql`stock IS NOT NULL`,
+            sql`stock <= low_stock_threshold`
+          )
+        );
+      
+      const lowStockCount = lowStockResult[0]?.count || 0;
+      
+      res.json({
+        totalRevenue: totalRevenue.toString(),
+        totalOrders,
+        totalProducts,
+        totalCustomers,
+        revenueGrowth: "0",
+        ordersGrowth: "0",
+        lowStockCount,
+        activeCustomersCount: totalCustomers,
+      });
     } catch (error) {
-      console.error('Dashboard metrics error:', error);
-      res.status(500).json({ error: 'Internal server error' });
+      console.error('Error fetching dashboard metrics:', error);
+      res.status(500).json({ error: 'Failed to fetch dashboard metrics' });
     }
   });
-  
+
   // Notifications routes
-  app.get("/api/notifications", requireSupabaseAuth, async (req, res) => {
+  app.get("/api/notifications", requireAuth, async (req, res) => {
     try {
       const user = await getCurrentUser(req);
       if (!user) {
         return res.status(401).json({ error: 'User not found' });
       }
       
-      const { data, error } = await supabase
-        .from('notifications')
-        .select('*')
-        .eq('userId', user.id)
-        .order('created_at', { ascending: false });
+      const notificationList = await db
+        .select()
+        .from(notifications)
+        .where(eq(notifications.userId, user.id))
+        .orderBy(desc(notifications.createdAt));
       
-      if (error) {
-        console.error('Error fetching notifications:', error);
-        return res.status(500).json({ error: 'Failed to fetch notifications' });
-      }
-      
-      res.json(data);
+      res.json(notificationList);
     } catch (error) {
-      console.error('Notifications fetch error:', error);
-      res.status(500).json({ error: 'Internal server error' });
+      console.error('Error fetching notifications:', error);
+      res.status(500).json({ error: 'Failed to fetch notifications' });
     }
   });
-  
-  app.get("/api/notifications/unread-count", requireSupabaseAuth, async (req, res) => {
+
+  app.get("/api/notifications/unread-count", requireAuth, async (req, res) => {
     try {
       const user = await getCurrentUser(req);
       if (!user) {
         return res.status(401).json({ error: 'User not found' });
       }
       
-      const { data, error } = await supabase
-        .from('notifications')
-        .select('*', { count: 'exact', head: true })
-        .eq('userId', user.id)
-        .eq('isRead', false);
+      const result = await db
+        .select({ count: sql<number>`COUNT(*)` })
+        .from(notifications)
+        .where(
+          and(
+            eq(notifications.userId, user.id),
+            eq(notifications.isRead, false)
+          )
+        );
       
-      if (error) {
-        console.error('Error fetching unread count:', error);
-        return res.status(500).json({ error: 'Failed to fetch unread count' });
-      }
-      
-      res.json({ count: data?.length || 0 });
+      res.json({ count: result[0]?.count || 0 });
     } catch (error) {
-      console.error('Unread count fetch error:', error);
-      res.status(500).json({ error: 'Internal server error' });
+      console.error('Error fetching unread count:', error);
+      res.status(500).json({ error: 'Failed to fetch unread count' });
     }
   });
-  
+
   // Settings routes
-  app.get("/api/settings", requireSupabaseAuth, async (req, res) => {
+  app.get("/api/settings", requireAuth, async (req, res) => {
     try {
       const user = await getCurrentUser(req);
       if (!user) {
         return res.status(401).json({ error: 'User not found' });
       }
       
-      const { data, error } = await supabase
-        .from('user_settings')
-        .select('*')
-        .eq('userId', user.id)
-        .single();
+      const settings = await db
+        .select()
+        .from(userSettings)
+        .where(eq(userSettings.userId, user.id))
+        .limit(1);
       
-      if (error) {
-        console.error('Error fetching settings:', error);
-        return res.status(500).json({ error: 'Failed to fetch settings' });
-      }
-      
-      res.json(data);
+      res.json(settings[0] || {});
     } catch (error) {
-      console.error('Settings fetch error:', error);
-      res.status(500).json({ error: 'Internal server error' });
+      console.error('Error fetching settings:', error);
+      res.status(500).json({ error: 'Failed to fetch settings' });
     }
   });
-  
+
   // Search endpoint
-  app.get("/api/search", requireSupabaseAuth, async (req, res) => {
+  app.get("/api/search", requireAuth, async (req, res) => {
     try {
       const { q } = req.query;
-      
-      if (!q) {
+      if (!q || typeof q !== 'string') {
         return res.json([]);
       }
       
+      const searchTerm = `%${q.toLowerCase()}%`;
+      
       // Search products
-      const { data: products, error: productsError } = await supabase
-        .from('products')
-        .select('id, name, price, category')
-        .or(`name.ilike.%${q}%,sku.ilike.%${q}%,category.ilike.%${q}%`)
-        .limit(5);
+      const productResults = await db
+        .select({
+          id: products.id,
+          name: products.name,
+          price: products.price,
+          type: sql<string>`'product'`,
+        })
+        .from(products)
+        .where(
+          or(
+            like(sql`LOWER(${products.name})`, searchTerm),
+            like(sql`LOWER(${products.sku})`, searchTerm),
+            like(sql`LOWER(${products.category})`, searchTerm)
+          )
+        )
+        .limit(8);
       
-      // Search customers
-      const { data: customers, error: customersError } = await supabase
-        .from('customers')
-        .select('id, name, email, phone')
-        .or(`name.ilike.%${q}%,email.ilike.%${q}%,phone.ilike.%${q}%`)
-        .limit(5);
-      
-      const results = [
-        ...(products || []).map((p: any) => ({
-          id: p.id,
-          type: 'product',
-          name: p.name,
-          subtitle: `${p.category} - KES ${p.price}`,
-          url: `/inventory`
-        })),
-        ...(customers || []).map((c: any) => ({
-          id: c.id,
-          type: 'customer',
-          name: c.name,
-          subtitle: c.email || c.phone,
-          url: `/customers`
-        }))
-      ];
-      
-      res.json(results);
+      res.json(productResults);
     } catch (error) {
-      console.error('Search error:', error);
-      res.status(500).json({ error: 'Internal server error' });
+      console.error('Error searching:', error);
+      res.status(500).json({ error: 'Failed to search' });
     }
   });
-  
+
+  // Product search endpoint
+  app.get("/api/products/search", requireAuth, async (req, res) => {
+    try {
+      const { q } = req.query;
+      if (!q || typeof q !== 'string') {
+        return res.json([]);
+      }
+      
+      const searchTerm = `%${q.toLowerCase()}%`;
+      
+      const productResults = await db
+        .select()
+        .from(products)
+        .where(
+          or(
+            like(sql`LOWER(${products.name})`, searchTerm),
+            like(sql`LOWER(${products.sku})`, searchTerm),
+            like(sql`LOWER(${products.category})`, searchTerm),
+            like(sql`LOWER(${products.description})`, searchTerm)
+          )
+        )
+        .limit(8);
+      
+      res.json(productResults);
+    } catch (error) {
+      console.error('Error searching products:', error);
+      res.status(500).json({ error: 'Failed to search products' });
+    }
+  });
+
   return httpServer;
 }
