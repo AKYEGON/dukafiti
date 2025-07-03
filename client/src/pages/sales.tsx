@@ -227,6 +227,16 @@ export default function Sales() {
   const handleConfirmSale = async (customer?: { name: string; phone?: string; isNew?: boolean }) => {
     if (!paymentMethod) return; // Safety check
     
+    // For credit sales, customer information is required
+    if (paymentMethod === 'credit' && !customer?.name?.trim()) {
+      toast({
+        title: "Customer required",
+        description: "Please select or add a customer for credit sales",
+        variant: "destructive"
+      });
+      return;
+    }
+    
     let customerName = customer?.name;
     
     // If this is a new customer, save them to the database first
@@ -263,17 +273,19 @@ export default function Sales() {
       }
     }
     
-    // Prepare sale data
+    // Prepare sale data with proper customer information for credit sales
     const saleData = {
       items: cartItems.map(item => ({
         productId: item.product.id,
         qty: item.quantity
       })),
       paymentType: paymentMethod as 'cash' | 'credit' | 'mobileMoney',
-      customerName: customerName,
+      // Ensure customer name is provided for credit sales
+      customerName: paymentMethod === 'credit' ? (customerName || '') : customerName,
       customerPhone: customer?.phone
     };
 
+    console.log('Sale data being sent:', saleData);
     createSaleMutation.mutate(saleData);
   };
 
