@@ -17,34 +17,33 @@ export interface AuthenticatedRequest extends Request {
 
 export async function requireAuth(req: any, res: any, next: any) {
   try {
-    // If Supabase is not configured, fall back to session-based auth
-    if (!supabase) {
-      if (!req.session.user) {
-        return res.status(401).json({ error: 'Authentication required' });
-      }
+    // First try session-based auth (for our current implementation)
+    if (req.session && req.session.user) {
       req.user = req.session.user;
       req.userId = req.session.user.id;
       return next();
     }
 
-    const authHeader = req.headers.authorization;
-    
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
-      return res.status(401).json({ error: 'Authentication required' });
+    // If no session, try Supabase Bearer token auth
+    if (supabase) {
+      const authHeader = req.headers.authorization;
+      
+      if (authHeader && authHeader.startsWith('Bearer ')) {
+        const token = authHeader.split(' ')[1];
+        
+        // Verify the JWT token using Supabase
+        const { data: { user }, error } = await supabase.auth.getUser(token);
+        
+        if (!error && user) {
+          req.user = user;
+          req.userId = user.id;
+          return next();
+        }
+      }
     }
 
-    const token = authHeader.split(' ')[1];
-    
-    // Verify the JWT token using Supabase
-    const { data: { user }, error } = await supabase.auth.getUser(token);
-    
-    if (error || !user) {
-      return res.status(401).json({ error: 'Invalid or expired token' });
-    }
-
-    req.user = user;
-    req.userId = user.id;
-    next();
+    // If both methods fail, return unauthorized
+    return res.status(401).json({ error: 'Authentication required' });
   } catch (error) {
     console.error('Auth middleware error:', error);
     res.status(401).json({ error: 'Authentication failed' });
