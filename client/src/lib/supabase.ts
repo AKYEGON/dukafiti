@@ -42,6 +42,10 @@ export const supabase = {
       const client = await getSupabaseClient();
       return client.auth.signInWithOtp(credentials);
     },
+    async signInWithPassword(credentials: any) {
+      const client = await getSupabaseClient();
+      return client.auth.signInWithPassword(credentials);
+    },
     async getSession() {
       const client = await getSupabaseClient();
       return client.auth.getSession();

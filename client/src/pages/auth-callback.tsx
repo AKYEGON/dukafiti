@@ -40,13 +40,13 @@ export default function AuthCallback() {
         if (session?.user) {
           setStatus('success');
           toast({
-            title: "Successfully logged in!",
-            description: "Welcome to DukaFiti",
+            title: "Email verified successfully!",
+            description: "Please log in with your email and password",
           });
           
-          // Redirect to dashboard after a short delay
+          // Redirect to login page after a short delay
           setTimeout(() => {
-            navigate('/dashboard');
+            navigate('/login');
           }, 2000);
         } else {
           throw new Error('Failed to establish session');
@@ -100,18 +100,18 @@ export default function AuthCallback() {
               <CheckCircle className="h-8 w-8 text-green-600 dark:text-green-400" />
             </div>
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
-              Welcome to DukaFiti!
+              Email Verified!
             </h1>
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              You have been successfully logged in. Redirecting to your dashboard...
+              Your email has been verified successfully. Redirecting to login page...
             </p>
             
             <div className="mt-6">
               <Button
-                onClick={() => navigate('/dashboard')}
+                onClick={() => navigate('/login')}
                 className="bg-primaryPurple hover:bg-primaryPurple-dark text-white w-full py-3 rounded-md font-semibold h-12"
               >
-                Go to Dashboard
+                Go to Login
               </Button>
             </div>
           </div>
