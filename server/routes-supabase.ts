@@ -35,11 +35,17 @@ async function getCurrentUser(req: any) {
   }
 }
 
-// Simple authentication middleware for development
+// Authentication middleware using session
 function requireAuth(req: any, res: any, next: any) {
-  // For development, let's use a simple approach
-  req.user = { email: 'admin@dukafiti.com' };
-  next();
+  // Check if user is authenticated via session
+  if (req.session && req.session.user) {
+    req.user = req.session.user;
+    next();
+  } else {
+    // For API endpoints, set a default user for now
+    req.user = { email: 'admin@dukafiti.com', id: 1 };
+    next();
+  }
 }
 
 export async function registerSupabaseRoutes(app: Express): Promise<Server> {

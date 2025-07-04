@@ -289,6 +289,35 @@ export const supabaseDb = {
     if (error) throw error;
   },
 
+  async createNotification(notification: any) {
+    const dbNotification = {
+      user_id: notification.userId || notification.user_id,
+      title: notification.title,
+      message: notification.message,
+      type: notification.type || 'info',
+      is_read: notification.isRead || notification.is_read || false,
+    };
+    
+    const { data, error } = await supabase.from('notifications').insert(dbNotification).select().single();
+    if (error) throw error;
+    return data;
+  },
+
+  async createUserSettings(settings: any) {
+    const dbSettings = {
+      user_id: settings.userId || settings.user_id,
+      theme: settings.theme || 'light',
+      currency: settings.currency || 'KES',
+      language: settings.language || 'en',
+      notifications: settings.notifications || true,
+      mpesa_enabled: settings.mpesaEnabled || settings.mpesa_enabled || false,
+    };
+    
+    const { data, error } = await supabase.from('user_settings').insert(dbSettings).select().single();
+    if (error) throw error;
+    return data;
+  },
+
   // Custom queries for reports
   async getDashboardMetrics() {
     // Get total revenue from completed orders
