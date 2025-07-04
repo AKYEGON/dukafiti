@@ -4,6 +4,9 @@ import cors from 'cors';
 import { WebSocketServer, WebSocket } from 'ws';
 import { createServer } from 'http';
 import { createClient } from '@supabase/supabase-js';
+import { fileURLToPath } from 'url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const app = express();
 const port = process.env.PORT || 5000;
@@ -25,6 +28,20 @@ const wsClients = new Set<WebSocket>();
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Set proper MIME types for ES modules
+app.use((req, res, next) => {
+  if (req.path.endsWith('.js')) {
+    res.setHeader('Content-Type', 'application/javascript');
+  } else if (req.path.endsWith('.ts')) {
+    res.setHeader('Content-Type', 'application/javascript');
+  } else if (req.path.endsWith('.tsx')) {
+    res.setHeader('Content-Type', 'application/javascript');
+  } else if (req.path.endsWith('.jsx')) {
+    res.setHeader('Content-Type', 'application/javascript');
+  }
+  next();
+});
 
 // Simple authentication middleware
 function requireAuth(req: any, res: any, next: any) {
@@ -159,19 +176,35 @@ wss.on('connection', (ws) => {
   });
 });
 
-// Serve static files and handle SPA routing (after all API routes)
-app.use(express.static(path.resolve(import.meta.dirname, '..', 'dist', 'public')));
-
-// SPA catch-all handler - serve index.html for all non-API routes
-app.get('*', (req, res) => {
-  const indexPath = path.resolve(import.meta.dirname, '..', 'dist', 'public', 'index.html');
-  res.sendFile(indexPath, (err) => {
-    if (err) {
-      console.error('Error serving index.html:', err);
-      res.status(500).send('Error loading application');
-    }
+// Serve static files based on environment
+if (process.env.NODE_ENV === 'production') {
+  // In production, serve static files from dist
+  app.use(express.static(path.join(__dirname, '../dist/public')));
+  
+  app.get('*', (req, res) => {
+    res.sendFile(path.resolve(__dirname, '../dist/public/index.html'));
   });
-});
+} else {
+  // In development, handle static file serving manually
+  app.use('/src', express.static(path.join(__dirname, '../client/src'), {
+    setHeaders: (res, path) => {
+      if (path.endsWith('.ts') || path.endsWith('.tsx')) {
+        res.setHeader('Content-Type', 'application/javascript');
+      }
+    }
+  }));
+  
+  app.use('/node_modules', express.static(path.join(__dirname, '../node_modules')));
+  app.use(express.static(path.join(__dirname, '../client/public')));
+  
+  // Serve index.html for all non-API routes
+  app.get('*', (req, res) => {
+    if (req.path.startsWith('/api/')) {
+      return res.status(404).json({ error: 'API endpoint not found' });
+    }
+    res.sendFile(path.resolve(__dirname, '../client/index.html'));
+  });
+}
 
 // Start server
 server.listen(port, () => {
