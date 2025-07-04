@@ -403,10 +403,24 @@ if (process.env.NODE_ENV !== 'production') {
       <div class="subtitle">Duka Fiti ni Duka Bora</div>
       
       <div class="status">
-        ✅ Server Migration Completed Successfully!
+        ✅ Welcome to DukaFiti Landing Page
       </div>
       
-      <p>Your DukaFiti application has been successfully migrated from Replit Agent to the standard Replit environment.</p>
+      <p><strong>Smart POS for Kenyan Dukawalas</strong></p>
+      <p>Comprehensive business management platform for inventory, sales, and customer management.</p>
+      
+      <div style="text-align: left; max-width: 500px; margin: 2rem auto; padding: 1rem; background: #f8f9ff; border-radius: 8px;">
+        <h3 style="color: #4c51bf; margin-top: 0;">🚀 Key Features</h3>
+        <ul style="line-height: 1.8; color: #555;">
+          <li><strong>📦 Inventory Management</strong> - Track products, stock levels, and categories</li>
+          <li><strong>💰 Sales Processing</strong> - Handle cash, credit, and mobile money payments</li>
+          <li><strong>👥 Customer Management</strong> - Customer profiles and credit tracking</li>
+          <li><strong>📊 Business Analytics</strong> - Sales reports and performance insights</li>
+          <li><strong>📱 Mobile-First Design</strong> - Optimized for smartphones and tablets</li>
+          <li><strong>🔄 Real-time Updates</strong> - Live data synchronization</li>
+          <li><strong>💾 Offline Support</strong> - Works without internet connection</li>
+        </ul>
+      </div>
       
       <div class="api-test">
         <h3>API Status Check</h3>
