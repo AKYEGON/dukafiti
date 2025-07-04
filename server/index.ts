@@ -379,6 +379,39 @@ app.get("/api/reports/top-products", requireAuth, async (req, res) => {
   }
 });
 
+app.get("/api/reports/top-customers", requireAuth, async (req, res) => {
+  try {
+    const topCustomers = await supabaseDb.getTopCustomers();
+    res.json(topCustomers);
+  } catch (error) {
+    console.error("Error fetching top customers:", error);
+    res.status(500).json({ error: "Failed to fetch top customers" });
+  }
+});
+
+app.get("/api/reports/orders", requireAuth, async (req, res) => {
+  try {
+    const { period = 'week', page = '1', limit = '10' } = req.query;
+    const orders = await supabaseDb.getOrders();
+    
+    // Simple pagination for now
+    const pageNum = parseInt(page as string);
+    const limitNum = parseInt(limit as string);
+    const offset = (pageNum - 1) * limitNum;
+    const paginatedOrders = orders.slice(offset, offset + limitNum);
+    
+    res.json({
+      orders: paginatedOrders,
+      total: orders.length,
+      page: pageNum,
+      totalPages: Math.ceil(orders.length / limitNum)
+    });
+  } catch (error) {
+    console.error("Error fetching orders:", error);
+    res.status(500).json({ error: "Failed to fetch orders" });
+  }
+});
+
 app.get("/api/reports/export", requireAuth, async (req, res) => {
   try {
     const orders = await supabaseDb.getOrders();

@@ -188,7 +188,7 @@ export function NotificationsPage() {
                   }`}
                   role="button"
                   tabIndex={0}
-                  aria-label={`Notification: ${notification.title}, ${formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true })}`}
+                  aria-label={`Notification: ${notification.title}, ${notification.createdAt ? formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true }) : 'Just now'}`}
                   onClick={() => handleMarkAsRead(notification.id, notification.isRead)}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' || e.key === ' ') {
@@ -220,7 +220,7 @@ export function NotificationsPage() {
                             </p>
                           )}
                           <p className="text-xs text-gray-500 dark:text-gray-500 mt-2">
-                            {formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true })}
+                            {notification.createdAt ? formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true }) : 'Just now'}
                           </p>
                         </div>
                         
