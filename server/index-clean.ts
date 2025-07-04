@@ -461,3 +461,5 @@ app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     log(`serving on port ${port}`);
   });
 })();
+
+export default app;

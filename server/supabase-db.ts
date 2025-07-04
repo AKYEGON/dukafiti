@@ -62,6 +62,22 @@ export const supabaseDb = {
     if (error) throw error;
   },
 
+  async searchProducts(query: string) {
+    if (!query) {
+      return this.getProducts();
+    }
+    
+    const { data, error } = await supabase
+      .from('products')
+      .select('*')
+      .or(`name.ilike.%${query}%,sku.ilike.%${query}%,category.ilike.%${query}%,description.ilike.%${query}%`)
+      .order('name', { ascending: true })
+      .limit(10);
+    
+    if (error) throw error;
+    return data || [];
+  },
+
   // Customers
   async getCustomers() {
     const { data, error } = await supabase.from('customers').select('*').order('created_at', { ascending: false });
@@ -401,6 +417,127 @@ export const supabaseDb = {
       customerName: customer.name,
       totalOwed: parseFloat(customer.balance).toFixed(2),
       outstandingOrders: 1
+    }));
+  },
+
+  // Reports functions
+  async getReportsSummary(period: string = 'week') {
+    const now = new Date();
+    let startDate: Date;
+    
+    switch (period) {
+      case 'day':
+        startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        break;
+      case 'week':
+        startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        break;
+      case 'month':
+        startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+        break;
+      case 'year':
+        startDate = new Date(now.getFullYear(), 0, 1);
+        break;
+      default:
+        startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    }
+
+    // Get revenue for period
+    const { data: revenueData, error: revenueError } = await supabase
+      .from('orders')
+      .select('total, payment_method')
+      .eq('status', 'completed')
+      .gte('created_at', startDate.toISOString());
+    
+    if (revenueError) throw revenueError;
+
+    // Calculate totals by payment method
+    const totalRevenue = revenueData.reduce((sum, order) => sum + parseFloat(order.total), 0);
+    const cashRevenue = revenueData.filter(o => o.payment_method === 'cash').reduce((sum, order) => sum + parseFloat(order.total), 0);
+    const creditRevenue = revenueData.filter(o => o.payment_method === 'credit').reduce((sum, order) => sum + parseFloat(order.total), 0);
+    const mobileMoneyRevenue = revenueData.filter(o => o.payment_method === 'mobileMoney').reduce((sum, order) => sum + parseFloat(order.total), 0);
+
+    // Get orders count
+    const { count: ordersCount } = await supabase
+      .from('orders')
+      .select('*', { count: 'exact', head: true })
+      .eq('status', 'completed')
+      .gte('created_at', startDate.toISOString());
+
+    return {
+      totalRevenue: totalRevenue.toFixed(2),
+      totalOrders: ordersCount || 0,
+      paymentBreakdown: {
+        cash: cashRevenue.toFixed(2),
+        credit: creditRevenue.toFixed(2),
+        mobileMoney: mobileMoneyRevenue.toFixed(2)
+      }
+    };
+  },
+
+  async getReportsTrend(period: string = 'day', view: string = 'sales') {
+    const now = new Date();
+    let groupBy: string;
+    let startDate: Date;
+    
+    switch (period) {
+      case 'hour':
+        groupBy = 'hour';
+        startDate = new Date(now.getTime() - 24 * 60 * 60 * 1000); // Last 24 hours
+        break;
+      case 'day':
+        groupBy = 'day';
+        startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000); // Last 30 days
+        break;
+      case 'week':
+        groupBy = 'week';
+        startDate = new Date(now.getTime() - 12 * 7 * 24 * 60 * 60 * 1000); // Last 12 weeks
+        break;
+      case 'month':
+        groupBy = 'month';
+        startDate = new Date(now.getFullYear() - 1, now.getMonth(), 1); // Last 12 months
+        break;
+      default:
+        groupBy = 'day';
+        startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    }
+
+    // For simplicity, return sample trend data
+    // In a real implementation, this would use PostgreSQL date functions
+    const { data: ordersData, error } = await supabase
+      .from('orders')
+      .select('total, created_at')
+      .eq('status', 'completed')
+      .gte('created_at', startDate.toISOString())
+      .order('created_at', { ascending: true });
+    
+    if (error) throw error;
+
+    // Group data by period
+    const groupedData: { [key: string]: number } = {};
+    
+    ordersData.forEach(order => {
+      const date = new Date(order.created_at);
+      let key: string;
+      
+      if (groupBy === 'hour') {
+        key = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()} ${date.getHours()}:00`;
+      } else if (groupBy === 'day') {
+        key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+      } else if (groupBy === 'week') {
+        const weekStart = new Date(date);
+        weekStart.setDate(date.getDate() - date.getDay());
+        key = `Week of ${weekStart.getFullYear()}-${String(weekStart.getMonth() + 1).padStart(2, '0')}-${String(weekStart.getDate()).padStart(2, '0')}`;
+      } else {
+        key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+      }
+      
+      groupedData[key] = (groupedData[key] || 0) + parseFloat(order.total);
+    });
+
+    return Object.entries(groupedData).map(([date, value]) => ({
+      date,
+      value: parseFloat(value.toFixed(2))
     }));
   },
 
