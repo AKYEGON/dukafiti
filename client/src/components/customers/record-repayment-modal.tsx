@@ -33,8 +33,8 @@ export function RecordRepaymentModal({ isOpen, onClose, customer, previousPaymen
         body: JSON.stringify({
           amount: data.amount,
           method: data.method,
-          note: data.note,
-        }),
+          note: data.note
+        })
       });
       if (!response.ok) {
         const error = await response.json();
@@ -47,7 +47,7 @@ export function RecordRepaymentModal({ isOpen, onClose, customer, previousPaymen
       toast({
         title: "Payment Recorded",
         description: `Repayment of ${formatCurrency(parseFloat(amount))} recorded successfully`,
-        className: "bg-green-600 text-white",
+        className: "bg-green-600 text-white"
       });
       onClose();
       resetForm();
@@ -56,9 +56,9 @@ export function RecordRepaymentModal({ isOpen, onClose, customer, previousPaymen
       toast({
         title: "Error",
         description: error.message || "Failed to record payment",
-        variant: "destructive",
+        variant: "destructive"
       });
-    },
+    }
   });
 
   const resetForm = () => {
@@ -77,7 +77,7 @@ export function RecordRepaymentModal({ isOpen, onClose, customer, previousPaymen
       toast({
         title: "Invalid Amount",
         description: "Please enter a valid payment amount",
-        variant: "destructive",
+        variant: "destructive"
       });
       return;
     }
@@ -86,7 +86,7 @@ export function RecordRepaymentModal({ isOpen, onClose, customer, previousPaymen
       toast({
         title: "Amount Too High",
         description: "Payment amount cannot exceed total debt",
-        variant: "destructive",
+        variant: "destructive"
       });
       return;
     }
@@ -95,7 +95,7 @@ export function RecordRepaymentModal({ isOpen, onClose, customer, previousPaymen
       customerId: customer.id,
       amount: amount,
       method: method,
-      note: note.trim() || undefined,
+      note: note.trim() || undefined
     });
   };
 

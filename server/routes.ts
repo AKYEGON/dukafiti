@@ -74,11 +74,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
   
   wss.on('connection', (ws) => {
-    console.log('WebSocket client connected');
     wsClients.add(ws);
     
     ws.on('close', () => {
-      console.log('WebSocket client disconnected');
       wsClients.delete(ws);
     });
   });
@@ -97,7 +95,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .values({
           email,
           username,
-          passwordHash,
+          passwordHash
         })
         .returning();
       
@@ -329,7 +327,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           productId: productData.id,
           productName: productData.name,
           quantity,
-          price: productData.price,
+          price: productData.price
         });
       }
 
@@ -341,7 +339,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           customerName: finalCustomerName,
           paymentMethod: paymentType,
           total: total.toString(),
-          status: 'completed',
+          status: 'completed'
         })
         .returning();
       
@@ -354,7 +352,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             productId: item.productId,
             productName: item.productName,
             quantity: item.quantity,
-            price: item.price,
+            price: item.price
           });
         
         // Update product stock and sales count
@@ -371,7 +369,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               .update(products)
               .set({
                 stock: product[0].stock - item.quantity,
-                salesCount: product[0].salesCount + item.quantity,
+                salesCount: product[0].salesCount + item.quantity
               })
               .where(eq(products.id, item.productId));
           } else {
@@ -379,7 +377,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             await db
               .update(products)
               .set({
-                salesCount: product[0].salesCount + item.quantity,
+                salesCount: product[0].salesCount + item.quantity
               })
               .where(eq(products.id, item.productId));
           }
@@ -412,7 +410,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           orderId: order.id, 
           total, 
           customerName: finalCustomerName,
-          paymentMethod: paymentType
+          paymentMethod: paymentType;
         }
       });
       
@@ -437,7 +435,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           total: orders.total,
           paymentMethod: orders.paymentMethod,
           status: orders.status,
-          createdAt: orders.createdAt,
+          createdAt: orders.createdAt
         })
         .from(orders)
         .orderBy(desc(orders.createdAt));
@@ -458,7 +456,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           total: orders.total,
           paymentMethod: orders.paymentMethod,
           status: orders.status,
-          createdAt: orders.createdAt,
+          createdAt: orders.createdAt
         })
         .from(orders)
         .orderBy(desc(orders.createdAt))
@@ -482,7 +480,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           customerName,
           paymentMethod,
           total: total.toString(),
-          status: 'completed',
+          status: 'completed'
         })
         .returning();
       
@@ -495,7 +493,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             productId: item.id,
             productName: item.name,
             quantity: item.quantity,
-            price: item.price,
+            price: item.price
           });
         
         // Update product stock and sales count if stock is not null
@@ -510,7 +508,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             .update(products)
             .set({
               stock: product[0].stock - item.quantity,
-              salesCount: product[0].salesCount + item.quantity,
+              salesCount: product[0].salesCount + item.quantity
             })
             .where(eq(products.id, item.id));
         } else {
@@ -518,7 +516,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           await db
             .update(products)
             .set({
-              salesCount: product[0].salesCount + item.quantity,
+              salesCount: product[0].salesCount + item.quantity
             })
             .where(eq(products.id, item.id));
         }
@@ -591,7 +589,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         revenueGrowth: "0",
         ordersGrowth: "0",
         lowStockCount,
-        activeCustomersCount: totalCustomers,
+        activeCustomersCount: totalCustomers
       });
     } catch (error) {
       console.error('Error fetching dashboard metrics:', error);
@@ -669,7 +667,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         address: profile[0].location || '',
         storeType: profile[0].storeType,
         location: profile[0].location,
-        description: profile[0].description,
+        description: profile[0].description
       };
       
       res.json(transformedProfile);
@@ -698,7 +696,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ownerName: req.body.ownerName,
         storeType: req.body.storeType || 'retail',
         location: req.body.address,
-        description: req.body.description || '',
+        description: req.body.description || ''
       };
 
       let profile;
@@ -713,7 +711,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .insert(storeProfiles)
           .values({
             userId: user.id,
-            ...profileData,
+            ...profileData
           })
           .returning();
       }
@@ -780,7 +778,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             currency: 'KES',
             language: 'en',
             notifications: true,
-            mpesaEnabled: false,
+            mpesaEnabled: false
           });
       }
       
@@ -807,7 +805,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           id: products.id,
           name: products.name,
           price: products.price,
-          type: sql<string>`'product'`,
+          type: sql<string>`'product'`
         })
         .from(products)
         .where(
@@ -834,7 +832,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           id: products.id,
           name: products.name,
           price: products.price,
-          salesCount: products.salesCount,
+          salesCount: products.salesCount
         })
         .from(products)
         .orderBy(desc(products.salesCount))
@@ -955,7 +953,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // 24 hours
           trendData = Array.from({ length: 24 }, (_, i) => ({
             label: `${i.toString().padStart(2, '0')}:00`,
-            value: 0
+            value: 0;
           }));
           
           const today = new Date();
@@ -995,7 +993,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // 30 days
           trendData = Array.from({ length: 30 }, (_, i) => ({
             label: (i + 1).toString(),
-            value: 0
+            value: 0;
           }));
           
           const monthStart = new Date();
@@ -1028,7 +1026,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .select({
           name: products.name,
           unitsSold: products.salesCount,
-          revenue: sql<string>`CAST(${products.salesCount} * CAST(${products.price} AS DECIMAL) AS TEXT)`,
+          revenue: sql<string>`CAST(${products.salesCount} * CAST(${products.price} AS DECIMAL) AS TEXT)`
         })
         .from(products)
         .orderBy(desc(products.salesCount))
@@ -1050,7 +1048,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const topCustomers = await db
         .select({
           customerName: customers.name,
-          totalOwed: customers.balance,
+          totalOwed: customers.balance
         })
         .from(customers)
         .where(sql`CAST(${customers.balance} AS DECIMAL) > 0`)
@@ -1060,7 +1058,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(topCustomers.map(customer => ({
         customerName: customer.customerName,
         totalOwed: parseFloat(customer.totalOwed).toFixed(2),
-        outstandingOrders: 1
+        outstandingOrders: 1;
       })));
     } catch (error) {
       console.error('Top customers reports error:', error);
@@ -1074,7 +1072,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .select({
           name: products.name,
           unitsSold: products.salesCount,
-          revenue: sql<string>`CAST(${products.salesCount} * CAST(${products.price} AS DECIMAL) AS TEXT)`,
+          revenue: sql<string>`CAST(${products.salesCount} * CAST(${products.price} AS DECIMAL) AS TEXT)`
         })
         .from(products)
         .orderBy(desc(products.salesCount))
@@ -1097,7 +1095,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .select({
           name: customers.name,
           phone: customers.phone,
-          balance: customers.balance,
+          balance: customers.balance
         })
         .from(customers)
         .where(sql`CAST(${customers.balance} AS DECIMAL) > 0`)
@@ -1106,7 +1104,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(customerCredits.map(customer => ({
         name: customer.name,
         phone: customer.phone || 'N/A',
-        balance: customer.balance
+        balance: customer.balance;
       })));
     } catch (error) {
       console.error('Customer credits reports error:', error);
@@ -1145,7 +1143,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           paymentMethod: orders.paymentMethod,
           status: orders.status,
           reference: orders.reference,
-          createdAt: orders.createdAt,
+          createdAt: orders.createdAt
         })
         .from(orders)
         .where(gte(orders.createdAt, startDate))
@@ -1159,7 +1157,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const items = await db
             .select({
               productName: orderItems.productName,
-              quantity: orderItems.quantity,
+              quantity: orderItems.quantity
             })
             .from(orderItems)
             .where(eq(orderItems.orderId, order.id));
@@ -1174,7 +1172,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             reference: order.reference,
             products: items.map(item => ({
               name: item.productName,
-              quantity: item.quantity
+              quantity: item.quantity;
             }))
           };
         })

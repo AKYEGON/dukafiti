@@ -26,11 +26,11 @@ export function OfflineIndicator() {
     const cleanup = setupNetworkListeners(
       () => {
         setOnline(true);
-        updatePendingCount(); // Refresh count when back online
+        updatePendingCount(); // Refresh count when back online;
       },
       () => {
         setOnline(false);
-        updatePendingCount(); // Refresh count when going offline
+        updatePendingCount(); // Refresh count when going offline;
       }
     );
 

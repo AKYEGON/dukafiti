@@ -55,7 +55,7 @@ DialogContent.displayName = DialogPrimitive.Content.displayName
 
 const DialogHeader = ({
   className,
-  ...props
+  ...props;
 }: React.HTMLAttributes<HTMLDivElement>) => (
   <div
     className={cn(
@@ -69,7 +69,7 @@ DialogHeader.displayName = "DialogHeader"
 
 const DialogFooter = ({
   className,
-  ...props
+  ...props;
 }: React.HTMLAttributes<HTMLDivElement>) => (
   <div
     className={cn(
@@ -118,5 +118,5 @@ export {
   DialogHeader,
   DialogFooter,
   DialogTitle,
-  DialogDescription,
+  DialogDescription
 }

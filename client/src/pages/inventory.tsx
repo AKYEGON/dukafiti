@@ -9,7 +9,7 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
-  SelectValue,
+  SelectValue
 } from "@/components/ui/select";
 import {
   AlertDialog,
@@ -19,7 +19,7 @@ import {
   AlertDialogDescription,
   AlertDialogFooter,
   AlertDialogHeader,
-  AlertDialogTitle,
+  AlertDialogTitle
 } from "@/components/ui/alert-dialog";
 import { Search, Package, Edit, Trash2, Plus } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
@@ -38,7 +38,7 @@ export default function Inventory() {
   const queryClient = useQueryClient();
 
   const { data: products, isLoading } = useQuery<Product[]>({
-    queryKey: ["/api/products"],
+    queryKey: ["/api/products"]
   });
 
   const deleteMutation = useMutation({
@@ -53,7 +53,7 @@ export default function Inventory() {
     },
     onError: () => {
       toast({ title: "Failed to delete product", variant: "destructive" });
-    },
+    }
   });
 
   const filteredAndSortedProducts = useMemo(() => {

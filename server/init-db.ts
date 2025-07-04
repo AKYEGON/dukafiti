@@ -5,13 +5,11 @@ import {
   products, 
   customers, 
   users,
-  userSettings
+  userSettings;
 } from "../shared/schema";
 
 export async function initializeDatabase() {
   try {
-    console.log("Initializing database...");
-    
     // Create tables using raw SQL since Drizzle migrations aren't working
     const sqlite = new Database('./database.sqlite');
     
@@ -135,14 +133,10 @@ export async function initializeDatabase() {
     `);
 
     sqlite.close();
-    console.log("Database tables created successfully!");
-
     // Check if we need to create initial data
     const existingUsers = await db.select().from(users).limit(1);
     
     if (existingUsers.length === 0) {
-      console.log("Creating initial data...");
-      
       // Create default user
       const hashedPassword = await bcrypt.hash("admin123", 10);
       const defaultUser = await db.insert(users).values({
@@ -152,8 +146,6 @@ export async function initializeDatabase() {
         phone: "+254700000000"
       }).returning().get();
       
-      console.log("Created default user");
-
       // Create sample products
       const sampleProducts = [
         {
@@ -163,7 +155,7 @@ export async function initializeDatabase() {
           price: 150.00,
           stock: 50,
           category: "Grains",
-          lowStockThreshold: 10
+          lowStockThreshold: 10;
         },
         {
           name: "Cooking Oil 1L",
@@ -172,7 +164,7 @@ export async function initializeDatabase() {
           price: 120.00,
           stock: 30,
           category: "Cooking",
-          lowStockThreshold: 5
+          lowStockThreshold: 5;
         },
         {
           name: "Sugar 1kg",
@@ -181,7 +173,7 @@ export async function initializeDatabase() {
           price: 80.00,
           stock: 25,
           category: "Baking",
-          lowStockThreshold: 8
+          lowStockThreshold: 8;
         }
       ];
 
@@ -189,8 +181,6 @@ export async function initializeDatabase() {
         await db.insert(products).values(product);
       }
       
-      console.log("Created sample products");
-
       // Create sample customers
       const sampleCustomers = [
         {
@@ -198,14 +188,14 @@ export async function initializeDatabase() {
           email: "john@example.com",
           phone: "+254700123456",
           address: "123 Main St, Nairobi",
-          balance: 0.00
+          balance: 0.00;
         },
         {
           name: "Jane Smith",
           email: "jane@example.com", 
           phone: "+254700654321",
           address: "456 Oak Ave, Mombasa",
-          balance: 50.00
+          balance: 50.00;
         }
       ];
 
@@ -213,23 +203,18 @@ export async function initializeDatabase() {
         await db.insert(customers).values(customer);
       }
       
-      console.log("Created sample customers");
-      
       // Create user settings for the default user
       await db.insert(userSettings).values({
         userId: defaultUser.id,
         theme: "light",
         currency: "KES",
         language: "en",
-        notifications: true
+        notifications: true;
       });
       
-      console.log("Created user settings");
-    }
+      }
     
-    console.log("Database initialization completed!");
-    
-  } catch (error) {
+    } catch (error) {
     console.error("Database initialization error:", error);
     throw error;
   }

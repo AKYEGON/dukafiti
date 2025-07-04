@@ -96,9 +96,7 @@ app.use((error: Error, req: Request, res: Response, next: NextFunction) => {
 
 // Start server
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 DukaFiti server running on port ${PORT}`);
-  console.log(`📈 Environment: ${process.env.NODE_ENV || 'development'}`);
-  console.log(`🕒 Started at: ${new Date().toISOString()}`);
+  .toISOString()}`);
 });
 
 export default app;

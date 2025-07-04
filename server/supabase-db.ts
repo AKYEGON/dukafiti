@@ -30,7 +30,7 @@ export const supabaseDb = {
       stock: product.stock,
       category: product.category,
       low_stock_threshold: product.lowStockThreshold || product.low_stock_threshold || 10,
-      sales_count: product.salesCount || product.sales_count || 0,
+      sales_count: product.salesCount || product.sales_count || 0
     };
     
     const { data, error } = await supabase.from('products').insert(dbProduct).select().single();
@@ -98,7 +98,7 @@ export const supabaseDb = {
       email: customer.email,
       phone: customer.phone,
       address: customer.address,
-      balance: customer.balance || "0.00",
+      balance: customer.balance || "0.00"
     };
     
     const { data, error } = await supabase.from('customers').insert(dbCustomer).select().single();
@@ -161,7 +161,7 @@ export const supabaseDb = {
       total: order.total,
       payment_method: order.paymentMethod || order.payment_method || 'cash',
       status: order.status || 'pending',
-      reference: order.reference,
+      reference: order.reference
     };
     
     const { data, error } = await supabase.from('orders').insert(dbOrder).select().single();
@@ -183,7 +183,7 @@ export const supabaseDb = {
       product_id: orderItem.productId || orderItem.product_id,
       product_name: orderItem.productName || orderItem.product_name,
       quantity: orderItem.quantity,
-      price: orderItem.price,
+      price: orderItem.price
     };
     
     const { data, error } = await supabase.from('order_items').insert(dbOrderItem).select().single();
@@ -204,7 +204,7 @@ export const supabaseDb = {
       username: user.username,
       email: user.email,
       password_hash: user.passwordHash || user.password_hash,
-      phone: user.phone,
+      phone: user.phone
     };
     
     const { data, error } = await supabase.from('users').insert(dbUser).select().single();
@@ -274,7 +274,7 @@ export const supabaseDb = {
       description: profile.description,
       paybill_till_number: profile.paybillTillNumber || profile.paybill_till_number,
       consumer_key: profile.consumerKey || profile.consumer_key,
-      consumer_secret: profile.consumerSecret || profile.consumer_secret,
+      consumer_secret: profile.consumerSecret || profile.consumer_secret
     };
     
     const { data, error } = await supabase.from('store_profiles').insert(dbProfile).select().single();
@@ -311,7 +311,7 @@ export const supabaseDb = {
       title: notification.title,
       message: notification.message,
       type: notification.type || 'info',
-      is_read: notification.isRead || notification.is_read || false,
+      is_read: notification.isRead || notification.is_read || false
     };
     
     const { data, error } = await supabase.from('notifications').insert(dbNotification).select().single();
@@ -326,7 +326,7 @@ export const supabaseDb = {
       currency: settings.currency || 'KES',
       language: settings.language || 'en',
       notifications: settings.notifications || true,
-      mpesa_enabled: settings.mpesaEnabled || settings.mpesa_enabled || false,
+      mpesa_enabled: settings.mpesaEnabled || settings.mpesa_enabled || false
     };
     
     const { data, error } = await supabase.from('user_settings').insert(dbSettings).select().single();
@@ -383,7 +383,7 @@ export const supabaseDb = {
       totalProducts: totalProducts || 0,
       totalCustomers: totalCustomers || 0,
       lowStockCount: lowStockCount || 0,
-      activeCustomersCount: totalCustomers || 0,
+      activeCustomersCount: totalCustomers || 0
     };
   },
 

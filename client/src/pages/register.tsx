@@ -15,7 +15,7 @@ import { useToast } from '@/hooks/use-toast';
 
 const registerSchema = z.object({
   email: z.string().email('Please enter a valid email'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
+  password: z.string().min(6, 'Password must be at least 6 characters')
 });
 
 type RegisterFormData = z.infer<typeof registerSchema>;
@@ -32,15 +32,14 @@ export default function Register() {
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors }
   } = useForm<RegisterFormData>({
-    resolver: zodResolver(registerSchema),
+    resolver: zodResolver(registerSchema)
   });
 
   const onSubmit = async (data: RegisterFormData) => {
     setIsLoading(true);
     try {
-      console.log('Attempting registration with:', data.email);
       const { error } = await signup(data.email, data.password, data.email.split('@')[0]);
       
       if (error) {
@@ -48,21 +47,21 @@ export default function Register() {
         toast({
           title: "Registration failed",
           description: error.message || "Failed to create account",
-          variant: "destructive",
+          variant: "destructive"
         });
       } else {
         setSubmittedEmail(data.email);
         setIsSubmitted(true);
         toast({
           title: "Account created successfully!",
-          description: "Please check your email to verify your account",
+          description: "Please check your email to verify your account"
         });
       }
     } catch (error) {
       toast({
         title: "Registration failed",
         description: "An unexpected error occurred",
-        variant: "destructive",
+        variant: "destructive"
       });
     } finally {
       setIsLoading(false);

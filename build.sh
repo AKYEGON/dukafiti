@@ -8,9 +8,13 @@ echo "Starting build process..."
 echo "Installing dependencies..."
 npm install
 
+# Update browserslist
+echo "Updating browserslist..."
+npx update-browserslist-db@latest
+
 # Build the application
 echo "Building application..."
-npm run build
+npx vite build && npx esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=dist
 
 # Verify build outputs
 echo "Verifying build outputs..."

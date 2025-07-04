@@ -101,7 +101,7 @@ export const useOffline = () => {
     queuedActions,
     queuedActionsCount: getQueuedActionsCount(),
     isServiceWorkerReady,
-    forceSync,
+    forceSync
   };
 };
 

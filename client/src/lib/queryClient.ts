@@ -5,7 +5,7 @@ import { supabase } from "../supabaseClient";
 async function throwIfResNotOk(res: Response) {
   // Handle queued responses (status 202)
   if (res.status === 202) {
-    return; // Don't throw for queued actions
+    return; // Don't throw for queued actions;
   }
   
   if (!res.ok) {
@@ -45,7 +45,7 @@ export async function apiRequest(
     method,
     headers,
     body: data ? JSON.stringify(data) : undefined,
-    credentials: "include",
+    credentials: "include"
   };
 
   const res = await offlineCapableFetch(url, options, offlineOptions);
@@ -71,7 +71,7 @@ export const getQueryFn: <T>(options: {
 
     const res = await offlineCapableFetch(queryKey[0] as string, {
       headers,
-      credentials: "include",
+      credentials: "include"
     });
 
     if (unauthorizedBehavior === "returnNull" && res.status === 401) {
@@ -105,10 +105,10 @@ export const queryClient = new QueryClient({
         if (error instanceof Error && error.message.includes('403')) return false;
         if (error instanceof Error && error.message.includes('404')) return false;
         return failureCount < 3;
-      },
+      }
     },
     mutations: {
-      retry: false,
-    },
-  },
+      retry: false
+    }
+  }
 });

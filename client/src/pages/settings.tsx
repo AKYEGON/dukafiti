@@ -16,7 +16,7 @@ import { useTheme } from "@/contexts/theme-context";
 const storeProfileSchema = z.object({
   storeName: z.string().min(1, "Store name is required"),
   ownerName: z.string().min(1, "Owner name is required"),
-  address: z.string().min(1, "Address is required"),
+  address: z.string().min(1, "Address is required")
 });
 
 type StoreProfileData = z.infer<typeof storeProfileSchema>;
@@ -108,7 +108,7 @@ export default function SettingsPage() {
   // Fetch store data
   const { data: storeData, isLoading: storeLoading } = useQuery<StoreData>({
     queryKey: ['/api/store'],
-    retry: false,
+    retry: false
   });
 
   // Store profile form
@@ -117,8 +117,8 @@ export default function SettingsPage() {
     defaultValues: {
       storeName: "",
       ownerName: "",
-      address: "",
-    },
+      address: ""
+    }
   });
 
   // Update form when store data loads
@@ -127,7 +127,7 @@ export default function SettingsPage() {
       storeForm.reset({
         storeName: storeData.storeName || "",
         ownerName: storeData.ownerName || "",
-        address: storeData.address || "",
+        address: storeData.address || ""
       });
     }
   }, [storeData, storeForm]);
@@ -149,7 +149,7 @@ export default function SettingsPage() {
         description: error?.message || "Please try again",
         variant: "destructive" 
       });
-    },
+    }
   });
 
   // Manual sync mutation
@@ -168,7 +168,7 @@ export default function SettingsPage() {
         description: error?.message || "Please try again",
         variant: "destructive" 
       });
-    },
+    }
   });
 
   // Event handlers
@@ -182,7 +182,7 @@ export default function SettingsPage() {
     storeForm.reset({
       storeName: storeData?.storeName || "",
       ownerName: storeData?.ownerName || "",
-      address: storeData?.address || "",
+      address: storeData?.address || ""
     });
     setEditingStore(false);
   };

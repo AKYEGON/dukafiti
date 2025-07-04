@@ -30,7 +30,7 @@ import {
   payments,
   storeProfiles,
   userSettings,
-  notifications
+  notifications;
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, like, sql, or, ilike } from "drizzle-orm";
@@ -131,7 +131,7 @@ export interface IStorage {
 
 export class DatabaseStorage implements IStorage {
   constructor() {
-    // Database storage doesn't need initialization
+    // Database storage doesn't need initialization;
   }
 
   private initializeData() {
@@ -190,7 +190,7 @@ export class DatabaseStorage implements IStorage {
         description: product.description || null,
         stock: product.stock || 0,
         lowStockThreshold: product.lowStockThreshold || 10,
-        salesCount: product.salesCount || 0
+        salesCount: product.salesCount || 0;
       };
       this.products.set(newProduct.id, newProduct);
     });
@@ -338,7 +338,7 @@ export class DatabaseStorage implements IStorage {
       .map(product => ({
         id: product.id,
         name: product.name,
-        price: product.price
+        price: product.price;
       }));
   }
 
@@ -476,7 +476,7 @@ export class DatabaseStorage implements IStorage {
       revenueGrowth,
       ordersGrowth,
       lowStockCount: lowStockProducts.length,
-      activeCustomersCount: customers.length
+      activeCustomersCount: customers.length;
     };
   }
 
@@ -684,7 +684,7 @@ export class DatabaseStorage implements IStorage {
       .select({
         id: products.id,
         name: products.name,
-        price: products.price
+        price: products.price;
       })
       .from(products)
       .where(sql`${products.salesCount} > 0`)
@@ -829,7 +829,7 @@ export class DatabaseStorage implements IStorage {
       revenueGrowth: "+12.5%", // This would be calculated from historical data
       ordersGrowth: "+8.2%", // This would be calculated from historical data
       lowStockCount: lowStockProducts.length,
-      activeCustomersCount: allCustomers.length
+      activeCustomersCount: allCustomers.length;
     };
   }
 
@@ -856,7 +856,7 @@ export class DatabaseStorage implements IStorage {
         .insert(businessProfiles)
         .values({
           ...profile,
-          userId
+          userId;
         });
     }
   }
@@ -907,7 +907,7 @@ export class DatabaseStorage implements IStorage {
   async saveStoreProfile(userId: number, profile: Omit<InsertStoreProfile, 'userId'>): Promise<StoreProfile> {
     const [result] = await db.insert(storeProfiles).values({
       ...profile,
-      userId
+      userId;
     }).returning();
     return result;
   }
@@ -933,7 +933,7 @@ export class DatabaseStorage implements IStorage {
   async saveUserSettings(userId: number, settings: Omit<InsertUserSettings, 'userId'>): Promise<UserSettings> {
     const [result] = await db.insert(userSettings).values({
       ...settings,
-      userId
+      userId;
     }).returning();
     return result;
   }
@@ -1053,19 +1053,19 @@ export class DatabaseStorage implements IStorage {
         today: todayRevenue,
         yesterday: yesterdayRevenue,
         weekToDate: weekRevenue,
-        priorWeekToDate: priorWeekRevenue
+        priorWeekToDate: priorWeekRevenue;
       },
       orders: {
         today: todayOrderCount,
-        yesterday: yesterdayOrderCount
+        yesterday: yesterdayOrderCount;
       },
       inventory: {
         totalItems,
-        priorSnapshot
+        priorSnapshot;
       },
       customers: {
         active: activeCustomers,
-        priorActive: priorActiveCustomers
+        priorActive: priorActiveCustomers;
       }
     };
   }

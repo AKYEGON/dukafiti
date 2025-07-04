@@ -41,10 +41,7 @@ function AuthenticatedApp() {
   
   // Console log environment variables for debugging
   useEffect(() => {
-    console.log('API Base URL:', config.api.baseUrl);
-    console.log('Supabase URL:', config.supabase.url);
-    console.log('Environment:', config.app.isDevelopment ? 'Development' : 'Production');
-  }, []);
+    }, []);
   
   // Sidebar collapse state
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);

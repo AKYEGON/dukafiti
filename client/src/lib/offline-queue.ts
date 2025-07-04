@@ -41,7 +41,7 @@ class OfflineQueue {
         if (!db.objectStoreNames.contains(this.storeName)) {
           const store = db.createObjectStore(this.storeName, { keyPath: 'id' });
           store.createIndex('timestamp', 'timestamp', { unique: false });
-          // IndexedDB object store created
+          // IndexedDB object store created;
         }
       };
     });
@@ -55,7 +55,7 @@ class OfflineQueue {
     const pendingSale: PendingSale = {
       ...sale,
       id: `sale_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      timestamp: Date.now(),
+      timestamp: Date.now()
     };
 
     return new Promise((resolve, reject) => {
@@ -64,7 +64,6 @@ class OfflineQueue {
       const request = store.add(pendingSale);
 
       request.onsuccess = () => {
-        console.log('Sale queued offline:', pendingSale.id);
         resolve(pendingSale.id);
       };
 
@@ -108,7 +107,6 @@ class OfflineQueue {
       const request = store.delete(saleId);
 
       request.onsuccess = () => {
-        console.log('Sale removed from queue:', saleId);
         resolve();
       };
 
@@ -151,7 +149,6 @@ class OfflineQueue {
       const request = store.clear();
 
       request.onsuccess = () => {
-        console.log('Offline queue cleared');
         resolve();
       };
 
@@ -175,12 +172,10 @@ export function setupNetworkListeners(
   onOffline?: () => void
 ): () => void {
   const handleOnline = () => {
-    console.log('Network: Back online');
     onOnline?.();
   };
 
   const handleOffline = () => {
-    console.log('Network: Gone offline');
     onOffline?.();
   };
 
@@ -197,7 +192,6 @@ export function setupNetworkListeners(
 // Process pending sales when back online
 export async function processPendingSales(): Promise<void> {
   if (!isOnline()) {
-    console.log('Cannot process pending sales: still offline');
     return;
   }
 
@@ -205,11 +199,8 @@ export async function processPendingSales(): Promise<void> {
     const pendingSales = await offlineQueue.getPendingSales();
     
     if (pendingSales.length === 0) {
-      console.log('No pending sales to process');
       return;
     }
-
-    console.log(`Processing ${pendingSales.length} pending sales...`);
 
     for (const sale of pendingSales) {
       try {
@@ -219,36 +210,33 @@ export async function processPendingSales(): Promise<void> {
           paymentType: sale.paymentType,
           reference: sale.reference,
           customerName: sale.customerName,
-          customerPhone: sale.customerPhone,
+          customerPhone: sale.customerPhone
         };
 
         const response = await fetch('/api/sales', {
           method: 'POST',
           headers: {
-            'Content-Type': 'application/json',
+            'Content-Type': 'application/json'
           },
-          body: JSON.stringify(apiPayload),
+          body: JSON.stringify(apiPayload)
         });
 
         if (response.ok) {
           await offlineQueue.removeSale(sale.id);
-          console.log(`Successfully processed sale: ${sale.id}`);
-        } else {
+          } else {
           console.error(`Failed to process sale ${sale.id}:`, response.statusText);
-          // Leave the sale in the queue for retry
+          // Leave the sale in the queue for retry;
         }
       } catch (error) {
         console.error(`Error processing sale ${sale.id}:`, error);
-        // Leave the sale in the queue for retry
+        // Leave the sale in the queue for retry;
       }
     }
 
     const remainingCount = await offlineQueue.getQueueCount();
     if (remainingCount > 0) {
-      console.log(`${remainingCount} sales remain in queue after processing`);
-    } else {
-      console.log('All pending sales processed successfully');
-    }
+      } else {
+      }
   } catch (error) {
     console.error('Error processing pending sales:', error);
   }

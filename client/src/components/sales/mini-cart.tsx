@@ -20,7 +20,7 @@ export function MiniCart({
   onRemoveItem, 
   onClearCart, 
   onCheckout,
-  isProcessing = false
+  isProcessing = false;
 }: MiniCartProps) {
   const totalAmount = items.reduce((sum, item) => {
     return sum + parseFloat(item.total);

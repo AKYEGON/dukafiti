@@ -55,11 +55,9 @@ export async function registerSupabaseRoutes(app: Express): Promise<Server> {
   const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
   
   wss.on('connection', (ws) => {
-    console.log('WebSocket client connected');
     wsClients.add(ws);
     
     ws.on('close', () => {
-      console.log('WebSocket client disconnected');
       wsClients.delete(ws);
     });
   });
@@ -76,7 +74,7 @@ export async function registerSupabaseRoutes(app: Express): Promise<Server> {
       const user = await supabaseDb.createUser({
         email,
         username,
-        password_hash: passwordHash,
+        password_hash: passwordHash
       });
       
       res.json({ user: { id: user.id, email: user.email, username: user.username } });
@@ -226,7 +224,7 @@ export async function registerSupabaseRoutes(app: Express): Promise<Server> {
         customer_name: customerName,
         total: total.toFixed(2),
         payment_method: paymentMethod,
-        status: 'completed',
+        status: 'completed'
       });
       
       // Create order items and update product stock
@@ -239,18 +237,18 @@ export async function registerSupabaseRoutes(app: Express): Promise<Server> {
             product_id: item.id,
             product_name: product.name,
             quantity: item.quantity,
-            price: product.price,
+            price: product.price
           });
           
           // Update product stock and sales count
           if (product.stock !== null) {
             await supabaseDb.updateProduct(item.id, {
               stock: Math.max(0, product.stock - item.quantity),
-              sales_count: product.sales_count + item.quantity,
+              sales_count: product.sales_count + item.quantity
             });
           } else {
             await supabaseDb.updateProduct(item.id, {
-              sales_count: product.sales_count + item.quantity,
+              sales_count: product.sales_count + item.quantity
             });
           }
         }
@@ -293,7 +291,7 @@ export async function registerSupabaseRoutes(app: Express): Promise<Server> {
         customer_name: customerName || customerPhone || 'Walk-in Customer',
         total: total.toFixed(2),
         payment_method: paymentMethod,
-        status: 'completed',
+        status: 'completed'
       });
       
       // Create order items and update product stock
@@ -306,18 +304,18 @@ export async function registerSupabaseRoutes(app: Express): Promise<Server> {
             product_id: item.id,
             product_name: product.name,
             quantity: item.quantity,
-            price: product.price,
+            price: product.price
           });
           
           // Update product stock and sales count
           if (product.stock !== null) {
             await supabaseDb.updateProduct(item.id, {
               stock: Math.max(0, product.stock - item.quantity),
-              sales_count: product.sales_count + item.quantity,
+              sales_count: product.sales_count + item.quantity
             });
           } else {
             await supabaseDb.updateProduct(item.id, {
-              sales_count: product.sales_count + item.quantity,
+              sales_count: product.sales_count + item.quantity
             });
           }
         }
@@ -499,7 +497,7 @@ export async function registerSupabaseRoutes(app: Express): Promise<Server> {
           // 24 hourly points
           trendData = Array.from({ length: 24 }, (_, i) => ({
             label: `${i.toString().padStart(2, '0')}:00`,
-            value: 0
+            value: 0;
           }));
           
           const todayStart = new Date();
@@ -545,7 +543,7 @@ export async function registerSupabaseRoutes(app: Express): Promise<Server> {
           // 30 daily points
           trendData = Array.from({ length: 30 }, (_, i) => ({
             label: (i + 1).toString(),
-            value: 0
+            value: 0;
           }));
           
           const monthStart = new Date();
@@ -582,7 +580,7 @@ export async function registerSupabaseRoutes(app: Express): Promise<Server> {
       res.json(topItems.map(item => ({
         name: item.productName,
         unitsSold: item.unitsSold,
-        revenue: item.totalRevenue
+        revenue: item.totalRevenue;
       })));
     } catch (error) {
       console.error('Top items reports error:', error);
@@ -597,7 +595,7 @@ export async function registerSupabaseRoutes(app: Express): Promise<Server> {
       res.json(topProducts.map(product => ({
         productName: product.productName,
         unitsSold: product.unitsSold,
-        totalRevenue: product.totalRevenue
+        totalRevenue: product.totalRevenue;
       })));
     } catch (error) {
       console.error('Top products reports error:', error);
@@ -619,7 +617,7 @@ export async function registerSupabaseRoutes(app: Express): Promise<Server> {
       res.json(customerCredits.map(customer => ({
         name: customer.name,
         phone: customer.phone || 'N/A',
-        balance: customer.balance
+        balance: customer.balance;
       })));
     } catch (error) {
       console.error('Customer credits reports error:', error);
@@ -680,7 +678,7 @@ export async function registerSupabaseRoutes(app: Express): Promise<Server> {
             reference: order.reference,
             products: items.map(item => ({
               name: item.product_name,
-              quantity: item.quantity
+              quantity: item.quantity;
             }))
           };
         })
@@ -764,7 +762,7 @@ export async function registerSupabaseRoutes(app: Express): Promise<Server> {
         address: profile.location,
         storeType: profile.store_type,
         location: profile.location,
-        description: profile.description,
+        description: profile.description
       };
       
       res.json(transformedProfile);
@@ -789,7 +787,7 @@ export async function registerSupabaseRoutes(app: Express): Promise<Server> {
         // Profile doesn't exist, create new one
         const profile = await supabaseDb.createStoreProfile({
           userId: user.id,
-          ...req.body,
+          ...req.body
         });
         res.json(profile);
       }

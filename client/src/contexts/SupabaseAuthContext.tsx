@@ -40,19 +40,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     // Get initial session
     const initSession = async () => {
       try {
-        console.log('Initializing Supabase session...');
         const { data: { session }, error } = await supabase.auth.getSession();
         
         if (error) {
           console.error('Error getting session:', error);
         } else if (session && mounted) {
-          console.log('Found existing session:', session.user.email);
           setSession(session);
           setUser(session.user);
           setIsAuthenticated(true);
         } else {
-          console.log('No existing session found');
-        }
+          }
       } catch (error) {
         console.error('Session initialization error:', error);
       } finally {
@@ -66,8 +63,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const {
       data: { subscription }
     } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('Auth state changed:', event, session?.user?.email);
-      
       if (mounted) {
         setSession(session);
         setUser(session?.user ?? null);
@@ -90,11 +85,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const login = async (email: string, password: string) => {
     try {
-      console.log('Attempting login with email:', email);
-      
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
-        password,
+        password
       });
 
       if (error) {
@@ -102,7 +95,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         return { error };
       }
 
-      console.log('Login successful:', data.user?.email);
       return { error: null };
     } catch (error) {
       console.error('Login catch error:', error);
@@ -112,11 +104,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const signup = async (email: string, password: string) => {
     try {
-      console.log('Attempting signup with email:', email);
-      
       const { data, error } = await supabase.auth.signUp({
         email,
-        password,
+        password
       });
 
       if (error) {
@@ -124,7 +114,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         return { error };
       }
 
-      console.log('Signup successful:', data.user?.email);
       return { error: null };
     } catch (error) {
       console.error('Signup catch error:', error);
@@ -134,15 +123,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const logout = async () => {
     try {
-      console.log('Attempting logout...');
-      
       const { error } = await supabase.auth.signOut();
       
       if (error) {
         console.error('Logout error:', error);
       } else {
-        console.log('Logout successful');
-      }
+        }
       
       // Clear local state regardless of error
       setUser(null);
@@ -165,7 +151,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         isLoading,
         login,
         signup,
-        logout,
+        logout
       }}
     >
       {children}

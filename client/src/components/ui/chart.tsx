@@ -11,7 +11,7 @@ const THEMES = { light: "", dark: ".dark" } as const
 export type ChartConfig = {
   [k in string]: {
     label?: React.ReactNode
-    icon?: React.ComponentType
+    icon?: React.ComponentType;
   } & (
     | { color?: string; theme?: never }
     | { color?: never; theme: Record<keyof typeof THEMES, string> }
@@ -19,7 +19,7 @@ export type ChartConfig = {
 }
 
 type ChartContextProps = {
-  config: ChartConfig
+  config: ChartConfig;
 }
 
 const ChartContext = React.createContext<ChartContextProps | null>(null)
@@ -31,7 +31,7 @@ function useChart() {
     throw new Error("useChart must be used within a <ChartContainer />")
   }
 
-  return context
+  return context;
 }
 
 const ChartContainer = React.forwardRef<
@@ -73,7 +73,7 @@ const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
   )
 
   if (!colorConfig.length) {
-    return null
+    return null;
   }
 
   return (
@@ -88,13 +88,13 @@ ${colorConfig
     const color =
       itemConfig.theme?.[theme as keyof typeof itemConfig.theme] ||
       itemConfig.color
-    return color ? `  --color-${key}: ${color};` : null
+    return color ? `  --color-${key}: ${color};` : null;
   })
   .join("\n")}
 }
 `
           )
-          .join("\n"),
+          .join("\n")
       }}
     />
   )
@@ -110,7 +110,7 @@ const ChartTooltipContent = React.forwardRef<
       hideIndicator?: boolean
       indicator?: "line" | "dot" | "dashed"
       nameKey?: string
-      labelKey?: string
+      labelKey?: string;
     }
 >(
   (
@@ -127,7 +127,7 @@ const ChartTooltipContent = React.forwardRef<
       formatter,
       color,
       nameKey,
-      labelKey,
+      labelKey
     },
     ref
   ) => {
@@ -135,7 +135,7 @@ const ChartTooltipContent = React.forwardRef<
 
     const tooltipLabel = React.useMemo(() => {
       if (hideLabel || !payload?.length) {
-        return null
+        return null;
       }
 
       const [item] = payload
@@ -155,7 +155,7 @@ const ChartTooltipContent = React.forwardRef<
       }
 
       if (!value) {
-        return null
+        return null;
       }
 
       return <div className={cn("font-medium", labelClassName)}>{value}</div>
@@ -170,7 +170,7 @@ const ChartTooltipContent = React.forwardRef<
     ])
 
     if (!active || !payload?.length) {
-      return null
+      return null;
     }
 
     const nestLabel = payload.length === 1 && indicator !== "dot"
@@ -214,14 +214,14 @@ const ChartTooltipContent = React.forwardRef<
                               "w-1": indicator === "line",
                               "w-0 border-[1.5px] border-dashed bg-transparent":
                                 indicator === "dashed",
-                              "my-0.5": nestLabel && indicator === "dashed",
+                              "my-0.5": nestLabel && indicator === "dashed"
                             }
                           )}
                           style={
                             {
                               "--color-bg": indicatorColor,
-                              "--color-border": indicatorColor,
-                            } as React.CSSProperties
+                              "--color-border": indicatorColor
+                            } as React.CSSProperties;
                           }
                         />
                       )
@@ -263,7 +263,7 @@ const ChartLegendContent = React.forwardRef<
   React.ComponentProps<"div"> &
     Pick<RechartsPrimitive.LegendProps, "payload" | "verticalAlign"> & {
       hideIcon?: boolean
-      nameKey?: string
+      nameKey?: string;
     }
 >(
   (
@@ -273,7 +273,7 @@ const ChartLegendContent = React.forwardRef<
     const { config } = useChart()
 
     if (!payload?.length) {
-      return null
+      return null;
     }
 
     return (
@@ -302,7 +302,7 @@ const ChartLegendContent = React.forwardRef<
                 <div
                   className="h-2 w-2 shrink-0 rounded-[2px]"
                   style={{
-                    backgroundColor: item.color,
+                    backgroundColor: item.color
                   }}
                 />
               )}
@@ -323,7 +323,7 @@ function getPayloadConfigFromPayload(
   key: string
 ) {
   if (typeof payload !== "object" || payload === null) {
-    return undefined
+    return undefined;
   }
 
   const payloadPayload =
@@ -339,7 +339,7 @@ function getPayloadConfigFromPayload(
     key in payload &&
     typeof payload[key as keyof typeof payload] === "string"
   ) {
-    configLabelKey = payload[key as keyof typeof payload] as string
+    configLabelKey = payload[key as keyof typeof payload] as string;
   } else if (
     payloadPayload &&
     key in payloadPayload &&
@@ -347,7 +347,7 @@ function getPayloadConfigFromPayload(
   ) {
     configLabelKey = payloadPayload[
       key as keyof typeof payloadPayload
-    ] as string
+    ] as string;
   }
 
   return configLabelKey in config
@@ -361,5 +361,5 @@ export {
   ChartTooltipContent,
   ChartLegend,
   ChartLegendContent,
-  ChartStyle,
+  ChartStyle
 }

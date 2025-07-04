@@ -27,7 +27,7 @@ export function EnhancedMetricCard({
   icon: Icon,
   isLoading = false,
   isRefreshing = false,
-  error = false,
+  error = false
 }: EnhancedMetricCardProps) {
   return (
     <Card className="relative overflow-hidden hover:shadow-md transition-shadow">

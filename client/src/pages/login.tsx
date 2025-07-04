@@ -14,7 +14,7 @@ import { useToast } from '@/hooks/use-toast';
 
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email'),
-  password: z.string().min(6, 'Password must be at least 6 characters'),
+  password: z.string().min(6, 'Password must be at least 6 characters')
 });
 
 type LoginFormData = z.infer<typeof loginSchema>;
@@ -29,9 +29,9 @@ export default function Login() {
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors }
   } = useForm<LoginFormData>({
-    resolver: zodResolver(loginSchema),
+    resolver: zodResolver(loginSchema)
   });
 
   const onSubmit = async (data: LoginFormData) => {
@@ -43,12 +43,12 @@ export default function Login() {
         toast({
           title: "Login failed",
           description: error.message || "Invalid email or password",
-          variant: "destructive",
+          variant: "destructive"
         });
       } else {
         toast({
           title: "Welcome back!",
-          description: "You have been logged in successfully",
+          description: "You have been logged in successfully"
         });
         navigate('/dashboard');
       }
@@ -56,14 +56,12 @@ export default function Login() {
       toast({
         title: "Login failed",
         description: "An unexpected error occurred",
-        variant: "destructive",
+        variant: "destructive"
       });
     } finally {
       setIsLoading(false);
     }
   };
-
-
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4 sm:px-6 lg:px-8">

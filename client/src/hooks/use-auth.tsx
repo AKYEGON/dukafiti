@@ -23,14 +23,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
         return { authenticated: false, user: null };
       } catch (error) {
-        console.warn("Auth check failed:", error);
         return { authenticated: false, user: null };
       }
     },
     retry: false,
     refetchInterval: false,
     refetchOnWindowFocus: false,
-    throwOnError: false,
+    throwOnError: false
   });
 
   useEffect(() => {

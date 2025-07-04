@@ -12,7 +12,7 @@ export function NotificationsPage() {
   // Fetch notifications
   const { data: notifications = [], isLoading } = useQuery<Notification[]>({
     queryKey: ['/api/notifications'],
-    enabled: true,
+    enabled: true
   });
 
   // Mark all as read mutation
@@ -20,7 +20,7 @@ export function NotificationsPage() {
     mutationFn: async () => {
       const response = await fetch('/api/notifications/mark-all-read', {
         method: 'POST',
-        credentials: 'include',
+        credentials: 'include'
       });
       if (!response.ok) throw new Error('Failed to mark all as read');
       return response.json();
@@ -28,7 +28,7 @@ export function NotificationsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
       queryClient.invalidateQueries({ queryKey: ['/api/notifications/unread-count'] });
-    },
+    }
   });
 
   // Mark single as read mutation
@@ -36,7 +36,7 @@ export function NotificationsPage() {
     mutationFn: async (id: number) => {
       const response = await fetch(`/api/notifications/${id}/read`, {
         method: 'POST',
-        credentials: 'include',
+        credentials: 'include'
       });
       if (!response.ok) throw new Error('Failed to mark as read');
       return response.json();
@@ -44,7 +44,7 @@ export function NotificationsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
       queryClient.invalidateQueries({ queryKey: ['/api/notifications/unread-count'] });
-    },
+    }
   });
 
   // Delete notification mutation
@@ -52,7 +52,7 @@ export function NotificationsPage() {
     mutationFn: async (id: number) => {
       const response = await fetch(`/api/notifications/${id}`, {
         method: 'DELETE',
-        credentials: 'include',
+        credentials: 'include'
       });
       if (!response.ok) throw new Error('Failed to delete notification');
       return response.json();
@@ -60,7 +60,7 @@ export function NotificationsPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
       queryClient.invalidateQueries({ queryKey: ['/api/notifications/unread-count'] });
-    },
+    }
   });
 
   // Filter notifications

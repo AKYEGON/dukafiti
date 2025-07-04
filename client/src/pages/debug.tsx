@@ -14,14 +14,12 @@ export default function Debug() {
   useEffect(() => {
     const checkSession = async () => {
       try {
-        console.log('Checking session...');
         const { data: { session }, error } = await supabase.auth.getSession();
         
         if (error) {
           console.error('Error getting session:', error);
           setError(error.message);
         } else {
-          console.log('Session data:', session);
           setSessionData(session);
         }
 
@@ -31,7 +29,6 @@ export default function Debug() {
           console.error('Error getting user:', userError);
           setError(userError.message);
         } else {
-          console.log('User data:', user);
           setUserInfo(user);
         }
       } catch (err) {
@@ -51,8 +48,7 @@ export default function Debug() {
       password: 'testpassword123'
     });
     
-    console.log('Test signup result:', { data, error });
-  };
+    };
 
   const testSignIn = async () => {
     const { data, error } = await supabase.auth.signInWithPassword({
@@ -60,8 +56,7 @@ export default function Debug() {
       password: 'testpassword123'
     });
     
-    console.log('Test signin result:', { data, error });
-  };
+    };
 
   if (loading) {
     return <div className="p-8">Loading debug information...</div>;

@@ -30,12 +30,12 @@ export default function Sales() {
 
   // Fetch all products for quick select functionality
   const { data: products = [], isLoading: productsLoading } = useQuery<Product[]>({
-    queryKey: ["/api/products"],
+    queryKey: ["/api/products"]
   });
 
   // Get frequent products (first 6 for quick select)
   const { data: frequentProducts = [] } = useQuery<Product[]>({
-    queryKey: ["/api/products/frequent"],
+    queryKey: ["/api/products/frequent"]
   });
 
   const quickSelectProducts = frequentProducts.length > 0 
@@ -136,23 +136,19 @@ export default function Sales() {
     const existingItem = cartItems.find(item => item.product.id === product.id);
     
     if (existingItem) {
-      console.log('Product exists, incrementing quantity');
       // Increment quantity of existing item
       handleQuantityChange(existingItem.id, existingItem.quantity + 1);
     } else {
-      console.log('Adding new product to cart');
       // Add new item to cart
       const newItem: SaleLineItem = {
         id: `${product.id}-${Date.now()}`,
         product,
         quantity: 1,
         unitPrice: product.price,
-        total: product.price,
+        total: product.price
       };
-      console.log('New item created:', newItem);
       setCartItems(prev => {
         const updated = [...prev, newItem];
-        console.log('Updated cart items:', updated);
         return updated;
       });
     }
@@ -166,7 +162,7 @@ export default function Sales() {
         title: "Product added",
         description: `${product.name} added to cart`,
         className: "bg-green-50 border-green-200 text-green-800",
-        duration: 2000,
+        duration: 2000
       });
     }
   };
@@ -251,8 +247,6 @@ export default function Sales() {
         });
         
         const savedCustomer = await newCustomer.json();
-        console.log('New customer saved:', savedCustomer);
-        
         // Invalidate customers cache
         queryClient.invalidateQueries({ queryKey: ["/api/customers"] });
         
@@ -260,7 +254,7 @@ export default function Sales() {
           title: "Customer added",
           description: `${customer.name} has been added to your customers list`,
           className: "bg-green-50 border-green-200 text-green-800",
-          duration: 3000,
+          duration: 3000
         });
       } catch (error) {
         console.error('Error saving new customer:', error);
@@ -268,7 +262,7 @@ export default function Sales() {
           title: "Warning",
           description: "Customer couldn't be saved, but sale will proceed",
           variant: "destructive",
-          duration: 3000,
+          duration: 3000
         });
       }
     }
@@ -277,20 +271,18 @@ export default function Sales() {
     const saleData = {
       items: cartItems.map(item => ({
         id: item.product.id,
-        quantity: item.quantity
+        quantity: item.quantity;
       })),
       paymentType: paymentMethod as 'cash' | 'credit' | 'mobileMoney',
       customerName: customer?.name || '',
       customerPhone: customer?.phone || ''
     };
 
-    console.log('Sale data being sent:', saleData);
     createSaleMutation.mutate(saleData);
   };
 
   // Handle search result selection
   const handleSearchResultSelect = (product: Product) => {
-    console.log('Search result selected:', product);
     handleProductSelect(product);
     setSearchQuery('');
     setShowSearchDropdown(false);
@@ -306,7 +298,7 @@ export default function Sales() {
       title: "Product added",
       description: `${product.name} added to cart`,
       className: "bg-green-50 border-green-200 text-green-800",
-      duration: 2000,
+      duration: 2000
     });
   };
 
@@ -328,7 +320,7 @@ export default function Sales() {
           })),
           paymentType: saleData.paymentType as 'cash' | 'credit' | 'mobileMoney',
           customerName: saleData.customerName,
-          customerPhone: saleData.customerPhone,
+          customerPhone: saleData.customerPhone
         });
 
         // Register background sync if supported
@@ -388,21 +380,21 @@ export default function Sales() {
           title: "Sale queued – offline mode", 
           description: "Sale will be processed when connection is restored",
           className: "bg-blue-50 border-blue-200 text-blue-800",
-          duration: 5000,
+          duration: 5000
         });
       } else if (status === 'paid') {
         toast({ 
           title: "Sale completed successfully!", 
           description: `Payment received via ${paymentMethod}`,
           className: "bg-green-50 border-green-200 text-green-800",
-          duration: 3000,
+          duration: 3000
         });
       } else if (status === 'pending') {
         toast({ 
           title: "Credit sale recorded", 
           description: "Customer payment is pending",
           className: "bg-yellow-50 border-yellow-200 text-yellow-800",
-          duration: 3000,
+          duration: 3000
         });
       }
     },

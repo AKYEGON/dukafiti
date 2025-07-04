@@ -28,7 +28,7 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   }
 
   if (!user) {
-    return null; // Will redirect to login via useEffect
+    return null; // Will redirect to login via useEffect;
   }
 
   return <>{children}</>;

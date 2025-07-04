@@ -12,26 +12,21 @@ if ('serviceWorker' in navigator) {
         const cacheNames = await caches.keys();
         await Promise.all(
           cacheNames.map(cacheName => {
-            console.log('Clearing cache:', cacheName);
             return caches.delete(cacheName);
           })
         );
-        console.log('All caches cleared');
-      }
+        }
 
       // Unregister existing service worker
       const existingRegistrations = await navigator.serviceWorker.getRegistrations();
       await Promise.all(
         existingRegistrations.map(registration => {
-          console.log('Unregistering service worker');
           return registration.unregister();
         })
       );
 
       // Register fresh service worker
       const registration = await navigator.serviceWorker.register('/service-worker.js', { updateViaCache: 'none' });
-      console.log('Fresh SW registered: ', registration);
-      
       // Force immediate activation
       if (registration.waiting) {
         registration.waiting.postMessage({ type: 'SKIP_WAITING' });
@@ -45,11 +40,9 @@ if ('serviceWorker' in navigator) {
             if (newWorker.state === 'installed') {
               if (navigator.serviceWorker.controller) {
                 // Force reload to get new content
-                console.log('New content available; forcing reload.');
                 window.location.reload();
               } else {
-                console.log('Content is cached for offline use.');
-              }
+                }
             }
           });
         }
@@ -69,15 +62,12 @@ window.addEventListener('beforeinstallprompt', (e) => {
   deferredPrompt = e;
   
   // Show install banner/button (you can customize this UI)
-  console.log('PWA install prompt available');
-  
   // You could show a custom install button here
-  // For now, we'll just log it and let the browser handle it
+  // For now, we'll just log it and let the browser handle it;
 });
 
 // Handle successful PWA install
 window.addEventListener('appinstalled', (evt) => {
-  console.log('PWA was installed successfully');
   deferredPrompt = null;
 });
 
@@ -85,8 +75,7 @@ window.addEventListener('appinstalled', (evt) => {
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.addEventListener('message', (event) => {
     if (event.data.type === 'SALE_SYNCED') {
-      console.log(`Sale ${event.data.saleId} synced successfully`);
-      // You could show a toast notification here if needed
+      // You could show a toast notification here if needed;
     }
   });
 }
@@ -95,7 +84,5 @@ const rootElement = document.getElementById("root");
 if (!rootElement) {
   console.error("Root element not found!");
 } else {
-  console.log("Root element found, mounting React app...");
   createRoot(rootElement).render(<App />);
-  console.log("React app mounted successfully");
-}
+  }

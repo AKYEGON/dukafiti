@@ -9,7 +9,7 @@ import {
   useFormContext,
   type ControllerProps,
   type FieldPath,
-  type FieldValues,
+  type FieldValues
 } from "react-hook-form"
 
 import { cn } from "@/lib/utils"
@@ -21,7 +21,7 @@ type FormFieldContextValue<
   TFieldValues extends FieldValues = FieldValues,
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>
 > = {
-  name: TName
+  name: TName;
 }
 
 const FormFieldContext = React.createContext<FormFieldContextValue>(
@@ -32,7 +32,7 @@ const FormField = <
   TFieldValues extends FieldValues = FieldValues,
   TName extends FieldPath<TFieldValues> = FieldPath<TFieldValues>
 >({
-  ...props
+  ...props;
 }: ControllerProps<TFieldValues, TName>) => {
   return (
     <FormFieldContext.Provider value={{ name: props.name }}>
@@ -60,12 +60,12 @@ const useFormField = () => {
     formItemId: `${id}-form-item`,
     formDescriptionId: `${id}-form-item-description`,
     formMessageId: `${id}-form-item-message`,
-    ...fieldState,
+    ...fieldState
   }
 }
 
 type FormItemContextValue = {
-  id: string
+  id: string;
 }
 
 const FormItemContext = React.createContext<FormItemContextValue>(
@@ -150,7 +150,7 @@ const FormMessage = React.forwardRef<
   const body = error ? String(error?.message ?? "") : children
 
   if (!body) {
-    return null
+    return null;
   }
 
   return (
@@ -174,5 +174,5 @@ export {
   FormControl,
   FormDescription,
   FormMessage,
-  FormField,
+  FormField
 }

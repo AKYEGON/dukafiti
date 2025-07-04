@@ -38,7 +38,7 @@ export function SaleConfirmationModal({
   // Fetch existing customers
   const { data: customers = [] } = useQuery<Customer[]>({
     queryKey: ["/api/customers"],
-    enabled: paymentMethod === 'credit' && open,
+    enabled: paymentMethod === 'credit' && open
   });
 
   const total = items.reduce((sum, item) => sum + parseFloat(item.total), 0);
@@ -70,14 +70,14 @@ export function SaleConfirmationModal({
 
   const handleConfirm = () => {
     if (paymentMethod === 'credit' && !customerName.trim()) {
-      return; // Validation handled by button disabled state
+      return; // Validation handled by button disabled state;
     }
     
     if (paymentMethod === 'credit') {
       onConfirm({
         name: customerName.trim(),
         phone: customerPhone.trim() || undefined,
-        isNew: isNewCustomer
+        isNew: isNewCustomer;
       });
     } else {
       onConfirm();

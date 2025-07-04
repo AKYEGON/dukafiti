@@ -1,6 +1,6 @@
 import * as React from "react"
 import useEmblaCarousel, {
-  type UseEmblaCarouselType,
+  type UseEmblaCarouselType
 } from "embla-carousel-react"
 import { ArrowLeft, ArrowRight } from "lucide-react"
 
@@ -16,7 +16,7 @@ type CarouselProps = {
   opts?: CarouselOptions
   plugins?: CarouselPlugin
   orientation?: "horizontal" | "vertical"
-  setApi?: (api: CarouselApi) => void
+  setApi?: (api: CarouselApi) => void;
 }
 
 type CarouselContextProps = {
@@ -25,7 +25,7 @@ type CarouselContextProps = {
   scrollPrev: () => void
   scrollNext: () => void
   canScrollPrev: boolean
-  canScrollNext: boolean
+  canScrollNext: boolean;
 } & CarouselProps
 
 const CarouselContext = React.createContext<CarouselContextProps | null>(null)
@@ -37,7 +37,7 @@ function useCarousel() {
     throw new Error("useCarousel must be used within a <Carousel />")
   }
 
-  return context
+  return context;
 }
 
 const Carousel = React.forwardRef<
@@ -52,14 +52,14 @@ const Carousel = React.forwardRef<
       plugins,
       className,
       children,
-      ...props
+      ...props;
     },
     ref
   ) => {
     const [carouselRef, api] = useEmblaCarousel(
       {
         ...opts,
-        axis: orientation === "horizontal" ? "x" : "y",
+        axis: orientation === "horizontal" ? "x" : "y"
       },
       plugins
     )
@@ -68,7 +68,7 @@ const Carousel = React.forwardRef<
 
     const onSelect = React.useCallback((api: CarouselApi) => {
       if (!api) {
-        return
+        return;
       }
 
       setCanScrollPrev(api.canScrollPrev())
@@ -98,7 +98,7 @@ const Carousel = React.forwardRef<
 
     React.useEffect(() => {
       if (!api || !setApi) {
-        return
+        return;
       }
 
       setApi(api)
@@ -106,7 +106,7 @@ const Carousel = React.forwardRef<
 
     React.useEffect(() => {
       if (!api) {
-        return
+        return;
       }
 
       onSelect(api)
@@ -129,7 +129,7 @@ const Carousel = React.forwardRef<
           scrollPrev,
           scrollNext,
           canScrollPrev,
-          canScrollNext,
+          canScrollNext
         }}
       >
         <div
@@ -256,5 +256,5 @@ export {
   CarouselContent,
   CarouselItem,
   CarouselPrevious,
-  CarouselNext,
+  CarouselNext
 }

@@ -14,7 +14,7 @@ import type { Customer } from "@shared/schema";
 
 export default function Customers() {
   const { data: customers, isLoading } = useQuery<Customer[]>({
-    queryKey: ["/api/customers"],
+    queryKey: ["/api/customers"]
   });
 
   const [showNewCustomerForm, setShowNewCustomerForm] = useState(false);

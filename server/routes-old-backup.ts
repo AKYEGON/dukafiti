@@ -73,11 +73,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
   
   wss.on('connection', (ws) => {
-    console.log('WebSocket client connected');
     wsClients.add(ws);
     
     ws.on('close', () => {
-      console.log('WebSocket client disconnected');
       wsClients.delete(ws);
     });
     
@@ -91,7 +89,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/supabase-config", (req, res) => {
     res.json({
       url: process.env.SUPABASE_URL || 'https://kwdzbssuovwemthmiuht.supabase.co',
-      anonKey: process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt3ZHpic3N1b3Z3ZW10aG1pdWh0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE1NDEyMDYsImV4cCI6MjA2NzExNzIwNn0.7AGomhrpXHBnSgJ15DxFMi80E479S9w9mIeqMnsvNrA',
+      anonKey: process.env.SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt3ZHpic3N1b3Z3ZW10aG1pdWh0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE1NDEyMDYsImV4cCI6MjA2NzExNzIwNn0.7AGomhrpXHBnSgJ15DxFMi80E479S9w9mIeqMnsvNrA'
     });
   });
   
@@ -117,7 +115,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .insert([{
           email,
           username: name,
-          passwordHash: 'managed_by_supabase' // Supabase handles password hashing
+          passwordHash: 'managed_by_supabase' // Supabase handles password hashing;
         }])
         .select()
         .single();
@@ -140,7 +138,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
-        password
+        password;
       });
       
       if (error) {
@@ -446,7 +444,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         productId: item.productId,
         productName: item.name,
         quantity: item.quantity,
-        price: item.price
+        price: item.price;
       }));
       
       const { error: itemsError } = await supabase
@@ -464,7 +462,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const { error: stockError } = await supabase
             .from('products')
             .update({ 
-              stock: item.stock - item.quantity
+              stock: item.stock - item.quantity;
             })
             .eq('id', item.productId);
           
@@ -478,7 +476,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       broadcastToClients({
         type: 'sale_completed',
         order: orderData,
-        items: orderItems
+        items: orderItems;
       });
       
       res.json({ order: orderData, items: orderItems });
@@ -538,7 +536,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         totalProducts: productsCount?.length || 0,
         totalCustomers: customersCount?.length || 0,
         lowStockCount: lowStockData?.length || 0,
-        activeCustomersCount: customersCount?.length || 0
+        activeCustomersCount: customersCount?.length || 0;
       };
       
       res.json(metrics);

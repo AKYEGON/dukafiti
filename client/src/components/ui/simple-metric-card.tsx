@@ -16,7 +16,7 @@ export function SimpleMetricCard({
   icon: Icon,
   isLoading = false,
   isRefreshing = false,
-  error = false,
+  error = false
 }: SimpleMetricCardProps) {
   return (
     <Card className="relative overflow-hidden hover:shadow-md transition-shadow">

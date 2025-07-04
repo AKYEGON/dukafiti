@@ -38,7 +38,7 @@ export const useEnhancedOffline = () => {
         toast({
           title: "Back Online",
           description: "Syncing queued actions...",
-          variant: "default",
+          variant: "default"
         });
       },
       async () => {
@@ -49,7 +49,7 @@ export const useEnhancedOffline = () => {
         toast({
           title: "You're Offline",
           description: "Actions will be queued until you're back online",
-          variant: "destructive",
+          variant: "destructive"
         });
       }
     );
@@ -59,7 +59,7 @@ export const useEnhancedOffline = () => {
       toast({
         title: "Action Queued",
         description: `${event.detail.description} - will sync when online`,
-        variant: "default",
+        variant: "default"
       });
       updateQueuedActions();
     };
@@ -68,7 +68,7 @@ export const useEnhancedOffline = () => {
       toast({
         title: "Synced",
         description: `${event.detail.action.description} completed successfully`,
-        variant: "default",
+        variant: "default"
       });
       updateQueuedActions();
     };
@@ -77,7 +77,7 @@ export const useEnhancedOffline = () => {
       toast({
         title: "Sync Error",
         description: `${event.detail.action.description} - ${event.detail.error}`,
-        variant: "destructive",
+        variant: "destructive"
       });
       updateQueuedActions();
     };
@@ -107,7 +107,7 @@ export const useEnhancedOffline = () => {
       toast({
         title: "Cannot Sync",
         description: "You must be online to sync actions",
-        variant: "destructive",
+        variant: "destructive"
       });
       return false;
     }
@@ -118,14 +118,14 @@ export const useEnhancedOffline = () => {
       toast({
         title: "Sync Complete",
         description: "All queued actions have been processed",
-        variant: "default",
+        variant: "default"
       });
       return true;
     } catch (error) {
       toast({
         title: "Sync Failed",
         description: "Failed to process queued actions",
-        variant: "destructive",
+        variant: "destructive"
       });
       return false;
     } finally {
@@ -140,13 +140,13 @@ export const useEnhancedOffline = () => {
       toast({
         title: "Queue Cleared",
         description: "All queued actions have been removed",
-        variant: "default",
+        variant: "default"
       });
     } catch (error) {
       toast({
         title: "Clear Failed",
         description: "Failed to clear action queue",
-        variant: "destructive",
+        variant: "destructive"
       });
     }
   };
@@ -166,7 +166,7 @@ export const useEnhancedOffline = () => {
     isProcessing,
     forceSync,
     clearQueue,
-    getActionsByType,
+    getActionsByType
   };
 };
 

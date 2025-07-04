@@ -16,7 +16,7 @@ interface QuickSelectProductsProps {
 
 export function QuickSelectProducts({ onProductSelect }: QuickSelectProductsProps) {
   const { data: frequentProducts = [], isLoading } = useQuery<FrequentProduct[]>({
-    queryKey: ["/api/products/frequent"],
+    queryKey: ["/api/products/frequent"]
   });
 
   if (isLoading) {

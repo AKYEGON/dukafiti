@@ -16,7 +16,7 @@ export function ProductSearch({ onProductSelect }: ProductSearchProps) {
   const [showResults, setShowResults] = useState(false);
 
   const { data: products = [], isLoading } = useQuery<Product[]>({
-    queryKey: ["/api/products"],
+    queryKey: ["/api/products"]
   });
 
   const filteredProducts = products.filter(product =>

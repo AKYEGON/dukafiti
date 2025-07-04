@@ -46,8 +46,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           if (mounted) {
             setUser(currentUser);
             setIsAuthenticated(true);
-            console.info('Found existing session');
-          }
+            }
         } else if (config.app.isDevelopment) {
           // Auto-login with demo user in development
           if (SimpleAuth.autoLoginDemo()) {
@@ -55,8 +54,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             if (mounted && demoUser) {
               setUser(demoUser);
               setIsAuthenticated(true);
-              console.info('Auto-logged in with demo user');
-            }
+              }
           }
         }
       } catch (error) {
@@ -72,7 +70,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     // Set a timeout to prevent infinite loading
     const timeoutId = setTimeout(() => {
       if (mounted && isLoading) {
-        console.warn('Auth loading timeout, proceeding');
         setIsLoading(false);
       }
     }, 1000); // 1 second timeout for local auth
@@ -147,8 +144,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       // Clear React Query cache
       queryClient.clear();
       
-      console.info('User logged out');
-    } catch (error) {
+      } catch (error) {
       console.error('Logout error:', error);
     }
   };
@@ -161,7 +157,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         isLoading,
         login,
         signup,
-        logout,
+        logout
       }}
     >
       {children}

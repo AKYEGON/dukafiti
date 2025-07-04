@@ -76,7 +76,7 @@ const formatCurrency = (amount: string | number): string => {
     style: 'currency',
     currency: 'KES',
     minimumFractionDigits: 0,
-    maximumFractionDigits: 2,
+    maximumFractionDigits: 2
   }).format(num);
 };
 
@@ -213,8 +213,8 @@ export default function Reports() {
       const response = await fetch(`/api/reports/export-orders?period=${summaryPeriod}`, {
         method: 'GET',
         headers: {
-          'Content-Type': 'application/csv',
-        },
+          'Content-Type': 'application/csv'
+        }
       });
       
       if (!response.ok) {
@@ -230,7 +230,7 @@ export default function Reports() {
       
     } catch (error) {
       console.error('Failed to export detailed CSV:', error);
-      // Could add toast notification here
+      // Could add toast notification here;
     } finally {
       setExportingCSV(null);
     }

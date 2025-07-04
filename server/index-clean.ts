@@ -96,11 +96,9 @@ const httpServer = createServer(app);
 const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
 
 wss.on('connection', (ws) => {
-  console.log('New WebSocket connection');
   wsClients.add(ws);
 
   ws.on('close', () => {
-    console.log('WebSocket connection closed');
     wsClients.delete(ws);
   });
 
@@ -160,7 +158,7 @@ app.post("/api/auth/register", async (req, res) => {
       email,
       password: hashedPassword,
       phone,
-      username
+      username;
     });
 
     req.session.user = user;
@@ -308,7 +306,7 @@ app.post("/api/orders", requireAuth, async (req, res) => {
         productId: item.productId,
         productName: item.productName,
         quantity: item.quantity,
-        price: item.price
+        price: item.price;
       });
     }
 
@@ -318,7 +316,7 @@ app.post("/api/orders", requireAuth, async (req, res) => {
       if (product && product.stock !== null) {
         await supabaseDb.updateProduct(item.productId, {
           stock: product.stock - item.quantity,
-          salesCount: (product.sales_count || 0) + item.quantity
+          salesCount: (product.sales_count || 0) + item.quantity;
         });
       }
     }
@@ -327,7 +325,7 @@ app.post("/api/orders", requireAuth, async (req, res) => {
     broadcastToClients({
       type: 'sale',
       message: `New sale of KES ${total} completed`,
-      order: order
+      order: order;
     });
 
     res.json(order);

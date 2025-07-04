@@ -13,17 +13,16 @@ export function log(message: string, source = "express") {
     hour: "numeric",
     minute: "2-digit",
     second: "2-digit",
-    hour12: true,
+    hour12: true
   });
 
-  console.log(`${formattedTime} [${source}] ${message}`);
-}
+  }
 
 export async function setupVite(app: Express, server: Server) {
   const serverOptions = {
     middlewareMode: true,
     hmr: { server },
-    allowedHosts: true,
+    allowedHosts: true
   };
 
   const vite = await createViteServer({
@@ -34,10 +33,10 @@ export async function setupVite(app: Express, server: Server) {
       error: (msg, options) => {
         viteLogger.error(msg, options);
         process.exit(1);
-      },
+      }
     },
     server: serverOptions,
-    appType: "custom",
+    appType: "custom"
   });
 
   app.use(vite.middlewares);

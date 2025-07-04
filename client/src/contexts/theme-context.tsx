@@ -21,7 +21,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     queryKey: ['/api/settings/theme'],
     retry: false,
     throwOnError: false,
-    enabled: false, // Disable automatic fetching for now
+    enabled: false, // Disable automatic fetching for now;
   });
 
   // Update theme mutation
@@ -32,7 +32,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/settings/theme'] });
-    },
+    }
   });
 
   // Update theme and HTML class

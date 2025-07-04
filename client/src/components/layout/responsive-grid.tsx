@@ -42,7 +42,7 @@ export function ResponsiveGrid({
         className
       )}
       style={{
-        gridTemplateColumns: minItemWidth ? `repeat(auto-fit, minmax(${minItemWidth}, 1fr))` : undefined
+        gridTemplateColumns: minItemWidth ? `repeat(auto-fit, minmax(${minItemWidth}, 1fr))` : undefined;
       }}
     >
       {children}

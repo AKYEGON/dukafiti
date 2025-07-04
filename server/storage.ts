@@ -30,7 +30,7 @@ import {
   payments,
   storeProfiles,
   userSettings,
-  notifications
+  notifications;
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, like, sql, or, ilike, and, gte, isNotNull } from "drizzle-orm";
@@ -220,7 +220,7 @@ export class DatabaseStorage implements IStorage {
     const result = await db.select({
       id: products.id,
       name: products.name,
-      price: products.price
+      price: products.price;
     })
     .from(products)
     .where(sql`${products.salesCount} > 0`)
@@ -259,16 +259,8 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createCustomer(insertCustomer: InsertCustomer): Promise<Customer> {
-    console.log("=== STORAGE CREATE CUSTOMER DEBUG ===");
-    console.log("Data being inserted to DB:", insertCustomer);
-    console.log("Balance field in storage:", insertCustomer.balance);
-    console.log("Balance type in storage:", typeof insertCustomer.balance);
-    
     const [customer] = await db.insert(customers).values(insertCustomer).returning();
     
-    console.log("Customer returned from DB:", customer);
-    console.log("Balance in returned customer:", customer.balance);
-    console.log("=== END STORAGE DEBUG ===");
     return customer;
   }
 
@@ -409,7 +401,7 @@ export class DatabaseStorage implements IStorage {
       revenueGrowth: "0.0%", // Will be calculated accurately by detailed metrics
       ordersGrowth: "0.0%", // Will be calculated accurately by detailed metrics
       lowStockCount: lowStockResult?.lowStockCount || 0,
-      activeCustomersCount: customersResult?.totalCustomers || 0
+      activeCustomersCount: customersResult?.totalCustomers || 0;
     };
   }
 
@@ -539,20 +531,20 @@ export class DatabaseStorage implements IStorage {
         today: Number(todayRevenue?.revenue || 0),
         yesterday: Number(yesterdayRevenue?.revenue || 0),
         weekToDate: Number(weekToDateRevenue?.revenue || 0),
-        priorWeekToDate: Number(priorWeekRevenue?.revenue || 0),
+        priorWeekToDate: Number(priorWeekRevenue?.revenue || 0)
       },
       orders: {
         today: Number(todayOrders?.count || 0),
-        yesterday: Number(yesterdayOrders?.count || 0),
+        yesterday: Number(yesterdayOrders?.count || 0)
       },
       inventory: {
         totalItems: Number(inventoryCount?.totalItems || 0),
-        priorSnapshot: Number(inventoryCount?.totalItems || 0), // Would need historical inventory data
+        priorSnapshot: Number(inventoryCount?.totalItems || 0), // Would need historical inventory data;
       },
       customers: {
         active: Number(activeCustomers?.active || 0),
-        priorActive: Number(priorActiveCustomers?.active || 0),
-      },
+        priorActive: Number(priorActiveCustomers?.active || 0)
+      }
     };
   }
 
@@ -560,10 +552,10 @@ export class DatabaseStorage implements IStorage {
   async saveBusinessProfile(userId: number, profile: Omit<InsertBusinessProfile, 'userId'>): Promise<void> {
     await db.insert(businessProfiles).values({
       ...profile,
-      userId
+      userId;
     }).onConflictDoUpdate({
       target: businessProfiles.userId,
-      set: profile
+      set: profile;
     });
   }
 
@@ -581,7 +573,7 @@ export class DatabaseStorage implements IStorage {
   async saveStoreProfile(userId: number, profile: Omit<InsertStoreProfile, 'userId'>): Promise<StoreProfile> {
     const [storeProfile] = await db.insert(storeProfiles).values({
       ...profile,
-      userId
+      userId;
     }).returning();
     return storeProfile;
   }
@@ -603,7 +595,7 @@ export class DatabaseStorage implements IStorage {
   async saveUserSettings(userId: number, settings: Omit<InsertUserSettings, 'userId'>): Promise<UserSettings> {
     const [userSetting] = await db.insert(userSettings).values({
       ...settings,
-      userId
+      userId;
     }).returning();
     return userSetting;
   }
@@ -674,7 +666,7 @@ export class DatabaseStorage implements IStorage {
       id: products.id,
       name: products.name,
       sku: products.sku,
-      price: products.price
+      price: products.price;
     }).from(products).where(
       or(
         ilike(products.name, `%${query}%`),
@@ -695,7 +687,7 @@ export class DatabaseStorage implements IStorage {
       id: customers.id,
       name: customers.name,
       phone: customers.phone,
-      email: customers.email
+      email: customers.email;
     }).from(customers).where(
       or(
         ilike(customers.name, `%${query}%`),
@@ -717,7 +709,7 @@ export class DatabaseStorage implements IStorage {
       id: orders.id,
       customerName: orders.customerName,
       total: orders.total,
-      status: orders.status
+      status: orders.status;
     }).from(orders).where(
       or(
         ilike(orders.customerName, `%${query}%`),

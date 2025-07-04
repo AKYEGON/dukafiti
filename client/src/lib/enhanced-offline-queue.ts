@@ -37,7 +37,6 @@ class EnhancedOfflineQueue {
 
       request.onsuccess = () => {
         this.db = request.result;
-        console.log('Enhanced IndexedDB opened successfully');
         resolve();
       };
 
@@ -49,15 +48,13 @@ class EnhancedOfflineQueue {
           const store = db.createObjectStore(this.actionStoreName, { keyPath: 'id' });
           store.createIndex('timestamp', 'timestamp', { unique: false });
           store.createIndex('type', 'type', { unique: false });
-          console.log('Enhanced IndexedDB action store created');
-        }
+          }
 
         // Create object store for cached data
         if (!db.objectStoreNames.contains(this.cacheStoreName)) {
           const store = db.createObjectStore(this.cacheStoreName, { keyPath: 'key' });
           store.createIndex('timestamp', 'timestamp', { unique: false });
-          console.log('Enhanced IndexedDB cache store created');
-        }
+          }
       };
     });
   }
@@ -84,7 +81,7 @@ class EnhancedOfflineQueue {
       type,
       description,
       retryCount: 0,
-      maxRetries: 3,
+      maxRetries: 3
     };
 
     return new Promise((resolve, reject) => {
@@ -93,7 +90,6 @@ class EnhancedOfflineQueue {
       const request = store.add(action);
 
       request.onsuccess = () => {
-        console.log('Action queued offline:', action.id, action.description);
         resolve(action.id);
       };
 
@@ -137,7 +133,6 @@ class EnhancedOfflineQueue {
       const request = store.delete(actionId);
 
       request.onsuccess = () => {
-        console.log('Action removed from queue:', actionId);
         resolve();
       };
 
@@ -167,7 +162,7 @@ class EnhancedOfflineQueue {
           putRequest.onsuccess = () => resolve();
           putRequest.onerror = () => reject(putRequest.error);
         } else {
-          resolve(); // Action doesn't exist, nothing to update
+          resolve(); // Action doesn't exist, nothing to update;
         }
       };
 
@@ -209,7 +204,7 @@ class EnhancedOfflineQueue {
       key,
       data,
       timestamp: Date.now(),
-      expires: expiresInMinutes ? Date.now() + (expiresInMinutes * 60 * 1000) : undefined,
+      expires: expiresInMinutes ? Date.now() + (expiresInMinutes * 60 * 1000) : undefined
     };
 
     return new Promise((resolve, reject) => {
@@ -218,7 +213,6 @@ class EnhancedOfflineQueue {
       const request = store.put(cachedData);
 
       request.onsuccess = () => {
-        console.log('Data cached:', key);
         resolve();
       };
 
@@ -244,10 +238,8 @@ class EnhancedOfflineQueue {
         if (result) {
           // Check if data has expired
           if (result.expires && Date.now() > result.expires) {
-            console.log('Cached data expired:', key);
             resolve(null);
           } else {
-            console.log('Serving cached data:', key);
             resolve(result.data);
           }
         } else {
@@ -273,7 +265,6 @@ class EnhancedOfflineQueue {
       const request = store.clear();
 
       request.onsuccess = () => {
-        console.log('Data cache cleared');
         resolve();
       };
 
@@ -295,7 +286,6 @@ class EnhancedOfflineQueue {
       const request = store.clear();
 
       request.onsuccess = () => {
-        console.log('Action queue cleared');
         resolve();
       };
 
@@ -319,13 +309,11 @@ export function setupNetworkListeners(
   onOffline?: () => void
 ): () => void {
   const handleOnline = () => {
-    console.log('Network: Back online - processing queued actions');
     onOnline?.();
     processQueuedActions();
   };
 
   const handleOffline = () => {
-    console.log('Network: Gone offline - future actions will be queued');
     onOffline?.();
   };
 
@@ -341,7 +329,6 @@ export function setupNetworkListeners(
 // Process all queued actions when back online
 export async function processQueuedActions(): Promise<void> {
   if (!isOnline()) {
-    console.log('Cannot process queued actions: still offline');
     return;
   }
 
@@ -349,16 +336,12 @@ export async function processQueuedActions(): Promise<void> {
     const queuedActions = await enhancedOfflineQueue.getQueuedActions();
     
     if (queuedActions.length === 0) {
-      console.log('No queued actions to process');
       return;
     }
-
-    console.log(`Processing ${queuedActions.length} queued actions...`);
 
     for (const action of queuedActions) {
       try {
         if (action.retryCount >= action.maxRetries) {
-          console.warn(`Action ${action.id} exceeded max retries, removing from queue`);
           await enhancedOfflineQueue.removeAction(action.id);
           continue;
         }
@@ -366,13 +349,11 @@ export async function processQueuedActions(): Promise<void> {
         const response = await fetch(action.url, {
           method: action.method,
           headers: action.headers,
-          body: action.body,
+          body: action.body
         });
 
         if (response.ok) {
           await enhancedOfflineQueue.removeAction(action.id);
-          console.log(`Successfully processed action: ${action.description}`);
-          
           // Show success toast
           if (window.dispatchEvent) {
             window.dispatchEvent(new CustomEvent('offline-sync-success', {
@@ -406,10 +387,8 @@ export async function processQueuedActions(): Promise<void> {
 
     const remainingCount = await enhancedOfflineQueue.getQueueCount();
     if (remainingCount > 0) {
-      console.log(`${remainingCount} actions remain in queue after processing`);
-    } else {
-      console.log('All queued actions processed successfully');
-    }
+      } else {
+      }
   } catch (error) {
     console.error('Error processing queued actions:', error);
   }
@@ -434,8 +413,8 @@ export async function offlineCapableFetch(
         status: 200,
         headers: {
           'Content-Type': 'application/json',
-          'X-Served-From-Cache': 'true',
-        },
+          'X-Served-From-Cache': 'true'
+        }
       });
     }
   }
@@ -479,7 +458,7 @@ export async function offlineCapableFetch(
       message: 'Action queued for sync when online' 
     }), {
       status: 202,
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json' }
     });
   }
   
@@ -491,7 +470,7 @@ export async function offlineCapableFetch(
     if (method === 'GET' && response.ok) {
       const responseClone = response.clone();
       const data = await responseClone.json();
-      await enhancedOfflineQueue.cacheData(url, data, 30); // Cache for 30 minutes
+      await enhancedOfflineQueue.cacheData(url, data, 30); // Cache for 30 minutes;
     }
     
     return response;
@@ -504,8 +483,8 @@ export async function offlineCapableFetch(
           status: 200,
           headers: {
             'Content-Type': 'application/json',
-            'X-Served-From-Cache': 'true',
-          },
+            'X-Served-From-Cache': 'true'
+          }
         });
       }
     }

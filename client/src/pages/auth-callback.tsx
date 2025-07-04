@@ -41,7 +41,7 @@ export default function AuthCallback() {
           setStatus('success');
           toast({
             title: "Email verified successfully!",
-            description: "Please log in with your email and password",
+            description: "Please log in with your email and password"
           });
           
           // Redirect to login page after a short delay
@@ -59,7 +59,7 @@ export default function AuthCallback() {
         toast({
           title: "Authentication failed",
           description: err.message || "Please try logging in again",
-          variant: "destructive",
+          variant: "destructive"
         });
       }
     };

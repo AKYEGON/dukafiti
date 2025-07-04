@@ -11,7 +11,7 @@ import {
   TableCell,
   TableHead,
   TableHeader,
-  TableRow,
+  TableRow
 } from "@/components/ui/table";
 import {
   DollarSign,
@@ -20,7 +20,7 @@ import {
   Users,
   Plus,
   UserPlus,
-  BarChart3,
+  BarChart3
 } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -54,15 +54,15 @@ export default function Dashboard() {
   const [showCustomerForm, setShowCustomerForm] = useState(false);
 
   const { data: metrics, isLoading: metricsLoading } = useQuery<DashboardMetrics>({
-    queryKey: ["/api/dashboard/metrics"],
+    queryKey: ["/api/dashboard/metrics"]
   });
 
   const { data: detailedMetrics, isLoading: detailedMetricsLoading } = useQuery<DetailedMetrics>({
-    queryKey: ["/api/metrics/dashboard"],
+    queryKey: ["/api/metrics/dashboard"]
   });
 
   const { data: recentOrders, isLoading: ordersLoading } = useQuery<Order[]>({
-    queryKey: ["/api/orders/recent"],
+    queryKey: ["/api/orders/recent"]
   });
 
   // Quick Actions handlers

@@ -17,7 +17,7 @@ export function useWebSocket() {
     wsRef.current = ws;
 
     ws.onopen = () => {
-      // WebSocket connection established
+      // WebSocket connection established;
     };
 
     ws.onmessage = (event) => {
@@ -46,21 +46,21 @@ export function useWebSocket() {
               title: "Sale recorded – paid",
               description: `Sale #${data.saleId} completed successfully`,
               className: "bg-green-50 border-green-200 text-green-800",
-              duration: 3000,
+              duration: 3000
             });
           } else if (data.status === 'pending') {
             toast({
               title: "Sale recorded – awaiting payment",
               description: `Sale #${data.saleId} pending payment confirmation`,
               className: "bg-yellow-50 border-yellow-200 text-yellow-800",
-              duration: 3000,
+              duration: 3000
             });
           } else if (data.status === 'credit') {
             toast({
               title: "Sale recorded – on credit",
               description: `Sale #${data.saleId} saved as credit sale`,
               className: "bg-blue-50 border-blue-200 text-blue-800",
-              duration: 3000,
+              duration: 3000
             });
           }
         } else if (data.type === 'payment_received') {
@@ -68,14 +68,14 @@ export function useWebSocket() {
             title: "Payment received!",
             description: `Payment confirmed for ${data.reference} - ${formatCurrency(data.amount)}`,
             className: "bg-green-50 border-green-200 text-green-800",
-            duration: 3000,
+            duration: 3000
           });
         } else if (data.type === 'payment_failed') {
           toast({
             title: "Payment failed",
             description: `Payment failed for ${data.reference}: ${data.resultDesc}`,
             variant: "destructive",
-            duration: 3000,
+            duration: 3000
           });
         } else if (data.type === 'paymentRecorded') {
           // Handle credit payment recording notifications
@@ -83,7 +83,7 @@ export function useWebSocket() {
             title: "Payment Recorded",
             description: `Payment of ${formatCurrency(data.data.amount)} for ${data.data.customerName} recorded`,
             className: "bg-green-600 text-white border-green-500",
-            duration: 4000,
+            duration: 4000
           });
           
           // Refresh customer data to show updated balances
@@ -95,8 +95,7 @@ export function useWebSocket() {
     };
 
     ws.onclose = () => {
-      console.log("WebSocket disconnected");
-    };
+      };
 
     ws.onerror = (error) => {
       console.error("WebSocket error:", error);

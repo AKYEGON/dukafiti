@@ -6,19 +6,15 @@ import {
   users,
   userSettings,
   notifications,
-  storeProfiles
+  storeProfiles;
 } from "../shared/schema";
 
 export async function seedDatabase() {
   try {
-    console.log("Seeding database...");
-    
     // Check if we need to create initial data
     const existingUsers = await db.select().from(users).limit(1);
     
     if (existingUsers.length === 0) {
-      console.log("Creating initial data...");
-      
       // Create default user
       const hashedPassword = await bcrypt.hash("password", 10);
       const [defaultUser] = await db.insert(users).values({
@@ -28,8 +24,6 @@ export async function seedDatabase() {
         phone: "+254700000000"
       }).returning();
       
-      console.log("Created default user");
-
       // Create sample products
       const sampleProducts = [
         {
@@ -39,7 +33,7 @@ export async function seedDatabase() {
           price: "150.00",
           stock: 50,
           category: "Grains",
-          lowStockThreshold: 10
+          lowStockThreshold: 10;
         },
         {
           name: "Cooking Oil 1L",
@@ -48,7 +42,7 @@ export async function seedDatabase() {
           price: "120.00",
           stock: 30,
           category: "Cooking",
-          lowStockThreshold: 5
+          lowStockThreshold: 5;
         },
         {
           name: "Sugar 1kg",
@@ -57,7 +51,7 @@ export async function seedDatabase() {
           price: "80.00",
           stock: 25,
           category: "Baking",
-          lowStockThreshold: 8
+          lowStockThreshold: 8;
         },
         {
           name: "Bread Loaf",
@@ -66,7 +60,7 @@ export async function seedDatabase() {
           price: "45.00",
           stock: 20,
           category: "Bakery",
-          lowStockThreshold: 5
+          lowStockThreshold: 5;
         },
         {
           name: "Milk 1L",
@@ -75,7 +69,7 @@ export async function seedDatabase() {
           price: "60.00",
           stock: 15,
           category: "Dairy",
-          lowStockThreshold: 10
+          lowStockThreshold: 10;
         },
         {
           name: "Eggs (12 pcs)",
@@ -84,7 +78,7 @@ export async function seedDatabase() {
           price: "180.00",
           stock: 40,
           category: "Dairy",
-          lowStockThreshold: 15
+          lowStockThreshold: 15;
         }
       ];
 
@@ -92,8 +86,6 @@ export async function seedDatabase() {
         await db.insert(products).values(product);
       }
       
-      console.log("Created sample products");
-
       // Create sample customers
       const sampleCustomers = [
         {
@@ -123,19 +115,15 @@ export async function seedDatabase() {
         await db.insert(customers).values(customer);
       }
       
-      console.log("Created sample customers");
-      
       // Create user settings for the default user
       await db.insert(userSettings).values({
         userId: defaultUser.id,
         theme: "light",
         currency: "KES",
         language: "en",
-        notifications: true
+        notifications: true;
       });
       
-      console.log("Created user settings");
-
       // Create sample store profile
       await db.insert(storeProfiles).values({
         userId: defaultUser.id,
@@ -146,8 +134,6 @@ export async function seedDatabase() {
         description: "A demo store for testing DukaFiti features"
       });
 
-      console.log("Created store profile");
-
       // Create sample notifications
       await db.insert(notifications).values([
         {
@@ -155,23 +141,20 @@ export async function seedDatabase() {
           title: "Welcome to DukaFiti!",
           message: "Your business management system is ready to use.",
           type: "success",
-          isRead: false
+          isRead: false;
         },
         {
           userId: defaultUser.id,
           title: "Low Stock Alert",
           message: "Some products are running low on stock.",
           type: "warning",
-          isRead: false
+          isRead: false;
         }
       ]);
 
-      console.log("Created sample notifications");
-    }
+      }
     
-    console.log("Database seeding completed!");
-    
-  } catch (error) {
+    } catch (error) {
     console.error("Database seeding error:", error);
     throw error;
   }

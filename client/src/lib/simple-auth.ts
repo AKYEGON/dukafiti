@@ -24,7 +24,6 @@ export class SimpleAuth {
         }
       }
     } catch (error) {
-      console.warn('Error reading auth session:', error);
       this.clearSession();
     }
     return null;
@@ -68,7 +67,6 @@ export class SimpleAuth {
     if (import.meta.env.DEV) {
       const demoUser = this.createDemoUser();
       this.setCurrentUser(demoUser);
-      console.info('Auto-logged in with demo user for development');
       return true;
     }
     return false;

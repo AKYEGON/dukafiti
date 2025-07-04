@@ -14,7 +14,7 @@ import type { Customer } from "@shared/schema";
 const customerFormSchema = z.object({
   name: z.string().min(1, "Customer name is required"),
   phone: z.string().min(1, "Phone number is required").regex(/^[0-9+\-\s()]+$/, "Please enter a valid phone number"),
-  balance: z.string().optional(),
+  balance: z.string().optional()
 });
 
 type CustomerFormData = z.infer<typeof customerFormSchema>;
@@ -34,8 +34,8 @@ export function CustomerForm({ open, onOpenChange, customer }: CustomerFormProps
     defaultValues: {
       name: "",
       phone: "",
-      balance: "",
-    },
+      balance: ""
+    }
   });
 
   // Reset form when customer prop changes
@@ -44,13 +44,13 @@ export function CustomerForm({ open, onOpenChange, customer }: CustomerFormProps
       form.reset({
         name: customer.name || "",
         phone: customer.phone || "",
-        balance: customer.balance || "",
+        balance: customer.balance || ""
       });
     } else {
       form.reset({
         name: "",
         phone: "",
-        balance: "",
+        balance: ""
       });
     }
   }, [customer, form]);
@@ -62,8 +62,8 @@ export function CustomerForm({ open, onOpenChange, customer }: CustomerFormProps
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...data,
-          balance: data.balance && data.balance.trim() !== "" ? data.balance : "0.00",
-        }),
+          balance: data.balance && data.balance.trim() !== "" ? data.balance : "0.00"
+        })
       });
       if (!response.ok) {
         throw new Error("Failed to create customer");
@@ -74,7 +74,7 @@ export function CustomerForm({ open, onOpenChange, customer }: CustomerFormProps
       queryClient.invalidateQueries({ queryKey: ["/api/customers"] });
       toast({
         title: "Success",
-        description: "Customer created successfully",
+        description: "Customer created successfully"
       });
       onOpenChange(false);
       form.reset();
@@ -83,9 +83,9 @@ export function CustomerForm({ open, onOpenChange, customer }: CustomerFormProps
       toast({
         title: "Error",
         description: error.message || "Failed to create customer",
-        variant: "destructive",
+        variant: "destructive"
       });
-    },
+    }
   });
 
   const updateCustomer = useMutation({
@@ -93,7 +93,7 @@ export function CustomerForm({ open, onOpenChange, customer }: CustomerFormProps
       const response = await fetch(`/api/customers/${customer!.id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
+        body: JSON.stringify(data)
       });
       if (!response.ok) {
         throw new Error("Failed to update customer");
@@ -104,7 +104,7 @@ export function CustomerForm({ open, onOpenChange, customer }: CustomerFormProps
       queryClient.invalidateQueries({ queryKey: ["/api/customers"] });
       toast({
         title: "Success",
-        description: "Customer updated successfully",
+        description: "Customer updated successfully"
       });
       onOpenChange(false);
       form.reset();
@@ -113,15 +113,15 @@ export function CustomerForm({ open, onOpenChange, customer }: CustomerFormProps
       toast({
         title: "Error",
         description: error.message || "Failed to update customer",
-        variant: "destructive",
+        variant: "destructive"
       });
-    },
+    }
   });
 
   const deleteCustomer = useMutation({
     mutationFn: async () => {
       const response = await fetch(`/api/customers/${customer!.id}`, {
-        method: "DELETE",
+        method: "DELETE"
       });
       if (!response.ok) {
         throw new Error("Failed to delete customer");
@@ -136,7 +136,7 @@ export function CustomerForm({ open, onOpenChange, customer }: CustomerFormProps
       queryClient.invalidateQueries({ queryKey: ["/api/customers"] });
       toast({
         title: "Success",
-        description: "Customer deleted successfully",
+        description: "Customer deleted successfully"
       });
       onOpenChange(false);
       form.reset();
@@ -145,15 +145,15 @@ export function CustomerForm({ open, onOpenChange, customer }: CustomerFormProps
       toast({
         title: "Error",
         description: error.message || "Failed to delete customer",
-        variant: "destructive",
+        variant: "destructive"
       });
-    },
+    }
   });
 
   const onSubmit = (data: CustomerFormData) => {
     // Keep the balance field as-is, let the mutation handle defaults
     const processedData = {
-      ...data
+      ...data;
     };
     
     if (customer) {

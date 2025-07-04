@@ -20,8 +20,6 @@ import { useOutsideClick } from '@/hooks/useOutsideClick';
 import { SidebarToggleIcon } from '@/components/icons/sidebar-toggle-icon';
 import type { SearchResult, Notification } from '@shared/schema';
 
-
-
 interface TopBarProps {
   onToggleSidebar?: () => void;
   isSidebarCollapsed?: boolean;
@@ -67,18 +65,16 @@ export function TopBar({ onToggleSidebar, isSidebarCollapsed }: TopBarProps) {
   const searchInputRef = useRef<HTMLInputElement>(null);
   const logoutModalRef = useRef<HTMLDivElement>(null);
 
-
-
   // Fetch notifications
   const { data: notifications = [] } = useQuery<Notification[]>({
     queryKey: ['/api/notifications'],
-    enabled: true,
+    enabled: true
   });
 
   // Fetch unread count
   const { data: unreadData } = useQuery<{ count: number }>({
     queryKey: ['/api/notifications/unread-count'],
-    enabled: true,
+    enabled: true
   });
 
   const unreadCount = unreadData?.count || 0;

@@ -96,11 +96,9 @@ const httpServer = createServer(app);
 const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
 
 wss.on('connection', (ws) => {
-  console.log('New WebSocket connection');
   wsClients.add(ws);
 
   ws.on('close', () => {
-    console.log('WebSocket connection closed');
     wsClients.delete(ws);
   });
 

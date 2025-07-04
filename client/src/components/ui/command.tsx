@@ -124,7 +124,7 @@ CommandItem.displayName = CommandPrimitive.Item.displayName
 
 const CommandShortcut = ({
   className,
-  ...props
+  ...props;
 }: React.HTMLAttributes<HTMLSpanElement>) => {
   return (
     <span
@@ -147,5 +147,5 @@ export {
   CommandGroup,
   CommandItem,
   CommandShortcut,
-  CommandSeparator,
+  CommandSeparator
 }
