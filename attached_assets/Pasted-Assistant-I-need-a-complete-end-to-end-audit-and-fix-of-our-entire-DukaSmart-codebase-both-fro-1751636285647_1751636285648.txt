@@ -1,0 +1,41 @@
+Assistant, I need a **complete, end‑to‑end audit and fix** of our entire DukaSmart codebase—both frontend (React/Vite/Tailwind) and backend (Express/Supabase). Don’t add any new features; meticulously identify and correct **every** bug, inconsistency, or anti‑pattern. Overwrite files as needed. Follow this multi‑step plan:
+
+---
+
+### 1. Static Analysis & Formatting  
+- **ESLint/Prettier**: Run `npx eslint . --ext .js,.jsx,.ts,.tsx --fix` and `npx prettier --write .`. Fix all lint errors, unused imports, unreachable code, and style inconsistencies.  
+- **TypeScript Errors**: In any `.ts/.tsx` files, resolve all TS compiler errors. Update types or cast safely—no `@ts-ignore` except with a comment.
+
+### 2. Frontend Audit & Fixes  
+- **Environment Variables**: Ensure every `process.env.REACT_APP_*` is read correctly and logged once at startup. Remove any fallback to hard‑coded URLs.  
+- **API Calls**: Verify all `fetch`/`axios` calls use `process.env.REACT_APP_API_URL` and include `credentials: 'include'` when needed. Add timeouts and error‑catch blocks showing user‑friendly toasts.  
+- **React Hooks**: Check every `useEffect` dependency array—add missing dependencies, remove unnecessary ones, and prevent infinite loops or stale closures.  
+- **Routing**: Confirm all `<Route>` definitions and `<Link>` paths match exactly. Ensure the `<Routes>` outlet is outside the sidebar collapse container.  
+- **Accessibility**: Run an `axe` audit and fix missing `aria-*`, focus order issues, contrast ratios, and keyboard controls.  
+- **Responsive Layouts**: Test at all breakpoints (mobile/tablet/desktop) and correct any overflow, misaligned grids, or hidden content.  
+- **Dynamic Imports & Bundle Size**: Identify any heavy modules (charts, maps) and wrap them in `React.lazy`/`Suspense` to reduce initial bundle size.
+
+### 3. Backend Audit & Fixes  
+- **Supabase Queries**: For every `supabase.from().select/insert/update/delete`, check the returned `error` and return a standardized JSON error with HTTP status codes.  
+- **Input Validation**: Add `express-validator` (or Joi) to validate all incoming `req.body` fields on POST/PUT routes—return 400 on invalid input.  
+- **Auth & Security**: Ensure all protected routes check `supabase.auth.api.getUserByCookie(req)` and return 401/403 appropriately. Remove any residual Postgres or in‑memory data logic.  
+- **CORS & Headers**: Confirm CORS is configured to allow your front‑end origin only, with credentials enabled.  
+- **Error Handling Middleware**: Add a global error handler catching thrown errors, logging stack traces in dev, and returning sanitized messages in prod.
+
+### 4. Real‑Time & Subscription Jobs  
+- **WebSocket/Supabase Listeners**: Verify real‑time listeners unsubscribe on component unmount to avoid memory leaks.  
+- **Billing Cron**: Audit your scheduler logic to ensure it doesn’t double‑charge—wrap in transactions or atomic updates and log failures for retry.
+
+### 5. Testing & QA  
+- **Unit Tests**: Write or fix Jest tests for utility functions (`calcPctChange`, formatters) and for critical backend route logic (mock Supabase).  
+- **Integration Tests**: Add tests for user flows: sign up → verify → login → add product → sale → report export.  
+- **Manual QA Checklist**:  
+  - [ ] No console errors/warnings in browser or server logs.  
+  - [ ] All CRUD operations persist correctly in Supabase.  
+  - [ ] Auth flows (email/password or magic link) work end‑to‑end.  
+  - [ ] UI updates in real‑time after actions (sales, stock changes).  
+  - [ ] PWA offline mode and sync queue function correctly.  
+  - [ ] Mobile, tablet, and desktop layouts render without clipping or overlap.  
+  - [ ] Color contrast and accessibility issues fully resolved.  
+
+Please perform this audit in sequence—apply automatic fixes where possible, then manually correct the rest—and provide the updated code files along with a summary report listing each issue found and how it was resolved.```
