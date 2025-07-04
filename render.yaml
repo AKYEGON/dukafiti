@@ -4,8 +4,8 @@ services:
     env: node
     plan: starter
     rootDir: ./
-    buildCommand: npm install && npm run build
-    startCommand: npm start
+    buildCommand: ./build.sh
+    startCommand: node server.js
     healthCheckPath: /
     envVars:
       - key: NODE_ENV
