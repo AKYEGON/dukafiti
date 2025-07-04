@@ -11,3 +11,4 @@ cmd = "node dist/index.js"
 
 [variables]
 NODE_ENV = "production"
+PORT = "5000"

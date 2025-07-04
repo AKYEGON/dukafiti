@@ -7,11 +7,11 @@ import {
   users,
   userSettings;
 } from '../shared/schema';
-
+;
 export async function initializeDatabase() {
   try {
-    // Create tables using raw SQL since Drizzle migrations aren't working
-    const sqlite = new Database('./database.sqlite');
+    // Create tables using raw SQL since Drizzle migrations aren't working;
+    const sqlite  =  new Database('./database.sqlite');
 
     // Create users table
     sqlite.exec(`
@@ -133,21 +133,21 @@ export async function initializeDatabase() {
     `);
 
     sqlite.close();
-    // Check if we need to create initial data
-    const existingUsers = await db.select().from(users).limit(1);
-
-    if (existingUsers.length === 0) {
-      // Create default user
-      const hashedPassword = await bcrypt.hash('admin123', 10);
-      const defaultUser = await db.insert(users).values({
+    // Check if we need to create initial data;
+    const existingUsers  =  await db.select().from(users).limit(1);
+;
+    if (existingUsers.length  ===  0) {
+      // Create default user;
+      const hashedPassword  =  await bcrypt.hash('admin123', 10);
+      const defaultUser  =  await db.insert(users).values({
         username: 'admin',
         email: 'admin@dukasmart.com',
         passwordHash: hashedPassword,
         phone: '+254700000000'
       }).returning().get();
 
-      // Create sample products
-      const sampleProducts = [
+      // Create sample products;
+      const sampleProducts  =  [
         {
           name: 'Rice 2kg',
           sku: 'RICE-2KG',
@@ -176,13 +176,13 @@ export async function initializeDatabase() {
           lowStockThreshold: 8
         }
       ];
-
+;
       for (const product of sampleProducts) {
         await db.insert(products).values(product);
       }
 
-      // Create sample customers
-      const sampleCustomers = [
+      // Create sample customers;
+      const sampleCustomers  =  [
         {
           name: 'John Doe',
           email: 'john@example.com',
@@ -198,7 +198,7 @@ export async function initializeDatabase() {
           balance: 50.00
         }
       ];
-
+;
       for (const customer of sampleCustomers) {
         await db.insert(customers).values(customer);
       }

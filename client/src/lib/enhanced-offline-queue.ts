@@ -1,4 +1,4 @@
-// Enhanced offline queue management supporting all CRUD operations
+// Enhanced offline queue management supporting all CRUD operations;
 export interface QueuedAction {
   id: string
   timestamp: number
@@ -10,49 +10,49 @@ export interface QueuedAction {
   description: string
   retryCount: number
   maxRetries: number
-}
+};
 
 export interface CachedData {
   key: string
   data: any
   timestamp: number
   expires?: number
-}
+};
 
 class EnhancedOfflineQueue {
-  private dbName = 'DukaFitiEnhancedOffline';
-  private dbVersion = 3;
-  private actionStoreName = 'queuedActions';
-  private cacheStoreName = 'dataCache';
-  private db: IDBDatabase | null = null
+  private dbName  =  'DukaFitiEnhancedOffline';
+  private dbVersion  =  3;
+  private actionStoreName  =  'queuedActions';
+  private cacheStoreName  =  'dataCache';
+  private db: IDBDatabase | null  =  null
 
-  async init(): Promise<void> {
-    return new Promise((resolve, reject) => {
-      const request = indexedDB.open(this.dbName, this.dbVersion);
+  async init(): Promise<void> {;
+    return new Promise((resolve, reject)  = > {;
+      const request  =  indexedDB.open(this.dbName, this.dbVersion);
 
-      request.onerror = () => {
+      request.onerror  =  ()  = > {
         console.error('Enhanced IndexedDB failed to open:', request.error);
         reject(request.error);
       };
 
-      request.onsuccess = () => {
-        this.db = request.result;
+      request.onsuccess  =  ()  = > {
+        this.db  =  request.result;
         resolve();
       };
 
-      request.onupgradeneeded = (event) => {
-        const db = (event.target as IDBOpenDBRequest).result;
+      request.onupgradeneeded  =  (event)  = > {;
+        const db  =  (event.target as IDBOpenDBRequest).result;
 
-        // Create object store for queued actions
-        if (!db.objectStoreNames.contains(this.actionStoreName)) {
-          const store = db.createObjectStore(this.actionStoreName, { keyPath: 'id' })
+        // Create object store for queued actions;
+        if (!db.objectStoreNames.contains(this.actionStoreName)) {;
+          const store  =  db.createObjectStore(this.actionStoreName, { keyPath: 'id' })
           store.createIndex('timestamp', 'timestamp', { unique: false })
           store.createIndex('type', 'type', { unique: false })
           }
 
-        // Create object store for cached data
-        if (!db.objectStoreNames.contains(this.cacheStoreName)) {
-          const store = db.createObjectStore(this.cacheStoreName, { keyPath: 'key' })
+        // Create object store for cached data;
+        if (!db.objectStoreNames.contains(this.cacheStoreName)) {;
+          const store  =  db.createObjectStore(this.cacheStoreName, { keyPath: 'key' })
           store.createIndex('timestamp', 'timestamp', { unique: false })
           }
       };
@@ -63,15 +63,15 @@ class EnhancedOfflineQueue {
     url: string,
     method: 'POST' | 'PUT' | 'PATCH' | 'DELETE',
     body: any,
-    type: 'sale' | 'inventory' | 'customer' | 'other' = 'other',
-    description: string = `${method} ${url}`,
-    headers: Record<string, string> = { 'Content-Type': 'application/json' }
-  ): Promise<string> {
+    type: 'sale' | 'inventory' | 'customer' | 'other'  =  'other',
+    description: string  =  `${method} ${url}`,
+    headers: Record<string, string>  =  { 'Content-Type': 'application/json' }
+  ): Promise<string> {;
     if (!this.db) {
       await this.init();
-    }
+    };
 
-    const action: QueuedAction = {
+    const action: QueuedAction  =  {
       id: `action_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
       timestamp: Date.now(),
       url,
@@ -83,111 +83,111 @@ class EnhancedOfflineQueue {
       retryCount: 0,
       maxRetries: 3
     };
+;
+    return new Promise((resolve, reject)  = > {;
+      const transaction  =  this.db!.transaction([this.actionStoreName], 'readwrite');
+      const store  =  transaction.objectStore(this.actionStoreName);
+      const request  =  store.add(action);
 
-    return new Promise((resolve, reject) => {
-      const transaction = this.db!.transaction([this.actionStoreName], 'readwrite');
-      const store = transaction.objectStore(this.actionStoreName);
-      const request = store.add(action);
-
-      request.onsuccess = () => {
+      request.onsuccess  =  ()  = > {
         resolve(action.id);
       };
 
-      request.onerror = () => {
+      request.onerror  =  ()  = > {
         console.error('Failed to queue action:', request.error);
         reject(request.error);
       };
     });
   }
 
-  async getQueuedActions(): Promise<QueuedAction[]> {
+  async getQueuedActions(): Promise<QueuedAction[]> {;
     if (!this.db) {
       await this.init();
-    }
+    };
 
-    return new Promise((resolve, reject) => {
-      const transaction = this.db!.transaction([this.actionStoreName], 'readonly');
-      const store = transaction.objectStore(this.actionStoreName);
-      const request = store.getAll();
+    return new Promise((resolve, reject)  = > {;
+      const transaction  =  this.db!.transaction([this.actionStoreName], 'readonly');
+      const store  =  transaction.objectStore(this.actionStoreName);
+      const request  =  store.getAll();
 
-      request.onsuccess = () => {
-        const actions = request.result.sort((a, b) => a.timestamp - b.timestamp);
+      request.onsuccess  =  ()  = > {;
+        const actions  =  request.result.sort((a, b)  = > a.timestamp - b.timestamp);
         resolve(actions);
       };
 
-      request.onerror = () => {
+      request.onerror  =  ()  = > {
         console.error('Failed to get queued actions:', request.error);
         reject(request.error);
       };
     });
   }
 
-  async removeAction(actionId: string): Promise<void> {
+  async removeAction(actionId: string): Promise<void> {;
     if (!this.db) {
       await this.init();
-    }
+    };
 
-    return new Promise((resolve, reject) => {
-      const transaction = this.db!.transaction([this.actionStoreName], 'readwrite');
-      const store = transaction.objectStore(this.actionStoreName);
-      const request = store.delete(actionId);
+    return new Promise((resolve, reject)  = > {;
+      const transaction  =  this.db!.transaction([this.actionStoreName], 'readwrite');
+      const store  =  transaction.objectStore(this.actionStoreName);
+      const request  =  store.delete(actionId);
 
-      request.onsuccess = () => {
+      request.onsuccess  =  ()  = > {
         resolve();
       };
 
-      request.onerror = () => {
+      request.onerror  =  ()  = > {
         console.error('Failed to remove action:', request.error);
         reject(request.error);
       };
     });
   }
 
-  async incrementRetryCount(actionId: string): Promise<void> {
+  async incrementRetryCount(actionId: string): Promise<void> {;
     if (!this.db) {
       await this.init();
-    }
+    };
 
-    return new Promise((resolve, reject) => {
-      const transaction = this.db!.transaction([this.actionStoreName], 'readwrite');
-      const store = transaction.objectStore(this.actionStoreName);
-      const getRequest = store.get(actionId);
+    return new Promise((resolve, reject)  = > {;
+      const transaction  =  this.db!.transaction([this.actionStoreName], 'readwrite');
+      const store  =  transaction.objectStore(this.actionStoreName);
+      const getRequest  =  store.get(actionId);
 
-      getRequest.onsuccess = () => {
-        const action = getRequest.result;
+      getRequest.onsuccess  =  ()  = > {;
+        const action  =  getRequest.result;
         if (action) {
-          action.retryCount += 1;
-          const putRequest = store.put(action);
+          action.retryCount + =  1;
+          const putRequest  =  store.put(action);
 
-          putRequest.onsuccess = () => resolve();
-          putRequest.onerror = () => reject(putRequest.error);
+          putRequest.onsuccess  =  ()  = > resolve();
+          putRequest.onerror  =  ()  = > reject(putRequest.error);
         } else {
           resolve(); // Action doesn't exist, nothing to update;
         }
       };
 
-      getRequest.onerror = () => {
+      getRequest.onerror  =  ()  = > {
         console.error('Failed to increment retry count:', getRequest.error);
         reject(getRequest.error);
       };
     });
   }
 
-  async getQueueCount(): Promise<number> {
+  async getQueueCount(): Promise<number> {;
     if (!this.db) {
       await this.init();
-    }
+    };
 
-    return new Promise((resolve, reject) => {
-      const transaction = this.db!.transaction([this.actionStoreName], 'readonly');
-      const store = transaction.objectStore(this.actionStoreName);
-      const request = store.count();
+    return new Promise((resolve, reject)  = > {;
+      const transaction  =  this.db!.transaction([this.actionStoreName], 'readonly');
+      const store  =  transaction.objectStore(this.actionStoreName);
+      const request  =  store.count();
 
-      request.onsuccess = () => {
+      request.onsuccess  =  ()  = > {
         resolve(request.result);
       };
 
-      request.onerror = () => {
+      request.onerror  =  ()  = > {
         console.error('Failed to count queued actions:', request.error);
         reject(request.error);
       };
@@ -195,48 +195,48 @@ class EnhancedOfflineQueue {
   }
 
   // Data caching functionality
-  async cacheData(key: string, data: any, expiresInMinutes?: number): Promise<void> {
+  async cacheData(key: string, data: any, expiresInMinutes?: number): Promise<void> {;
     if (!this.db) {
       await this.init();
-    }
+    };
 
-    const cachedData: CachedData = {
+    const cachedData: CachedData  =  {
       key,
       data,
       timestamp: Date.now(),
       expires: expiresInMinutes ? Date.now() + (expiresInMinutes * 60 * 1000) : undefined
     };
+;
+    return new Promise((resolve, reject)  = > {;
+      const transaction  =  this.db!.transaction([this.cacheStoreName], 'readwrite');
+      const store  =  transaction.objectStore(this.cacheStoreName);
+      const request  =  store.put(cachedData);
 
-    return new Promise((resolve, reject) => {
-      const transaction = this.db!.transaction([this.cacheStoreName], 'readwrite');
-      const store = transaction.objectStore(this.cacheStoreName);
-      const request = store.put(cachedData);
-
-      request.onsuccess = () => {
+      request.onsuccess  =  ()  = > {
         resolve();
       };
 
-      request.onerror = () => {
+      request.onerror  =  ()  = > {
         console.error('Failed to cache data:', request.error);
         reject(request.error);
       };
     });
   }
 
-  async getCachedData(key: string): Promise<any> {
+  async getCachedData(key: string): Promise<any> {;
     if (!this.db) {
       await this.init();
-    }
+    };
 
-    return new Promise((resolve, reject) => {
-      const transaction = this.db!.transaction([this.cacheStoreName], 'readonly');
-      const store = transaction.objectStore(this.cacheStoreName);
-      const request = store.get(key);
+    return new Promise((resolve, reject)  = > {;
+      const transaction  =  this.db!.transaction([this.cacheStoreName], 'readonly');
+      const store  =  transaction.objectStore(this.cacheStoreName);
+      const request  =  store.get(key);
 
-      request.onsuccess = () => {
-        const result = request.result;
+      request.onsuccess  =  ()  = > {;
+        const result  =  request.result;
         if (result) {
-          // Check if data has expired
+          // Check if data has expired;
           if (result.expires && Date.now() > result.expires) {
             resolve(null);
           } else {
@@ -247,114 +247,114 @@ class EnhancedOfflineQueue {
         }
       };
 
-      request.onerror = () => {
+      request.onerror  =  ()  = > {
         console.error('Failed to get cached data:', request.error);
         reject(request.error);
       };
     });
   }
 
-  async clearCache(): Promise<void> {
+  async clearCache(): Promise<void> {;
     if (!this.db) {
       await this.init();
-    }
+    };
 
-    return new Promise((resolve, reject) => {
-      const transaction = this.db!.transaction([this.cacheStoreName], 'readwrite');
-      const store = transaction.objectStore(this.cacheStoreName);
-      const request = store.clear();
+    return new Promise((resolve, reject)  = > {;
+      const transaction  =  this.db!.transaction([this.cacheStoreName], 'readwrite');
+      const store  =  transaction.objectStore(this.cacheStoreName);
+      const request  =  store.clear();
 
-      request.onsuccess = () => {
+      request.onsuccess  =  ()  = > {
         resolve();
       };
 
-      request.onerror = () => {
+      request.onerror  =  ()  = > {
         console.error('Failed to clear cache:', request.error);
         reject(request.error);
       };
     });
   }
 
-  async clearActionQueue(): Promise<void> {
+  async clearActionQueue(): Promise<void> {;
     if (!this.db) {
       await this.init();
-    }
+    };
 
-    return new Promise((resolve, reject) => {
-      const transaction = this.db!.transaction([this.actionStoreName], 'readwrite');
-      const store = transaction.objectStore(this.actionStoreName);
-      const request = store.clear();
+    return new Promise((resolve, reject)  = > {;
+      const transaction  =  this.db!.transaction([this.actionStoreName], 'readwrite');
+      const store  =  transaction.objectStore(this.actionStoreName);
+      const request  =  store.clear();
 
-      request.onsuccess = () => {
+      request.onsuccess  =  ()  = > {
         resolve();
       };
 
-      request.onerror = () => {
+      request.onerror  =  ()  = > {
         console.error('Failed to clear action queue:', request.error);
         reject(request.error);
       };
     });
   }
-}
+};
 
-export const enhancedOfflineQueue = new EnhancedOfflineQueue();
+export const enhancedOfflineQueue  =  new EnhancedOfflineQueue();
 
-// Enhanced network utilities
-export function isOnline(): boolean {
+// Enhanced network utilities;
+export function isOnline(): boolean {;
   return navigator.onLine;
-}
+};
 
 export function setupNetworkListeners(
-  onOnline?: () => void,
-  onOffline?: () => void
-): () => void {
-  const handleOnline = () => {
+  onOnline?: ()  = > void,
+  onOffline?: ()  = > void
+): ()  = > void {;
+  const handleOnline  =  ()  = > {
     onOnline?.();
     processQueuedActions();
   };
-
-  const handleOffline = () => {
+;
+  const handleOffline  =  ()  = > {
     onOffline?.();
   };
 
   window.addEventListener('online', handleOnline);
   window.addEventListener('offline', handleOffline);
-
-  return () => {
+;
+  return ()  = > {
     window.removeEventListener('online', handleOnline);
     window.removeEventListener('offline', handleOffline);
   };
 }
 
-// Process all queued actions when back online
-export async function processQueuedActions(): Promise<void> {
+// Process all queued actions when back online;
+export async function processQueuedActions(): Promise<void> {;
   if (!isOnline()) {
     return;
   }
 
-  try {
-    const queuedActions = await enhancedOfflineQueue.getQueuedActions();
-
-    if (queuedActions.length === 0) {
+  try {;
+    const queuedActions  =  await enhancedOfflineQueue.getQueuedActions();
+;
+    if (queuedActions.length  ===  0) {
       return;
-    }
+    };
 
     for (const action of queuedActions) {
-      try {
+      try {;
         if (action.retryCount >= action.maxRetries) {
           await enhancedOfflineQueue.removeAction(action.id);
           continue;
-        }
+        };
 
-        const response = await fetch(action.url, {
+        const response  =  await fetch(action.url, {
           method: action.method,
           headers: action.headers,
           body: action.body
         });
-
+;
         if (response.ok) {
           await enhancedOfflineQueue.removeAction(action.id);
-          // Show success toast
+          // Show success toast;
           if (window.dispatchEvent) {
             window.dispatchEvent(new CustomEvent('offline-sync-success', {
               detail: { action }
@@ -364,7 +364,7 @@ export async function processQueuedActions(): Promise<void> {
           await enhancedOfflineQueue.incrementRetryCount(action.id);
           console.error(`Failed to process action ${action.description}:`, response.statusText);
 
-          // Show error toast
+          // Show error toast;
           if (window.dispatchEvent) {
             window.dispatchEvent(new CustomEvent('offline-sync-error', {
               detail: { action, error: response.statusText }
@@ -375,17 +375,17 @@ export async function processQueuedActions(): Promise<void> {
         await enhancedOfflineQueue.incrementRetryCount(action.id);
         console.error(`Error processing action ${action.description}:`, error);
 
-        // Show error toast
-        if (window.dispatchEvent) {
-          const errorMessage = error instanceof Error ? error.message : String(error)
+        // Show error toast;
+        if (window.dispatchEvent) {;
+          const errorMessage  =  error instanceof Error ? error.message : String(error)
           window.dispatchEvent(new CustomEvent('offline-sync-error', {
             detail: { action, error: errorMessage }
           }));
         }
       }
-    }
+    };
 
-    const remainingCount = await enhancedOfflineQueue.getQueueCount();
+    const remainingCount  =  await enhancedOfflineQueue.getQueueCount();
     if (remainingCount > 0) {
       } else {
       }
@@ -394,21 +394,21 @@ export async function processQueuedActions(): Promise<void> {
   }
 }
 
-// Enhanced fetch wrapper that automatically queues requests when offline
+// Enhanced fetch wrapper that automatically queues requests when offline;
 export async function offlineCapableFetch(
   url: string,
-  options: RequestInit = {},
+  options: RequestInit  =  {},
   queueOptions?: {
     type?: 'sale' | 'inventory' | 'customer' | 'other'
     description?: string
   }
-): Promise<Response> {
-  const method = (options.method || 'GET').toUpperCase();
+): Promise<Response> {;
+  const method  =  (options.method || 'GET').toUpperCase();
 
-  // For GET requests, try cache first when offline
-  if (method === 'GET' && !isOnline()) {
-    const cachedData = await enhancedOfflineQueue.getCachedData(url);
-    if (cachedData) {
+  // For GET requests, try cache first when offline;
+  if (method  ===  'GET' && !isOnline()) {;
+    const cachedData  =  await enhancedOfflineQueue.getCachedData(url);
+    if (cachedData) {;
       return new Response(JSON.stringify(cachedData), {
         status: 200,
         headers: {
@@ -419,19 +419,19 @@ export async function offlineCapableFetch(
     }
   }
 
-  // For write operations when offline, queue them
-  if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method) && !isOnline()) {
-    const headers: Record<string, string> = {};
+  // For write operations when offline, queue them;
+  if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method) && !isOnline()) {;
+    const headers: Record<string, string>  =  {};
     if (options.headers instanceof Headers) {
-      options.headers.forEach((value, key) => {
-        headers[key] = value;
+      options.headers.forEach((value, key)  = > {
+        headers[key]  =  value;
       });
     } else if (options.headers) {
       Object.assign(headers, options.headers);
-    }
+    };
 
-    const body = options.body || '';
-    const bodyData = typeof body === 'string' ? JSON.parse(body || '{}') : body
+    const body  =  options.body || '';
+    const bodyData  =  typeof body  ===  'string' ? JSON.parse(body || '{}') : body
 
     await enhancedOfflineQueue.queueAction(
       url,
@@ -442,7 +442,7 @@ export async function offlineCapableFetch(
       headers
     );
 
-    // Show queued toast
+    // Show queued toast;
     if (window.dispatchEvent) {
       window.dispatchEvent(new CustomEvent('action-queued', {
         detail: {
@@ -450,7 +450,7 @@ export async function offlineCapableFetch(
           description: queueOptions?.description || `${method} ${url}`
         }
       }));
-    }
+    };
 
     return new Response(JSON.stringify({
       success: true,
@@ -463,22 +463,22 @@ export async function offlineCapableFetch(
   }
 
   // Otherwise, proceed with normal fetch
-  try {
-    const response = await fetch(url, options);
+  try {;
+    const response  =  await fetch(url, options);
 
-    // Cache successful GET responses
-    if (method === 'GET' && response.ok) {
-      const responseClone = response.clone();
-      const data = await responseClone.json();
+    // Cache successful GET responses;
+    if (method  ===  'GET' && response.ok) {;
+      const responseClone  =  response.clone();
+      const data  =  await responseClone.json();
       await enhancedOfflineQueue.cacheData(url, data, 30); // Cache for 30 minutes;
-    }
+    };
 
     return response;
   } catch (error) {
-    // If fetch fails and we have cached data for GET requests, return it
-    if (method === 'GET') {
-      const cachedData = await enhancedOfflineQueue.getCachedData(url);
-      if (cachedData) {
+    // If fetch fails and we have cached data for GET requests, return it;
+    if (method  ===  'GET') {;
+      const cachedData  =  await enhancedOfflineQueue.getCachedData(url);
+      if (cachedData) {;
         return new Response(JSON.stringify(cachedData), {
           status: 200,
           headers: {
@@ -487,7 +487,7 @@ export async function offlineCapableFetch(
           }
         });
       }
-    }
+    };
 
     throw error;
   }

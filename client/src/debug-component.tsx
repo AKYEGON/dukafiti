@@ -1,7 +1,7 @@
 export function DebugComponent() {
-  // Debug component rendering
+  // Debug component rendering;
   return (
-    <div style={{
+    <div style = {{
       position: 'fixed',
       top: 0,
       left: 0,

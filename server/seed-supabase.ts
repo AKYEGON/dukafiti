@@ -1,26 +1,26 @@
-#!/usr/bin/env node
+#!/usr/bin/env node;
 import { supabaseDb } from './supabase-db.js';
 
 async function seedSupabaseDatabase() {
   try {
-    // Create test user first
-    const testUser = {
+    // Create test user first;
+    const testUser  =  {
       email: 'admin@dukafiti.com',
       password: 'password123',
       username: 'admin',
       phone: '+254700000000'
     };
+;
+    let userId  =  1;
 
-    let userId = 1;
-
-    try {
-      const user = await supabaseDb.createUser(testUser);
-      userId = user.id;
+    try {;
+      const user  =  await supabaseDb.createUser(testUser);
+      userId  =  user.id;
       } catch (error) {
       }
 
-    // Create sample products
-    const sampleProducts = [
+    // Create sample products;
+    const sampleProducts  =  [
       {
         name: 'Coca Cola 500ml',
         sku: 'CC-500',
@@ -72,7 +72,7 @@ async function seedSupabaseDatabase() {
         salesCount: 8
       }
     ];
-
+;
     for (const product of sampleProducts) {
       try {
         await supabaseDb.createProduct(product);
@@ -80,8 +80,8 @@ async function seedSupabaseDatabase() {
         }
     }
 
-    // Create sample customers
-    const sampleCustomers = [
+    // Create sample customers;
+    const sampleCustomers  =  [
       {
         name: 'Mary Wanjiku',
         phone: '+254712345678',
@@ -101,7 +101,7 @@ async function seedSupabaseDatabase() {
         balance: 75.00
       }
     ];
-
+;
     for (const customer of sampleCustomers) {
       try {
         await supabaseDb.createCustomer(customer);
@@ -109,12 +109,12 @@ async function seedSupabaseDatabase() {
         }
     }
 
-    // Create sample orders
-    const products = await supabaseDb.getProducts();
-    const customers = await supabaseDb.getCustomers();
-
-    if (products.length > 0 && customers.length > 0) {
-      const sampleOrders = [
+    // Create sample orders;
+    const products  =  await supabaseDb.getProducts();
+    const customers  =  await supabaseDb.getCustomers();
+;
+    if (products.length > 0 && customers.length > 0) {;
+      const sampleOrders  =  [
         {
           items: [
             { productId: products[0].id, quantity: 2, price: products[0].price },
@@ -148,7 +148,7 @@ async function seedSupabaseDatabase() {
           status: 'completed'
         }
       ];
-
+;
       for (const order of sampleOrders) {
         try {
           await supabaseDb.createOrder(order);
@@ -157,8 +157,8 @@ async function seedSupabaseDatabase() {
       }
     }
 
-    // Create sample notifications
-    const sampleNotifications = [
+    // Create sample notifications;
+    const sampleNotifications  =  [
       {
         userId: userId,
         title: 'Low Stock Alert',
@@ -181,7 +181,7 @@ async function seedSupabaseDatabase() {
         isRead: true
       }
     ];
-
+;
     for (const notification of sampleNotifications) {
       try {
         await supabaseDb.createNotification(notification);
@@ -190,8 +190,8 @@ async function seedSupabaseDatabase() {
     }
 
     // Create store profile
-    try {
-      const storeProfile = {
+    try {;
+      const storeProfile  =  {
         userId: userId,
         storeName: 'Mama Grace Duka',
         ownerName: 'Grace Wanjiku',
@@ -205,8 +205,8 @@ async function seedSupabaseDatabase() {
       }
 
     // Create user settings
-    try {
-      const userSettings = {
+    try {;
+      const userSettings  =  {
         userId: userId,
         theme: 'light',
         currency: 'KES',
@@ -225,16 +225,16 @@ async function seedSupabaseDatabase() {
   }
 }
 
-// Run the seeding if this file is executed directly
-if (import.meta.url === `file://${process.argv[1]}`) {
+// Run the seeding if this file is executed directly;
+if (import.meta.url  ===  `file://${process.argv[1]}`) {
   seedSupabaseDatabase()
-    .then(() => {
+    .then(()  = > {
       process.exit(0);
     })
-    .catch((error) => {
+    .catch((error)  = > {
       console.error('❌ Seeding failed:', error);
       process.exit(1);
     });
-}
+};
 
 export { seedSupabaseDatabase };

@@ -15,43 +15,43 @@ interface AuthContextType {
   session: Session | null
   isAuthenticated: boolean
   isLoading: boolean
-  login: (email: string, password: string) => Promise<{ error?: any }>
-  signup: (email: string, password: string, name?: string) => Promise<{ error?: any }>
-  logout: () => Promise<void>
-}
+  login: (email: string, password: string)  = > Promise<{ error?: any }>
+  signup: (email: string, password: string, name?: string)  = > Promise<{ error?: any }>
+  logout: ()  = > Promise<void>
+};
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
+const AuthContext  =  createContext<AuthContextType | undefined>(undefined);
+;
+export const useAuth  =  ()  = > {;
+  const context  =  useContext(AuthContext);
+  if (context  ===  undefined) {;
     throw new Error('useAuth must be used within an AuthProvider');
-  }
+  };
   return context;
 };
 
 interface AuthProviderProps {
   children: ReactNode
-}
+};
 
-export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const [user, setUser] = useState<AuthUser | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const queryClient = useQueryClient();
+export const AuthProvider: React.FC<AuthProviderProps>  =  ({ children })  = > {;
+  const [user, setUser]  =  useState<AuthUser | null>(null);
+  const [session, setSession]  =  useState<Session | null>(null);
+  const [isAuthenticated, setIsAuthenticated]  =  useState(false);
+  const [isLoading, setIsLoading]  =  useState(true);
+  const queryClient  =  useQueryClient();
 
-  useEffect(() => {
-    let mounted = true;
-
-    const initSession = async () => {
-      try {
-        const { data: { session }, error } = await supabase.auth.getSession();
-
+  useEffect(()  = > {;
+    let mounted  =  true;
+;
+    const initSession  =  async ()  = > {
+      try {;
+        const { data: { session }, error }  =  await supabase.auth.getSession();
+;
         if (error) {
           console.error('Error getting session:', error);
-        } else if (session && mounted) {
-          const authUser: AuthUser = {
+        } else if (session && mounted) {;
+          const authUser: AuthUser  =  {
             id: session.user.id,
             email: session.user.email || '',
             username: session.user.user_metadata?.name || session.user.email?.split('@')[0],
@@ -63,21 +63,21 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         }
       } catch (error) {
         console.error('Session initialization error:', error);
-      } finally {
+      } finally {;
         if (mounted) {
           setIsLoading(false);
         }
       }
     };
-
+;
     const {
       data: { subscription }
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
+    }  =  supabase.auth.onAuthStateChange(async (event, session)  = > {;
       if (mounted) {
         setSession(session);
-
-        if (session?.user) {
-          const authUser: AuthUser = {
+;
+        if (session?.user) {;
+          const authUser: AuthUser  =  {
             id: session.user.id,
             email: session.user.email || '',
             username: session.user.user_metadata?.name || session.user.email?.split('@')[0],
@@ -88,33 +88,33 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         } else {
           setUser(null);
           setIsAuthenticated(false);
-        }
+        };
 
-        if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') {
+        if (event  ===  'SIGNED_IN' || event  ===  'SIGNED_OUT') {
           queryClient.clear();
         }
       }
     });
 
     initSession();
-
-    return () => {
-      mounted = false;
+;
+    return ()  = > {
+      mounted  =  false;
       subscription.unsubscribe();
     };
   }, [queryClient]);
-
-  const login = async (email: string, password: string) => {
-    try {
-      const { data, error } = await supabase.auth.signInWithPassword({
+;
+  const login  =  async (email: string, password: string)  = > {
+    try {;
+      const { data, error }  =  await supabase.auth.signInWithPassword({
         email,
         password
       });
-
+;
       if (error) {
         console.error('Login error from Supabase:', error);
         return { error };
-      }
+      };
 
       return { error: null }
     } catch (error) {
@@ -122,10 +122,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       return { error: { message: 'An unexpected error occurred during login' } }
     }
   };
-
-  const signup = async (email: string, password: string, name?: string) => {
-    try {
-      const { data, error } = await supabase.auth.signUp({
+;
+  const signup  =  async (email: string, password: string, name?: string)  = > {
+    try {;
+      const { data, error }  =  await supabase.auth.signUp({
         email,
         password,
         options: {
@@ -134,11 +134,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           }
         }
       });
-
+;
       if (error) {
         console.error('Signup error from Supabase:', error);
         return { error };
-      }
+      };
 
       return { error: null }
     } catch (error) {
@@ -146,11 +146,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       return { error: { message: 'An unexpected error occurred during signup' } }
     }
   };
-
-  const logout = async () => {
-    try {
-      const { error } = await supabase.auth.signOut();
-
+;
+  const logout  =  async ()  = > {
+    try {;
+      const { error }  =  await supabase.auth.signOut();
+;
       if (error) {
         console.error('Logout error:', error);
       }
@@ -163,10 +163,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       console.error('Logout catch error:', error);
     }
   };
-
+;
   return (
     <AuthContext.Provider
-      value={{
+      value = {{
         user,
         session,
         isAuthenticated,

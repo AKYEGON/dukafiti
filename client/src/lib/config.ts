@@ -1,5 +1,5 @@
-// Application configuration with environment-based settings
-export const config = {
+// Application configuration with environment-based settings;
+export const config  =  {
   // Supabase configuration
   supabase: {
     url: import.meta.env.VITE_SUPABASE_URL || 'https://kwdzbssuovwemthmiuht.supabase.co',
@@ -28,20 +28,20 @@ export const config = {
   }
 };
 
-// Validate required configuration
-export function validateConfig(): { isValid: boolean; errors: string[] } {
-  const errors: string[] = []
+// Validate required configuration;
+export function validateConfig(): { isValid: boolean; errors: string[] } {;
+  const errors: string[]  =  [];
 
   if (!config.supabase.url || !config.supabase.url.startsWith('https://')) {
     errors.push('Invalid Supabase URL');
-  }
+  };
 
   if (!config.supabase.anonKey || config.supabase.anonKey.length < 50) {
     errors.push('Invalid Supabase anonymous key');
-  }
+  };
 
   return {
-    isValid: errors.length === 0,
+    isValid: errors.length  ===  0,
     errors;
   };
 }

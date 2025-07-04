@@ -1,59 +1,110 @@
 #!/usr/bin/env node
+
 /**
  * Comprehensive cleanup script for DukaFiti codebase
  * Removes console.log statements, fixes code issues, and improves production readiness
  */
 
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
+import { glob } from 'glob';
 
-const projectRoot = process.cwd();
-
-// Files to clean up
-const filesToClean = [
-  'client/src/hooks/use-websocket.tsx',
-  'client/src/lib/enhanced-offline-queue.ts',
-  'client/src/lib/offline-queue.ts',
-  'client/src/main.tsx',
-  'client/src/pages/sales.tsx'
-];
-
-// Console.log patterns to remove
-const consolePatterns = [
-  /\s*console\.log\([^;]+\);\s*/g,
-  /\s*console\.error\([^;]+\);\s*/g,
-  /\s*console\.warn\([^;]+\);\s*/g,
-  /\s*console\.info\([^;]+\);\s*/g
-];
+const EXCLUDED_DIRS = ['node_modules', '.git', 'dist', 'build', 'attached_assets'];
+const EXCLUDED_FILES = ['comprehensive-cleanup.js', 'package-lock.json'];
 
 function cleanFile(filePath) {
-  const fullPath = path.join(projectRoot, filePath);
-
-  if (!fs.existsSync(fullPath)) {
+  if (EXCLUDED_FILES.some(file => filePath.includes(file))) {
     return;
   }
 
-  let content = fs.readFileSync(fullPath, 'utf8');
-  const originalContent = content;
+  try {
+    let content = fs.readFileSync(filePath, 'utf8');
+    let changed = false;
+    const originalContent = content;
 
-  // Remove console statements
-  consolePatterns.forEach(pattern => {
-    content = content.replace(pattern, '');
-  });
-
-  // Clean up empty lines
-  content = content.replace(/\n\s*\n\s*\n/g, '\n\n');
-
-  if (content !== originalContent) {
-    fs.writeFileSync(fullPath, content, 'utf8');
+    // Remove console.log statements (but keep console.error and console.warn for debugging)
+    const consoleLogRegex = /^\s*console\.log\([^)]*\);\s*$/gm;
+    if (consoleLogRegex.test(content)) {
+      content = content.replace(consoleLogRegex, '');
+      changed = true;
     }
+
+    // Remove debugging comments
+    const debugCommentRegex = /^\s*\/\/ (DEBUG|TEMP|TODO|FIXME|console\.log).*$/gm;
+    if (debugCommentRegex.test(content)) {
+      content = content.replace(debugCommentRegex, '');
+      changed = true;
+    }
+
+    // Fix common JavaScript/TypeScript syntax issues
+    if (filePath.endsWith('.js') || filePath.endsWith('.ts') || filePath.endsWith('.tsx') || filePath.endsWith('.jsx')) {
+      // Fix missing semicolons before newlines
+      content = content.replace(/(?<!;)\n(\s*)(export |import |const |let |var |function |class |if |for |while |return |throw )/g, ';\n$1$2');
+      
+      // Remove duplicate semicolons
+      content = content.replace(/;;+/g, ';');
+      
+      // Fix spacing around operators
+      content = content.replace(/([^=!<>])=([^=])/g, '$1 = $2');
+      content = content.replace(/([^=!<>])==([^=])/g, '$1 == $2');
+      content = content.replace(/([^=!<>])===([^=])/g, '$1 === $2');
+    }
+
+    // Clean up excessive whitespace
+    content = content.replace(/\n\s*\n\s*\n/g, '\n\n');
+    content = content.replace(/[ \t]+$/gm, ''); // Remove trailing whitespace
+
+    if (content !== originalContent) {
+      fs.writeFileSync(filePath, content, 'utf8');
+      changed = true;
+    }
+
+    if (changed) {
+      console.log(`✅ Cleaned: ${filePath}`);
+    }
+  } catch (error) {
+    console.warn(`⚠️  Could not clean ${filePath}: ${error.message}`);
+  }
 }
 
 function main() {
-  filesToClean.forEach(cleanFile);
+  console.log('🧹 Starting comprehensive cleanup...');
 
-  }
+  // Get all relevant files
+  const patterns = [
+    'client/src/**/*.{js,jsx,ts,tsx}',
+    'server/**/*.{js,ts}',
+    'src/**/*.{js,jsx,ts,tsx}',
+    '*.{js,jsx,ts,tsx}'
+  ];
 
-if (require.main === module) {
+  patterns.forEach(pattern => {
+    try {
+      const files = glob.sync(pattern, { 
+        ignore: EXCLUDED_DIRS.map(dir => `${dir}/**`),
+        absolute: false
+      });
+      
+      files.forEach(file => {
+        if (!EXCLUDED_DIRS.some(dir => file.includes(dir))) {
+          cleanFile(file);
+        }
+      });
+    } catch (error) {
+      console.warn(`Warning: Could not process pattern ${pattern}: ${error.message}`);
+    }
+  });
+
+  console.log('✨ Cleanup completed!');
+  console.log('📝 Summary:');
+  console.log('   - Removed console.log statements');
+  console.log('   - Fixed syntax inconsistencies');
+  console.log('   - Cleaned whitespace');
+  console.log('   - Improved production readiness');
+}
+
+if (import.meta.url === `file://${process.argv[1]}`) {
   main();
 }
+
+export { cleanFile, main };

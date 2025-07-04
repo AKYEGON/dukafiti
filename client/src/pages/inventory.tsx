@@ -26,190 +26,190 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 
-type SortOption = "name-asc" | "name-desc" | "price-asc" | "price-desc";
-
-export default function Inventory() {
-  const [search, setSearch] = useState("");
-  const [sortBy, setSortBy] = useState<SortOption>("name-asc");
-  const [showProductForm, setShowProductForm] = useState(false);
-  const [editingProduct, setEditingProduct] = useState<Product | undefined>();
-  const [deleteProduct, setDeleteProduct] = useState<Product | undefined>();
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
-
-  const { data: products, isLoading } = useQuery<Product[]>({
+type SortOption  =  "name-asc" | "name-desc" | "price-asc" | "price-desc";
+;
+export default function Inventory() {;
+  const [search, setSearch]  =  useState("");
+  const [sortBy, setSortBy]  =  useState<SortOption>("name-asc");
+  const [showProductForm, setShowProductForm]  =  useState(false);
+  const [editingProduct, setEditingProduct]  =  useState<Product | undefined>();
+  const [deleteProduct, setDeleteProduct]  =  useState<Product | undefined>();
+  const { toast }  =  useToast();
+  const queryClient  =  useQueryClient();
+;
+  const { data: products, isLoading }  =  useQuery<Product[]>({
     queryKey: ["/api/products"]
   });
-
-  const deleteMutation = useMutation({
-    mutationFn: async (id: number) => {
+;
+  const deleteMutation  =  useMutation({
+    mutationFn: async (id: number)  = > {
       await apiRequest("DELETE", `/api/products/${id}`);
     },
-    onSuccess: () => {
+    onSuccess: ()  = > {
       queryClient.invalidateQueries({ queryKey: ["/api/products"] })
       queryClient.invalidateQueries({ queryKey: ["/api/dashboard/metrics"] })
       toast({ title: "Product deleted successfully" })
       setDeleteProduct(undefined);
     },
-    onError: () => {
+    onError: ()  = > {
       toast({ title: "Failed to delete product", variant: "destructive" })
     }
   });
-
-  const filteredAndSortedProducts = useMemo(() => {
-    let result = products?.filter(product =>
+;
+  const filteredAndSortedProducts  =  useMemo(()  = > {;
+    let result  =  products?.filter(product  = >
       product.name.toLowerCase().includes(search.toLowerCase()) ||
       product.sku.toLowerCase().includes(search.toLowerCase()) ||
       product.category.toLowerCase().includes(search.toLowerCase())
     ) || [];
 
     // Sort products
-    result.sort((a, b) => {
+    result.sort((a, b)  = > {
       switch (sortBy) {
-        case "name-asc":
+        case "name-asc":;
           return a.name.localeCompare(b.name);
-        case "name-desc":
+        case "name-desc":;
           return b.name.localeCompare(a.name);
-        case "price-asc":
+        case "price-asc":;
           return parseFloat(a.price) - parseFloat(b.price);
-        case "price-desc":
+        case "price-desc":;
           return parseFloat(b.price) - parseFloat(a.price);
-        default:
+        default:;
           return 0
       }
     });
-
+;
     return result
   }, [products, search, sortBy]);
-
-  const handleEdit = (product: Product) => {
+;
+  const handleEdit  =  (product: Product)  = > {
     setEditingProduct(product);
     setShowProductForm(true);
   };
-
-  const handleDelete = (product: Product) => {
+;
+  const handleDelete  =  (product: Product)  = > {
     setDeleteProduct(product);
   };
-
-  const handleFormClose = () => {
+;
+  const handleFormClose  =  ()  = > {
     setShowProductForm(false);
     setEditingProduct(undefined);
   };
-
+;
   return (
-    <div className="min-h-screen bg-background">
+    <div className = "min-h-screen bg-background">
       {/* Responsive Sticky Top Toolbar */}
-      <div className="sticky top-0 z-10 bg-background border-b border-border px-4 sm:px-6 py-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <h1 className="text-xl sm:text-2xl font-semibold">Inventory</h1>
+      <div className = "sticky top-0 z-10 bg-background border-b border-border px-4 sm:px-6 py-4">
+        <div className = "flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <h1 className = "text-xl sm:text-2xl font-semibold">Inventory</h1>
 
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 flex-1 sm:max-w-lg">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+          <div className = "flex flex-col sm:flex-row items-stretch sm:items-center gap-4 flex-1 sm:max-w-lg">
+            <div className = "relative flex-1">
+              <Search className = "absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
               <Input
-                placeholder="Search products..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="pl-10 min-h-[48px]"
+                placeholder = "Search products..."
+                value = {search}
+                onChange = {(e)  = > setSearch(e.target.value)}
+                className = "pl-10 min-h-[48px]"
               />
             </div>
 
             <Button
-              onClick={() => setShowProductForm(true)}
-              className="bg-purple-600 hover:bg-purple-700 text-white min-h-[48px] px-4 whitespace-nowrap"
+              onClick = {()  = > setShowProductForm(true)}
+              className = "bg-purple-600 hover:bg-purple-700 text-white min-h-[48px] px-4 whitespace-nowrap"
             >
-              <Plus className="h-4 w-4 mr-2" />
+              <Plus className = "h-4 w-4 mr-2" />
               Add Product
             </Button>
           </div>
         </div>
 
         {/* Sort dropdown */}
-        <div className="mt-4 flex justify-start sm:justify-end">
-          <Select value={sortBy} onValueChange={(value: SortOption) => setSortBy(value)}>
-            <SelectTrigger className="w-full sm:w-48 min-h-[48px]">
-              <SelectValue placeholder="Sort by..." />
+        <div className = "mt-4 flex justify-start sm:justify-end">
+          <Select value = {sortBy} onValueChange = {(value: SortOption)  = > setSortBy(value)}>
+            <SelectTrigger className = "w-full sm:w-48 min-h-[48px]">
+              <SelectValue placeholder = "Sort by..." />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="name-asc">Name ▲</SelectItem>
-              <SelectItem value="name-desc">Name ▼</SelectItem>
-              <SelectItem value="price-asc">Price ▲</SelectItem>
-              <SelectItem value="price-desc">Price ▼</SelectItem>
+              <SelectItem value = "name-asc">Name ▲</SelectItem>
+              <SelectItem value = "name-desc">Name ▼</SelectItem>
+              <SelectItem value = "price-asc">Price ▲</SelectItem>
+              <SelectItem value = "price-desc">Price ▼</SelectItem>
             </SelectContent>
           </Select>
         </div>
       </div>
 
       {/* Main Content with Responsive Container */}
-      <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-6">
+      <div className = "container mx-auto px-4 sm:px-6 py-4 sm:py-6">
         {isLoading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-            {[...Array(6)].map((_, i) => (
-              <div key={i} className="bg-white dark:bg-[#1F1F1F] border border-gray-200 dark:border-gray-700 rounded-lg p-4 sm:p-6">
-                <Skeleton className="h-6 w-3/4 mb-3" />
-                <Skeleton className="h-4 w-1/2 mb-2" />
-                <Skeleton className="h-4 w-1/3 mb-2" />
-                <Skeleton className="h-4 w-1/4 mb-4" />
-                <div className="flex gap-2">
-                  <Skeleton className="h-8 w-16" />
-                  <Skeleton className="h-8 w-20" />
+          <div className = "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+            {[...Array(6)].map((_, i)  = > (
+              <div key = {i} className = "bg-white dark:bg-[#1F1F1F] border border-gray-200 dark:border-gray-700 rounded-lg p-4 sm:p-6">
+                <Skeleton className = "h-6 w-3/4 mb-3" />
+                <Skeleton className = "h-4 w-1/2 mb-2" />
+                <Skeleton className = "h-4 w-1/3 mb-2" />
+                <Skeleton className = "h-4 w-1/4 mb-4" />
+                <div className = "flex gap-2">
+                  <Skeleton className = "h-8 w-16" />
+                  <Skeleton className = "h-8 w-20" />
                 </div>
               </div>
             ))}
           </div>
-        ) : filteredAndSortedProducts.length === 0 ? (
-          <div className="text-center py-12">
-            <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <p className="text-muted-foreground text-lg">
+        ) : filteredAndSortedProducts.length  ===  0 ? (
+          <div className = "text-center py-12">
+            <Package className = "h-12 w-12 text-muted-foreground mx-auto mb-4" />
+            <p className = "text-muted-foreground text-lg">
               {search ? "No products found" : "No products available"}
             </p>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-            {filteredAndSortedProducts.map((product) => (
+          <div className = "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+            {filteredAndSortedProducts.map((product)  = > (
               <div
-                key={product.id}
-                className="bg-white dark:bg-[#1F1F1F] border border-gray-200 dark:border-gray-700 rounded-lg p-4 shadow-md hover:shadow-lg transition-shadow duration-200 dark:shadow-[0_4px_8px_rgba(0,0,0,0.5)]"
+                key = {product.id}
+                className = "bg-white dark:bg-[#1F1F1F] border border-gray-200 dark:border-gray-700 rounded-lg p-4 shadow-md hover:shadow-lg transition-shadow duration-200 dark:shadow-[0_4px_8px_rgba(0,0,0,0.5)]"
               >
                 {/* Product Name */}
-                <h3 className="text-lg font-bold text-foreground mb-2">{product.name}</h3>
+                <h3 className = "text-lg font-bold text-foreground mb-2">{product.name}</h3>
 
                 {/* Unit Price */}
-                <p className="text-base text-foreground mb-2">
+                <p className = "text-base text-foreground mb-2">
                   KES {parseFloat(product.price).toLocaleString()}
                 </p>
 
                 {/* Stock and Threshold */}
-                <div className="space-y-1 mb-4">
-                  <p className="text-sm text-muted-foreground">
-                    <span className="font-medium">Qty:</span> {product.stock === null ? "—" : product.stock}
+                <div className = "space-y-1 mb-4">
+                  <p className = "text-sm text-muted-foreground">
+                    <span className = "font-medium">Qty:</span> {product.stock  ===  null ? "—" : product.stock}
                   </p>
                   {product.stock !== null && (
-                    <p className="text-sm text-muted-foreground">
-                      <span className="font-medium">Low Stock:</span> {product.lowStockThreshold}
+                    <p className = "text-sm text-muted-foreground">
+                      <span className = "font-medium">Low Stock:</span> {product.lowStockThreshold}
                     </p>
                   )}
-                  {product.stock === null && (
-                    <p className="text-sm text-amber-600 dark:text-amber-400">
-                      <span className="font-medium">Unknown quantity</span>
+                  {product.stock  ===  null && (
+                    <p className = "text-sm text-amber-600 dark:text-amber-400">
+                      <span className = "font-medium">Unknown quantity</span>
                     </p>
                   )}
                 </div>
 
                 {/* Action Buttons */}
-                <div className="flex gap-2 mt-4">
+                <div className = "flex gap-2 mt-4">
                   <Button
-                    onClick={() => handleEdit(product)}
-                    className="flex-1 md:flex-none md:px-4 py-1 bg-green-600 hover:bg-green-700 text-white rounded-md transition-colors duration-200"
+                    onClick = {()  = > handleEdit(product)}
+                    className = "flex-1 md:flex-none md:px-4 py-1 bg-green-600 hover:bg-green-700 text-white rounded-md transition-colors duration-200"
                   >
-                    <Edit className="h-4 w-4 mr-1" />
+                    <Edit className = "h-4 w-4 mr-1" />
                     Edit
                   </Button>
                   <Button
-                    onClick={() => handleDelete(product)}
-                    className="flex-1 md:flex-none md:px-4 py-1 bg-red-600 hover:bg-red-700 text-white rounded-md transition-colors duration-200"
+                    onClick = {()  = > handleDelete(product)}
+                    className = "flex-1 md:flex-none md:px-4 py-1 bg-red-600 hover:bg-red-700 text-white rounded-md transition-colors duration-200"
                   >
-                    <Trash2 className="h-4 w-4 mr-1" />
+                    <Trash2 className = "h-4 w-4 mr-1" />
                     Delete
                   </Button>
                 </div>
@@ -221,13 +221,13 @@ export default function Inventory() {
 
       {/* Product Form Dialog */}
       <ProductForm
-        open={showProductForm}
-        onOpenChange={handleFormClose}
-        product={editingProduct}
+        open = {showProductForm}
+        onOpenChange = {handleFormClose}
+        product = {editingProduct}
       />
 
       {/* Delete Confirmation Dialog */}
-      <AlertDialog open={!!deleteProduct} onOpenChange={() => setDeleteProduct(undefined)}>
+      <AlertDialog open = {!!deleteProduct} onOpenChange = {()  = > setDeleteProduct(undefined)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Product</AlertDialogTitle>
@@ -238,8 +238,8 @@ export default function Inventory() {
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
-              onClick={() => deleteProduct && deleteMutation.mutate(deleteProduct.id)}
-              className="bg-red-600 hover:bg-red-700"
+              onClick = {()  = > deleteProduct && deleteMutation.mutate(deleteProduct.id)}
+              className = "bg-red-600 hover:bg-red-700"
             >
               Delete
             </AlertDialogAction>

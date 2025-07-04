@@ -16,27 +16,27 @@ declare module 'express-session' {
   }
 }
 
-// WebSocket clients store
-const wsClients = new Set<WebSocket>();
+// WebSocket clients store;
+const wsClients  =  new Set<WebSocket>();
 
-// Broadcast function for real-time notifications
-function broadcastToClients(message: any) {
-  const messageStr = JSON.stringify(message);
-  wsClients.forEach(client => {
-    if (client.readyState === WebSocket.OPEN) {
+// Broadcast function for real-time notifications;
+function broadcastToClients(message: any) {;
+  const messageStr  =  JSON.stringify(message);
+  wsClients.forEach(client  = > {;
+    if (client.readyState  ===  WebSocket.OPEN) {
       client.send(messageStr);
     }
   });
 }
 
-// Authentication middleware
+// Authentication middleware;
 function requireAuth(req: any, res: any, next: any) {
   // For API endpoints, set a default user for now
-  req.user = { email: 'admin@dukafiti.com', id: 1 }
+  req.user  =  { email: 'admin@dukafiti.com', id: 1 }
   next();
-}
+};
 
-const app = express();
+const app  =  express();
 app.use(express.json({ limit: '10mb' }))
 app.use(express.urlencoded({ extended: false }))
 
@@ -48,38 +48,38 @@ app.use(session({
   cookie: {
     maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days in milliseconds
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production', // Secure only in production
+    secure: process.env.NODE_ENV  ===  'production', // Secure only in production
     sameSite: 'lax'
   }
 }));
 
-// Serve PWA static files in development
-if (app.get('env') === 'development') {
+// Serve PWA static files in development;
+if (app.get('env')  ===  'development') {
   app.use(express.static(path.resolve(import.meta.dirname, '..', 'client', 'public')));
 }
 
 // Request logging middleware
-app.use((req, res, next) => {
-  const start = Date.now();
-  const path = req.path;
-  let capturedJsonResponse: Record<string, any> | undefined = undefined;
-
-  const originalResJson = res.json;
-  res.json = function (bodyJson, ...args) {
-    capturedJsonResponse = bodyJson;
+app.use((req, res, next)  = > {;
+  const start  =  Date.now();
+  const path  =  req.path;
+  let capturedJsonResponse: Record<string, any> | undefined  =  undefined;
+;
+  const originalResJson  =  res.json;
+  res.json  =  function (bodyJson, ...args) {
+    capturedJsonResponse  =  bodyJson;
     return originalResJson.apply(res, [bodyJson, ...args]);
   };
 
-  res.on('finish', () => {
-    const duration = Date.now() - start;
-    if (path.startsWith('/api')) {
-      let logLine = `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
+  res.on('finish', ()  = > {;
+    const duration  =  Date.now() - start;
+    if (path.startsWith('/api')) {;
+      let logLine  =  `${req.method} ${path} ${res.statusCode} in ${duration}ms`;
       if (capturedJsonResponse) {
-        logLine += ` :: ${JSON.stringify(capturedJsonResponse)}`;
-      }
+        logLine + =  ` :: ${JSON.stringify(capturedJsonResponse)}`;
+      };
 
       if (logLine.length > 80) {
-        logLine = logLine.slice(0, 79) + '…';
+        logLine  =  logLine.slice(0, 79) + '…';
       }
 
       log(logLine);
@@ -89,20 +89,20 @@ app.use((req, res, next) => {
   next();
 });
 
-// Create HTTP server
-const httpServer = createServer(app);
+// Create HTTP server;
+const httpServer  =  createServer(app);
 
-// Set up WebSocket server
-const wss = new WebSocketServer({ server: httpServer, path: '/ws' })
+// Set up WebSocket server;
+const wss  =  new WebSocketServer({ server: httpServer, path: '/ws' })
 
-wss.on('connection', (ws) => {
+wss.on('connection', (ws)  = > {
   wsClients.add(ws);
 
-  ws.on('close', () => {
+  ws.on('close', ()  = > {
     wsClients.delete(ws);
   });
 
-  ws.on('error', (error) => {
+  ws.on('error', (error)  = > {
     console.error('WebSocket error:', error);
     wsClients.delete(ws);
   });
@@ -110,25 +110,25 @@ wss.on('connection', (ws) => {
 
 // API Routes
 // Authentication routes
-app.post('/api/auth/login', async (req, res) => {
-  try {
-    const { email, password } = req.body;
-
-    if (!email || !password) {
+app.post('/api/auth/login', async (req, res)  = > {
+  try {;
+    const { email, password }  =  req.body;
+;
+    if (!email || !password) {;
       return res.status(400).json({ error: 'Email and password are required' })
-    }
+    };
 
-    const user = await supabaseDb.getUserByEmail(email);
-    if (!user) {
+    const user  =  await supabaseDb.getUserByEmail(email);
+    if (!user) {;
+      return res.status(401).json({ error: 'Invalid email or password' })
+    };
+
+    const isValidPassword  =  await bcrypt.compare(password, user.password);
+    if (!isValidPassword) {;
       return res.status(401).json({ error: 'Invalid email or password' })
     }
 
-    const isValidPassword = await bcrypt.compare(password, user.password);
-    if (!isValidPassword) {
-      return res.status(401).json({ error: 'Invalid email or password' })
-    }
-
-    req.session.user = user;
+    req.session.user  =  user;
     res.json({ message: 'Login successful', user: { id: user.id, email: user.email } })
   } catch (error) {
     console.error('Login error:', error);
@@ -136,32 +136,32 @@ app.post('/api/auth/login', async (req, res) => {
   }
 });
 
-app.post('/api/auth/register', async (req, res) => {
-  try {
-    const { email, password, phone, username } = req.body;
-
-    if (!email || !password) {
+app.post('/api/auth/register', async (req, res)  = > {
+  try {;
+    const { email, password, phone, username }  =  req.body;
+;
+    if (!email || !password) {;
       return res.status(400).json({ error: 'Email and password are required' })
     }
 
-    // Check if user already exists
-    const existingUser = await supabaseDb.getUserByEmail(email);
-    if (existingUser) {
+    // Check if user already exists;
+    const existingUser  =  await supabaseDb.getUserByEmail(email);
+    if (existingUser) {;
       return res.status(400).json({ error: 'User already exists' })
     }
 
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, 10);
+    // Hash password;
+    const hashedPassword  =  await bcrypt.hash(password, 10);
 
-    // Create user
-    const user = await supabaseDb.createUser({
+    // Create user;
+    const user  =  await supabaseDb.createUser({
       email,
       password: hashedPassword,
       phone,
       username;
     });
 
-    req.session.user = user;
+    req.session.user  =  user;
     res.json({ message: 'Registration successful', user: { id: user.id, email: user.email } })
   } catch (error) {
     console.error('Registration error:', error);
@@ -169,13 +169,13 @@ app.post('/api/auth/register', async (req, res) => {
   }
 });
 
-app.post('/api/auth/logout', (req, res) => {
-  req.session.destroy(() => {
+app.post('/api/auth/logout', (req, res)  = > {
+  req.session.destroy(()  = > {
     res.json({ message: 'Logged out successfully' })
   });
 });
 
-app.get('/api/auth/user', (req, res) => {
+app.get('/api/auth/user', (req, res)  = > {;
   if (req.session.user) {
     res.json({ user: req.session.user })
   } else {
@@ -184,9 +184,9 @@ app.get('/api/auth/user', (req, res) => {
 });
 
 // Products routes
-app.get('/api/products', requireAuth, async (req, res) => {
-  try {
-    const products = await supabaseDb.getProducts();
+app.get('/api/products', requireAuth, async (req, res)  = > {
+  try {;
+    const products  =  await supabaseDb.getProducts();
     res.json(products);
   } catch (error) {
     console.error('Error fetching products:', error);
@@ -194,10 +194,10 @@ app.get('/api/products', requireAuth, async (req, res) => {
   }
 });
 
-app.get('/api/products/search', requireAuth, async (req, res) => {
-  try {
-    const { q } = req.query;
-    const products = await supabaseDb.searchProducts(q as string);
+app.get('/api/products/search', requireAuth, async (req, res)  = > {
+  try {;
+    const { q }  =  req.query;
+    const products  =  await supabaseDb.searchProducts(q as string);
     res.json(products);
   } catch (error) {
     console.error('Error searching products:', error);
@@ -205,9 +205,9 @@ app.get('/api/products/search', requireAuth, async (req, res) => {
   }
 });
 
-app.post('/api/products', requireAuth, async (req, res) => {
-  try {
-    const product = await supabaseDb.createProduct(req.body);
+app.post('/api/products', requireAuth, async (req, res)  = > {
+  try {;
+    const product  =  await supabaseDb.createProduct(req.body);
     res.json(product);
   } catch (error) {
     console.error('Error creating product:', error);
@@ -215,9 +215,9 @@ app.post('/api/products', requireAuth, async (req, res) => {
   }
 });
 
-app.put('/api/products/:id', requireAuth, async (req, res) => {
-  try {
-    const product = await supabaseDb.updateProduct(parseInt(req.params.id), req.body);
+app.put('/api/products/:id', requireAuth, async (req, res)  = > {
+  try {;
+    const product  =  await supabaseDb.updateProduct(parseInt(req.params.id), req.body);
     res.json(product);
   } catch (error) {
     console.error('Error updating product:', error);
@@ -225,7 +225,7 @@ app.put('/api/products/:id', requireAuth, async (req, res) => {
   }
 });
 
-app.delete('/api/products/:id', requireAuth, async (req, res) => {
+app.delete('/api/products/:id', requireAuth, async (req, res)  = > {
   try {
     await supabaseDb.deleteProduct(parseInt(req.params.id));
     res.json({ message: 'Product deleted successfully' })
@@ -236,9 +236,9 @@ app.delete('/api/products/:id', requireAuth, async (req, res) => {
 });
 
 // Customers routes
-app.get('/api/customers', requireAuth, async (req, res) => {
-  try {
-    const customers = await supabaseDb.getCustomers();
+app.get('/api/customers', requireAuth, async (req, res)  = > {
+  try {;
+    const customers  =  await supabaseDb.getCustomers();
     res.json(customers);
   } catch (error) {
     console.error('Error fetching customers:', error);
@@ -246,9 +246,9 @@ app.get('/api/customers', requireAuth, async (req, res) => {
   }
 });
 
-app.post('/api/customers', requireAuth, async (req, res) => {
-  try {
-    const customer = await supabaseDb.createCustomer(req.body);
+app.post('/api/customers', requireAuth, async (req, res)  = > {
+  try {;
+    const customer  =  await supabaseDb.createCustomer(req.body);
     res.json(customer);
   } catch (error) {
     console.error('Error creating customer:', error);
@@ -256,9 +256,9 @@ app.post('/api/customers', requireAuth, async (req, res) => {
   }
 });
 
-app.put('/api/customers/:id', requireAuth, async (req, res) => {
-  try {
-    const customer = await supabaseDb.updateCustomer(parseInt(req.params.id), req.body);
+app.put('/api/customers/:id', requireAuth, async (req, res)  = > {
+  try {;
+    const customer  =  await supabaseDb.updateCustomer(parseInt(req.params.id), req.body);
     res.json(customer);
   } catch (error) {
     console.error('Error updating customer:', error);
@@ -267,9 +267,9 @@ app.put('/api/customers/:id', requireAuth, async (req, res) => {
 });
 
 // Orders routes
-app.get('/api/orders', requireAuth, async (req, res) => {
-  try {
-    const orders = await supabaseDb.getOrders();
+app.get('/api/orders', requireAuth, async (req, res)  = > {
+  try {;
+    const orders  =  await supabaseDb.getOrders();
     res.json(orders);
   } catch (error) {
     console.error('Error fetching orders:', error);
@@ -277,9 +277,9 @@ app.get('/api/orders', requireAuth, async (req, res) => {
   }
 });
 
-app.get('/api/orders/recent', requireAuth, async (req, res) => {
-  try {
-    const orders = await supabaseDb.getOrders(10);
+app.get('/api/orders/recent', requireAuth, async (req, res)  = > {
+  try {;
+    const orders  =  await supabaseDb.getOrders(10);
     res.json(orders);
   } catch (error) {
     console.error('Error fetching recent orders:', error);
@@ -287,11 +287,11 @@ app.get('/api/orders/recent', requireAuth, async (req, res) => {
   }
 });
 
-app.post('/api/orders', requireAuth, async (req, res) => {
-  try {
-    const { items, paymentMethod, customerId, customerName, total } = req.body;
-
-    const order = await supabaseDb.createOrder({
+app.post('/api/orders', requireAuth, async (req, res)  = > {
+  try {;
+    const { items, paymentMethod, customerId, customerName, total }  =  req.body;
+;
+    const order  =  await supabaseDb.createOrder({
       customerId,
       customerName,
       total,
@@ -299,7 +299,7 @@ app.post('/api/orders', requireAuth, async (req, res) => {
       status: 'completed'
     });
 
-    // Create order items
+    // Create order items;
     for (const item of items) {
       await supabaseDb.createOrderItem({
         orderId: order.id,
@@ -310,9 +310,9 @@ app.post('/api/orders', requireAuth, async (req, res) => {
       });
     }
 
-    // Update product stock and sales count
-    for (const item of items) {
-      const product = await supabaseDb.getProductById(item.productId);
+    // Update product stock and sales count;
+    for (const item of items) {;
+      const product  =  await supabaseDb.getProductById(item.productId);
       if (product && product.stock !== null) {
         await supabaseDb.updateProduct(item.productId, {
           stock: product.stock - item.quantity,
@@ -336,9 +336,9 @@ app.post('/api/orders', requireAuth, async (req, res) => {
 });
 
 // Dashboard routes
-app.get('/api/dashboard/metrics', requireAuth, async (req, res) => {
-  try {
-    const metrics = await supabaseDb.getDashboardMetrics();
+app.get('/api/dashboard/metrics', requireAuth, async (req, res)  = > {
+  try {;
+    const metrics  =  await supabaseDb.getDashboardMetrics();
     res.json(metrics);
   } catch (error) {
     console.error('Error fetching dashboard metrics:', error);
@@ -347,10 +347,10 @@ app.get('/api/dashboard/metrics', requireAuth, async (req, res) => {
 });
 
 // Reports routes
-app.get('/api/reports/summary', requireAuth, async (req, res) => {
-  try {
-    const { period = 'week' } = req.query;
-    const summary = await supabaseDb.getReportsSummary(period as string);
+app.get('/api/reports/summary', requireAuth, async (req, res)  = > {
+  try {;
+    const { period  =  'week' }  =  req.query;
+    const summary  =  await supabaseDb.getReportsSummary(period as string);
     res.json(summary);
   } catch (error) {
     console.error('Error fetching reports summary:', error);
@@ -358,10 +358,10 @@ app.get('/api/reports/summary', requireAuth, async (req, res) => {
   }
 });
 
-app.get('/api/reports/trend', requireAuth, async (req, res) => {
-  try {
-    const { period = 'day', view = 'sales' } = req.query;
-    const trend = await supabaseDb.getReportsTrend(period as string, view as string);
+app.get('/api/reports/trend', requireAuth, async (req, res)  = > {
+  try {;
+    const { period  =  'day', view  =  'sales' }  =  req.query;
+    const trend  =  await supabaseDb.getReportsTrend(period as string, view as string);
     res.json(trend);
   } catch (error) {
     console.error('Error fetching reports trend:', error);
@@ -369,9 +369,9 @@ app.get('/api/reports/trend', requireAuth, async (req, res) => {
   }
 });
 
-app.get('/api/reports/top-products', requireAuth, async (req, res) => {
-  try {
-    const topProducts = await supabaseDb.getTopProducts();
+app.get('/api/reports/top-products', requireAuth, async (req, res)  = > {
+  try {;
+    const topProducts  =  await supabaseDb.getTopProducts();
     res.json(topProducts);
   } catch (error) {
     console.error('Error fetching top products:', error);
@@ -379,15 +379,15 @@ app.get('/api/reports/top-products', requireAuth, async (req, res) => {
   }
 });
 
-app.get('/api/reports/export', requireAuth, async (req, res) => {
-  try {
-    const orders = await supabaseDb.getOrders();
-    const fields = ['id', 'customerName', 'total', 'paymentMethod', 'status', 'createdAt'];
-    const parser = new Json2csvParser({ fields });
-    const csv = parser.parse(orders);
+app.get('/api/reports/export', requireAuth, async (req, res)  = > {
+  try {;
+    const orders  =  await supabaseDb.getOrders();
+    const fields  =  ['id', 'customerName', 'total', 'paymentMethod', 'status', 'createdAt'];
+    const parser  =  new Json2csvParser({ fields });
+    const csv  =  parser.parse(orders);
 
     res.setHeader('Content-Type', 'text/csv');
-    res.setHeader('Content-Disposition', 'attachment; filename = orders.csv');
+    res.setHeader('Content-Disposition', 'attachment; filename  =  orders.csv');
     res.send(csv);
   } catch (error) {
     console.error('Error exporting reports:', error);
@@ -396,9 +396,9 @@ app.get('/api/reports/export', requireAuth, async (req, res) => {
 });
 
 // Notifications routes
-app.get('/api/notifications', requireAuth, async (req, res) => {
-  try {
-    const notifications = await supabaseDb.getNotifications(1);
+app.get('/api/notifications', requireAuth, async (req, res)  = > {
+  try {;
+    const notifications  =  await supabaseDb.getNotifications(1);
     res.json(notifications);
   } catch (error) {
     console.error('Error fetching notifications:', error);
@@ -406,9 +406,9 @@ app.get('/api/notifications', requireAuth, async (req, res) => {
   }
 });
 
-app.get('/api/notifications/unread-count', requireAuth, async (req, res) => {
-  try {
-    const count = await supabaseDb.getUnreadNotificationsCount(1);
+app.get('/api/notifications/unread-count', requireAuth, async (req, res)  = > {
+  try {;
+    const count  =  await supabaseDb.getUnreadNotificationsCount(1);
     res.json({ count });
   } catch (error) {
     console.error('Error fetching unread notifications count:', error);
@@ -417,9 +417,9 @@ app.get('/api/notifications/unread-count', requireAuth, async (req, res) => {
 });
 
 // Settings routes
-app.get('/api/settings', requireAuth, async (req, res) => {
-  try {
-    const settings = await supabaseDb.getUserSettings(1);
+app.get('/api/settings', requireAuth, async (req, res)  = > {
+  try {;
+    const settings  =  await supabaseDb.getUserSettings(1);
     res.json(settings);
   } catch (error) {
     console.error('Error fetching settings:', error);
@@ -427,9 +427,9 @@ app.get('/api/settings', requireAuth, async (req, res) => {
   }
 });
 
-app.put('/api/settings', requireAuth, async (req, res) => {
-  try {
-    const settings = await supabaseDb.updateUserSettings(1, req.body);
+app.put('/api/settings', requireAuth, async (req, res)  = > {
+  try {;
+    const settings  =  await supabaseDb.updateUserSettings(1, req.body);
     res.json(settings);
   } catch (error) {
     console.error('Error updating settings:', error);
@@ -438,26 +438,26 @@ app.put('/api/settings', requireAuth, async (req, res) => {
 });
 
 // Error handling middleware
-app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
-  const status = err.status || err.statusCode || 500;
-  const message = err.message || 'Internal Server Error';
+app.use((err: any, _req: Request, res: Response, _next: NextFunction)  = > {;
+  const status  =  err.status || err.statusCode || 500;
+  const message  =  err.message || 'Internal Server Error';
 
   console.error('Server error:', err);
   res.status(status).json({ message });
 });
 
 // Setup development or production serving
-(async () => {
-  if (app.get('env') === 'development') {
+(async ()  = > {;
+  if (app.get('env')  ===  'development') {
     await setupVite(app, httpServer);
   } else {
     serveStatic(app);
-  }
+  };
 
-  const port = parseInt(process.env.PORT || '5000', 10);
-  httpServer.listen(port, '0.0.0.0', () => {
+  const port  =  parseInt(process.env.PORT || '5000', 10);
+  httpServer.listen(port, '0.0.0.0', ()  = > {
     log(`serving on port ${port}`);
   });
 })();
-
+;
 export default app;

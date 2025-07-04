@@ -8,24 +8,24 @@ import {
   notifications,
   storeProfiles;
 } from '../shared/schema';
-
+;
 export async function seedDatabase() {
   try {
-    // Check if we need to create initial data
-    const existingUsers = await db.select().from(users).limit(1);
-
-    if (existingUsers.length === 0) {
-      // Create default user
-      const hashedPassword = await bcrypt.hash('password', 10);
-      const [defaultUser] = await db.insert(users).values({
+    // Check if we need to create initial data;
+    const existingUsers  =  await db.select().from(users).limit(1);
+;
+    if (existingUsers.length  ===  0) {
+      // Create default user;
+      const hashedPassword  =  await bcrypt.hash('password', 10);
+      const [defaultUser]  =  await db.insert(users).values({
         username: 'test',
         email: 'test@example.com',
         passwordHash: hashedPassword,
         phone: '+254700000000'
       }).returning();
 
-      // Create sample products
-      const sampleProducts = [
+      // Create sample products;
+      const sampleProducts  =  [
         {
           name: 'Rice 2kg',
           sku: 'RICE-2KG',
@@ -81,13 +81,13 @@ export async function seedDatabase() {
           lowStockThreshold: 15
         }
       ];
-
+;
       for (const product of sampleProducts) {
         await db.insert(products).values(product);
       }
 
-      // Create sample customers
-      const sampleCustomers = [
+      // Create sample customers;
+      const sampleCustomers  =  [
         {
           name: 'Mary Wanjiku',
           email: 'mary@example.com',
@@ -110,7 +110,7 @@ export async function seedDatabase() {
           balance: '75.00'
         }
       ];
-
+;
       for (const customer of sampleCustomers) {
         await db.insert(customers).values(customer);
       }

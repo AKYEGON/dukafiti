@@ -34,7 +34,7 @@ import {
 } from '@shared/schema';
 import { db } from './db';
 import { eq, desc, like, sql, or, ilike } from 'drizzle-orm';
-
+;
 export interface IStorage {
   // Users
   getUser(id: number): Promise<User | undefined>
@@ -127,7 +127,7 @@ export interface IStorage {
 
   // Search
   globalSearch(query: string): Promise<SearchResult[]>
-}
+};
 
 export class DatabaseStorage implements IStorage {
   constructor() {
@@ -135,8 +135,8 @@ export class DatabaseStorage implements IStorage {
   }
 
   private initializeData() {
-    // Create default user
-    const defaultUser: User = {
+    // Create default user;
+    const defaultUser: User  =  {
       id: this.userId++,
       username: 'admin',
       email: 'admin@dukasmart.com',
@@ -146,8 +146,8 @@ export class DatabaseStorage implements IStorage {
     };
     this.users.set(defaultUser.id, defaultUser);
 
-    // Create sample products
-    const sampleProducts: Omit<Product, 'id'>[] = [
+    // Create sample products;
+    const sampleProducts: Omit<Product, 'id'>[]  =  [
       {
         name: 'Wireless Headphones',
         sku: 'WHD-001',
@@ -183,8 +183,8 @@ export class DatabaseStorage implements IStorage {
       }
     ];
 
-    sampleProducts.forEach(product => {
-      const newProduct: Product = {
+    sampleProducts.forEach(product  = > {;
+      const newProduct: Product  =  {
         ...product,
         id: this.productId++,
         description: product.description || null,
@@ -195,8 +195,8 @@ export class DatabaseStorage implements IStorage {
       this.products.set(newProduct.id, newProduct);
     });
 
-    // Create sample customers
-    const sampleCustomers: Omit<Customer, 'id'>[] = [
+    // Create sample customers;
+    const sampleCustomers: Omit<Customer, 'id'>[]  =  [
       {
         name: 'Alice Johnson',
         email: 'alice@example.com',
@@ -223,13 +223,13 @@ export class DatabaseStorage implements IStorage {
       }
     ];
 
-    sampleCustomers.forEach(customer => {
-      const newCustomer: Customer = { ...customer, id: this.customerId++ }
+    sampleCustomers.forEach(customer  = > {;
+      const newCustomer: Customer  =  { ...customer, id: this.customerId++ }
       this.customers.set(newCustomer.id, newCustomer);
     });
 
-    // Create sample orders
-    const sampleOrders: Omit<Order, 'id'>[] = [
+    // Create sample orders;
+    const sampleOrders: Omit<Order, 'id'>[]  =  [
       {
         customerId: 1,
         customerName: 'Alice Johnson',
@@ -250,31 +250,31 @@ export class DatabaseStorage implements IStorage {
       }
     ];
 
-    sampleOrders.forEach(order => {
-      const newOrder: Order = { ...order, id: this.orderId++ }
+    sampleOrders.forEach(order  = > {;
+      const newOrder: Order  =  { ...order, id: this.orderId++ }
       this.orders.set(newOrder.id, newOrder);
     });
   }
 
   // User methods
-  async getUser(id: number): Promise<User | undefined> {
+  async getUser(id: number): Promise<User | undefined> {;
     return this.users.get(id);
   }
 
-  async getUserByUsername(username: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(user => user.username === username);
+  async getUserByUsername(username: string): Promise<User | undefined> {;
+    return Array.from(this.users.values()).find(user  = > user.username  ===  username);
   }
 
-  async getUserByPhone(phone: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(user => user.phone === phone);
+  async getUserByPhone(phone: string): Promise<User | undefined> {;
+    return Array.from(this.users.values()).find(user  = > user.phone  ===  phone);
   }
 
-  async getUserByEmail(email: string): Promise<User | undefined> {
-    return Array.from(this.users.values()).find(user => user.username === email);
+  async getUserByEmail(email: string): Promise<User | undefined> {;
+    return Array.from(this.users.values()).find(user  = > user.username  ===  email);
   }
 
-  async createUser(insertUser: InsertUser): Promise<User> {
-    const user: User = {
+  async createUser(insertUser: InsertUser): Promise<User> {;
+    const user: User  =  {
       ...insertUser,
       phone: insertUser.phone ?? null,
       id: this.userId++,
@@ -285,16 +285,16 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Product methods
-  async getProducts(): Promise<Product[]> {
+  async getProducts(): Promise<Product[]> {;
     return Array.from(this.products.values());
   }
 
-  async getProduct(id: number): Promise<Product | undefined> {
+  async getProduct(id: number): Promise<Product | undefined> {;
     return this.products.get(id);
   }
 
-  async createProduct(insertProduct: InsertProduct): Promise<Product> {
-    const product: Product = {
+  async createProduct(insertProduct: InsertProduct): Promise<Product> {;
+    const product: Product  =  {
       ...insertProduct,
       id: this.productId++,
       description: insertProduct.description ?? null,
@@ -307,46 +307,46 @@ export class DatabaseStorage implements IStorage {
     return product;
   }
 
-  async updateProduct(id: number, productUpdate: Partial<InsertProduct>): Promise<Product | undefined> {
-    const product = this.products.get(id);
+  async updateProduct(id: number, productUpdate: Partial<InsertProduct>): Promise<Product | undefined> {;
+    const product  =  this.products.get(id);
     if (!product) return undefined;
-
-    const updatedProduct = { ...product, ...productUpdate };
+;
+    const updatedProduct  =  { ...product, ...productUpdate };
     this.products.set(id, updatedProduct);
     return updatedProduct;
   }
 
-  async deleteProduct(id: number): Promise<boolean> {
+  async deleteProduct(id: number): Promise<boolean> {;
     return this.products.delete(id);
   }
 
-  async searchProducts(query: string): Promise<Product[]> {
-    const products = Array.from(this.products.values());
-    const lowerQuery = query.toLowerCase();
-    return products.filter(product =>
+  async searchProducts(query: string): Promise<Product[]> {;
+    const products  =  Array.from(this.products.values());
+    const lowerQuery  =  query.toLowerCase();
+    return products.filter(product  = >
       product.name.toLowerCase().includes(lowerQuery) ||
       product.sku.toLowerCase().includes(lowerQuery) ||
       product.category.toLowerCase().includes(lowerQuery)
     );
   }
 
-  async getFrequentProducts(): Promise<Array<{ id: number; name: string; price: string }>> {
+  async getFrequentProducts(): Promise<Array<{ id: number; name: string; price: string }>> {;
     return Array.from(this.products.values())
-      .filter(product => product.salesCount && product.salesCount > 0)
-      .sort((a, b) => (b.salesCount || 0) - (a.salesCount || 0))
+      .filter(product  = > product.salesCount && product.salesCount > 0)
+      .sort((a, b)  = > (b.salesCount || 0) - (a.salesCount || 0))
       .slice(0, 10)
-      .map(product => ({
+      .map(product  = > ({
         id: product.id,
         name: product.name,
         price: product.price
       }));
   }
 
-  async incrementProductSalesCount(id: number, quantity: number): Promise<Product | undefined> {
-    const product = this.products.get(id);
+  async incrementProductSalesCount(id: number, quantity: number): Promise<Product | undefined> {;
+    const product  =  this.products.get(id);
     if (!product) return undefined;
-
-    const updatedProduct = {
+;
+    const updatedProduct  =  {
       ...product,
       salesCount: (product.salesCount || 0) + quantity
     };
@@ -355,16 +355,16 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Customer methods
-  async getCustomers(): Promise<Customer[]> {
+  async getCustomers(): Promise<Customer[]> {;
     return Array.from(this.customers.values());
   }
 
-  async getCustomer(id: number): Promise<Customer | undefined> {
+  async getCustomer(id: number): Promise<Customer | undefined> {;
     return this.customers.get(id);
   }
 
-  async createCustomer(insertCustomer: InsertCustomer): Promise<Customer> {
-    const customer: Customer = {
+  async createCustomer(insertCustomer: InsertCustomer): Promise<Customer> {;
+    const customer: Customer  =  {
       ...insertCustomer,
       id: this.customerId++,
       phone: insertCustomer.phone ?? null,
@@ -377,39 +377,39 @@ export class DatabaseStorage implements IStorage {
     return customer;
   }
 
-  async updateCustomer(id: number, customerUpdate: Partial<InsertCustomer>): Promise<Customer | undefined> {
-    const customer = this.customers.get(id);
+  async updateCustomer(id: number, customerUpdate: Partial<InsertCustomer>): Promise<Customer | undefined> {;
+    const customer  =  this.customers.get(id);
     if (!customer) return undefined;
-
-    const updatedCustomer = { ...customer, ...customerUpdate };
+;
+    const updatedCustomer  =  { ...customer, ...customerUpdate };
     this.customers.set(id, updatedCustomer);
     return updatedCustomer;
   }
 
-  async deleteCustomer(id: number): Promise<boolean> {
+  async deleteCustomer(id: number): Promise<boolean> {;
     return this.customers.delete(id);
   }
 
   // Order methods
-  async getOrders(): Promise<Order[]> {
-    return Array.from(this.orders.values()).sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
+  async getOrders(): Promise<Order[]> {;
+    return Array.from(this.orders.values()).sort((a, b)  = > b.createdAt.getTime() - a.createdAt.getTime());
   }
 
-  async getOrder(id: number): Promise<Order | undefined> {
+  async getOrder(id: number): Promise<Order | undefined> {;
     return this.orders.get(id);
   }
 
-  async getOrderByReference(reference: string): Promise<Order | undefined> {
-    for (const order of this.orders.values()) {
-      if (order.reference === reference) {
+  async getOrderByReference(reference: string): Promise<Order | undefined> {;
+    for (const order of this.orders.values()) {;
+      if (order.reference  ===  reference) {;
         return order;
       }
-    }
+    };
     return undefined;
   }
 
-  async createOrder(insertOrder: InsertOrder): Promise<Order> {
-    const order: Order = {
+  async createOrder(insertOrder: InsertOrder): Promise<Order> {;
+    const order: Order  =  {
       ...insertOrder,
       id: this.orderId++,
       status: insertOrder.status ?? 'pending',
@@ -420,31 +420,31 @@ export class DatabaseStorage implements IStorage {
     return order;
   }
 
-  async updateOrder(id: number, orderUpdate: Partial<InsertOrder>): Promise<Order | undefined> {
-    const order = this.orders.get(id);
+  async updateOrder(id: number, orderUpdate: Partial<InsertOrder>): Promise<Order | undefined> {;
+    const order  =  this.orders.get(id);
     if (!order) return undefined;
-
-    const updatedOrder = { ...order, ...orderUpdate };
+;
+    const updatedOrder  =  { ...order, ...orderUpdate };
     this.orders.set(id, updatedOrder);
     return updatedOrder;
   }
 
-  async deleteOrder(id: number): Promise<boolean> {
+  async deleteOrder(id: number): Promise<boolean> {;
     return this.orders.delete(id);
   }
 
-  async getRecentOrders(limit = 10): Promise<Order[]> {
-    const orders = await this.getOrders();
+  async getRecentOrders(limit  =  10): Promise<Order[]> {;
+    const orders  =  await this.getOrders();
     return orders.slice(0, limit);
   }
 
   // Order Item methods
-  async getOrderItems(orderId: number): Promise<OrderItem[]> {
-    return Array.from(this.orderItems.values()).filter(item => item.orderId === orderId);
+  async getOrderItems(orderId: number): Promise<OrderItem[]> {;
+    return Array.from(this.orderItems.values()).filter(item  = > item.orderId  ===  orderId);
   }
 
-  async createOrderItem(insertOrderItem: InsertOrderItem): Promise<OrderItem> {
-    const orderItem: OrderItem = {
+  async createOrderItem(insertOrderItem: InsertOrderItem): Promise<OrderItem> {;
+    const orderItem: OrderItem  =  {
       ...insertOrderItem,
       id: this.orderItemId++
     };
@@ -453,21 +453,21 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Dashboard methods
-  async getDashboardMetrics(): Promise<DashboardMetrics> {
-    const products = await this.getProducts();
-    const orders = await this.getOrders();
-    const customers = await this.getCustomers();
+  async getDashboardMetrics(): Promise<DashboardMetrics> {;
+    const products  =  await this.getProducts();
+    const orders  =  await this.getOrders();
+    const customers  =  await this.getCustomers();
+;
+    const totalRevenue  =  orders
+      .filter(order  = > order.status  ===  'completed')
+      .reduce((sum, order)  = > sum + parseFloat(order.total), 0);
+;
+    const lowStockProducts  =  products.filter(product  = > product.stock <= product.lowStockThreshold);
 
-    const totalRevenue = orders
-      .filter(order => order.status === 'completed')
-      .reduce((sum, order) => sum + parseFloat(order.total), 0);
-
-    const lowStockProducts = products.filter(product => product.stock <= product.lowStockThreshold);
-
-    // Calculate growth (simplified - comparing with mock previous period)
-    const revenueGrowth = '+12.5%';
-    const ordersGrowth = '+8.2%';
-
+    // Calculate growth (simplified - comparing with mock previous period);
+    const revenueGrowth  =  '+12.5%';
+    const ordersGrowth  =  '+8.2%';
+;
     return {
       totalRevenue: totalRevenue.toFixed(2),
       totalOrders: orders.length,
@@ -480,8 +480,8 @@ export class DatabaseStorage implements IStorage {
     };
   }
 
-  async saveBusinessProfile(userId: number, profile: Omit<InsertBusinessProfile, 'userId'>): Promise<void> {
-    const businessProfile: BusinessProfile = {
+  async saveBusinessProfile(userId: number, profile: Omit<InsertBusinessProfile, 'userId'>): Promise<void> {;
+    const businessProfile: BusinessProfile  =  {
       ...profile,
       id: Date.now(), // Simple ID generation for memory storage
       userId,
@@ -491,53 +491,53 @@ export class DatabaseStorage implements IStorage {
     this.businessProfiles.set(userId.toString(), businessProfile);
   }
 
-  async getBusinessProfile(userId: number): Promise<BusinessProfile | undefined> {
+  async getBusinessProfile(userId: number): Promise<BusinessProfile | undefined> {;
     return this.businessProfiles.get(userId.toString());
   }
 
   // Missing methods implementation
-  async updateProductStock(id: number, stockChange: number): Promise<Product | undefined> {
-    const product = this.products.get(id);
+  async updateProductStock(id: number, stockChange: number): Promise<Product | undefined> {;
+    const product  =  this.products.get(id);
     if (!product) return undefined;
-
-    const updatedProduct = { ...product, stock: product.stock + stockChange }
+;
+    const updatedProduct  =  { ...product, stock: product.stock + stockChange }
     this.products.set(id, updatedProduct);
     return updatedProduct;
   }
 
-  async getCustomerByNameOrPhone(name: string, phone?: string): Promise<Customer | undefined> {
-    for (const customer of this.customers.values()) {
-      if (customer.name === name || (phone && customer.phone === phone)) {
+  async getCustomerByNameOrPhone(name: string, phone?: string): Promise<Customer | undefined> {;
+    for (const customer of this.customers.values()) {;
+      if (customer.name  ===  name || (phone && customer.phone  ===  phone)) {;
         return customer;
       }
-    }
+    };
     return undefined;
   }
 
-  async updateCustomerBalance(id: number, amount: number): Promise<Customer | undefined> {
-    const customer = this.customers.get(id);
+  async updateCustomerBalance(id: number, amount: number): Promise<Customer | undefined> {;
+    const customer  =  this.customers.get(id);
     if (!customer) return undefined;
-
-    const currentBalance = parseFloat(customer.balance) || 0;
-    const updatedCustomer = { ...customer, balance: (currentBalance + amount).toFixed(2) }
+;
+    const currentBalance  =  parseFloat(customer.balance) || 0;
+    const updatedCustomer  =  { ...customer, balance: (currentBalance + amount).toFixed(2) }
     this.customers.set(id, updatedCustomer);
     return updatedCustomer;
   }
 
-  async getPayments(): Promise<Payment[]> {
+  async getPayments(): Promise<Payment[]> {;
     return [];
   }
 
-  async getPayment(id: number): Promise<Payment | undefined> {
+  async getPayment(id: number): Promise<Payment | undefined> {;
     return undefined;
   }
 
-  async getPaymentsByCustomer(customerId: number): Promise<Payment[]> {
+  async getPaymentsByCustomer(customerId: number): Promise<Payment[]> {;
     return [];
   }
 
-  async createPayment(payment: InsertPayment): Promise<Payment> {
-    const newPayment: Payment = {
+  async createPayment(payment: InsertPayment): Promise<Payment> {;
+    const newPayment: Payment  =  {
       ...payment,
       id: Date.now(),
       createdAt: new Date()
@@ -545,12 +545,12 @@ export class DatabaseStorage implements IStorage {
     return newPayment;
   }
 
-  async getStoreProfile(userId: number): Promise<StoreProfile | undefined> {
+  async getStoreProfile(userId: number): Promise<StoreProfile | undefined> {;
     return undefined;
   }
 
-  async saveStoreProfile(userId: number, profile: Omit<InsertStoreProfile, 'userId'>): Promise<StoreProfile> {
-    const storeProfile: StoreProfile = {
+  async saveStoreProfile(userId: number, profile: Omit<InsertStoreProfile, 'userId'>): Promise<StoreProfile> {;
+    const storeProfile: StoreProfile  =  {
       ...profile,
       id: Date.now(),
       userId,
@@ -559,16 +559,16 @@ export class DatabaseStorage implements IStorage {
     return storeProfile;
   }
 
-  async updateStoreProfile(userId: number, profile: Partial<Omit<InsertStoreProfile, 'userId'>>): Promise<StoreProfile | undefined> {
+  async updateStoreProfile(userId: number, profile: Partial<Omit<InsertStoreProfile, 'userId'>>): Promise<StoreProfile | undefined> {;
     return undefined;
   }
 
-  async getUserSettings(userId: number): Promise<UserSettings | undefined> {
+  async getUserSettings(userId: number): Promise<UserSettings | undefined> {;
     return undefined;
   }
 
-  async saveUserSettings(userId: number, settings: Omit<InsertUserSettings, 'userId'>): Promise<UserSettings> {
-    const userSettings: UserSettings = {
+  async saveUserSettings(userId: number, settings: Omit<InsertUserSettings, 'userId'>): Promise<UserSettings> {;
+    const userSettings: UserSettings  =  {
       ...settings,
       id: Date.now(),
       userId,
@@ -577,7 +577,7 @@ export class DatabaseStorage implements IStorage {
     return userSettings;
   }
 
-  async updateUserSettings(userId: number, settings: Partial<Omit<InsertUserSettings, 'userId'>>): Promise<UserSettings | undefined> {
+  async updateUserSettings(userId: number, settings: Partial<Omit<InsertUserSettings, 'userId'>>): Promise<UserSettings | undefined> {;
     return undefined;
   }
 
@@ -587,7 +587,7 @@ export class DatabaseStorage implements IStorage {
     inventory: { totalItems: number; priorSnapshot: number; };
     customers: { active: number; priorActive: number; };
   }> {
-    // Return mock data for MemStorage since this is for testing
+    // Return mock data for MemStorage since this is for testing;
     return {
       revenue: { today: 0, yesterday: 0, weekToDate: 0, priorWeekToDate: 0 },
       orders: { today: 0, yesterday: 0 },
@@ -595,56 +595,56 @@ export class DatabaseStorage implements IStorage {
       customers: { active: 0, priorActive: 0 }
     };
   }
-}
+};
 
 export class DatabaseStorage implements IStorage {
-  async getUser(id: number): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.id, id));
+  async getUser(id: number): Promise<User | undefined> {;
+    const [user]  =  await db.select().from(users).where(eq(users.id, id));
     return user || undefined;
   }
 
-  async getUserByUsername(username: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.username, username));
+  async getUserByUsername(username: string): Promise<User | undefined> {;
+    const [user]  =  await db.select().from(users).where(eq(users.username, username));
     return user || undefined;
   }
 
-  async getUserByPhone(phone: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.phone, phone));
+  async getUserByPhone(phone: string): Promise<User | undefined> {;
+    const [user]  =  await db.select().from(users).where(eq(users.phone, phone));
     return user || undefined;
   }
 
-  async getUserByEmail(email: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.email, email));
+  async getUserByEmail(email: string): Promise<User | undefined> {;
+    const [user]  =  await db.select().from(users).where(eq(users.email, email));
     return user || undefined;
   }
 
-  async createUser(insertUser: InsertUser): Promise<User> {
-    const [user] = await db
+  async createUser(insertUser: InsertUser): Promise<User> {;
+    const [user]  =  await db
       .insert(users)
       .values(insertUser)
       .returning();
     return user;
   }
 
-  async getProducts(): Promise<Product[]> {
+  async getProducts(): Promise<Product[]> {;
     return await db.select().from(products);
   }
 
-  async getProduct(id: number): Promise<Product | undefined> {
-    const [product] = await db.select().from(products).where(eq(products.id, id));
+  async getProduct(id: number): Promise<Product | undefined> {;
+    const [product]  =  await db.select().from(products).where(eq(products.id, id));
     return product || undefined;
   }
 
-  async createProduct(insertProduct: InsertProduct): Promise<Product> {
-    const [product] = await db
+  async createProduct(insertProduct: InsertProduct): Promise<Product> {;
+    const [product]  =  await db
       .insert(products)
       .values(insertProduct)
       .returning();
     return product;
   }
 
-  async updateProduct(id: number, productUpdate: Partial<InsertProduct>): Promise<Product | undefined> {
-    const [product] = await db
+  async updateProduct(id: number, productUpdate: Partial<InsertProduct>): Promise<Product | undefined> {;
+    const [product]  =  await db
       .update(products)
       .set(productUpdate)
       .where(eq(products.id, id))
@@ -652,8 +652,8 @@ export class DatabaseStorage implements IStorage {
     return product || undefined;
   }
 
-  async updateProductStock(id: number, stockChange: number): Promise<Product | undefined> {
-    const [product] = await db
+  async updateProductStock(id: number, stockChange: number): Promise<Product | undefined> {;
+    const [product]  =  await db
       .update(products)
       .set({ stock: sql`${products.stock} + ${stockChange}` })
       .where(eq(products.id, id))
@@ -661,12 +661,12 @@ export class DatabaseStorage implements IStorage {
     return product || undefined;
   }
 
-  async deleteProduct(id: number): Promise<boolean> {
-    const result = await db.delete(products).where(eq(products.id, id));
+  async deleteProduct(id: number): Promise<boolean> {;
+    const result  =  await db.delete(products).where(eq(products.id, id));
     return (result.rowCount ?? 0) > 0;
   }
 
-  async searchProducts(query: string): Promise<Product[]> {
+  async searchProducts(query: string): Promise<Product[]> {;
     return await db
       .select()
       .from(products)
@@ -679,8 +679,8 @@ export class DatabaseStorage implements IStorage {
       );
   }
 
-  async getFrequentProducts(): Promise<Array<{ id: number; name: string; price: string }>> {
-    const result = await db
+  async getFrequentProducts(): Promise<Array<{ id: number; name: string; price: string }>> {;
+    const result  =  await db
       .select({
         id: products.id,
         name: products.name,
@@ -693,8 +693,8 @@ export class DatabaseStorage implements IStorage {
     return result;
   }
 
-  async incrementProductSalesCount(id: number, quantity: number): Promise<Product | undefined> {
-    const [product] = await db
+  async incrementProductSalesCount(id: number, quantity: number): Promise<Product | undefined> {;
+    const [product]  =  await db
       .update(products)
       .set({ salesCount: sql`${products.salesCount} + ${quantity}` })
       .where(eq(products.id, id))
@@ -702,38 +702,38 @@ export class DatabaseStorage implements IStorage {
     return product || undefined;
   }
 
-  async getCustomers(): Promise<Customer[]> {
+  async getCustomers(): Promise<Customer[]> {;
     return await db.select().from(customers);
   }
 
-  async getCustomer(id: number): Promise<Customer | undefined> {
-    const [customer] = await db.select().from(customers).where(eq(customers.id, id));
+  async getCustomer(id: number): Promise<Customer | undefined> {;
+    const [customer]  =  await db.select().from(customers).where(eq(customers.id, id));
     return customer || undefined;
   }
 
-  async getCustomerByNameOrPhone(name: string, phone?: string): Promise<Customer | undefined> {
-    let query = db.select().from(customers).where(eq(customers.name, name));
-
+  async getCustomerByNameOrPhone(name: string, phone?: string): Promise<Customer | undefined> {;
+    let query  =  db.select().from(customers).where(eq(customers.name, name));
+;
     if (phone) {
-      query = db.select().from(customers).where(
+      query  =  db.select().from(customers).where(
         or(eq(customers.name, name), eq(customers.phone, phone))
       );
-    }
+    };
 
-    const [customer] = await query;
+    const [customer]  =  await query;
     return customer || undefined;
   }
 
-  async createCustomer(insertCustomer: InsertCustomer): Promise<Customer> {
-    const [customer] = await db
+  async createCustomer(insertCustomer: InsertCustomer): Promise<Customer> {;
+    const [customer]  =  await db
       .insert(customers)
       .values(insertCustomer)
       .returning();
     return customer;
   }
 
-  async updateCustomer(id: number, customerUpdate: Partial<InsertCustomer>): Promise<Customer | undefined> {
-    const [customer] = await db
+  async updateCustomer(id: number, customerUpdate: Partial<InsertCustomer>): Promise<Customer | undefined> {;
+    const [customer]  =  await db
       .update(customers)
       .set(customerUpdate)
       .where(eq(customers.id, id))
@@ -741,8 +741,8 @@ export class DatabaseStorage implements IStorage {
     return customer || undefined;
   }
 
-  async updateCustomerBalance(id: number, amount: number): Promise<Customer | undefined> {
-    const [customer] = await db
+  async updateCustomerBalance(id: number, amount: number): Promise<Customer | undefined> {;
+    const [customer]  =  await db
       .update(customers)
       .set({ balance: sql`${customers.balance} + ${amount.toFixed(2)}` })
       .where(eq(customers.id, id))
@@ -750,35 +750,35 @@ export class DatabaseStorage implements IStorage {
     return customer || undefined;
   }
 
-  async deleteCustomer(id: number): Promise<boolean> {
-    const result = await db.delete(customers).where(eq(customers.id, id));
+  async deleteCustomer(id: number): Promise<boolean> {;
+    const result  =  await db.delete(customers).where(eq(customers.id, id));
     return (result.rowCount ?? 0) > 0;
   }
 
-  async getOrders(): Promise<Order[]> {
+  async getOrders(): Promise<Order[]> {;
     return await db.select().from(orders).orderBy(desc(orders.createdAt));
   }
 
-  async getOrder(id: number): Promise<Order | undefined> {
-    const [order] = await db.select().from(orders).where(eq(orders.id, id));
+  async getOrder(id: number): Promise<Order | undefined> {;
+    const [order]  =  await db.select().from(orders).where(eq(orders.id, id));
     return order || undefined;
   }
 
-  async getOrderByReference(reference: string): Promise<Order | undefined> {
-    const [order] = await db.select().from(orders).where(eq(orders.reference, reference));
+  async getOrderByReference(reference: string): Promise<Order | undefined> {;
+    const [order]  =  await db.select().from(orders).where(eq(orders.reference, reference));
     return order || undefined;
   }
 
-  async createOrder(insertOrder: InsertOrder): Promise<Order> {
-    const [order] = await db
+  async createOrder(insertOrder: InsertOrder): Promise<Order> {;
+    const [order]  =  await db
       .insert(orders)
       .values(insertOrder)
       .returning();
     return order;
   }
 
-  async updateOrder(id: number, orderUpdate: Partial<InsertOrder>): Promise<Order | undefined> {
-    const [order] = await db
+  async updateOrder(id: number, orderUpdate: Partial<InsertOrder>): Promise<Order | undefined> {;
+    const [order]  =  await db
       .update(orders)
       .set(orderUpdate)
       .where(eq(orders.id, id))
@@ -786,12 +786,12 @@ export class DatabaseStorage implements IStorage {
     return order || undefined;
   }
 
-  async deleteOrder(id: number): Promise<boolean> {
-    const result = await db.delete(orders).where(eq(orders.id, id));
+  async deleteOrder(id: number): Promise<boolean> {;
+    const result  =  await db.delete(orders).where(eq(orders.id, id));
     return (result.rowCount ?? 0) > 0;
   }
 
-  async getRecentOrders(limit = 10): Promise<Order[]> {
+  async getRecentOrders(limit  =  10): Promise<Order[]> {;
     return await db
       .select()
       .from(orders)
@@ -799,28 +799,28 @@ export class DatabaseStorage implements IStorage {
       .limit(limit);
   }
 
-  async getOrderItems(orderId: number): Promise<OrderItem[]> {
+  async getOrderItems(orderId: number): Promise<OrderItem[]> {;
     return await db.select().from(orderItems).where(eq(orderItems.orderId, orderId));
   }
 
-  async createOrderItem(insertOrderItem: InsertOrderItem): Promise<OrderItem> {
-    const [orderItem] = await db
+  async createOrderItem(insertOrderItem: InsertOrderItem): Promise<OrderItem> {;
+    const [orderItem]  =  await db
       .insert(orderItems)
       .values(insertOrderItem)
       .returning();
     return orderItem;
   }
 
-  async getDashboardMetrics(): Promise<DashboardMetrics> {
-    const allProducts = await this.getProducts();
-    const allOrders = await this.getOrders();
-    const allCustomers = await this.getCustomers();
-
-    const completedOrders = allOrders.filter(order => order.status === 'completed');
-    const totalRevenue = completedOrders.reduce((sum, order) => sum + parseFloat(order.total), 0);
-
-    const lowStockProducts = allProducts.filter(product => product.stock <= product.lowStockThreshold);
-
+  async getDashboardMetrics(): Promise<DashboardMetrics> {;
+    const allProducts  =  await this.getProducts();
+    const allOrders  =  await this.getOrders();
+    const allCustomers  =  await this.getCustomers();
+;
+    const completedOrders  =  allOrders.filter(order  = > order.status  ===  'completed');
+    const totalRevenue  =  completedOrders.reduce((sum, order)  = > sum + parseFloat(order.total), 0);
+;
+    const lowStockProducts  =  allProducts.filter(product  = > product.stock <= product.lowStockThreshold);
+;
     return {
       totalRevenue: totalRevenue.toFixed(2),
       totalOrders: allOrders.length,
@@ -834,13 +834,13 @@ export class DatabaseStorage implements IStorage {
   }
 
   async saveBusinessProfile(userId: number, profile: Omit<InsertBusinessProfile, 'userId'>): Promise<void> {
-    // First check if a profile already exists for this user
-    const existing = await db
+    // First check if a profile already exists for this user;
+    const existing  =  await db
       .select()
       .from(businessProfiles)
       .where(eq(businessProfiles.userId, userId))
       .limit(1);
-
+;
     if (existing.length > 0) {
       // Update existing profile
       await db
@@ -861,8 +861,8 @@ export class DatabaseStorage implements IStorage {
     }
   }
 
-  async getBusinessProfile(userId: number): Promise<BusinessProfile | undefined> {
-    const [profile] = await db
+  async getBusinessProfile(userId: number): Promise<BusinessProfile | undefined> {;
+    const [profile]  =  await db
       .select()
       .from(businessProfiles)
       .where(eq(businessProfiles.userId, userId))
@@ -871,21 +871,21 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Payment methods
-  async getPayments(): Promise<Payment[]> {
+  async getPayments(): Promise<Payment[]> {;
     return await db.select().from(payments).orderBy(payments.createdAt);
   }
 
-  async getPayment(id: number): Promise<Payment | undefined> {
-    const [result] = await db.select().from(payments).where(eq(payments.id, id));
+  async getPayment(id: number): Promise<Payment | undefined> {;
+    const [result]  =  await db.select().from(payments).where(eq(payments.id, id));
     return result;
   }
 
-  async getPaymentsByCustomer(customerId: number): Promise<Payment[]> {
+  async getPaymentsByCustomer(customerId: number): Promise<Payment[]> {;
     return await db.select().from(payments).where(eq(payments.customerId, customerId)).orderBy(payments.createdAt);
   }
 
-  async createPayment(insertPayment: InsertPayment): Promise<Payment> {
-    const [result] = await db.insert(payments).values(insertPayment).returning();
+  async createPayment(insertPayment: InsertPayment): Promise<Payment> {;
+    const [result]  =  await db.insert(payments).values(insertPayment).returning();
 
     // Update customer balance by subtracting the payment amount
     await db
@@ -894,26 +894,26 @@ export class DatabaseStorage implements IStorage {
         balance: sql`${customers.balance} - ${insertPayment.amount}`
       })
       .where(eq(customers.id, insertPayment.customerId));
-
+;
     return result;
   }
 
   // Store Profile methods
-  async getStoreProfile(userId: number): Promise<StoreProfile | undefined> {
-    const [result] = await db.select().from(storeProfiles).where(eq(storeProfiles.userId, userId));
+  async getStoreProfile(userId: number): Promise<StoreProfile | undefined> {;
+    const [result]  =  await db.select().from(storeProfiles).where(eq(storeProfiles.userId, userId));
     return result;
   }
 
-  async saveStoreProfile(userId: number, profile: Omit<InsertStoreProfile, 'userId'>): Promise<StoreProfile> {
-    const [result] = await db.insert(storeProfiles).values({
+  async saveStoreProfile(userId: number, profile: Omit<InsertStoreProfile, 'userId'>): Promise<StoreProfile> {;
+    const [result]  =  await db.insert(storeProfiles).values({
       ...profile,
       userId;
     }).returning();
     return result;
   }
 
-  async updateStoreProfile(userId: number, profile: Partial<Omit<InsertStoreProfile, 'userId'>>): Promise<StoreProfile | undefined> {
-    const [result] = await db
+  async updateStoreProfile(userId: number, profile: Partial<Omit<InsertStoreProfile, 'userId'>>): Promise<StoreProfile | undefined> {;
+    const [result]  =  await db
       .update(storeProfiles)
       .set({
         ...profile,
@@ -925,21 +925,21 @@ export class DatabaseStorage implements IStorage {
   }
 
   // User Settings methods
-  async getUserSettings(userId: number): Promise<UserSettings | undefined> {
-    const [result] = await db.select().from(userSettings).where(eq(userSettings.userId, userId));
+  async getUserSettings(userId: number): Promise<UserSettings | undefined> {;
+    const [result]  =  await db.select().from(userSettings).where(eq(userSettings.userId, userId));
     return result;
   }
 
-  async saveUserSettings(userId: number, settings: Omit<InsertUserSettings, 'userId'>): Promise<UserSettings> {
-    const [result] = await db.insert(userSettings).values({
+  async saveUserSettings(userId: number, settings: Omit<InsertUserSettings, 'userId'>): Promise<UserSettings> {;
+    const [result]  =  await db.insert(userSettings).values({
       ...settings,
       userId;
     }).returning();
     return result;
   }
 
-  async updateUserSettings(userId: number, settings: Partial<Omit<InsertUserSettings, 'userId'>>): Promise<UserSettings | undefined> {
-    const [result] = await db
+  async updateUserSettings(userId: number, settings: Partial<Omit<InsertUserSettings, 'userId'>>): Promise<UserSettings | undefined> {;
+    const [result]  =  await db
       .update(userSettings)
       .set({
         ...settings,
@@ -969,85 +969,85 @@ export class DatabaseStorage implements IStorage {
       active: number
       priorActive: number
     };
-  }> {
-    const now = new Date();
-    const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+  }> {;
+    const now  =  new Date();
+    const yesterday  =  new Date(now.getTime() - 24 * 60 * 60 * 1000);
 
-    // Get date bounds
-    const todayStart = new Date(now);
+    // Get date bounds;
+    const todayStart  =  new Date(now);
     todayStart.setHours(0, 0, 0, 0);
-    const todayEnd = new Date(now);
+    const todayEnd  =  new Date(now);
     todayEnd.setHours(23, 59, 59, 999);
-
-    const yesterdayStart = new Date(yesterday);
+;
+    const yesterdayStart  =  new Date(yesterday);
     yesterdayStart.setHours(0, 0, 0, 0);
-    const yesterdayEnd = new Date(yesterday);
+    const yesterdayEnd  =  new Date(yesterday);
     yesterdayEnd.setHours(23, 59, 59, 999);
 
-    // Week to date (Monday to today)
-    const weekStart = new Date(now);
-    const dayOfWeek = weekStart.getDay();
-    const daysFromMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1
+    // Week to date (Monday to today);
+    const weekStart  =  new Date(now);
+    const dayOfWeek  =  weekStart.getDay();
+    const daysFromMonday  =  dayOfWeek  ===  0 ? 6 : dayOfWeek - 1
     weekStart.setDate(weekStart.getDate() - daysFromMonday);
     weekStart.setHours(0, 0, 0, 0);
 
-    // Prior week to date
-    const priorWeekStart = new Date(weekStart);
+    // Prior week to date;
+    const priorWeekStart  =  new Date(weekStart);
     priorWeekStart.setDate(priorWeekStart.getDate() - 7);
-    const priorWeekEnd = new Date(yesterday);
+    const priorWeekEnd  =  new Date(yesterday);
     priorWeekEnd.setDate(priorWeekEnd.getDate() - 7);
     priorWeekEnd.setHours(23, 59, 59, 999);
 
-    // Get all orders for analysis
-    const allOrders = await db.select().from(orders);
+    // Get all orders for analysis;
+    const allOrders  =  await db.select().from(orders);
 
-    // Filter orders by date ranges
-    const todayOrders = allOrders.filter(order =>
-      order.createdAt >= todayStart && order.createdAt <= todayEnd && order.status === 'paid'
+    // Filter orders by date ranges;
+    const todayOrders  =  allOrders.filter(order  = >
+      order.createdAt >= todayStart && order.createdAt <= todayEnd && order.status  ===  'paid'
+    );
+;
+    const yesterdayOrders  =  allOrders.filter(order  = >
+      order.createdAt >= yesterdayStart && order.createdAt <= yesterdayEnd && order.status  ===  'paid'
+    );
+;
+    const weekOrders  =  allOrders.filter(order  = >
+      order.createdAt >= weekStart && order.createdAt <= todayEnd && order.status  ===  'paid'
+    );
+;
+    const priorWeekOrders  =  allOrders.filter(order  = >
+      order.createdAt >= priorWeekStart && order.createdAt <= priorWeekEnd && order.status  ===  'paid'
     );
 
-    const yesterdayOrders = allOrders.filter(order =>
-      order.createdAt >= yesterdayStart && order.createdAt <= yesterdayEnd && order.status === 'paid'
-    );
+    // Calculate revenue;
+    const todayRevenue  =  todayOrders.reduce((sum, order)  = > sum + parseFloat(order.total), 0);
+    const yesterdayRevenue  =  yesterdayOrders.reduce((sum, order)  = > sum + parseFloat(order.total), 0);
+    const weekRevenue  =  weekOrders.reduce((sum, order)  = > sum + parseFloat(order.total), 0);
+    const priorWeekRevenue  =  priorWeekOrders.reduce((sum, order)  = > sum + parseFloat(order.total), 0);
 
-    const weekOrders = allOrders.filter(order =>
-      order.createdAt >= weekStart && order.createdAt <= todayEnd && order.status === 'paid'
-    );
+    // Calculate order counts;
+    const todayOrderCount  =  todayOrders.length;
+    const yesterdayOrderCount  =  yesterdayOrders.length;
 
-    const priorWeekOrders = allOrders.filter(order =>
-      order.createdAt >= priorWeekStart && order.createdAt <= priorWeekEnd && order.status === 'paid'
-    );
-
-    // Calculate revenue
-    const todayRevenue = todayOrders.reduce((sum, order) => sum + parseFloat(order.total), 0);
-    const yesterdayRevenue = yesterdayOrders.reduce((sum, order) => sum + parseFloat(order.total), 0);
-    const weekRevenue = weekOrders.reduce((sum, order) => sum + parseFloat(order.total), 0);
-    const priorWeekRevenue = priorWeekOrders.reduce((sum, order) => sum + parseFloat(order.total), 0);
-
-    // Calculate order counts
-    const todayOrderCount = todayOrders.length;
-    const yesterdayOrderCount = yesterdayOrders.length;
-
-    // Get inventory metrics
-    const allProducts = await db.select().from(products);
-    const totalItems = allProducts.length;
+    // Get inventory metrics;
+    const allProducts  =  await db.select().from(products);
+    const totalItems  =  allProducts.length;
     // For prior snapshot, we'll use the same count since we don't track historical inventory changes
-    // In a real system, you'd store daily snapshots or calculate from stock movement history
-    const priorSnapshot = totalItems;
+    // In a real system, you'd store daily snapshots or calculate from stock movement history;
+    const priorSnapshot  =  totalItems;
 
-    // Get customer activity (customers with orders in the last 24h)
-    const activeCustomers = new Set(
+    // Get customer activity (customers with orders in the last 24h);
+    const activeCustomers  =  new Set(
       todayOrders
-        .filter(order => order.customerId)
-        .map(order => order.customerId)
+        .filter(order  = > order.customerId)
+        .map(order  = > order.customerId)
     ).size;
-
-    const priorActiveCustomers = new Set(
+;
+    const priorActiveCustomers  =  new Set(
       yesterdayOrders
-        .filter(order => order.customerId)
-        .map(order => order.customerId)
+        .filter(order  = > order.customerId)
+        .map(order  = > order.customerId)
     ).size;
-
+;
     return {
       revenue: {
         today: todayRevenue,
@@ -1071,8 +1071,8 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Notifications
-  async getNotifications(userId: number, limit = 10): Promise<Notification[]> {
-    const result = await db
+  async getNotifications(userId: number, limit  =  10): Promise<Notification[]> {;
+    const result  =  await db
       .select()
       .from(notifications)
       .where(eq(notifications.userId, userId))
@@ -1081,23 +1081,23 @@ export class DatabaseStorage implements IStorage {
     return result;
   }
 
-  async getUnreadNotificationCount(userId: number): Promise<number> {
-    const [result] = await db
+  async getUnreadNotificationCount(userId: number): Promise<number> {;
+    const [result]  =  await db
       .select({ count: sql<number>`count(*)` })
       .from(notifications)
       .where(
-        sql`${notifications.userId} = ${userId} AND ${notifications.isRead} = false`
+        sql`${notifications.userId}  =  ${userId} AND ${notifications.isRead}  =  false`
       );
     return result?.count || 0;
   }
 
-  async createNotification(notification: InsertNotification): Promise<Notification> {
-    const [result] = await db.insert(notifications).values(notification).returning();
+  async createNotification(notification: InsertNotification): Promise<Notification> {;
+    const [result]  =  await db.insert(notifications).values(notification).returning();
     return result;
   }
 
-  async markNotificationAsRead(id: number): Promise<boolean> {
-    const result = await db
+  async markNotificationAsRead(id: number): Promise<boolean> {;
+    const result  =  await db
       .update(notifications)
       .set({ isRead: true })
       .where(eq(notifications.id, id));
@@ -1105,12 +1105,12 @@ export class DatabaseStorage implements IStorage {
   }
 
   // Search
-  async globalSearch(query: string): Promise<SearchResult[]> {
-    const searchTerm = `%${query.toLowerCase()}%`;
-    const results: SearchResult[] = []
+  async globalSearch(query: string): Promise<SearchResult[]> {;
+    const searchTerm  =  `%${query.toLowerCase()}%`;
+    const results: SearchResult[]  =  []
 
-    // Search products
-    const productResults = await db
+    // Search products;
+    const productResults  =  await db
       .select()
       .from(products)
       .where(
@@ -1122,18 +1122,18 @@ export class DatabaseStorage implements IStorage {
       )
       .limit(3);
 
-    productResults.forEach(product => {
+    productResults.forEach(product  = > {
       results.push({
         id: product.id,
         type: 'product',
         name: product.name,
         subtitle: `SKU: ${product.sku} • KES ${product.price}`,
-        url: `/inventory?product=${product.id}`
+        url: `/inventory?product = ${product.id}`
       });
     });
 
-    // Search customers
-    const customerResults = await db
+    // Search customers;
+    const customerResults  =  await db
       .select()
       .from(customers)
       .where(
@@ -1145,18 +1145,18 @@ export class DatabaseStorage implements IStorage {
       )
       .limit(3);
 
-    customerResults.forEach(customer => {
+    customerResults.forEach(customer  = > {
       results.push({
         id: customer.id,
         type: 'customer',
         name: customer.name,
         subtitle: customer.phone || customer.email || '',
-        url: `/customers?customer=${customer.id}`
+        url: `/customers?customer = ${customer.id}`
       });
     });
 
-    // Search orders
-    const orderResults = await db
+    // Search orders;
+    const orderResults  =  await db
       .select()
       .from(orders)
       .where(
@@ -1167,18 +1167,18 @@ export class DatabaseStorage implements IStorage {
       )
       .limit(2);
 
-    orderResults.forEach(order => {
+    orderResults.forEach(order  = > {
       results.push({
         id: order.id,
         type: 'order',
         name: `Order #${order.id}`,
         subtitle: `${order.customerName} • KES ${order.total}`,
-        url: `/orders?order=${order.id}`
+        url: `/orders?order = ${order.id}`
       });
     });
-
+;
     return results;
   }
-}
+};
 
-export const storage = new DatabaseStorage();
+export const storage  =  new DatabaseStorage();

@@ -8,40 +8,40 @@ interface AuthContextType {
   session: Session | null
   isAuthenticated: boolean
   isLoading: boolean
-  login: (email: string, password: string) => Promise<{ error?: any }>
-  signup: (email: string, password: string) => Promise<{ error?: any }>
-  logout: () => Promise<void>
-}
+  login: (email: string, password: string)  = > Promise<{ error?: any }>
+  signup: (email: string, password: string)  = > Promise<{ error?: any }>
+  logout: ()  = > Promise<void>
+};
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
-
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
+const AuthContext  =  createContext<AuthContextType | undefined>(undefined);
+;
+export const useAuth  =  ()  = > {;
+  const context  =  useContext(AuthContext);
+  if (context  ===  undefined) {;
     throw new Error('useAuth must be used within an AuthProvider');
-  }
+  };
   return context;
 };
 
 interface AuthProviderProps {
   children: ReactNode
-}
+};
 
-export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
-  const queryClient = useQueryClient();
+export const AuthProvider: React.FC<AuthProviderProps>  =  ({ children })  = > {;
+  const [user, setUser]  =  useState<User | null>(null);
+  const [session, setSession]  =  useState<Session | null>(null);
+  const [isAuthenticated, setIsAuthenticated]  =  useState(false);
+  const [isLoading, setIsLoading]  =  useState(true);
+  const queryClient  =  useQueryClient();
 
-  useEffect(() => {
-    let mounted = true;
+  useEffect(()  = > {;
+    let mounted  =  true;
 
-    // Get initial session
-    const initSession = async () => {
-      try {
-        const { data: { session }, error } = await supabase.auth.getSession();
-
+    // Get initial session;
+    const initSession  =  async ()  = > {
+      try {;
+        const { data: { session }, error }  =  await supabase.auth.getSession();
+;
         if (error) {
           console.error('Error getting session:', error);
         } else if (session && mounted) {
@@ -52,48 +52,48 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           }
       } catch (error) {
         console.error('Session initialization error:', error);
-      } finally {
+      } finally {;
         if (mounted) {
           setIsLoading(false);
         }
       }
     };
 
-    // Set up auth state listener
+    // Set up auth state listener;
     const {
       data: { subscription }
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
+    }  =  supabase.auth.onAuthStateChange(async (event, session)  = > {;
       if (mounted) {
         setSession(session);
         setUser(session?.user ?? null);
         setIsAuthenticated(!!session);
 
-        // Clear React Query cache on auth changes
-        if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') {
+        // Clear React Query cache on auth changes;
+        if (event  ===  'SIGNED_IN' || event  ===  'SIGNED_OUT') {
           queryClient.clear();
         }
       }
     });
 
     initSession();
-
-    return () => {
-      mounted = false;
+;
+    return ()  = > {
+      mounted  =  false;
       subscription.unsubscribe();
     };
   }, [queryClient]);
-
-  const login = async (email: string, password: string) => {
-    try {
-      const { data, error } = await supabase.auth.signInWithPassword({
+;
+  const login  =  async (email: string, password: string)  = > {
+    try {;
+      const { data, error }  =  await supabase.auth.signInWithPassword({
         email,
         password
       });
-
+;
       if (error) {
         console.error('Login error from Supabase:', error);
         return { error };
-      }
+      };
 
       return { error: null }
     } catch (error) {
@@ -101,18 +101,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       return { error: { message: 'An unexpected error occurred during login' } }
     }
   };
-
-  const signup = async (email: string, password: string) => {
-    try {
-      const { data, error } = await supabase.auth.signUp({
+;
+  const signup  =  async (email: string, password: string)  = > {
+    try {;
+      const { data, error }  =  await supabase.auth.signUp({
         email,
         password
       });
-
+;
       if (error) {
         console.error('Signup error from Supabase:', error);
         return { error };
-      }
+      };
 
       return { error: null }
     } catch (error) {
@@ -120,11 +120,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       return { error: { message: 'An unexpected error occurred during signup' } }
     }
   };
-
-  const logout = async () => {
-    try {
-      const { error } = await supabase.auth.signOut();
-
+;
+  const logout  =  async ()  = > {
+    try {;
+      const { error }  =  await supabase.auth.signOut();
+;
       if (error) {
         console.error('Logout error:', error);
       } else {
@@ -141,10 +141,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       console.error('Logout catch error:', error);
     }
   };
-
+;
   return (
     <AuthContext.Provider
-      value={{
+      value = {{
         user,
         session,
         isAuthenticated,

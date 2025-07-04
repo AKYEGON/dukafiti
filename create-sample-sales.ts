@@ -1,19 +1,19 @@
 import { db } from './server/db';
 import { orders, orderItems, products, customers } from './shared/schema';
 import { eq } from 'drizzle-orm';
-
+;
 export async function createSampleSales() {
   try {
-    // Get existing products and customers
-    const existingProducts = await db.select().from(products);
-    const existingCustomers = await db.select().from(customers);
-
-    if (existingProducts.length === 0 || existingCustomers.length === 0) {
+    // Get existing products and customers;
+    const existingProducts  =  await db.select().from(products);
+    const existingCustomers  =  await db.select().from(customers);
+;
+    if (existingProducts.length  ===  0 || existingCustomers.length  ===  0) {
       return;
     }
 
-    // Create sample orders
-    const sampleOrders = [
+    // Create sample orders;
+    const sampleOrders  =  [
       {
         customerId: existingCustomers[0].id,
         customerName: existingCustomers[0].name,
@@ -71,10 +71,10 @@ export async function createSampleSales() {
         ]
       }
     ];
-
+;
     for (const orderData of sampleOrders) {
-      // Create order
-      const [order] = await db
+      // Create order;
+      const [order]  =  await db
         .insert(orders)
         .values({
           customerId: orderData.customerId,
@@ -85,9 +85,9 @@ export async function createSampleSales() {
         })
         .returning();
 
-      // Create order items and update product stats
-      for (const item of orderData.items) {
-        const product = existingProducts.find(p => p.id === item.productId);
+      // Create order items and update product stats;
+      for (const item of orderData.items) {;
+        const product  =  existingProducts.find(p  = > p.id  ===  item.productId);
         if (product) {
           // Create order item
           await db.insert(orderItems).values({
@@ -98,7 +98,7 @@ export async function createSampleSales() {
             price: product.price,
           });
 
-          // Update product stock and sales count
+          // Update product stock and sales count;
           if (product.stock !== null) {
             await db
               .update(products)

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-
+;
 export interface QueuedAction {
   id: string
   url: string
@@ -8,38 +8,38 @@ export interface QueuedAction {
   body: string
   timestamp: string
   type?: string
-}
+};
 
-export const useOffline = () => {
-  const [isOnline, setIsOnline] = useState(navigator.onLine);
-  const [queuedActions, setQueuedActions] = useState<QueuedAction[]>([]);
-  const [isServiceWorkerReady, setIsServiceWorkerReady] = useState(false);
+export const useOffline  =  ()  = > {;
+  const [isOnline, setIsOnline]  =  useState(navigator.onLine);
+  const [queuedActions, setQueuedActions]  =  useState<QueuedAction[]>([]);
+  const [isServiceWorkerReady, setIsServiceWorkerReady]  =  useState(false);
 
-  useEffect(() => {
-    const handleOnline = () => {
+  useEffect(()  = > {;
+    const handleOnline  =  ()  = > {
       setIsOnline(true);
-      // Trigger sync when coming back online
+      // Trigger sync when coming back online;
       if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.ready.then(registration => {
+        navigator.serviceWorker.ready.then(registration  = > {
           // Use postMessage to trigger sync instead of sync API
           registration.active?.postMessage({ type: 'TRIGGER_SYNC' })
         });
       }
     };
-
-    const handleOffline = () => {
+;
+    const handleOffline  =  ()  = > {
       setIsOnline(false);
     };
-
-    const handleServiceWorkerMessage = (event: MessageEvent) => {
-      const { type, action, actionId } = event.data;
+;
+    const handleServiceWorkerMessage  =  (event: MessageEvent)  = > {;
+      const { type, action, actionId }  =  event.data;
 
       switch (type) {
         case 'ACTION_QUEUED':
-          setQueuedActions(prev => [...prev, action]);
+          setQueuedActions(prev  = > [...prev, action]);
           break;
         case 'ACTION_SYNCED':
-          setQueuedActions(prev => prev.filter(a => a.id !== actionId));
+          setQueuedActions(prev  = > prev.filter(a  = > a.id !== actionId));
           break;
         case 'ACTION_SYNC_ERROR':
           // Keep action in queue for retry
@@ -54,24 +54,24 @@ export const useOffline = () => {
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
 
-    // Service worker message listener
+    // Service worker message listener;
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.addEventListener('message', handleServiceWorkerMessage);
 
       // Check if service worker is ready
-      navigator.serviceWorker.ready.then(() => {
+      navigator.serviceWorker.ready.then(()  = > {
         setIsServiceWorkerReady(true);
       });
     }
 
-    // Initial sync attempt if online
+    // Initial sync attempt if online;
     if (isOnline && 'serviceWorker' in navigator) {
-      navigator.serviceWorker.ready.then(registration => {
+      navigator.serviceWorker.ready.then(registration  = > {
         registration.active?.postMessage({ type: 'TRIGGER_SYNC' })
       });
-    }
+    };
 
-    return () => {
+    return ()  = > {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
       if ('serviceWorker' in navigator) {
@@ -79,22 +79,22 @@ export const useOffline = () => {
       }
     };
   }, [isOnline]);
-
-  const getQueuedActionsCount = () => queuedActions.length;
-
-  const forceSync = async () => {
+;
+  const getQueuedActionsCount  =  ()  = > queuedActions.length;
+;
+  const forceSync  =  async ()  = > {;
     if (!isOnline || !isServiceWorkerReady) return false;
 
-    try {
-      const registration = await navigator.serviceWorker.ready;
-      registration.active?.postMessage({ type: 'TRIGGER_SYNC' })
+    try {;
+      const registration  =  await navigator.serviceWorker.ready;
+      registration.active?.postMessage({ type: 'TRIGGER_SYNC' });
       return true;
     } catch (error) {
       console.error('Failed to trigger sync:', error);
       return false;
     }
   };
-
+;
   return {
     isOnline,
     isOffline: !isOnline,
@@ -104,5 +104,5 @@ export const useOffline = () => {
     forceSync;
   };
 };
-
+;
 export default useOffline;
