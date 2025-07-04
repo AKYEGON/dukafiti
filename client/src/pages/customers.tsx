@@ -27,26 +27,26 @@ export default function Customers() {
   // Filter and search customers
   const filteredCustomers = useMemo(() => {
     if (!customers) return [];
-    
+
     let filtered = customers.filter(customer => {
-      const matchesSearch = 
+      const matchesSearch =
         customer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         (customer.phone && customer.phone.includes(searchQuery));
-      
+
       const balance = parseFloat(customer.balance || "0");
-      const matchesFilter = 
+      const matchesFilter =
         filterType === "all" ||
         (filterType === "withDebt" && balance > 0) ||
         (filterType === "noDebt" && balance <= 0);
-      
+
       return matchesSearch && matchesFilter;
     });
-    
+
     // Sort by debt status (with debt first), then by name
     return filtered.sort((a, b) => {
       const aBalance = parseFloat(a.balance || "0");
       const bBalance = parseFloat(b.balance || "0");
-      
+
       if (aBalance > 0 && bBalance <= 0) return -1;
       if (aBalance <= 0 && bBalance > 0) return 1;
       return a.name.localeCompare(b.name);
@@ -77,7 +77,7 @@ export default function Customers() {
             <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded mb-4 w-48"></div>
             <div className="h-12 bg-gray-200 dark:bg-gray-700 rounded"></div>
           </div>
-          
+
           {/* Loading Cards */}
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             {[...Array(6)].map((_, i) => (
@@ -101,7 +101,7 @@ export default function Customers() {
         {/* Enhanced Header */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <Button 
+            <Button
               onClick={() => setShowNewCustomerForm(true)}
               className="bg-purple-600 hover:bg-purple-700 text-white min-h-[48px] px-6"
               aria-label="Add new customer"
@@ -110,7 +110,7 @@ export default function Customers() {
               Add Customer
             </Button>
           </div>
-          
+
           {/* Search and Filter Bar */}
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="relative flex-1">
@@ -149,13 +149,13 @@ export default function Customers() {
                 {customers?.length === 0 ? "No customers yet" : "No customers found"}
               </h3>
               <p className="text-gray-600 dark:text-gray-400 mb-4">
-                {customers?.length === 0 
+                {customers?.length === 0
                   ? "Start building your customer base by adding your first customer."
                   : "Try adjusting your search or filter criteria."
                 }
               </p>
               {customers?.length === 0 && (
-                <Button 
+                <Button
                   onClick={() => setShowNewCustomerForm(true)}
                   className="bg-green-600 hover:bg-green-700 text-white min-h-[48px]"
                 >
@@ -172,7 +172,7 @@ export default function Customers() {
               {filteredCustomers.map((customer, index) => {
                 const balance = parseFloat(customer.balance || "0");
                 const hasDebt = balance > 0;
-                
+
                 return (
                   <motion.div
                     key={customer.id}
@@ -181,13 +181,13 @@ export default function Customers() {
                     exit={{ opacity: 0, y: -20 }}
                     transition={{ duration: 0.3, delay: index * 0.1 }}
                   >
-                    <Card 
+                    <Card
                       className={`
-                        bg-white dark:bg-gray-800 
+                        bg-white dark:bg-gray-800
                         border-2 transition-all duration-300 cursor-pointer
                         hover:shadow-xl hover:-translate-y-1 hover:shadow-purple-500/20
-                        ${hasDebt 
-                          ? "border-green-500 shadow-lg shadow-green-500/10" 
+                        ${hasDebt
+                          ? "border-green-500 shadow-lg shadow-green-500/10"
                           : "border-gray-200 dark:border-gray-700"
                         }
                       `}
@@ -198,8 +198,8 @@ export default function Customers() {
                           <div className="flex items-center space-x-3">
                             <div className={`
                               w-12 h-12 rounded-full flex items-center justify-center
-                              ${hasDebt 
-                                ? "bg-green-100 dark:bg-green-900/30" 
+                              ${hasDebt
+                                ? "bg-green-100 dark:bg-green-900/30"
                                 : "bg-gray-100 dark:bg-gray-700"
                               }
                             `}>
@@ -220,14 +220,14 @@ export default function Customers() {
                             </div>
                           </div>
                         </div>
-                        
+
                         {/* Customer Details */}
                         <div className="space-y-3 mb-6">
                           <div className="flex items-center space-x-2 text-gray-600 dark:text-gray-300">
                             <Phone className="h-4 w-4" />
                             <span className="text-sm">{customer.phone || "No phone"}</span>
                           </div>
-                          
+
                           <div className="flex items-center space-x-2">
                             <CreditCard className={`h-4 w-4 ${hasDebt ? "text-red-500" : "text-green-500"}`} />
                             <span className={`font-semibold ${hasDebt ? "text-red-600 dark:text-red-400" : "text-green-600 dark:text-green-400"}`}>
@@ -235,12 +235,12 @@ export default function Customers() {
                             </span>
                           </div>
                         </div>
-                        
+
                         {/* Action Buttons */}
                         <div className="flex gap-2 w-full">
-                          <Button 
+                          <Button
                             onClick={() => handleEditCustomer(customer)}
-                            variant="outline" 
+                            variant="outline"
                             size="sm"
                             className="min-h-[40px] border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 text-xs xl:text-sm px-3"
                             aria-label={`Edit ${customer.name} details`}
@@ -248,9 +248,9 @@ export default function Customers() {
                             <Eye className="mr-1 h-4 w-4 flex-shrink-0" />
                             Edit
                           </Button>
-                          
+
                           {hasDebt && (
-                            <Button 
+                            <Button
                               onClick={() => handleRecordRepayment(customer)}
                               size="sm"
                               className="flex-1 min-h-[40px] bg-green-600 hover:bg-green-700 text-white text-xs xl:text-sm px-2"

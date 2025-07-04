@@ -153,9 +153,9 @@ export function CustomerForm({ open, onOpenChange, customer }: CustomerFormProps
   const onSubmit = (data: CustomerFormData) => {
     // Keep the balance field as-is, let the mutation handle defaults
     const processedData = {
-      ...data
+      ...data;
     };
-    
+
     if (customer) {
       updateCustomer.mutate(processedData);
     } else {
@@ -180,9 +180,9 @@ export function CustomerForm({ open, onOpenChange, customer }: CustomerFormProps
                 <FormItem>
                   <FormLabel className="text-foreground">Name</FormLabel>
                   <FormControl>
-                    <Input 
-                      placeholder="Customer name" 
-                      {...field} 
+                    <Input
+                      placeholder="Customer name"
+                      {...field}
                       className="bg-input border-border text-foreground placeholder-muted-foreground"
                     />
                   </FormControl>
@@ -197,9 +197,9 @@ export function CustomerForm({ open, onOpenChange, customer }: CustomerFormProps
                 <FormItem>
                   <FormLabel className="text-foreground">Phone Number</FormLabel>
                   <FormControl>
-                    <Input 
-                      placeholder="0712345678" 
-                      {...field} 
+                    <Input
+                      placeholder="0712345678"
+                      {...field}
                       className="bg-input border-border text-foreground placeholder-muted-foreground"
                     />
                   </FormControl>
@@ -207,7 +207,7 @@ export function CustomerForm({ open, onOpenChange, customer }: CustomerFormProps
                 </FormItem>
               )}
             />
-            
+
             {!customer && (
               <FormField
                 control={form.control}
@@ -220,12 +220,12 @@ export function CustomerForm({ open, onOpenChange, customer }: CustomerFormProps
                         <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground text-sm">
                           KES
                         </span>
-                        <Input 
+                        <Input
                           type="number"
                           step="0.01"
                           min="0"
-                          placeholder="0.00" 
-                          {...field} 
+                          placeholder="0.00"
+                          {...field}
                           value={field.value || ''}
                           onChange={(e) => {
                             field.onChange(e.target.value);
@@ -245,8 +245,8 @@ export function CustomerForm({ open, onOpenChange, customer }: CustomerFormProps
 
             <div className="flex justify-between space-x-2 pt-4">
               {customer && (
-                <Button 
-                  type="button" 
+                <Button
+                  type="button"
                   variant="destructive"
                   onClick={() => {
                     deleteCustomer.mutate();
@@ -258,18 +258,18 @@ export function CustomerForm({ open, onOpenChange, customer }: CustomerFormProps
                   {deleteCustomer.isPending ? "Deleting..." : "Delete"}
                 </Button>
               )}
-              
+
               <div className="flex space-x-2 ml-auto">
-                <Button 
-                  type="button" 
-                  variant="outline" 
+                <Button
+                  type="button"
+                  variant="outline"
                   onClick={() => onOpenChange(false)}
                   className="border-border text-muted-foreground hover:bg-input"
                 >
                   Cancel
                 </Button>
-                <Button 
-                  type="submit" 
+                <Button
+                  type="submit"
                   disabled={createCustomer.isPending || updateCustomer.isPending}
                   className="bg-green-600 hover:bg-green-700 text-foreground"
                 >

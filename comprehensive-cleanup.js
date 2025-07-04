@@ -28,36 +28,31 @@ const consolePatterns = [
 
 function cleanFile(filePath) {
   const fullPath = path.join(projectRoot, filePath);
-  
+
   if (!fs.existsSync(fullPath)) {
-    console.log(`File not found: ${filePath}`);
     return;
   }
-  
+
   let content = fs.readFileSync(fullPath, 'utf8');
   const originalContent = content;
-  
+
   // Remove console statements
   consolePatterns.forEach(pattern => {
     content = content.replace(pattern, '');
   });
-  
+
   // Clean up empty lines
   content = content.replace(/\n\s*\n\s*\n/g, '\n\n');
-  
+
   if (content !== originalContent) {
     fs.writeFileSync(fullPath, content, 'utf8');
-    console.log(`Cleaned: ${filePath}`);
-  }
+    }
 }
 
 function main() {
-  console.log('Starting comprehensive cleanup...');
-  
   filesToClean.forEach(cleanFile);
-  
-  console.log('Cleanup completed!');
-}
+
+  }
 
 if (require.main === module) {
   main();

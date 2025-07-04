@@ -9,7 +9,7 @@ export function OfflineIndicator() {
   useEffect(() => {
     // Set initial state
     setOnline(isOnline());
-    
+
     // Update pending count
     const updatePendingCount = async () => {
       try {

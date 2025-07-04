@@ -12,7 +12,7 @@ async function seedSupabaseDatabase() {
     };
 
     let userId = 1;
-    
+
     try {
       const user = await supabaseDb.createUser(testUser);
       userId = user.id;
@@ -199,7 +199,7 @@ async function seedSupabaseDatabase() {
         location: 'Nairobi, Kenya',
         description: 'Your friendly neighborhood duka'
       };
-      
+
       await supabaseDb.createStoreProfile(storeProfile);
       } catch (error) {
       }
@@ -214,7 +214,7 @@ async function seedSupabaseDatabase() {
         notifications: true,
         mpesaEnabled: true;
       };
-      
+
       await supabaseDb.createUserSettings(userSettings);
       } catch (error) {
       }

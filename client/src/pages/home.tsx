@@ -111,7 +111,7 @@ export default function Home() {
                 Get Started – It's Free <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
             </div>
-            
+
             <div className="lg:col-span-6 mt-12 lg:mt-0">
               <div className="relative">
                 {/* Hero Graphic - SVG Illustration */}

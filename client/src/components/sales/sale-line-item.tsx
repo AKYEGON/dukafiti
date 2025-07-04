@@ -57,8 +57,8 @@ export function SaleLineItemComponent({ item, onQuantityChange, onRemove }: Sale
                 <div className="flex items-center gap-1 mt-1">
                   <AlertTriangle className="w-3 h-3 text-red-500" />
                   <span className="text-xs text-red-600">
-                    {isOutOfStock 
-                      ? `Only ${item.product.stock} in stock` 
+                    {isOutOfStock
+                      ? `Only ${item.product.stock} in stock`
                       : `Low stock: ${item.product.stock} remaining`
                     }
                   </span>

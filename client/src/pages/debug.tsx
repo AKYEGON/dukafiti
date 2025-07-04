@@ -15,7 +15,7 @@ export default function Debug() {
     const checkSession = async () => {
       try {
         const { data: { session }, error } = await supabase.auth.getSession();
-        
+
         if (error) {
           console.error('Error getting session:', error);
           setError(error.message);
@@ -24,7 +24,7 @@ export default function Debug() {
         }
 
         const { data: { user }, error: userError } = await supabase.auth.getUser();
-        
+
         if (userError) {
           console.error('Error getting user:', userError);
           setError(userError.message);
@@ -47,7 +47,7 @@ export default function Debug() {
       email: 'test@example.com',
       password: 'testpassword123'
     });
-    
+
     };
 
   const testSignIn = async () => {
@@ -55,7 +55,7 @@ export default function Debug() {
       email: 'test@example.com',
       password: 'testpassword123'
     });
-    
+
     };
 
   if (loading) {
@@ -66,7 +66,7 @@ export default function Debug() {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4">
       <div className="max-w-4xl mx-auto space-y-6">
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white">Debug Authentication</h1>
-        
+
         {error && (
           <Card className="border-red-200 bg-red-50">
             <CardHeader>

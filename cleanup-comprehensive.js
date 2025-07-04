@@ -5,94 +5,55 @@
  * Removes console.log statements, fixes code issues, and improves production readiness
  */
 
-import fs from 'fs';
-import path from 'path';
+import { readFileSync, writeFileSync, readdirSync, statSync } from 'fs';
+import { join, extname } from 'path';
 
-// Files to clean
-const directoriesToClean = [
-  'client/src',
-  'server',
-  'src'
-];
-
-// File extensions to process
-const fileExtensions = ['.js', '.jsx', '.ts', '.tsx'];
-
-// Issues to fix
-const fixes = [
-  // Remove console.log statements (keep console.error for error handling)
-  {
-    pattern: /console\.log\([^)]*\);?\s*\n?/g,
-    replacement: '',
-    description: 'Remove console.log statements'
-  },
-  
-  // Remove console.info statements
-  {
-    pattern: /console\.info\([^)]*\);?\s*\n?/g,
-    replacement: '',
-    description: 'Remove console.info statements'
-  },
-  
-  // Remove console.warn statements (keep for important warnings)
-  {
-    pattern: /console\.warn\([^)]*\);?\s*\n?/g,
-    replacement: '',
-    description: 'Remove console.warn statements'
-  },
-  
-  // Fix missing semicolons
-  {
-    pattern: /(\w+)\n(\s*})/g,
-    replacement: '$1;\n$2',
-    description: 'Add missing semicolons'
-  },
-  
-  // Fix trailing commas in objects
-  {
-    pattern: /,(\s*})/g,
-    replacement: '$1',
-    description: 'Remove trailing commas'
-  },
-  
-  // Fix multiple empty lines
-  {
-    pattern: /\n\s*\n\s*\n/g,
-    replacement: '\n\n',
-    description: 'Remove excessive empty lines'
-  },
-  
-  // Fix unused imports (basic pattern)
-  {
-    pattern: /import\s+{\s*}\s+from\s+['"][^'"]*['"];?\s*\n?/g,
-    replacement: '',
-    description: 'Remove empty imports'
-  }
-];
+const CONSOLE_LOG_REGEX = /console\.log\([^)]*\);?\s*\n?/g;
+const CONSOLE_ERROR_REGEX = /console\.error\([^)]*\);?\s*\n?/g;
+const UNUSED_IMPORT_REGEX = /import\s+.*\s+from\s+[''][^'']+[''];\s*\n/g;
 
 function cleanFile(filePath) {
   try {
-    const content = fs.readFileSync(filePath, 'utf8');
+    const content = readFileSync(filePath, 'utf8');
     let cleanedContent = content;
-    let changesMade = false;
-    
-    // Apply each fix
-    for (const fix of fixes) {
-      const originalContent = cleanedContent;
-      cleanedContent = cleanedContent.replace(fix.pattern, fix.replacement);
-      
-      if (originalContent !== cleanedContent) {
-        changesMade = true;
-      }
+    let changes = [];
+
+    // Remove console.log statements (keep console.error for important errors)
+    const originalLogCount = (content.match(CONSOLE_LOG_REGEX) || []).length;
+    if (originalLogCount > 0) {
+      cleanedContent = cleanedContent.replace(CONSOLE_LOG_REGEX, '');
+      changes.push(`Removed ${originalLogCount} console.log statements`);
     }
-    
-    // Only write if changes were made
-    if (changesMade) {
-      fs.writeFileSync(filePath, cleanedContent, 'utf8');
-      console.log(`✅ Cleaned: ${filePath}`);
+
+    // Fix common JavaScript/TypeScript issues
+    // Fix missing semicolons
+    cleanedContent = cleanedContent.replace(/(\w+)\n(\s*})/g, '$1;\n$2');
+
+    // Fix inconsistent spacing around operators
+    cleanedContent = cleanedContent.replace(/(\w+)=(\w+)/g, '$1 = $2');
+    cleanedContent = cleanedContent.replace(/(\w+)===(\w+)/g, '$1 === $2');
+    cleanedContent = cleanedContent.replace(/(\w+)!==(\w+)/g, '$1 !== $2');
+
+    // Fix inconsistent string quotes (standardize to single quotes for non-JSX)
+    if (!filePath.includes('.jsx') && !filePath.includes('.tsx')) {
+      cleanedContent = cleanedContent.replace(/'([^'\\]*(\\.[^'\\]*)*)'/g, ''$1'");
+    }
+
+    // Remove trailing whitespace
+    cleanedContent = cleanedContent.replace(/[ \t]+$/gm, '');
+
+    // Fix multiple empty lines
+    cleanedContent = cleanedContent.replace(/\n\n\n+/g, '\n\n');
+
+    // Remove statements
+    cleanedContent = cleanedContent.replace(/?\s*\n?/g, '');
+
+    if (cleanedContent !== content) {
+      writeFileSync(filePath, cleanedContent);
+      }`);
       return true;
     }
-    
+
     return false;
   } catch (error) {
     console.error(`❌ Error cleaning ${filePath}:`, error.message);
@@ -101,69 +62,47 @@ function cleanFile(filePath) {
 }
 
 function getAllFiles(dir) {
-  const files = [];
-  
-  if (!fs.existsSync(dir)) {
-    return files;
-  }
-  
-  const entries = fs.readdirSync(dir);
-  
-  for (const entry of entries) {
-    const fullPath = path.join(dir, entry);
-    const stat = fs.statSync(fullPath);
-    
-    if (stat.isDirectory()) {
-      files.push(...getAllFiles(fullPath));
-    } else if (fileExtensions.includes(path.extname(entry))) {
-      files.push(fullPath);
+  let files = [];
+
+  try {
+    const items = readdirSync(dir);
+
+    for (const item of items) {
+      const fullPath = join(dir, item);
+      const stat = statSync(fullPath);
+
+      if (stat.isDirectory()) {
+        // Skip node_modules, .git, dist, and other build directories
+        if (!['node_modules', '.git', 'dist', 'build', '.next', '.vite'].includes(item)) {
+          files = files.concat(getAllFiles(fullPath));
+        }
+      } else if (stat.isFile()) {
+        const ext = extname(item).toLowerCase();
+        // Process JavaScript, TypeScript, and JSX files
+        if (['.js', '.jsx', '.ts', '.tsx', '.mjs'].includes(ext)) {
+          files.push(fullPath);
+        }
+      }
     }
+  } catch (error) {
+    console.error(`Error reading directory ${dir}:`, error.message);
   }
-  
+
   return files;
 }
 
 function main() {
-  console.log('🧹 Starting comprehensive cleanup...');
-  
-  let totalFiles = 0;
-  let cleanedFiles = 0;
-  
-  // Clean all directories
-  for (const dir of directoriesToClean) {
-    if (fs.existsSync(dir)) {
-      const files = getAllFiles(dir);
-      totalFiles += files.length;
-      
-      for (const file of files) {
-        if (cleanFile(file)) {
-          cleanedFiles++;
-        }
-      }
+  const allFiles = getAllFiles('./');
+  let cleanedCount = 0;
+
+  for (const file of allFiles) {
+    if (cleanFile(file)) {
+      cleanedCount++;
     }
   }
-  
-  console.log(`\n📊 Cleanup Summary:`);
-  console.log(`   Total files processed: ${totalFiles}`);
-  console.log(`   Files cleaned: ${cleanedFiles}`);
-  console.log(`   Files unchanged: ${totalFiles - cleanedFiles}`);
-  
-  // Clean up specific config files
-  console.log('\n🔧 Cleaning configuration files...');
-  
-  // Clean up package.json scripts (if needed)
-  const packageJsonPath = 'package.json';
-  if (fs.existsSync(packageJsonPath)) {
-    try {
-      const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
-      // Add any package.json cleanup logic here
-      console.log('✅ Package.json is clean');
-    } catch (error) {
-      console.error('❌ Error reading package.json:', error.message);
+
+  if (cleanedCount > 0) {
     }
-  }
-  
-  console.log('\n🎉 Comprehensive cleanup completed!');
 }
 
 main();

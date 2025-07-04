@@ -10,12 +10,12 @@ interface QuantityStepperProps {
   disabled?: boolean;
 }
 
-export function QuantityStepper({ 
-  value, 
-  onChange, 
-  min = 1, 
-  max = 999, 
-  disabled = false 
+export function QuantityStepper({
+  value,
+  onChange,
+  min = 1,
+  max = 999,
+  disabled = false
 }: QuantityStepperProps) {
   const handleIncrement = () => {
     if (value < max) {
@@ -48,7 +48,7 @@ export function QuantityStepper({
       >
         <Minus className="h-4 w-4 text-[#00AA00]" />
       </Button>
-      
+
       <Input
         type="number"
         value={value}
@@ -58,7 +58,7 @@ export function QuantityStepper({
         disabled={disabled}
         className="h-10 w-16 text-center border-0 focus:ring-0 focus:outline-none [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
       />
-      
+
       <Button
         type="button"
         variant="ghost"

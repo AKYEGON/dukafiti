@@ -53,7 +53,7 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
               <p className="text-sm text-muted-foreground text-center">
                 The application encountered an error and couldn't continue.
               </p>
-              
+
               {process.env.NODE_ENV === 'development' && this.state.error && (
                 <details className="mt-4">
                   <summary className="text-sm font-medium cursor-pointer">
@@ -65,7 +65,7 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
                   </pre>
                 </details>
               )}
-              
+
               <div className="flex flex-col space-y-2">
                 <Button onClick={this.resetError} className="w-full">
                   <RefreshCw className="mr-2 h-4 w-4" />

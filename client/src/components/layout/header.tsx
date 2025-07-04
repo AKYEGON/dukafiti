@@ -27,14 +27,14 @@ export function Header({ title, subtitle, onMobileMenuToggle }: HeaderProps) {
             <p className="text-gray-600">{subtitle}</p>
           </div>
         </div>
-        
+
         <div className="flex items-center space-x-4">
           {/* Notifications */}
           <Button variant="ghost" size="icon" className="relative">
             <Bell className="h-5 w-5" />
             <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full"></span>
           </Button>
-          
+
           {/* User menu */}
           <div className="flex items-center space-x-3">
             <div className="hidden sm:block text-right">

@@ -43,11 +43,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   useEffect(() => {
     let mounted = true;
-    
+
     const initSession = async () => {
       try {
         const { data: { session }, error } = await supabase.auth.getSession();
-        
+
         if (error) {
           console.error('Error getting session:', error);
         } else if (session && mounted) {
@@ -55,7 +55,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
             id: session.user.id,
             email: session.user.email || '',
             username: session.user.user_metadata?.name || session.user.email?.split('@')[0],
-            phone: session.user.user_metadata?.phone
+            phone: session.user.user_metadata?.phone;
           };
           setSession(session);
           setUser(authUser);
@@ -75,13 +75,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (mounted) {
         setSession(session);
-        
+
         if (session?.user) {
           const authUser: AuthUser = {
             id: session.user.id,
             email: session.user.email || '',
             username: session.user.user_metadata?.name || session.user.email?.split('@')[0],
-            phone: session.user.user_metadata?.phone
+            phone: session.user.user_metadata?.phone;
           };
           setUser(authUser);
           setIsAuthenticated(true);
@@ -89,7 +89,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           setUser(null);
           setIsAuthenticated(false);
         }
-        
+
         if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') {
           queryClient.clear();
         }
@@ -108,7 +108,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
-        password
+        password;
       });
 
       if (error) {
@@ -150,11 +150,11 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const logout = async () => {
     try {
       const { error } = await supabase.auth.signOut();
-      
+
       if (error) {
         console.error('Logout error:', error);
       }
-      
+
       setUser(null);
       setSession(null);
       setIsAuthenticated(false);
@@ -173,7 +173,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         isLoading,
         login,
         signup,
-        logout
+        logout;
       }}
     >
       {children}

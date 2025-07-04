@@ -28,7 +28,7 @@ export default function Register() {
   const [submittedEmail, setSubmittedEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  
+
   const {
     register,
     handleSubmit,
@@ -41,7 +41,7 @@ export default function Register() {
     setIsLoading(true);
     try {
       const { error } = await signup(data.email, data.password, data.email.split('@')[0]);
-      
+
       if (error) {
         console.error('Registration error from Supabase:', error);
         toast({
@@ -83,21 +83,21 @@ export default function Register() {
               We've sent a verification link to
             </p>
           </div>
-          
+
           <div className="space-y-6">
             <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
               <p className="text-sm font-medium text-gray-900 dark:text-white text-center">
                 {submittedEmail}
               </p>
             </div>
-            
+
             <Alert>
               <AlertDescription className="text-sm">
                 Click the link in the email to verify your account and complete registration.
                 The link will expire in 24 hours.
               </AlertDescription>
             </Alert>
-            
+
             <div className="text-center text-sm text-gray-600 dark:text-gray-400">
               <p>Didn't receive the email? Check your spam folder.</p>
               <p className="mt-2">After verifying your email, you can log in with your password.</p>
@@ -120,7 +120,7 @@ export default function Register() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4 sm:px-6 lg:px-8">
       <div className="bg-white dark:bg-[#1F1F1F] border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg p-6 sm:p-8 w-full max-w-md mx-auto my-12">
-        
+
         {/* Logo/App Name - Enterprise Grade */}
         <div className="text-center mb-6">
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primaryPurple shadow-lg">
@@ -180,8 +180,8 @@ export default function Register() {
             )}
           </div>
 
-          <Button 
-            type="submit" 
+          <Button
+            type="submit"
             disabled={isLoading}
             className="bg-primaryPurple hover:bg-primaryPurple-dark text-white w-full py-3 rounded-md font-semibold h-12 focus:outline-none focus:ring-2 focus:ring-primaryPurple transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             aria-label="Create your account"

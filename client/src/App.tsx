@@ -35,28 +35,28 @@ import Debug from "@/pages/debug";
 function AuthenticatedApp() {
   // Initialize WebSocket connection for real-time notifications
   useWebSocket();
-  
+
   // Initialize Supabase real-time subscriptions
   useSupabaseRealtime();
-  
+
   // Console log environment variables for debugging
   useEffect(() => {
     }, []);
-  
+
   // Sidebar collapse state
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  
+
   const toggleSidebar = () => {
     setSidebarCollapsed(prev => !prev);
   };
-  
+
   return (
     <div className="flex h-screen bg-background text-foreground overflow-hidden">
       {/* Sidebar - hidden on mobile, visible on tablet and desktop */}
       <div className="hidden md:block">
         <Sidebar collapsed={sidebarCollapsed} toggleSidebar={toggleSidebar} />
       </div>
-      
+
       <div className="flex-1 flex flex-col main-content min-w-0">
         <TopBar onToggleSidebar={toggleSidebar} isSidebarCollapsed={sidebarCollapsed} />
         <main className="flex-1 overflow-y-auto bg-background pb-16 md:pb-0">
@@ -73,7 +73,7 @@ function AuthenticatedApp() {
           </Switch>
         </main>
       </div>
-      
+
       {/* Mobile Bottom Navigation - shown only on mobile */}
       <MobileBottomNav />
     </div>
@@ -124,7 +124,7 @@ function Router() {
       <Route path="/auth/callback" component={AuthCallback} />
       <Route path="/onboarding" component={Onboarding} />
       <Route path="/debug" component={Debug} />
-      
+
       {/* Protected routes */}
       <Route path="/dashboard">
         <ProtectedRoute>
@@ -161,7 +161,7 @@ function Router() {
           <AuthenticatedApp />
         </ProtectedRoute>
       </Route>
-      
+
       <Route component={NotFound} />
     </Switch>
   );

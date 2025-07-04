@@ -9,7 +9,7 @@ import {
   Dialog,
   DialogContent,
   DialogHeader,
-  DialogTitle
+  DialogTitle;
 } from "@/components/ui/dialog";
 import {
   Form,
@@ -17,7 +17,7 @@ import {
   FormField,
   FormItem,
   FormLabel,
-  FormMessage
+  FormMessage;
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -45,7 +45,7 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
       stock: 0,
       category: "",
       lowStockThreshold: 10,
-      unknownQuantity: false
+      unknownQuantity: false;
     }
   });
 
@@ -62,7 +62,7 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
         stock: hasUnknownQuantity ? 0 : (product.stock || 0),
         category: product.category || "",
         lowStockThreshold: product.lowStockThreshold || 10,
-        unknownQuantity: hasUnknownQuantity
+        unknownQuantity: hasUnknownQuantity;
       });
     } else {
       // Reset to empty form when creating new product
@@ -75,7 +75,7 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
         stock: 0,
         category: "",
         lowStockThreshold: 10,
-        unknownQuantity: false
+        unknownQuantity: false;
       });
     }
   }, [product, form]);
@@ -120,9 +120,9 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
     const processedData = {
       ...data,
       stock: unknownQuantity ? null : data.stock,
-      unknownQuantity: unknownQuantity
+      unknownQuantity: unknownQuantity;
     };
-    
+
     if (product) {
       updateMutation.mutate(processedData);
     } else {
@@ -152,8 +152,8 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
                   <FormItem>
                     <FormLabel className="text-sm font-medium text-gray-700 dark:text-gray-300">Product Name *</FormLabel>
                     <FormControl>
-                      <Input 
-                        {...field} 
+                      <Input
+                        {...field}
                         placeholder="Enter product name"
                         className="h-10 text-base"
                       />
@@ -170,8 +170,8 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
                   <FormItem>
                     <FormLabel className="text-sm font-medium text-gray-700 dark:text-gray-300">SKU (Product Code) *</FormLabel>
                     <FormControl>
-                      <Input 
-                        {...field} 
+                      <Input
+                        {...field}
                         placeholder="e.g. PROD001, TEA001"
                         className="h-10 text-base"
                       />
@@ -189,9 +189,9 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
                   <FormItem>
                     <FormLabel className="text-sm font-medium text-gray-700 dark:text-gray-300">Description</FormLabel>
                     <FormControl>
-                      <Textarea 
-                        {...field} 
-                        value={field.value ?? ""} 
+                      <Textarea
+                        {...field}
+                        value={field.value ?? ""}
                         onChange={(e) => field.onChange(e.target.value)}
                         placeholder="Enter product description (optional)"
                         className="min-h-[80px] text-base resize-none"
@@ -205,7 +205,7 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
 
             <div className="border-t border-gray-100 dark:border-gray-700 pt-6">
               <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-4">Pricing & Stock Information</h3>
-              
+
               <div className="grid grid-cols-2 gap-4 mb-4">
                 <FormField
                   control={form.control}
@@ -214,10 +214,10 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
                     <FormItem>
                       <FormLabel className="text-sm font-medium text-gray-700 dark:text-gray-300">Price (KES) *</FormLabel>
                       <FormControl>
-                        <Input 
-                          type="number" 
-                          step="0.01" 
-                          {...field} 
+                        <Input
+                          type="number"
+                          step="0.01"
+                          {...field}
                           placeholder="0.00"
                           className="h-10 text-base"
                         />
@@ -236,9 +236,9 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
                         Stock Quantity {unknownQuantity && "(Disabled)"}
                       </FormLabel>
                       <FormControl>
-                        <Input 
-                          type="number" 
-                          {...field} 
+                        <Input
+                          type="number"
+                          {...field}
                           value={unknownQuantity ? "" : (field.value || "")}
                           placeholder={unknownQuantity ? "Unknown quantity" : "Enter stock quantity"}
                           disabled={unknownQuantity}
@@ -270,7 +270,7 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
                           form.setValue("stock", 0);
                         }
                       }}
-                      className="w-5 h-5 data-[state=checked]:bg-purple-600 data-[state=checked]:border-purple-600 data-[state=checked]:text-white border-2 border-purple-300 dark:border-purple-600 rounded-md transition-all duration-200 hover:border-purple-400 dark:hover:border-purple-500"
+                      className="w-5 h-5 data-[state = checked]:bg-purple-600 data-[state = checked]:border-purple-600 data-[state = checked]:text-white border-2 border-purple-300 dark:border-purple-600 rounded-md transition-all duration-200 hover:border-purple-400 dark:hover:border-purple-500"
                     />
                   </div>
                   <div className="flex-1">
@@ -292,7 +292,7 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
 
             <div className="border-t border-gray-100 dark:border-gray-700 pt-6">
               <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-4">Additional Information</h3>
-              
+
               <div className="grid grid-cols-2 gap-4">
                 <FormField
                   control={form.control}
@@ -301,8 +301,8 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
                     <FormItem>
                       <FormLabel className="text-sm font-medium text-gray-700 dark:text-gray-300">Category</FormLabel>
                       <FormControl>
-                        <Input 
-                          {...field} 
+                        <Input
+                          {...field}
                           placeholder="e.g. Beverages, Food"
                           className="h-10 text-base"
                         />
@@ -319,9 +319,9 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
                     <FormItem>
                       <FormLabel className="text-sm font-medium text-gray-700 dark:text-gray-300">Low Stock Alert</FormLabel>
                       <FormControl>
-                        <Input 
-                          type="number" 
-                          {...field} 
+                        <Input
+                          type="number"
+                          {...field}
                           onChange={(e) => field.onChange(parseInt(e.target.value) || 0)}
                           placeholder="10"
                           className="h-10 text-base"

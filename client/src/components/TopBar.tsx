@@ -3,9 +3,9 @@ import { useLocation } from 'wouter';
 import { useQuery } from '@tanstack/react-query';
 import { formatDistanceToNow } from 'date-fns';
 import { useAuth } from '@/contexts/SupabaseAuthClean';
-import { 
-  Search, 
-  Bell, 
+import {
+  Search,
+  Bell,
   User,
   Settings,
   BarChart3,
@@ -13,7 +13,7 @@ import {
   X,
   Package,
   Users,
-  ShoppingCart
+  ShoppingCart;
 } from 'lucide-react';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useOutsideClick } from '@/hooks/useOutsideClick';
@@ -28,53 +28,53 @@ interface TopBarProps {
 export function TopBar({ onToggleSidebar, isSidebarCollapsed }: TopBarProps) {
   const [, setLocation] = useLocation();
   const { user, logout } = useAuth();
-  
+
   // Search state
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [selectedIndex, setSelectedIndex] = useState(-1);
   const debouncedSearchQuery = useDebounce(searchQuery, 300);
-  
+
   // Notification state
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
-  
+
   // Profile dropdown state
   const [isProfileOpen, setIsProfileOpen] = useState(false);
-  
+
   // Logout modal state
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
-  
+
   // Mobile search state
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
-  
+
   // Refs for outside click detection
   const searchRef = useOutsideClick<HTMLDivElement>(() => {
     setIsSearchOpen(false);
     setSelectedIndex(-1);
   }, isSearchOpen);
-  
+
   const notificationRef = useOutsideClick<HTMLDivElement>(() => {
     setIsNotificationOpen(false);
   }, isNotificationOpen);
-  
+
   const profileRef = useOutsideClick<HTMLDivElement>(() => {
     setIsProfileOpen(false);
   }, isProfileOpen);
-  
+
   const searchInputRef = useRef<HTMLInputElement>(null);
   const logoutModalRef = useRef<HTMLDivElement>(null);
 
   // Fetch notifications
   const { data: notifications = [] } = useQuery<Notification[]>({
     queryKey: ['/api/notifications'],
-    enabled: true
+    enabled: true;
   });
 
   // Fetch unread count
   const { data: unreadData } = useQuery<{ count: number }>({
     queryKey: ['/api/notifications/unread-count'],
-    enabled: true
+    enabled: true;
   });
 
   const unreadCount = unreadData?.count || 0;
@@ -115,7 +115,7 @@ export function TopBar({ onToggleSidebar, isSidebarCollapsed }: TopBarProps) {
     setSearchQuery('');
     setIsSearchOpen(false);
     setSelectedIndex(-1);
-    
+
     if (result.type === 'product') {
       setLocation('/inventory');
     } else if (result.type === 'customer') {
@@ -128,11 +128,11 @@ export function TopBar({ onToggleSidebar, isSidebarCollapsed }: TopBarProps) {
   // Helper function to highlight matching text
   const highlightText = (text: string, query: string) => {
     if (!query) return text;
-    
+
     const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
     const parts = text.split(regex);
-    
-    return parts.map((part, index) => 
+
+    return parts.map((part, index) =>
       regex.test(part) ? (
         <span key={index} className="font-bold text-green-600 dark:text-green-400">
           {part}
@@ -152,19 +152,19 @@ export function TopBar({ onToggleSidebar, isSidebarCollapsed }: TopBarProps) {
 
   const typeLabels: { [key: string]: string } = {
     product: 'Products',
-    customer: 'Customers', 
+    customer: 'Customers',
     order: 'Orders'
   };
 
   const typeIcons: { [key: string]: any } = {
     product: Package,
     customer: Users,
-    order: ShoppingCart
+    order: ShoppingCart;
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (!isSearchOpen || searchResults.length === 0) return;
-    
+
     if (e.key === 'ArrowDown') {
       e.preventDefault();
       setSelectedIndex(prev => (prev + 1) % searchResults.length);
@@ -195,7 +195,7 @@ export function TopBar({ onToggleSidebar, isSidebarCollapsed }: TopBarProps) {
   return (
     <>
       <div className="bg-white dark:bg-[#1F1F1F] border-b border-gray-200 dark:border-gray-700 px-4 py-3 flex items-center relative z-40">
-        
+
         {/* Left Section - Sidebar Toggle (visible on tablet and desktop) */}
         <div className="hidden md:flex items-center mr-4">
           <button
@@ -227,7 +227,7 @@ export function TopBar({ onToggleSidebar, isSidebarCollapsed }: TopBarProps) {
               aria-activedescendant={selectedIndex >= 0 ? `search-option-${selectedIndex}` : undefined}
             />
           </div>
-          
+
           {/* Search Results Dropdown */}
           {isSearchOpen && searchResults.length > 0 && (
             <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-[#1F1F1F] border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-50 max-h-96 overflow-y-auto" role="listbox">
@@ -237,13 +237,13 @@ export function TopBar({ onToggleSidebar, isSidebarCollapsed }: TopBarProps) {
                   <div className="px-4 pt-2 pb-1 text-xs uppercase text-gray-500 dark:text-gray-400 font-medium">
                     {typeLabels[type] || type}
                   </div>
-                  
+
                   {/* Category Items */}
                   {(results as any[]).slice(0, 5).map((result, index) => {
                     const IconComponent = typeIcons[type];
                     const globalIndex = searchResults.findIndex(r => r.id === result.id);
                     const isSelected = globalIndex === selectedIndex;
-                    
+
                     return (
                       <button
                         key={result.id}
@@ -279,7 +279,7 @@ export function TopBar({ onToggleSidebar, isSidebarCollapsed }: TopBarProps) {
               ))}
             </div>
           )}
-          
+
           {/* No Results */}
           {isSearchOpen && searchResults.length === 0 && searchQuery.trim() && (
             <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-[#1F1F1F] border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-50">

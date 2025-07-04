@@ -36,12 +36,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   useEffect(() => {
     let mounted = true;
-    
+
     // Get initial session
     const initSession = async () => {
       try {
         const { data: { session }, error } = await supabase.auth.getSession();
-        
+
         if (error) {
           console.error('Error getting session:', error);
         } else if (session && mounted) {
@@ -67,7 +67,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setSession(session);
         setUser(session?.user ?? null);
         setIsAuthenticated(!!session);
-        
+
         // Clear React Query cache on auth changes
         if (event === 'SIGNED_IN' || event === 'SIGNED_OUT') {
           queryClient.clear();
@@ -87,7 +87,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
-        password
+        password;
       });
 
       if (error) {
@@ -106,7 +106,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       const { data, error } = await supabase.auth.signUp({
         email,
-        password
+        password;
       });
 
       if (error) {
@@ -124,17 +124,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const logout = async () => {
     try {
       const { error } = await supabase.auth.signOut();
-      
+
       if (error) {
         console.error('Logout error:', error);
       } else {
         }
-      
+
       // Clear local state regardless of error
       setUser(null);
       setSession(null);
       setIsAuthenticated(false);
-      
+
       // Clear React Query cache
       queryClient.clear();
     } catch (error) {
@@ -151,7 +151,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         isLoading,
         login,
         signup,
-        logout
+        logout;
       }}
     >
       {children}

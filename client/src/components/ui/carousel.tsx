@@ -1,6 +1,6 @@
 import * as React from "react"
 import useEmblaCarousel, {
-  type UseEmblaCarouselType
+  type UseEmblaCarouselType;
 } from "embla-carousel-react"
 import { ArrowLeft, ArrowRight } from "lucide-react"
 
@@ -129,7 +129,7 @@ const Carousel = React.forwardRef<
           scrollPrev,
           scrollNext,
           canScrollPrev,
-          canScrollNext
+          canScrollNext;
         }}
       >
         <div
@@ -256,5 +256,5 @@ export {
   CarouselContent,
   CarouselItem,
   CarouselPrevious,
-  CarouselNext
+  CarouselNext;
 }

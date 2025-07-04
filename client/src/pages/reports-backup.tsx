@@ -76,20 +76,20 @@ const formatCurrency = (amount: string | number): string => {
     style: 'currency',
     currency: 'KES',
     minimumFractionDigits: 0,
-    maximumFractionDigits: 2
+    maximumFractionDigits: 2;
   }).format(num);
 };
 
 const convertToCSV = (data: any[], headers: string[]): string => {
   const csvHeaders = headers.join(',');
-  const csvRows = data.map(row => 
+  const csvRows = data.map(row =>
     headers.map(header => `"${row[header] || ''}"`).join(',')
   );
   return [csvHeaders, ...csvRows].join('\n');
 };
 
 const downloadCSV = (csvContent: string, filename: string): void => {
-  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const blob = new Blob([csvContent], { type: 'text/csv;charset = utf-8;' });
   const link = document.createElement('a');
   const url = URL.createObjectURL(blob);
   link.setAttribute('href', url);
@@ -104,11 +104,11 @@ export default function Reports() {
   // State for timeframe selectors
   const [summaryPeriod, setSummaryPeriod] = useState<'today' | 'weekly' | 'monthly'>('today');
   const [trendPeriod, setTrendPeriod] = useState<'daily' | 'weekly' | 'monthly'>('daily');
-  
+
   // Orders Record state
   const [ordersPeriod, setOrdersPeriod] = useState<'daily' | 'weekly' | 'monthly'>('daily');
   const [ordersPage, setOrdersPage] = useState(1);
-  
+
   const [exportingCSV, setExportingCSV] = useState<string | null>(null);
 
   // Fetch summary data
@@ -142,7 +142,7 @@ export default function Reports() {
   // Transform trend data format
   const trendData: TrendData[] | undefined = rawTrendData?.map((item: any) => ({
     label: item.date || item.label,
-    value: item.value || 0
+    value: item.value || 0;
   }));
 
   // Fetch top products data (was top-items)
@@ -159,7 +159,7 @@ export default function Reports() {
   const topItemsData: TopItem[] | undefined = topProductsData?.map(product => ({
     name: product.productName,
     unitsSold: product.unitsSold,
-    revenue: product.totalRevenue
+    revenue: product.totalRevenue;
   }));
 
   // Fetch customer credits data (using top-customers endpoint)
@@ -176,7 +176,7 @@ export default function Reports() {
   const customerCreditsData: CustomerCredit[] | undefined = topCustomersData?.map(customer => ({
     name: customer.customerName,
     phone: '', // Not available in current data
-    balance: customer.totalOwed
+    balance: customer.totalOwed;
   }));
 
   // Fetch orders data
@@ -203,22 +203,20 @@ export default function Reports() {
       paymentMethod: order.paymentMethod,
       date: order.createdAt ? new Date(order.createdAt).toLocaleDateString('en-US', {
         year: 'numeric',
-        month: 'short', 
+        month: 'short',
         day: 'numeric'
       }) : 'No date',
       products: order.products || []
     })) || [],
     total: rawOrdersData.total || 0,
     page: rawOrdersData.page || 1,
-    totalPages: rawOrdersData.totalPages || 1
+    totalPages: rawOrdersData.totalPages || 1;
   } : undefined;
-
-
 
   // CSV Export Functions
   const exportSummaryCSV = async () => {
     if (!summaryData) return;
-    
+
     setExportingCSV('summary');
     try {
       const csvData = [
@@ -227,7 +225,7 @@ export default function Reports() {
         { type: 'Mobile Money Sales', amount: summaryData.mobileMoneySales },
         { type: 'Credit Sales', amount: summaryData.creditSales }
       ];
-      
+
       const csv = convertToCSV(csvData, ['type', 'amount']);
       downloadCSV(csv, `sales-summary-${summaryPeriod}-${new Date().toISOString().split('T')[0]}.csv`);
     } finally {
@@ -245,18 +243,18 @@ export default function Reports() {
           'Content-Type': 'application/csv'
         }
       });
-      
+
       if (!response.ok) {
         throw new Error('Failed to export detailed CSV');
       }
-      
+
       // Get the blob data
       const blob = await response.blob();
       const filename = `orders_detailed_${summaryPeriod}_${new Date().toISOString().split('T')[0]}.csv`;
-      
+
       // Use downloadjs to prompt download
       download(blob, filename, 'text/csv');
-      
+
     } catch (error) {
       console.error('Failed to export detailed CSV:', error);
       // Could add toast notification here;
@@ -277,7 +275,7 @@ export default function Reports() {
 
           {/* Responsive Layout */}
           <div className="space-y-6 sm:space-y-8">
-            
+
             {/* Timeframe Selector */}
           <div className="flex items-center gap-4">
             <label className="text-sm font-medium text-neutral-900 dark:text-neutral-100">Timeframe:</label>
@@ -359,7 +357,7 @@ export default function Reports() {
                 </SelectContent>
               </Select>
             </div>
-            
+
             {trendLoading ? (
               <div className="h-64 flex items-center justify-center">
                 <Skeleton className="h-full w-full" />
@@ -370,18 +368,18 @@ export default function Reports() {
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={trendData}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" className="dark:stroke-[#374151]" />
-                      <XAxis 
-                        dataKey="label" 
-                        stroke="#6B7280" 
+                      <XAxis
+                        dataKey="label"
+                        stroke="#6B7280"
                         fontSize={12}
                         className="dark:stroke-[#9CA3AF]"
                       />
-                      <YAxis 
-                        stroke="#6B7280" 
+                      <YAxis
+                        stroke="#6B7280"
                         fontSize={12}
                         className="dark:stroke-[#9CA3AF]"
                       />
-                      <Tooltip 
+                      <Tooltip
                         contentStyle={{
                           backgroundColor: 'white',
                           border: '1px solid #E5E7EB',
@@ -389,10 +387,10 @@ export default function Reports() {
                           boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
                         }}
                       />
-                      <Line 
-                        type="monotone" 
-                        dataKey="value" 
-                        stroke="#00AA00" 
+                      <Line
+                        type="monotone"
+                        dataKey="value"
+                        stroke="#00AA00"
                         strokeWidth={3}
                         dot={{ fill: '#00AA00', strokeWidth: 2 }}
                         className="dark:stroke-[#6B46C1]"
@@ -472,10 +470,10 @@ export default function Reports() {
                     </div>
                     {/* Progress bar showing relative sales volume */}
                     <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                      <div 
-                        className="bg-green-500 h-2 rounded-full transition-all duration-300" 
-                        style={{ 
-                          width: `${Math.min(100, (product.unitsSold / (topProductsData[0]?.unitsSold || 1)) * 100)}%` 
+                      <div
+                        className="bg-green-500 h-2 rounded-full transition-all duration-300"
+                        style={{
+                          width: `${Math.min(100, (product.unitsSold / (topProductsData[0]?.unitsSold || 1)) * 100)}%`
                         }}
                       />
                     </div>
@@ -522,7 +520,7 @@ export default function Reports() {
                           <td className="px-3 py-3 font-medium text-gray-900 dark:text-gray-100">#{order.orderId}</td>
                           <td className="px-3 py-3 text-gray-700 dark:text-gray-300">{order.customerName}</td>
                           <td className="px-3 py-3 text-gray-700 dark:text-gray-300">
-                            {order.products && order.products.length > 0 
+                            {order.products && order.products.length > 0
                               ? order.products.map(p => `${p.name} x${p.quantity}`).join(', ')
                               : 'No products'
                             }
@@ -563,7 +561,7 @@ export default function Reports() {
                       <div className="mb-2">
                         <p className="text-sm text-gray-700 dark:text-gray-300">
                           <span className="font-medium">Products: </span>
-                          {order.products && order.products.length > 0 
+                          {order.products && order.products.length > 0
                             ? order.products.map(p => `${p.name} x${p.quantity}`).join(', ')
                             : 'No products'
                           }
@@ -603,7 +601,7 @@ export default function Reports() {
               <Download className="h-4 w-4 mr-2" />
               {exportingCSV === 'summary' ? 'Exporting...' : 'Export Summary CSV'}
             </Button>
-            
+
             <Button
               onClick={exportDetailedCSV}
               disabled={exportingCSV === 'detailed'}

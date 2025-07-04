@@ -75,11 +75,11 @@ export default function Inventory() {
         case "price-desc":
           return parseFloat(b.price) - parseFloat(a.price);
         default:
-          return 0;
+          return 0
       }
     });
 
-    return result;
+    return result
   }, [products, search, sortBy]);
 
   const handleEdit = (product: Product) => {
@@ -102,7 +102,7 @@ export default function Inventory() {
       <div className="sticky top-0 z-10 bg-background border-b border-border px-4 sm:px-6 py-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <h1 className="text-xl sm:text-2xl font-semibold">Inventory</h1>
-          
+
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 flex-1 sm:max-w-lg">
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
@@ -113,7 +113,7 @@ export default function Inventory() {
                 className="pl-10 min-h-[48px]"
               />
             </div>
-            
+
             <Button
               onClick={() => setShowProductForm(true)}
               className="bg-purple-600 hover:bg-purple-700 text-white min-h-[48px] px-4 whitespace-nowrap"
@@ -123,7 +123,7 @@ export default function Inventory() {
             </Button>
           </div>
         </div>
-        
+
         {/* Sort dropdown */}
         <div className="mt-4 flex justify-start sm:justify-end">
           <Select value={sortBy} onValueChange={(value: SortOption) => setSortBy(value)}>
@@ -173,12 +173,12 @@ export default function Inventory() {
               >
                 {/* Product Name */}
                 <h3 className="text-lg font-bold text-foreground mb-2">{product.name}</h3>
-                
+
                 {/* Unit Price */}
                 <p className="text-base text-foreground mb-2">
                   KES {parseFloat(product.price).toLocaleString()}
                 </p>
-                
+
                 {/* Stock and Threshold */}
                 <div className="space-y-1 mb-4">
                   <p className="text-sm text-muted-foreground">
@@ -195,7 +195,7 @@ export default function Inventory() {
                     </p>
                   )}
                 </div>
-                
+
                 {/* Action Buttons */}
                 <div className="flex gap-2 mt-4">
                   <Button

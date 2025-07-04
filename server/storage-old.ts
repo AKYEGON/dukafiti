@@ -1,13 +1,13 @@
-import { 
-  Product, 
-  InsertProduct, 
-  Customer, 
-  InsertCustomer, 
-  Order, 
-  InsertOrder, 
-  OrderItem, 
+import {
+  Product,
+  InsertProduct,
+  Customer,
+  InsertCustomer,
+  Order,
+  InsertOrder,
+  OrderItem,
   InsertOrderItem,
-  User, 
+  User,
   InsertUser,
   BusinessProfile,
   InsertBusinessProfile,
@@ -31,9 +31,9 @@ import {
   storeProfiles,
   userSettings,
   notifications;
-} from "@shared/schema";
-import { db } from "./db";
-import { eq, desc, like, sql, or, ilike } from "drizzle-orm";
+} from '@shared/schema';
+import { db } from './db';
+import { eq, desc, like, sql, or, ilike } from 'drizzle-orm';
 
 export interface IStorage {
   // Users
@@ -138,10 +138,10 @@ export class DatabaseStorage implements IStorage {
     // Create default user
     const defaultUser: User = {
       id: this.userId++,
-      username: "admin",
-      email: "admin@dukasmart.com",
-      phone: "+254700000000",
-      passwordHash: "$2b$10$QJ7JlZEhLzZyJ6.JGqD9qOk5QYpGvDqBgUJYGqvXkJdFzVGJcWqOy", // admin123
+      username: 'admin',
+      email: 'admin@dukasmart.com',
+      phone: '+254700000000',
+      passwordHash: '$2b$10$QJ7JlZEhLzZyJ6.JGqD9qOk5QYpGvDqBgUJYGqvXkJdFzVGJcWqOy', // admin123
       createdAt: new Date()
     };
     this.users.set(defaultUser.id, defaultUser);
@@ -149,34 +149,34 @@ export class DatabaseStorage implements IStorage {
     // Create sample products
     const sampleProducts: Omit<Product, 'id'>[] = [
       {
-        name: "Wireless Headphones",
-        sku: "WHD-001",
-        description: "Premium Audio Device",
-        price: "129.99",
+        name: 'Wireless Headphones',
+        sku: 'WHD-001',
+        description: 'Premium Audio Device',
+        price: '129.99',
         stock: 5,
-        category: "Electronics",
+        category: 'Electronics',
         lowStockThreshold: 10,
         salesCount: 15,
         createdAt: new Date()
       },
       {
-        name: "Smartphone Case",
-        sku: "SPC-002", 
-        description: "Protective Cover",
-        price: "24.99",
+        name: 'Smartphone Case',
+        sku: 'SPC-002',
+        description: 'Protective Cover',
+        price: '24.99',
         stock: 45,
-        category: "Accessories",
+        category: 'Accessories',
         lowStockThreshold: 10,
         salesCount: 8,
         createdAt: new Date()
       },
       {
-        name: "Bluetooth Speaker",
-        sku: "BTS-003",
-        description: "Portable wireless speaker",
-        price: "79.99",
+        name: 'Bluetooth Speaker',
+        sku: 'BTS-003',
+        description: 'Portable wireless speaker',
+        price: '79.99',
         stock: 25,
-        category: "Electronics",
+        category: 'Electronics',
         lowStockThreshold: 5,
         salesCount: 12,
         createdAt: new Date()
@@ -184,9 +184,9 @@ export class DatabaseStorage implements IStorage {
     ];
 
     sampleProducts.forEach(product => {
-      const newProduct: Product = { 
-        ...product, 
-        id: this.productId++, 
+      const newProduct: Product = {
+        ...product,
+        id: this.productId++,
         description: product.description || null,
         stock: product.stock || 0,
         lowStockThreshold: product.lowStockThreshold || 10,
@@ -198,27 +198,27 @@ export class DatabaseStorage implements IStorage {
     // Create sample customers
     const sampleCustomers: Omit<Customer, 'id'>[] = [
       {
-        name: "Alice Johnson",
-        email: "alice@example.com",
-        phone: "+254712345678",
-        address: "123 Main St, Nairobi",
-        balance: "250.00",
+        name: 'Alice Johnson',
+        email: 'alice@example.com',
+        phone: '+254712345678',
+        address: '123 Main St, Nairobi',
+        balance: '250.00',
         createdAt: new Date()
       },
       {
-        name: "Mike Brown", 
-        email: "mike@example.com",
-        phone: "+254712345679",
-        address: "456 Oak Ave, Mombasa",
-        balance: "0.00",
+        name: 'Mike Brown',
+        email: 'mike@example.com',
+        phone: '+254712345679',
+        address: '456 Oak Ave, Mombasa',
+        balance: '0.00',
         createdAt: new Date()
       },
       {
-        name: "Sarah Wanjiku",
-        email: "sarah@example.com", 
-        phone: "+254712345680",
-        address: "789 Kenyatta Ave, Kisumu",
-        balance: "125.50",
+        name: 'Sarah Wanjiku',
+        email: 'sarah@example.com',
+        phone: '+254712345680',
+        address: '789 Kenyatta Ave, Kisumu',
+        balance: '125.50',
         createdAt: new Date()
       }
     ];
@@ -232,20 +232,20 @@ export class DatabaseStorage implements IStorage {
     const sampleOrders: Omit<Order, 'id'>[] = [
       {
         customerId: 1,
-        customerName: "Alice Johnson",
-        total: "127.50",
-        paymentMethod: "cash",
+        customerName: 'Alice Johnson',
+        total: '127.50',
+        paymentMethod: 'cash',
         reference: null,
-        status: "completed",
+        status: 'completed',
         createdAt: new Date()
       },
       {
         customerId: 2,
-        customerName: "Mike Brown",
-        total: "89.25",
-        paymentMethod: "credit",
-        reference: null, 
-        status: "processing",
+        customerName: 'Mike Brown',
+        total: '89.25',
+        paymentMethod: 'credit',
+        reference: null,
+        status: 'processing',
         createdAt: new Date()
       }
     ];
@@ -274,8 +274,8 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const user: User = { 
-      ...insertUser, 
+    const user: User = {
+      ...insertUser,
       phone: insertUser.phone ?? null,
       id: this.userId++,
       createdAt: new Date()
@@ -323,7 +323,7 @@ export class DatabaseStorage implements IStorage {
   async searchProducts(query: string): Promise<Product[]> {
     const products = Array.from(this.products.values());
     const lowerQuery = query.toLowerCase();
-    return products.filter(product => 
+    return products.filter(product =>
       product.name.toLowerCase().includes(lowerQuery) ||
       product.sku.toLowerCase().includes(lowerQuery) ||
       product.category.toLowerCase().includes(lowerQuery)
@@ -346,9 +346,9 @@ export class DatabaseStorage implements IStorage {
     const product = this.products.get(id);
     if (!product) return undefined;
 
-    const updatedProduct = { 
-      ...product, 
-      salesCount: (product.salesCount || 0) + quantity 
+    const updatedProduct = {
+      ...product,
+      salesCount: (product.salesCount || 0) + quantity
     };
     this.products.set(id, updatedProduct);
     return updatedProduct;
@@ -370,7 +370,7 @@ export class DatabaseStorage implements IStorage {
       phone: insertCustomer.phone ?? null,
       email: insertCustomer.email ?? null,
       address: insertCustomer.address ?? null,
-      balance: insertCustomer.balance ?? "0.00",
+      balance: insertCustomer.balance ?? '0.00',
       createdAt: new Date()
     };
     this.customers.set(customer.id, customer);
@@ -412,7 +412,7 @@ export class DatabaseStorage implements IStorage {
     const order: Order = {
       ...insertOrder,
       id: this.orderId++,
-      status: insertOrder.status ?? "pending",
+      status: insertOrder.status ?? 'pending',
       customerId: insertOrder.customerId ?? null,
       createdAt: new Date()
     };
@@ -465,8 +465,8 @@ export class DatabaseStorage implements IStorage {
     const lowStockProducts = products.filter(product => product.stock <= product.lowStockThreshold);
 
     // Calculate growth (simplified - comparing with mock previous period)
-    const revenueGrowth = "+12.5%";
-    const ordersGrowth = "+8.2%";
+    const revenueGrowth = '+12.5%';
+    const ordersGrowth = '+8.2%';
 
     return {
       totalRevenue: totalRevenue.toFixed(2),
@@ -499,7 +499,7 @@ export class DatabaseStorage implements IStorage {
   async updateProductStock(id: number, stockChange: number): Promise<Product | undefined> {
     const product = this.products.get(id);
     if (!product) return undefined;
-    
+
     const updatedProduct = { ...product, stock: product.stock + stockChange };
     this.products.set(id, updatedProduct);
     return updatedProduct;
@@ -517,7 +517,7 @@ export class DatabaseStorage implements IStorage {
   async updateCustomerBalance(id: number, amount: number): Promise<Customer | undefined> {
     const customer = this.customers.get(id);
     if (!customer) return undefined;
-    
+
     const currentBalance = parseFloat(customer.balance) || 0;
     const updatedCustomer = { ...customer, balance: (currentBalance + amount).toFixed(2) };
     this.customers.set(id, updatedCustomer);
@@ -713,13 +713,13 @@ export class DatabaseStorage implements IStorage {
 
   async getCustomerByNameOrPhone(name: string, phone?: string): Promise<Customer | undefined> {
     let query = db.select().from(customers).where(eq(customers.name, name));
-    
+
     if (phone) {
       query = db.select().from(customers).where(
         or(eq(customers.name, name), eq(customers.phone, phone))
       );
     }
-    
+
     const [customer] = await query;
     return customer || undefined;
   }
@@ -826,8 +826,8 @@ export class DatabaseStorage implements IStorage {
       totalOrders: allOrders.length,
       totalProducts: allProducts.length,
       totalCustomers: allCustomers.length,
-      revenueGrowth: "+12.5%", // This would be calculated from historical data
-      ordersGrowth: "+8.2%", // This would be calculated from historical data
+      revenueGrowth: '+12.5%', // This would be calculated from historical data
+      ordersGrowth: '+8.2%', // This would be calculated from historical data
       lowStockCount: lowStockProducts.length,
       activeCustomersCount: allCustomers.length;
     };
@@ -836,7 +836,7 @@ export class DatabaseStorage implements IStorage {
   async saveBusinessProfile(userId: number, profile: Omit<InsertBusinessProfile, 'userId'>): Promise<void> {
     // First check if a profile already exists for this user
     const existing = await db
-      .select() 
+      .select()
       .from(businessProfiles)
       .where(eq(businessProfiles.userId, userId))
       .limit(1);
@@ -886,7 +886,7 @@ export class DatabaseStorage implements IStorage {
 
   async createPayment(insertPayment: InsertPayment): Promise<Payment> {
     const [result] = await db.insert(payments).values(insertPayment).returning();
-    
+
     // Update customer balance by subtracting the payment amount
     await db
       .update(customers)
@@ -894,7 +894,7 @@ export class DatabaseStorage implements IStorage {
         balance: sql`${customers.balance} - ${insertPayment.amount}`
       })
       .where(eq(customers.id, insertPayment.customerId));
-    
+
     return result;
   }
 
@@ -972,25 +972,25 @@ export class DatabaseStorage implements IStorage {
   }> {
     const now = new Date();
     const yesterday = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-    
+
     // Get date bounds
     const todayStart = new Date(now);
     todayStart.setHours(0, 0, 0, 0);
     const todayEnd = new Date(now);
     todayEnd.setHours(23, 59, 59, 999);
-    
+
     const yesterdayStart = new Date(yesterday);
     yesterdayStart.setHours(0, 0, 0, 0);
     const yesterdayEnd = new Date(yesterday);
     yesterdayEnd.setHours(23, 59, 59, 999);
-    
+
     // Week to date (Monday to today)
     const weekStart = new Date(now);
     const dayOfWeek = weekStart.getDay();
     const daysFromMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
     weekStart.setDate(weekStart.getDate() - daysFromMonday);
     weekStart.setHours(0, 0, 0, 0);
-    
+
     // Prior week to date
     const priorWeekStart = new Date(weekStart);
     priorWeekStart.setDate(priorWeekStart.getDate() - 7);
@@ -1000,21 +1000,21 @@ export class DatabaseStorage implements IStorage {
 
     // Get all orders for analysis
     const allOrders = await db.select().from(orders);
-    
+
     // Filter orders by date ranges
-    const todayOrders = allOrders.filter(order => 
+    const todayOrders = allOrders.filter(order =>
       order.createdAt >= todayStart && order.createdAt <= todayEnd && order.status === 'paid'
     );
-    
-    const yesterdayOrders = allOrders.filter(order => 
+
+    const yesterdayOrders = allOrders.filter(order =>
       order.createdAt >= yesterdayStart && order.createdAt <= yesterdayEnd && order.status === 'paid'
     );
-    
-    const weekOrders = allOrders.filter(order => 
+
+    const weekOrders = allOrders.filter(order =>
       order.createdAt >= weekStart && order.createdAt <= todayEnd && order.status === 'paid'
     );
-    
-    const priorWeekOrders = allOrders.filter(order => 
+
+    const priorWeekOrders = allOrders.filter(order =>
       order.createdAt >= priorWeekStart && order.createdAt <= priorWeekEnd && order.status === 'paid'
     );
 
@@ -1041,7 +1041,7 @@ export class DatabaseStorage implements IStorage {
         .filter(order => order.customerId)
         .map(order => order.customerId)
     ).size;
-    
+
     const priorActiveCustomers = new Set(
       yesterdayOrders
         .filter(order => order.customerId)

@@ -8,7 +8,7 @@ export interface SimpleUser {
 
 export class SimpleAuth {
   private static STORAGE_KEY = 'dukafiti_user_session';
-  
+
   // Get current user from localStorage
   static getCurrentUser(): SimpleUser | null {
     try {
@@ -28,7 +28,7 @@ export class SimpleAuth {
     }
     return null;
   }
-  
+
   // Set current user in localStorage
   static setCurrentUser(user: SimpleUser): void {
     try {
@@ -41,17 +41,17 @@ export class SimpleAuth {
       console.error('Error saving auth session:', error);
     }
   }
-  
+
   // Clear session
   static clearSession(): void {
     localStorage.removeItem(this.STORAGE_KEY);
   }
-  
+
   // Check if user is authenticated
   static isAuthenticated(): boolean {
     return this.getCurrentUser() !== null;
   }
-  
+
   // Create a demo user for development
   static createDemoUser(): SimpleUser {
     return {
@@ -61,7 +61,7 @@ export class SimpleAuth {
       phone: '+254712345678'
     };
   }
-  
+
   // Auto-login with demo user in development
   static autoLoginDemo(): boolean {
     if (import.meta.env.DEV) {

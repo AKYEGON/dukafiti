@@ -40,11 +40,11 @@ export default function Register() {
     <div className="min-h-screen bg-gray-50 flex items-center justify-center">
       <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
         <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">Sign Up</h2>
-        
+
         {message && (
           <div className={`mb-4 p-3 rounded ${
-            message.includes('successful') 
-              ? 'bg-green-100 text-green-800' 
+            message.includes('successful')
+              ? 'bg-green-100 text-green-800'
               : 'bg-red-100 text-red-800'
           }`}>
             {message}

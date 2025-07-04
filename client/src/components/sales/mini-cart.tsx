@@ -14,11 +14,11 @@ interface MiniCartProps {
   isProcessing?: boolean;
 }
 
-export function MiniCart({ 
-  items, 
-  onQuantityChange, 
-  onRemoveItem, 
-  onClearCart, 
+export function MiniCart({
+  items,
+  onQuantityChange,
+  onRemoveItem,
+  onClearCart,
   onCheckout,
   isProcessing = false;
 }: MiniCartProps) {
@@ -52,7 +52,7 @@ export function MiniCart({
           Sale Cart ({totalItems} {totalItems === 1 ? 'item' : 'items'})
         </CardTitle>
       </CardHeader>
-      
+
       <CardContent className="space-y-3">
         {/* Line Items */}
         <div className="space-y-3 max-h-96 overflow-y-auto">
@@ -74,7 +74,7 @@ export function MiniCart({
             <span className="text-gray-600">Subtotal ({totalItems} items)</span>
             <span className="font-medium">{formatCurrency(totalAmount.toFixed(2))}</span>
           </div>
-          
+
           <div className="flex justify-between items-center text-lg font-semibold">
             <span className="text-black">Total</span>
             <span className="text-[#00AA00]">{formatCurrency(totalAmount.toFixed(2))}</span>
@@ -94,7 +94,7 @@ export function MiniCart({
             <Receipt className="w-4 h-4 mr-2" />
             Save Draft
           </Button>
-          
+
           <Button
             variant="outline"
             className="flex-1 border-red-200 text-red-600 hover:bg-red-50"

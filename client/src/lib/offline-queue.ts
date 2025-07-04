@@ -36,7 +36,7 @@ class OfflineQueue {
 
       request.onupgradeneeded = (event) => {
         const db = (event.target as IDBOpenDBRequest).result;
-        
+
         // Create object store for pending sales
         if (!db.objectStoreNames.contains(this.storeName)) {
           const store = db.createObjectStore(this.storeName, { keyPath: 'id' });
@@ -197,7 +197,7 @@ export async function processPendingSales(): Promise<void> {
 
   try {
     const pendingSales = await offlineQueue.getPendingSales();
-    
+
     if (pendingSales.length === 0) {
       return;
     }
@@ -210,7 +210,7 @@ export async function processPendingSales(): Promise<void> {
           paymentType: sale.paymentType,
           reference: sale.reference,
           customerName: sale.customerName,
-          customerPhone: sale.customerPhone
+          customerPhone: sale.customerPhone;
         };
 
         const response = await fetch('/api/sales', {

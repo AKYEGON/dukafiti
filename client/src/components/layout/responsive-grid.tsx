@@ -34,7 +34,7 @@ export function ResponsiveGrid({
   ].filter(Boolean).join(" ");
 
   return (
-    <div 
+    <div
       className={cn(
         "grid",
         gridClasses,

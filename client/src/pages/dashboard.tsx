@@ -11,7 +11,7 @@ import {
   TableCell,
   TableHead,
   TableHeader,
-  TableRow
+  TableRow;
 } from "@/components/ui/table";
 import {
   DollarSign,
@@ -20,7 +20,7 @@ import {
   Users,
   Plus,
   UserPlus,
-  BarChart3
+  BarChart3;
 } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -87,16 +87,16 @@ export default function Dashboard() {
   };
 
   // Summary Card Component with accessibility and skeleton loading
-  const SummaryCard = ({ 
-    title, 
-    value, 
-    icon: Icon, 
+  const SummaryCard = ({
+    title,
+    value,
+    icon: Icon,
     isLoading,
     iconColor = "bg-green-600"
-  }: { 
-    title: string; 
-    value: string; 
-    icon: any; 
+  }: {
+    title: string;
+    value: string;
+    icon: any;
     isLoading: boolean;
     iconColor?: string;
   }) => (
@@ -122,14 +122,14 @@ export default function Dashboard() {
   );
 
   // Quick Action Button Component
-  const QuickActionButton = ({ 
-    onClick, 
-    icon: Icon, 
+  const QuickActionButton = ({
+    onClick,
+    icon: Icon,
     label,
-    ariaLabel
-  }: { 
-    onClick: () => void; 
-    icon: any; 
+    ariaLabel;
+  }: {
+    onClick: () => void;
+    icon: any;
     label: string;
     ariaLabel: string;
   }) => (
@@ -156,14 +156,14 @@ export default function Dashboard() {
             </div>
           ))}
         </div>
-        
+
         {/* Quick Actions Skeleton */}
         <div className="flex flex-wrap gap-4">
           {[...Array(4)].map((_, i) => (
             <Skeleton key={i} className="h-16 w-48 rounded-lg animate-pulse bg-gray-200 dark:bg-gray-700" />
           ))}
         </div>
-        
+
         {/* Recent Orders Skeleton */}
         <div className="bg-white dark:bg-[#1F1F1F] border border-gray-200 dark:border-gray-700 rounded-lg p-6">
           <Skeleton className="h-6 w-48 mb-4 animate-pulse bg-gray-200 dark:bg-gray-700 rounded" />
@@ -280,11 +280,11 @@ export default function Dashboard() {
                       </TableHeader>
                       <TableBody>
                         {recentOrders.map((order, index) => (
-                          <TableRow 
-                            key={order.id} 
+                          <TableRow
+                            key={order.id}
                             className={`${
-                              index % 2 === 0 
-                                ? 'bg-white dark:bg-[#1F1F1F]' 
+                              index % 2 === 0
+                                ? 'bg-white dark:bg-[#1F1F1F]'
                                 : 'bg-gray-50 dark:bg-gray-800'
                             } hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors`}
                           >
@@ -334,14 +334,14 @@ export default function Dashboard() {
       </div>
 
       {/* Modal Components */}
-      <ProductForm 
-        open={showProductForm} 
-        onOpenChange={setShowProductForm} 
+      <ProductForm
+        open={showProductForm}
+        onOpenChange={setShowProductForm}
       />
-      
-      <CustomerForm 
-        open={showCustomerForm} 
-        onOpenChange={setShowCustomerForm} 
+
+      <CustomerForm
+        open={showCustomerForm}
+        onOpenChange={setShowCustomerForm}
       />
     </div>
   );

@@ -39,15 +39,15 @@ interface EditableSectionProps {
 }
 
 // Editable Section Component
-const EditableSection = ({ 
-  title, 
-  icon: Icon, 
-  children, 
-  isEditing, 
-  onEditToggle, 
-  onSave, 
+const EditableSection = ({
+  title,
+  icon: Icon,
+  children,
+  isEditing,
+  onEditToggle,
+  onSave,
   onCancel,
-  isLoading = false 
+  isLoading = false
 }: EditableSectionProps) => (
   <div className="bg-white dark:bg-[#1F1F1F] border border-gray-200 dark:border-gray-700 rounded-lg p-6 shadow-sm hover:shadow-md transition dark:shadow-[0_4px_8px_rgba(0,0,0,0.5)]">
     <div className="flex items-center justify-between mb-6">
@@ -68,11 +68,11 @@ const EditableSection = ({
         </button>
       )}
     </div>
-    
+
     <div className="space-y-4">
       {children}
     </div>
-    
+
     {isEditing && onSave && onCancel && (
       <div className="flex gap-3 mt-6 pt-4 border-t border-gray-200 dark:border-gray-600">
         <Button
@@ -100,7 +100,7 @@ export default function SettingsPage() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { theme, setTheme } = useTheme();
-  
+
   // Editing states
   const [editingStore, setEditingStore] = useState(false);
   const [lastSyncTime, setLastSyncTime] = useState<string | null>(null);
@@ -108,7 +108,7 @@ export default function SettingsPage() {
   // Fetch store data
   const { data: storeData, isLoading: storeLoading } = useQuery<StoreData>({
     queryKey: ['/api/store'],
-    retry: false
+    retry: false;
   });
 
   // Store profile form
@@ -144,10 +144,10 @@ export default function SettingsPage() {
       setEditingStore(false);
     },
     onError: (error: any) => {
-      toast({ 
-        title: "Failed to update store profile", 
+      toast({
+        title: "Failed to update store profile",
         description: error?.message || "Please try again",
-        variant: "destructive" 
+        variant: "destructive"
       });
     }
   });
@@ -163,10 +163,10 @@ export default function SettingsPage() {
       setLastSyncTime(new Date().toLocaleString());
     },
     onError: (error: any) => {
-      toast({ 
-        title: "Sync failed", 
+      toast({
+        title: "Sync failed",
         description: error?.message || "Please try again",
-        variant: "destructive" 
+        variant: "destructive"
       });
     }
   });
@@ -214,7 +214,7 @@ export default function SettingsPage() {
 
           {/* Responsive Grid Layout */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-            
+
             {/* Store Profile Section */}
           <EditableSection
             title="Store Profile"
@@ -242,7 +242,7 @@ export default function SettingsPage() {
                     </p>
                   )}
                 </div>
-                
+
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
                     Owner Name
@@ -258,7 +258,7 @@ export default function SettingsPage() {
                     </p>
                   )}
                 </div>
-                
+
                 <div>
                   <label className="block text-sm font-medium text-foreground mb-2">
                     Address
@@ -340,14 +340,14 @@ export default function SettingsPage() {
                     </p>
                   )}
                 </div>
-                
+
                 <Button
                   onClick={() => syncMutation.mutate()}
                   disabled={syncMutation.isPending}
                   className="bg-green-600 hover:bg-green-700 text-white px-8 py-3 h-12 rounded-md text-lg font-medium focus:outline-none focus:ring-2 focus:ring-green-600 min-w-[200px]"
                 >
                   <RotateCcw className={`h-5 w-5 mr-3 ${syncMutation.isPending ? 'animate-spin' : ''}`} />
-                  {syncMutation.isPending ? "Syncing..." : 
+                  {syncMutation.isPending ? "Syncing..." :
                    lastSyncTime ? "Sync Again" : "Sync Now"}
                 </Button>
               </div>

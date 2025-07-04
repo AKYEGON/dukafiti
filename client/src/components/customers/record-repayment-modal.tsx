@@ -33,7 +33,7 @@ export function RecordRepaymentModal({ isOpen, onClose, customer, previousPaymen
         body: JSON.stringify({
           amount: data.amount,
           method: data.method,
-          note: data.note
+          note: data.note;
         })
       });
       if (!response.ok) {
@@ -69,10 +69,10 @@ export function RecordRepaymentModal({ isOpen, onClose, customer, previousPaymen
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     const paymentAmount = parseFloat(amount);
     const totalOwed = parseFloat(customer.balance || "0");
-    
+
     if (!amount || paymentAmount <= 0) {
       toast({
         title: "Invalid Amount",
@@ -81,7 +81,7 @@ export function RecordRepaymentModal({ isOpen, onClose, customer, previousPaymen
       });
       return;
     }
-    
+
     if (paymentAmount > totalOwed) {
       toast({
         title: "Amount Too High",
@@ -95,7 +95,7 @@ export function RecordRepaymentModal({ isOpen, onClose, customer, previousPaymen
       customerId: customer.id,
       amount: amount,
       method: method,
-      note: note.trim() || undefined
+      note: note.trim() || undefined;
     });
   };
 
@@ -133,7 +133,7 @@ export function RecordRepaymentModal({ isOpen, onClose, customer, previousPaymen
                     <X className="h-4 w-4" />
                   </Button>
                 </div>
-                
+
                 {/* Customer Debt Info */}
                 <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 space-y-2">
                   <div className="flex justify-between items-center">
@@ -142,7 +142,7 @@ export function RecordRepaymentModal({ isOpen, onClose, customer, previousPaymen
                       {formatCurrency(parseFloat(customer.balance || "0"))}
                     </span>
                   </div>
-                  
+
                   {previousPayments.length > 0 && (
                     <div className="pt-2 border-t border-gray-200 dark:border-gray-700">
                       <p className="text-xs text-gray-500 dark:text-gray-400 mb-2">Recent Payments:</p>
@@ -201,7 +201,7 @@ export function RecordRepaymentModal({ isOpen, onClose, customer, previousPaymen
                       <Wallet className="h-6 w-6 mb-2" />
                       <span className="text-sm font-medium">Cash</span>
                     </button>
-                    
+
                     <button
                       type="button"
                       onClick={() => setMethod("mobileMoney")}

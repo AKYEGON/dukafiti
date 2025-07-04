@@ -31,7 +31,7 @@ if ('serviceWorker' in navigator) {
       if (registration.waiting) {
         registration.waiting.postMessage({ type: 'SKIP_WAITING' });
       }
-      
+
       // Check for updates
       registration.addEventListener('updatefound', () => {
         const newWorker = registration.installing;
@@ -60,7 +60,7 @@ window.addEventListener('beforeinstallprompt', (e) => {
   e.preventDefault();
   // Stash the event so it can be triggered later
   deferredPrompt = e;
-  
+
   // Show install banner/button (you can customize this UI)
   // You could show a custom install button here
   // For now, we'll just log it and let the browser handle it;

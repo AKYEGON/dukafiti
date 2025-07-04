@@ -2,14 +2,14 @@ import { useEnhancedOffline } from '@/hooks/useEnhancedOffline';
 import { Wifi, WifiOff, Clock, RefreshCw } from 'lucide-react';
 
 export const OfflineBanner = () => {
-  const { 
-    isOffline, 
-    queuedActionsCount, 
+  const {
+    isOffline,
+    queuedActionsCount,
     salesInQueue,
     inventoryInQueue,
     customersInQueue,
     isProcessing,
-    forceSync 
+    forceSync
   } = useEnhancedOffline();
 
   if (!isOffline && queuedActionsCount === 0) {
@@ -32,7 +32,7 @@ export const OfflineBanner = () => {
                 <span className="font-medium">Back online</span>
               </>
             )}
-            
+
             {queuedActionsCount > 0 && (
               <div className="flex items-center space-x-1">
                 <Clock className="h-4 w-4" />

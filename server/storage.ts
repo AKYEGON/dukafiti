@@ -1,13 +1,13 @@
-import { 
-  Product, 
-  InsertProduct, 
-  Customer, 
-  InsertCustomer, 
-  Order, 
-  InsertOrder, 
-  OrderItem, 
+import {
+  Product,
+  InsertProduct,
+  Customer,
+  InsertCustomer,
+  Order,
+  InsertOrder,
+  OrderItem,
   InsertOrderItem,
-  User, 
+  User,
   InsertUser,
   BusinessProfile,
   InsertBusinessProfile,
@@ -31,9 +31,9 @@ import {
   storeProfiles,
   userSettings,
   notifications;
-} from "@shared/schema";
-import { db } from "./db";
-import { eq, desc, like, sql, or, ilike, and, gte, isNotNull } from "drizzle-orm";
+} from '@shared/schema';
+import { db } from './db';
+import { eq, desc, like, sql, or, ilike, and, gte, isNotNull } from 'drizzle-orm';
 
 export interface IStorage {
   // Users
@@ -189,7 +189,7 @@ export class DatabaseStorage implements IStorage {
       // Don't update stock for unknown quantity items
       return existingProduct;
     }
-    
+
     const [product] = await db.update(products)
       .set({ stock: sql`${products.stock} + ${stockChange}` })
       .where(eq(products.id, id))
@@ -204,7 +204,7 @@ export class DatabaseStorage implements IStorage {
 
   async searchProducts(query: string): Promise<Product[]> {
     const searchTerm = query.toLowerCase().trim();
-    
+
     // Enhanced search with better matching
     return await db.select().from(products).where(
       or(
@@ -226,7 +226,7 @@ export class DatabaseStorage implements IStorage {
     .where(sql`${products.salesCount} > 0`)
     .orderBy(desc(products.salesCount))
     .limit(10);
-    
+
     return result;
   }
 
@@ -253,14 +253,14 @@ export class DatabaseStorage implements IStorage {
     if (phone) {
       whereClause = or(eq(customers.name, name), eq(customers.phone, phone))!;
     }
-    
+
     const [customer] = await db.select().from(customers).where(whereClause);
     return customer || undefined;
   }
 
   async createCustomer(insertCustomer: InsertCustomer): Promise<Customer> {
     const [customer] = await db.insert(customers).values(insertCustomer).returning();
-    
+
     return customer;
   }
 
@@ -382,7 +382,7 @@ export class DatabaseStorage implements IStorage {
       totalProducts: sql<number>`COUNT(*)`
     }).from(products);
 
-    // Get total customers count  
+    // Get total customers count
     const [customersResult] = await db.select({
       totalCustomers: sql<number>`COUNT(*)`
     }).from(customers);
@@ -394,12 +394,12 @@ export class DatabaseStorage implements IStorage {
     .where(sql`${products.stock} IS NOT NULL AND ${products.stock} <= ${products.lowStockThreshold}`);
 
     return {
-      totalRevenue: revenueResult?.totalRevenue || "0.00",
+      totalRevenue: revenueResult?.totalRevenue || '0.00',
       totalOrders: todayOrdersResult?.todayOrders || 0,
       totalProducts: productsResult?.totalProducts || 0,
       totalCustomers: customersResult?.totalCustomers || 0,
-      revenueGrowth: "0.0%", // Will be calculated accurately by detailed metrics
-      ordersGrowth: "0.0%", // Will be calculated accurately by detailed metrics
+      revenueGrowth: '0.0%', // Will be calculated accurately by detailed metrics
+      ordersGrowth: '0.0%', // Will be calculated accurately by detailed metrics
       lowStockCount: lowStockResult?.lowStockCount || 0,
       activeCustomersCount: customersResult?.totalCustomers || 0;
     };
@@ -414,10 +414,10 @@ export class DatabaseStorage implements IStorage {
     const now = new Date();
     const today = new Date(now);
     today.setHours(0, 0, 0, 0);
-    
+
     const yesterday = new Date(today);
     yesterday.setDate(yesterday.getDate() - 1);
-    
+
     const tomorrowStart = new Date(today);
     tomorrowStart.setDate(tomorrowStart.getDate() + 1);
 
@@ -469,7 +469,7 @@ export class DatabaseStorage implements IStorage {
     // Customer calculations (customers with orders in last 30 days are considered active)
     const thirtyDaysAgo = new Date(today);
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-    
+
     const [activeCustomers] = await db.select({
       active: sql<number>`COUNT(DISTINCT ${orders.customerId})`
     })
@@ -486,7 +486,7 @@ export class DatabaseStorage implements IStorage {
     // Calculate week-to-date revenue
     const weekStart = new Date(today);
     weekStart.setDate(today.getDate() - today.getDay()); // Start of current week (Sunday)
-    
+
     const [weekToDateRevenue] = await db.select({
       revenue: sql<number>`COALESCE(SUM(CAST(${orders.total} AS DECIMAL)), 0)`
     })
@@ -501,7 +501,7 @@ export class DatabaseStorage implements IStorage {
     const priorWeekStart = new Date(weekStart);
     priorWeekStart.setDate(weekStart.getDate() - 7);
     const priorWeekEnd = new Date(weekStart);
-    
+
     const [priorWeekRevenue] = await db.select({
       revenue: sql<number>`COALESCE(SUM(CAST(${orders.total} AS DECIMAL)), 0)`
     })
@@ -515,7 +515,7 @@ export class DatabaseStorage implements IStorage {
     // Calculate prior active customers (30-60 days ago)
     const sixtyDaysAgo = new Date(today);
     sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
-    
+
     const [priorActiveCustomers] = await db.select({
       active: sql<number>`COUNT(DISTINCT ${orders.customerId})`
     })
@@ -660,7 +660,7 @@ export class DatabaseStorage implements IStorage {
   // Search methods
   async globalSearch(query: string): Promise<SearchResult[]> {
     const results: SearchResult[] = [];
-    
+
     // Search products
     const productResults = await db.select({
       id: products.id,

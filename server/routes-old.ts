@@ -1,11 +1,11 @@
-import type { Express } from "express";
-import { createServer, type Server } from "http";
-import { WebSocketServer, WebSocket } from "ws";
-import { supabase, requireSupabaseAuth } from "./supabase";
-import { insertProductSchema, insertCustomerSchema, insertOrderSchema, insertOrderItemSchema } from "@shared/schema";
-import { z } from "zod";
-import { v4 as uuidv4 } from "uuid";
-import { Parser as Json2csvParser } from "json2csv";
+import type { Express } from 'express';
+import { createServer, type Server } from 'http';
+import { WebSocketServer, WebSocket } from 'ws';
+import { supabase, requireSupabaseAuth } from './supabase';
+import { insertProductSchema, insertCustomerSchema, insertOrderSchema, insertOrderItemSchema } from '@shared/schema';
+import { z } from 'zod';
+import { v4 as uuidv4 } from 'uuid';
+import { Parser as Json2csvParser } from 'json2csv';
 
 // WebSocket clients store
 const wsClients = new Set<WebSocket>();
@@ -32,62 +32,62 @@ async function getCurrentUser(req: any) {
   if (!req.user) {
     return null;
   }
-  
+
   // Get user profile from Supabase
   const { data: user, error } = await supabase
     .from('users')
     .select('*')
     .eq('email', req.user.email)
     .single();
-  
+
   if (error || !user) {
     console.error('Error fetching user:', error);
     return null;
   }
-  
+
   return user;
 }
 
 export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
-  
+
   // Set up WebSocket server
   const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
-  
+
   wss.on('connection', (ws) => {
     wsClients.add(ws);
-    
+
     ws.on('close', () => {
       wsClients.delete(ws);
     });
-    
+
     ws.on('error', (error) => {
       console.error('WebSocket error:', error);
       wsClients.delete(ws);
     });
   });
-  
+
   // Supabase configuration endpoint
-  app.get("/api/supabase-config", (req, res) => {
+  app.get('/api/supabase-config', (req, res) => {
     res.json({
       url: process.env.SUPABASE_URL,
-      anonKey: process.env.SUPABASE_ANON_KEY
+      anonKey: process.env.SUPABASE_ANON_KEY;
     });
   });
-  
+
   // User registration route
-  app.post("/api/register", async (req, res) => {
+  app.post('/api/register', async (req, res) => {
     try {
       const { name, email, password } = req.body;
 
       if (!name || !email || !password) {
-        return res.status(400).json({ message: "Name, email and password are required" });
+        return res.status(400).json({ message: 'Name, email and password are required' });
       }
 
       // Check if user already exists
       const existingUser = await storage.getUserByEmail(email);
       if (existingUser) {
-        return res.status(400).json({ message: "User with this email already exists" });
+        return res.status(400).json({ message: 'User with this email already exists' });
       }
 
       // Hash the password
@@ -98,20 +98,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         username: email,
         email: email,
         phone: null,
-        passwordHash: hash
+        passwordHash: hash;
       };
 
       await storage.createUser(userData);
 
       res.status(200).json({ success: true });
     } catch (error) {
-      console.error("Registration error:", error);
-      res.status(500).json({ message: "Internal server error" });
+      console.error('Registration error:', error);
+      res.status(500).json({ message: 'Internal server error' });
     }
   });
 
   // Check authentication status
-  app.get("/api/me", async (req, res) => {
+  app.get('/api/me', async (req, res) => {
     try {
       if (!req.session.user) {
         return res.status(401).json({ authenticated: false });
@@ -129,258 +129,258 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Get store profile if exists
       const storeProfile = await storage.getStoreProfile(user.id);
-      
-      res.json({ 
-        authenticated: true, 
-        user: { 
+
+      res.json({
+        authenticated: true,
+        user: {
           id: user.id,
           email: user.email,
           username: user.username,
           phone: user.phone,
-          storeProfile: storeProfile
-        } 
+          storeProfile: storeProfile;
+        }
       });
     } catch (error) {
-      console.error("Authentication check error:", error);
+      console.error('Authentication check error:', error);
       res.status(500).json({ authenticated: false });
     }
   });
 
   // User login route
-  app.post("/api/login", async (req, res) => {
+  app.post('/api/login', async (req, res) => {
     try {
       const { email, password } = req.body;
 
       if (!email || !password) {
-        return res.status(400).json({ message: "Email and password are required" });
+        return res.status(400).json({ message: 'Email and password are required' });
       }
 
       // Retrieve user from database
       const user = await storage.getUserByEmail(email);
       if (!user) {
-        return res.status(401).json({ message: "Invalid credentials" });
+        return res.status(401).json({ message: 'Invalid credentials' });
       }
 
       // Verify password using bcryptjs
       const isValidPassword = await bcrypt.compare(password, user.passwordHash);
       if (!isValidPassword) {
-        return res.status(401).json({ message: "Invalid credentials" });
+        return res.status(401).json({ message: 'Invalid credentials' });
       }
 
       // Set user session with proper data
-      req.session.user = { 
+      req.session.user = {
         id: user.id,
-        phone: user.phone || email, 
+        phone: user.phone || email,
         email: user.email,
-        username: user.username
+        username: user.username;
       };
 
-      res.status(200).json({ message: "Login successful", user: { email: user.email, username: user.username } });
+      res.status(200).json({ message: 'Login successful', user: { email: user.email, username: user.username } });
     } catch (error) {
-      console.error("Login error:", error);
-      res.status(500).json({ message: "Internal server error" });
+      console.error('Login error:', error);
+      res.status(500).json({ message: 'Internal server error' });
     }
   });
 
   // Dashboard routes
-  app.get("/api/dashboard/metrics", requireAuth, async (req, res) => {
+  app.get('/api/dashboard/metrics', requireAuth, async (req, res) => {
     try {
       const metrics = await storage.getDashboardMetrics();
       res.json(metrics);
     } catch (error) {
-      res.status(500).json({ message: "Failed to fetch dashboard metrics" });
+      res.status(500).json({ message: 'Failed to fetch dashboard metrics' });
     }
   });
 
   // Product routes
-  app.get("/api/products", requireAuth, async (req, res) => {
+  app.get('/api/products', requireAuth, async (req, res) => {
     try {
       const products = await storage.getProducts();
       res.json(products);
     } catch (error) {
-      res.status(500).json({ message: "Failed to fetch products" });
+      res.status(500).json({ message: 'Failed to fetch products' });
     }
   });
 
-  app.post("/api/products", requireAuth, async (req, res) => {
+  app.post('/api/products', requireAuth, async (req, res) => {
     try {
       const requestData = insertProductSchema.parse(req.body);
-      
+
       // Handle unknown quantity logic
       const productData = {
         ...requestData,
-        stock: requestData.unknownQuantity ? null : requestData.stock
+        stock: requestData.unknownQuantity ? null : requestData.stock;
       };
-      
+
       // Remove unknownQuantity from the data before sending to storage
       const { unknownQuantity, ...cleanProductData } = productData;
-      
+
       const product = await storage.createProduct(cleanProductData);
       res.status(201).json(product);
     } catch (error: any) {
-      console.error("Product creation error:", error);
+      console.error('Product creation error:', error);
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid product data", errors: error.errors });
+        return res.status(400).json({ message: 'Invalid product data', errors: error.errors });
       }
       // Handle unique constraint violations
       if (error?.code === '23505' && error?.constraint === 'products_sku_unique') {
-        return res.status(400).json({ message: "A product with this SKU already exists. Please use a unique SKU." });
+        return res.status(400).json({ message: 'A product with this SKU already exists. Please use a unique SKU.' });
       }
-      res.status(500).json({ message: "Failed to create product" });
+      res.status(500).json({ message: 'Failed to create product' });
     }
   });
 
-  app.put("/api/products/:id", requireAuth, async (req, res) => {
+  app.put('/api/products/:id', requireAuth, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const requestData = insertProductSchema.partial().parse(req.body);
-      
+
       // Handle unknown quantity logic
       const productData = {
         ...requestData,
-        stock: requestData.unknownQuantity ? null : requestData.stock
+        stock: requestData.unknownQuantity ? null : requestData.stock;
       };
-      
+
       // Remove unknownQuantity from the data before sending to storage
       const { unknownQuantity, ...cleanProductData } = productData;
-      
+
       const product = await storage.updateProduct(id, cleanProductData);
       if (!product) {
-        return res.status(404).json({ message: "Product not found" });
+        return res.status(404).json({ message: 'Product not found' });
       }
       res.json(product);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid product data", errors: error.errors });
+        return res.status(400).json({ message: 'Invalid product data', errors: error.errors });
       }
-      res.status(500).json({ message: "Failed to update product" });
+      res.status(500).json({ message: 'Failed to update product' });
     }
   });
 
-  app.delete("/api/products/:id", requireAuth, async (req, res) => {
+  app.delete('/api/products/:id', requireAuth, async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const deleted = await storage.deleteProduct(id);
       if (!deleted) {
-        return res.status(404).json({ message: "Product not found" });
+        return res.status(404).json({ message: 'Product not found' });
       }
       res.status(204).send();
     } catch (error) {
-      res.status(500).json({ message: "Failed to delete product" });
+      res.status(500).json({ message: 'Failed to delete product' });
     }
   });
 
   // Frequent products endpoint
-  app.get("/api/products/frequent", requireAuth, async (req, res) => {
+  app.get('/api/products/frequent', requireAuth, async (req, res) => {
     try {
       const frequentProducts = await storage.getFrequentProducts();
       res.json(frequentProducts);
     } catch (error) {
-      console.error("Error fetching frequent products:", error);
-      res.status(500).json({ message: "Failed to fetch frequent products" });
+      console.error('Error fetching frequent products:', error);
+      res.status(500).json({ message: 'Failed to fetch frequent products' });
     }
   });
 
   // Product search endpoint
-  app.get("/api/products/search", requireAuth, async (req, res) => {
+  app.get('/api/products/search', requireAuth, async (req, res) => {
     try {
       const query = req.query.q as string;
       if (!query || query.trim().length < 1) {
         return res.json([]);
       }
-      
+
       const searchResults = await storage.searchProducts(query.trim());
       );
-      
+
       // Limit to 8 results as requested
       const limitedResults = searchResults.slice(0, 8);
       res.json(limitedResults);
     } catch (error) {
-      console.error("Error searching products:", error);
-      res.status(500).json({ message: "Failed to search products" });
+      console.error('Error searching products:', error);
+      res.status(500).json({ message: 'Failed to search products' });
     }
   });
 
   // Customer routes
-  app.get("/api/customers", requireAuth, async (req, res) => {
+  app.get('/api/customers', requireAuth, async (req, res) => {
     try {
       const customers = await storage.getCustomers();
       res.json(customers);
     } catch (error) {
-      res.status(500).json({ message: "Failed to fetch customers" });
+      res.status(500).json({ message: 'Failed to fetch customers' });
     }
   });
 
-  app.post("/api/customers", requireAuth, async (req, res) => {
+  app.post('/api/customers', requireAuth, async (req, res) => {
     try {
       const customerData = insertCustomerSchema.parse(req.body);
       const customer = await storage.createCustomer(customerData);
       res.status(201).json(customer);
     } catch (error) {
-      console.error("Customer creation error:", error);
+      console.error('Customer creation error:', error);
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid customer data", errors: error.errors });
+        return res.status(400).json({ message: 'Invalid customer data', errors: error.errors });
       }
-      res.status(500).json({ message: "Failed to create customer" });
+      res.status(500).json({ message: 'Failed to create customer' });
     }
   });
 
-  app.put("/api/customers/:id", requireAuth, async (req, res) => {
+  app.put('/api/customers/:id', requireAuth, async (req, res) => {
     try {
       const customerId = parseInt(req.params.id);
       const customerData = insertCustomerSchema.parse(req.body);
       const customer = await storage.updateCustomer(customerId, customerData);
-      
+
       if (!customer) {
-        return res.status(404).json({ message: "Customer not found" });
+        return res.status(404).json({ message: 'Customer not found' });
       }
-      
+
       res.json(customer);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid customer data", errors: error.errors });
+        return res.status(400).json({ message: 'Invalid customer data', errors: error.errors });
       }
-      res.status(500).json({ message: "Failed to update customer" });
+      res.status(500).json({ message: 'Failed to update customer' });
     }
   });
 
-  app.delete("/api/customers/:id", requireAuth, async (req, res) => {
+  app.delete('/api/customers/:id', requireAuth, async (req, res) => {
     try {
       const customerId = parseInt(req.params.id);
       await storage.deleteCustomer(customerId);
       res.status(204).send();
     } catch (error) {
-      console.error("Customer deletion error:", error);
-      res.status(500).json({ message: "Failed to delete customer" });
+      console.error('Customer deletion error:', error);
+      res.status(500).json({ message: 'Failed to delete customer' });
     }
   });
 
   // Customer repayment endpoint
-  app.post("/api/customers/:id/payments", requireAuth, async (req, res) => {
+  app.post('/api/customers/:id/payments', requireAuth, async (req, res) => {
     try {
       const customerId = parseInt(req.params.id);
       const { amount, method, note } = req.body;
-      
+
       if (!amount || !method) {
-        return res.status(400).json({ message: "Amount and payment method are required" });
+        return res.status(400).json({ message: 'Amount and payment method are required' });
       }
 
       // Validate customer exists
       const customer = await storage.getCustomer(customerId);
       if (!customer) {
-        return res.status(404).json({ message: "Customer not found" });
+        return res.status(404).json({ message: 'Customer not found' });
       }
 
       // Validate payment amount
       const paymentAmount = parseFloat(amount);
-      const currentBalance = parseFloat(customer.balance || "0");
-      
+      const currentBalance = parseFloat(customer.balance || '0');
+
       if (paymentAmount <= 0) {
-        return res.status(400).json({ message: "Payment amount must be greater than zero" });
+        return res.status(400).json({ message: 'Payment amount must be greater than zero' });
       }
-      
+
       if (paymentAmount > currentBalance) {
-        return res.status(400).json({ message: "Payment amount cannot exceed outstanding debt" });
+        return res.status(400).json({ message: 'Payment amount cannot exceed outstanding debt' });
       }
 
       // Create payment record
@@ -388,17 +388,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         customerId: customerId,
         amount: paymentAmount.toFixed(2),
         method: method,
-        reference: note || null
+        reference: note || null;
       };
 
       const payment = await storage.createPayment(paymentData);
-      
+
       // Update customer balance (subtract payment amount)
       await storage.updateCustomerBalance(customerId, -paymentAmount);
-      
+
       // Get updated customer
       const updatedCustomer = await storage.getCustomer(customerId);
-      
+
       // Broadcast real-time payment notification
       broadcastToClients({
         type: 'customerPaymentRecorded',
@@ -411,59 +411,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
           timestamp: new Date().toISOString()
         }
       });
-      
-      res.status(201).json({ 
-        payment, 
+
+      res.status(201).json({
+        payment,
         customer: updatedCustomer,
-        message: `Repayment of KES ${paymentAmount.toFixed(2)} recorded for ${customer.name}` 
+        message: `Repayment of KES ${paymentAmount.toFixed(2)} recorded for ${customer.name}`
       });
     } catch (error) {
-      console.error("Customer payment error:", error);
-      res.status(500).json({ message: "Failed to record payment" });
+      console.error('Customer payment error:', error);
+      res.status(500).json({ message: 'Failed to record payment' });
     }
   });
 
   // Payment routes
-  app.get("/api/payments", requireAuth, async (req, res) => {
+  app.get('/api/payments', requireAuth, async (req, res) => {
     try {
       const payments = await storage.getPayments();
       res.json(payments);
     } catch (error) {
-      res.status(500).json({ message: "Failed to fetch payments" });
+      res.status(500).json({ message: 'Failed to fetch payments' });
     }
   });
 
-  app.post("/api/payments", requireAuth, async (req, res) => {
+  app.post('/api/payments', requireAuth, async (req, res) => {
     try {
       const { customerId, amount, method, reference } = req.body;
-      
+
       if (!customerId || !amount || !method) {
-        return res.status(400).json({ message: "Customer ID, amount, and payment method are required" });
+        return res.status(400).json({ message: 'Customer ID, amount, and payment method are required' });
       }
 
       // Validate customer exists
       const customer = await storage.getCustomer(customerId);
       if (!customer) {
-        return res.status(404).json({ message: "Customer not found" });
+        return res.status(404).json({ message: 'Customer not found' });
       }
 
       // Check for negative payment amount
       if (parseFloat(amount) <= 0) {
-        return res.status(400).json({ message: "Payment amount must be greater than zero" });
+        return res.status(400).json({ message: 'Payment amount must be greater than zero' });
       }
 
       const paymentData = {
         customerId: parseInt(customerId),
         amount: parseFloat(amount).toFixed(2),
         method: method,
-        reference: reference || null
+        reference: reference || null;
       };
 
       const payment = await storage.createPayment(paymentData);
-      
+
       // Get updated customer to return current balance
       const updatedCustomer = await storage.getCustomer(customerId);
-      
+
       // Broadcast real-time payment notification
       broadcastToClients({
         type: 'paymentRecorded',
@@ -475,62 +475,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
           timestamp: new Date().toISOString()
         }
       });
-      
-      res.status(201).json({ 
-        payment, 
+
+      res.status(201).json({
+        payment,
         customer: updatedCustomer,
-        message: `Payment recorded for ${customer.name}` 
+        message: `Payment recorded for ${customer.name}`
       });
     } catch (error) {
-      console.error("Payment creation error:", error);
-      res.status(500).json({ message: "Failed to record payment" });
+      console.error('Payment creation error:', error);
+      res.status(500).json({ message: 'Failed to record payment' });
     }
   });
 
-  app.get("/api/customers/:id/payments", requireAuth, async (req, res) => {
+  app.get('/api/customers/:id/payments', requireAuth, async (req, res) => {
     try {
       const customerId = parseInt(req.params.id);
       const payments = await storage.getPaymentsByCustomer(customerId);
       res.json(payments);
     } catch (error) {
-      res.status(500).json({ message: "Failed to fetch customer payments" });
+      res.status(500).json({ message: 'Failed to fetch customer payments' });
     }
   });
 
   // Order routes
-  app.get("/api/orders", requireAuth, async (req, res) => {
+  app.get('/api/orders', requireAuth, async (req, res) => {
     try {
       const orders = await storage.getOrders();
       res.json(orders);
     } catch (error) {
-      res.status(500).json({ message: "Failed to fetch orders" });
+      res.status(500).json({ message: 'Failed to fetch orders' });
     }
   });
 
-  app.get("/api/orders/recent", requireAuth, async (req, res) => {
+  app.get('/api/orders/recent', requireAuth, async (req, res) => {
     try {
       const limit = req.query.limit ? parseInt(req.query.limit as string) : 10;
       const orders = await storage.getRecentOrders(limit);
       res.json(orders);
     } catch (error) {
-      res.status(500).json({ message: "Failed to fetch recent orders" });
+      res.status(500).json({ message: 'Failed to fetch recent orders' });
     }
   });
 
-  app.post("/api/orders", requireAuth, async (req, res) => {
+  app.post('/api/orders', requireAuth, async (req, res) => {
     try {
       const orderData = insertOrderSchema.parse(req.body);
       const order = await storage.createOrder(orderData);
       res.status(201).json(order);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid order data", errors: error.errors });
+        return res.status(400).json({ message: 'Invalid order data', errors: error.errors });
       }
-      res.status(500).json({ message: "Failed to create order" });
+      res.status(500).json({ message: 'Failed to create order' });
     }
   });
 
-  app.post("/api/orders/:orderId/items", requireAuth, async (req, res) => {
+  app.post('/api/orders/:orderId/items', requireAuth, async (req, res) => {
     try {
       const orderId = parseInt(req.params.orderId);
       const orderItemData = insertOrderItemSchema.parse({ ...req.body, orderId });
@@ -538,69 +538,69 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(201).json(orderItem);
     } catch (error) {
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid order item data", errors: error.errors });
+        return res.status(400).json({ message: 'Invalid order item data', errors: error.errors });
       }
-      res.status(500).json({ message: "Failed to create order item" });
+      res.status(500).json({ message: 'Failed to create order item' });
     }
   });
 
   // Sales endpoint with simplified payload
-  app.post("/api/sales", requireAuth, async (req, res) => {
+  app.post('/api/sales', requireAuth, async (req, res) => {
     try {
       const { items, paymentType, customer } = req.body;
-      
+
       if (!items || !Array.isArray(items) || items.length === 0) {
-        return res.status(400).json({ message: "Items are required" });
+        return res.status(400).json({ message: 'Items are required' });
       }
-      
+
       if (!paymentType || !['cash', 'credit', 'mpesa', 'mobileMoney'].includes(paymentType)) {
-        return res.status(400).json({ message: "Valid payment type is required (cash, credit, mpesa, or mobileMoney)" });
+        return res.status(400).json({ message: 'Valid payment type is required (cash, credit, mpesa, or mobileMoney)' });
       }
 
       // For credit sales, require customer information
       if (paymentType === 'credit' && (!customer || !customer.trim())) {
-        return res.status(400).json({ message: "Customer required for credit sales" });
+        return res.status(400).json({ message: 'Customer required for credit sales' });
       }
 
       // For M-Pesa payments, check if M-Pesa is enabled
       if (paymentType === 'mpesa') {
         const user = await getCurrentUser(req);
         if (!user) {
-          return res.status(404).json({ message: "User not found" });
+          return res.status(404).json({ message: 'User not found' });
         }
-        
+
         const settings = await storage.getUserSettings(user.id);
         if (!settings?.mpesaEnabled) {
-          return res.status(403).json({ message: "M-Pesa payments are disabled. Please enable M-Pesa in settings." });
+          return res.status(403).json({ message: 'M-Pesa payments are disabled. Please enable M-Pesa in settings.' });
         }
       }
 
       // Get product details and calculate total
       let total = 0;
       const enrichedItems = [];
-      
+
       for (const item of items) {
         const product = await storage.getProduct(item.productId);
         if (!product) {
           return res.status(400).json({ message: `Product with ID ${item.productId} not found` });
         }
-        
+
         // Skip stock validation for products with unknown quantities
         if (product.stock !== null && item.qty > product.stock) {
           return res.status(400).json({ message: `Insufficient stock for ${product.name}. Available: ${product.stock}, Requested: ${item.qty}` });
         }
-        
+
         const lineTotal = parseFloat(product.price) * item.qty;
         total += lineTotal;
-        
+
         enrichedItems.push({
           productId: product.id,
           productName: product.name,
           quantity: item.qty,
-          price: product.price
+          price: product.price;
         });
       }
-      
+
       // Determine order status based on payment type
       let status;
       if (paymentType === 'cash' || paymentType === 'mobileMoney') {
@@ -610,7 +610,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } else if (paymentType === 'credit') {
         status = 'credit';
       }
-      
+
       // Handle customer lookup/creation for credit sales
       let customerId = null;
       if (paymentType === 'credit') {
@@ -618,10 +618,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const customerParts = customer.split(/[,|\-|:|\s]+/).map((part: string) => part.trim()).filter(Boolean);
         const customerName = customerParts[0];
         const customerPhone = customerParts.length > 1 ? customerParts[1] : null;
-        
+
         // Try to find existing customer by name or phone
         let existingCustomer = await storage.getCustomerByNameOrPhone(customerName, customerPhone);
-        
+
         if (!existingCustomer) {
           // Create new customer
           existingCustomer = await storage.createCustomer({
@@ -629,10 +629,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
             phone: customerPhone,
             email: null,
             address: null,
-            balance: "0.00"
+            balance: '0.00'
           });
         }
-        
+
         // Update customer balance (add sale amount to their credit)
         await storage.updateCustomerBalance(existingCustomer.id, total);
         customerId = existingCustomer.id;
@@ -641,15 +641,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Create the order
       const orderData = {
         customerId,
-        customerName: paymentType === 'credit' ? customer.split(/[,|\-|:|\s]+/)[0].trim() : "Walk-in Customer",
+        customerName: paymentType === 'credit' ? customer.split(/[,|\-|:|\s]+/)[0].trim() : 'Walk-in Customer',
         total: total.toFixed(2),
         paymentMethod: paymentType,
         status,
-        reference: null
+        reference: null;
       };
-      
+
       const order = await storage.createOrder(orderData);
-      
+
       // Create order items and update inventory for all payment types
       const updatedProducts = [];
       for (const item of enrichedItems) {
@@ -659,36 +659,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
           productId: item.productId,
           productName: item.productName,
           quantity: item.quantity,
-          price: item.price
+          price: item.price;
         });
-        
+
         // Get the product to check if it has unknown quantity
         const productInfo = await storage.getProduct(item.productId);
-        
+
         // Update product stock ONLY if it's not an unknown quantity item
         if (productInfo && productInfo.stock !== null) {
           await storage.updateProductStock(item.productId, -item.quantity);
-          
+
           // Get updated product info for inventory event
           const updatedProduct = await storage.getProduct(item.productId);
           if (updatedProduct) {
             updatedProducts.push({
               productId: item.productId,
-              newQuantity: updatedProduct.stock
+              newQuantity: updatedProduct.stock;
             });
           }
         } else {
           // For unknown quantity items, don't update stock but still broadcast the event
           updatedProducts.push({
             productId: item.productId,
-            newQuantity: null // Keep as unknown quantity
+            newQuantity: null // Keep as unknown quantity;
           });
         }
-        
+
         // Increment sales count for analytics
         await storage.incrementProductSalesCount(item.productId, item.quantity);
       }
-      
+
       // Emit real-time data update events
       broadcastToClients({
         type: 'dataUpdate',
@@ -698,19 +698,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
           total: total.toFixed(2),
           paymentType,
           status,
-          items: enrichedItems
+          items: enrichedItems;
         }
       });
-      
+
       // Emit inventory update events for each affected product
       updatedProducts.forEach(product => {
         broadcastToClients({
           type: 'inventoryUpdate',
           productId: product.productId,
-          newQuantity: product.newQuantity
+          newQuantity: product.newQuantity;
         });
       });
-      
+
       // Emit legacy sale notification for existing UI
       broadcastToClients({
         type: 'saleUpdate',
@@ -719,41 +719,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
         total: total.toFixed(2),
         status;
       });
-      
+
       res.status(201).json({
         success: true,
         saleId: order.id,
         status;
       });
-      
+
     } catch (error: any) {
-      console.error("Sales processing error:", error);
+      console.error('Sales processing error:', error);
       if (error instanceof z.ZodError) {
-        return res.status(400).json({ message: "Invalid sale data", errors: error.errors });
+        return res.status(400).json({ message: 'Invalid sale data', errors: error.errors });
       }
-      res.status(500).json({ message: "Failed to process sale" });
+      res.status(500).json({ message: 'Failed to process sale' });
     }
   });
 
   // Onboarding route
-  app.post("/api/onboarding", requireAuth, async (req, res) => {
+  app.post('/api/onboarding', requireAuth, async (req, res) => {
     try {
       const { businessName, paybill, consumerKey, consumerSecret } = req.body;
-      
+
       if (!businessName || !paybill || !consumerKey || !consumerSecret) {
-        return res.status(400).json({ 
-          message: "All fields are required: businessName, paybill, consumerKey, consumerSecret" 
+        return res.status(400).json({
+          message: 'All fields are required: businessName, paybill, consumerKey, consumerSecret'
         });
       }
 
       const phone = req.session.user!.phone;
-      
+
       // Get user by phone to get the user ID
       const user = await storage.getUserByPhone(phone);
       if (!user) {
-        return res.status(404).json({ message: "User not found" });
+        return res.status(404).json({ message: 'User not found' });
       }
-      
+
       // Store business profile
       await storage.saveBusinessProfile(user.id, {
         businessName,
@@ -762,54 +762,54 @@ export async function registerRoutes(app: Express): Promise<Server> {
         description: ''
       });
 
-      res.json({ message: "Business profile saved successfully" });
+      res.json({ message: 'Business profile saved successfully' });
     } catch (error) {
-      console.error("Onboarding error:", error);
-      res.status(500).json({ message: "Failed to save business profile" });
+      console.error('Onboarding error:', error);
+      res.status(500).json({ message: 'Failed to save business profile' });
     }
   });
 
   // M-Pesa C2B Callback endpoint
-  app.post("/api/sales/mpesa/callback", async (req, res) => {
+  app.post('/api/sales/mpesa/callback', async (req, res) => {
     try {
-      const { 
+      const {
         ShortCode,
-        BillRefNumber, 
+        BillRefNumber,
         Amount,
         TransID,
         ResultCode,
-        ResultDesc 
+        ResultDesc
       } = req.body;
 
       // Check if payment was successful
       if (ResultCode === '0' || ResultCode === 0) {
         // Find the order with matching reference and pending status
         const order = await storage.getOrderByReference(BillRefNumber);
-        
+
         if (!order) {
           console.error(`Order not found for reference: ${BillRefNumber}`);
-          return res.status(404).json({ 
-            ResultCode: "1", 
-            ResultDesc: "Order not found" 
+          return res.status(404).json({
+            ResultCode: '1',
+            ResultDesc: 'Order not found'
           });
         }
 
         if (order.status !== 'pending') {
           `);
-          return res.json({ 
-            ResultCode: "0", 
-            ResultDesc: "Already processed" 
+          return res.json({
+            ResultCode: '0',
+            ResultDesc: 'Already processed'
           });
         }
 
         // Update order status to 'paid'
-        await storage.updateOrder(order.id, { 
-          status: 'paid' 
+        await storage.updateOrder(order.id, {
+          status: 'paid'
         });
 
         // Get order items to update inventory (if not already done)
         const orderItems = await storage.getOrderItems(order.id);
-        
+
         // In M-Pesa flow, inventory was already decremented when order was created
         // So we don't need to decrement again, just confirm payment
 
@@ -823,21 +823,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
           message: `M-Pesa payment received for ${BillRefNumber}`
         });
 
-        return res.json({ 
-          ResultCode: "0", 
-          ResultDesc: "Accepted" 
+        return res.json({
+          ResultCode: '0',
+          ResultDesc: 'Accepted'
         });
       } else {
         // Payment failed
         console.error(`M-Pesa payment failed for reference ${BillRefNumber}:`, ResultDesc);
-        
+
         // Find the order and optionally update status to 'failed'
         const order = await storage.getOrderByReference(BillRefNumber);
         if (order && order.status === 'pending') {
-          await storage.updateOrder(order.id, { 
-            status: 'failed' 
+          await storage.updateOrder(order.id, {
+            status: 'failed'
           });
-          
+
           // Optionally restore inventory since payment failed
           const orderItems = await storage.getOrderItems(order.id);
           for (const item of orderItems) {
@@ -854,17 +854,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
           message: `M-Pesa payment failed for ${BillRefNumber}`
         });
 
-        return res.json({ 
-          ResultCode: "1", 
-          ResultDesc: "Rejected" 
+        return res.json({
+          ResultCode: '1',
+          ResultDesc: 'Rejected'
         });
       }
-      
+
     } catch (error: any) {
-      console.error("M-Pesa callback error:", error);
-      return res.status(500).json({ 
-        ResultCode: "1", 
-        ResultDesc: "Internal server error" 
+      console.error('M-Pesa callback error:', error);
+      return res.status(500).json({
+        ResultCode: '1',
+        ResultDesc: 'Internal server error'
       });
     }
   });
@@ -875,16 +875,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const today = new Date();
       const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate());
-      
+
       const allOrders = await storage.getOrders();
-      const todayOrders = allOrders.filter(order => 
+      const todayOrders = allOrders.filter(order =>
         new Date(order.createdAt) >= startOfDay
       );
 
       // Initialize 24 hours with zero sales
       const hourlyData = Array.from({ length: 24 }, (_, i) => ({
         hour: `${i.toString().padStart(2, '0')}:00`,
-        sales: 0
+        sales: 0;
       }));
 
       // Aggregate sales by hour
@@ -919,13 +919,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const allOrders = await storage.getOrders();
-      const periodOrders = allOrders.filter(order => 
+      const periodOrders = allOrders.filter(order =>
         new Date(order.createdAt) >= startDate
       );
 
       // Get all order items for the period
       const itemSales: { [key: number]: { name: string; unitsSold: number revenue: number } } = {};
-      
+
       for (const order of periodOrders) {
         const orderItems = await storage.getOrderItems(order.id);
         for (const item of orderItems) {
@@ -934,7 +934,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             itemSales[item.productId] = {
               name: product?.name || 'Unknown Product',
               unitsSold: 0,
-              revenue: 0
+              revenue: 0;
             };
           }
           itemSales[item.productId].unitsSold += item.quantity;
@@ -982,9 +982,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Get all orders
       const allOrders = await storage.getOrders();
-      
+
       // Filter by date range
-      let filteredOrders = allOrders.filter(order => 
+      let filteredOrders = allOrders.filter(order =>
         new Date(order.createdAt) >= startDate
       );
 
@@ -1013,7 +1013,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const formattedOrders = await Promise.all(paginatedOrders.map(async (order) => {
         // Get order items for this order
         const orderItems = await storage.getOrderItems(order.id);
-        
+
         // Format items as {productName, qty, price}
         const items = orderItems.map(item => ({
           productName: item.productName,
@@ -1024,7 +1024,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Convert items to products format for frontend
         const products = items.map(item => ({
           name: item.productName,
-          quantity: item.qty
+          quantity: item.qty;
         }));
 
         return {
@@ -1035,7 +1035,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           paymentMethod: order.paymentMethod,
           status: order.status,
           reference: order.reference,
-          products: products
+          products: products;
         };
       }));
 
@@ -1054,7 +1054,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/reports/credits', requireAuth, async (req: any, res: any) => {
     try {
       const customers = await storage.getCustomers();
-      
+
       // Filter customers with credit balance and sort by balance descending
       const customerCredits = customers
         .filter(customer => parseFloat(customer.balance) > 0)
@@ -1062,7 +1062,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .map(customer => ({
           name: customer.name,
           phone: customer.phone || 'N/A',
-          balance: customer.balance
+          balance: customer.balance;
         }));
 
       res.json(customerCredits);
@@ -1077,10 +1077,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const period = req.query.period || 'today';
       const orders = await storage.getOrders();
-      
+
       let startDate: Date
       let endDate = new Date();
-      
+
       switch (period) {
         case 'weekly':
           startDate = new Date();
@@ -1095,21 +1095,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
           startDate.setHours(0, 0, 0, 0);
           endDate.setHours(23, 59, 59, 999);
       }
-      
+
       const filteredOrders = orders.filter(order => {
         const orderDate = new Date(order.createdAt);
         return orderDate >= startDate && orderDate <= endDate;
       });
-      
+
       let totalSales = 0;
       let cashSales = 0;
       let mobileMoneySales = 0;
       let creditSales = 0;
-      
+
       filteredOrders.forEach(order => {
         const amount = parseFloat(order.total);
         totalSales += amount;
-        
+
         // Handle paid orders (cash and mobile money)
         if (order.status === 'paid' || order.status === 'completed') {
           if (order.paymentMethod === 'cash') {
@@ -1117,7 +1117,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           } else if (order.paymentMethod === 'mobileMoney') {
             mobileMoneySales += amount;
           }
-        } 
+        }
         // Handle credit orders
         else if (order.status === 'credit') {
           creditSales += amount;
@@ -1127,7 +1127,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // These are typically M-Pesa orders awaiting confirmation, don't count in breakdown yet;
         }
       });
-      
+
       res.json({
         totalSales: totalSales.toFixed(2),
         cashSales: cashSales.toFixed(2),
@@ -1140,69 +1140,69 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // New trend endpoint with period support  
+  // New trend endpoint with period support
   app.get('/api/reports/trend', requireAuth, async (req: any, res: any) => {
     try {
       const period = req.query.period || 'daily';
       const orders = await storage.getOrders();
-      
+
       let data: { label: string; value: number }[] = [];
-      
+
       if (period === 'daily') {
         // 24 hourly points for today
         const today = new Date();
         today.setHours(0, 0, 0, 0);
         const tomorrow = new Date(today);
         tomorrow.setDate(tomorrow.getDate() + 1);
-        
+
         const todayOrders = orders.filter(order => {
           const orderDate = new Date(order.createdAt);
           return orderDate >= today && orderDate < tomorrow;
         });
-        
+
         for (let hour = 0; hour < 24; hour++) {
           const hourStart = new Date(today);
           hourStart.setHours(hour);
           const hourEnd = new Date(today);
           hourEnd.setHours(hour + 1);
-          
+
           const hourOrders = todayOrders.filter(order => {
             const orderDate = new Date(order.createdAt);
             return orderDate >= hourStart && orderDate < hourEnd;
           });
-          
-          const hourSales = hourOrders.reduce((sum, order) => 
+
+          const hourSales = hourOrders.reduce((sum, order) =>
             sum + (order.status === 'paid' || order.status === 'completed' || order.status === 'credit' ? parseFloat(order.total) : 0), 0
           );
-          
+
           data.push({
             label: hour.toString().padStart(2, '0') + ':00',
-            value: hourSales
+            value: hourSales;
           });
         }
       } else if (period === 'weekly') {
         // 7 daily points for the last week
         const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-        
+
         for (let i = 6; i >= 0; i--) {
           const day = new Date();
           day.setDate(day.getDate() - i);
           day.setHours(0, 0, 0, 0);
           const nextDay = new Date(day);
           nextDay.setDate(nextDay.getDate() + 1);
-          
+
           const dayOrders = orders.filter(order => {
             const orderDate = new Date(order.createdAt);
             return orderDate >= day && orderDate < nextDay;
           });
-          
-          const daySales = dayOrders.reduce((sum, order) => 
+
+          const daySales = dayOrders.reduce((sum, order) =>
             sum + (order.status === 'paid' || order.status === 'completed' || order.status === 'credit' ? parseFloat(order.total) : 0), 0
           );
-          
+
           data.push({
             label: dayNames[day.getDay()],
-            value: daySales
+            value: daySales;
           });
         }
       } else if (period === 'monthly') {
@@ -1213,23 +1213,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
           day.setHours(0, 0, 0, 0);
           const nextDay = new Date(day);
           nextDay.setDate(nextDay.getDate() + 1);
-          
+
           const dayOrders = orders.filter(order => {
             const orderDate = new Date(order.createdAt);
             return orderDate >= day && orderDate < nextDay;
           });
-          
-          const daySales = dayOrders.reduce((sum, order) => 
+
+          const daySales = dayOrders.reduce((sum, order) =>
             sum + (order.status === 'paid' || order.status === 'completed' || order.status === 'credit' ? parseFloat(order.total) : 0), 0
           );
-          
+
           data.push({
             label: day.getDate().toString(),
-            value: daySales
+            value: daySales;
           });
         }
       }
-      
+
       res.json(data);
     } catch (error) {
       console.error('Trend reports error:', error);
@@ -1244,7 +1244,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       // Calculate customer credit data based on current balance
       const customerCredits = customers
-        .filter(customer => parseFloat(customer.balance || "0") > 0)
+        .filter(customer => parseFloat(customer.balance || '0') > 0)
         .map(customer => ({
           customerName: customer.name,
           totalOwed: parseFloat(customer.balance).toFixed(2),
@@ -1271,7 +1271,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Filter orders by period
       let startDate: Date
       const now = new Date();
-      
+
       switch (period) {
         case 'daily':
           startDate = new Date(now);
@@ -1289,14 +1289,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           startDate.setHours(0, 0, 0, 0);
       }
 
-      const relevantOrders = orders.filter(order => 
+      const relevantOrders = orders.filter(order =>
         (order.status === 'paid' || order.status === 'completed' || order.status === 'credit') &&
         new Date(order.createdAt) >= startDate
       );
 
       // Calculate product sales data
       const productSales = products.reduce((acc, product) => {
-        const productOrderItems = orderItems.filter(item => 
+        const productOrderItems = orderItems.filter(item =>
           item.productId === product.id &&
           relevantOrders.some(order => order.id === item.orderId)
         );
@@ -1326,7 +1326,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // CSV export hosting endpoints
   const csvStorage = new Map<string, { content: string; timestamp: number }>();
-  
+
   // Store CSV file temporarily (auto-cleanup after 1 hour)
   app.post('/api/exports', requireAuth, (req: any, res: any) => {
     try {
@@ -1334,33 +1334,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!filename || !content) {
         return res.status(400).json({ error: 'Filename and content required' });
       }
-      
+
       const id = uuidv4();
       csvStorage.set(id, { content, timestamp: Date.now() });
-      
+
       // Auto cleanup after 1 hour
       setTimeout(() => {
         csvStorage.delete(id);
       }, 60 * 60 * 1000);
-      
+
       res.json({ id, url: `/exports/${id}/${filename}` });
     } catch (error) {
       console.error('CSV export error:', error);
       res.status(500).json({ error: 'Failed to store CSV' });
     }
   });
-  
+
   // Serve CSV files
   app.get('/exports/:id/:filename', (req, res) => {
     const { id, filename } = req.params;
     const csvData = csvStorage.get(id);
-    
+
     if (!csvData) {
       return res.status(404).json({ error: 'CSV file not found or expired' });
     }
-    
+
     res.setHeader('Content-Type', 'text/csv');
-    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.setHeader('Content-Disposition', `attachment; filename='${filename}'`);
     res.send(csvData.content);
   });
 
@@ -1369,11 +1369,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const period = req.query.period || 'today';
       const orders = await storage.getOrders();
-      
+
       // Filter orders by period
       let startDate: Date
       let endDate = new Date();
-      
+
       switch (period) {
         case 'weekly':
           startDate = new Date();
@@ -1388,18 +1388,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
           startDate.setHours(0, 0, 0, 0);
           endDate.setHours(23, 59, 59, 999);
       }
-      
+
       const filteredOrders = orders.filter(order => {
         const orderDate = new Date(order.createdAt);
         return orderDate >= startDate && orderDate <= endDate;
       });
-      
+
       // Get all order items for filtered orders
       const flattenedRows: any[] = []
-      
+
       for (const order of filteredOrders) {
         const orderItems = await storage.getOrderItems(order.id);
-        
+
         if (orderItems.length === 0) {
           // If no items found, add one row with order info
           flattenedRows.push({
@@ -1436,7 +1436,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           });
         }
       }
-      
+
       // Define CSV fields with proper formatting
       const fields = [
         { label: 'Order ID', value: 'orderId' },
@@ -1452,19 +1452,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         { label: 'Line Total (KES)', value: (row: any) => row.lineTotal.toFixed(2) },
         { label: 'Order Total (KES)', value: (row: any) => row.orderTotal.toFixed(2) }
       ];
-      
+
       // Generate CSV
       const parser = new Json2csvParser({ fields });
       const csv = parser.parse(flattenedRows);
-      
+
       // Set response headers for file download
       const timestamp = new Date().toISOString().slice(0, 10);
       const filename = `orders_detailed_${period}_${timestamp}.csv`;
-      
+
       res.setHeader('Content-Type', 'text/csv');
-      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      res.setHeader('Content-Disposition', `attachment; filename='${filename}'`);
       res.send(csv);
-      
+
     } catch (error) {
       console.error('Detailed CSV export error:', error);
       res.status(500).json({ error: 'Failed to generate detailed CSV export' });
@@ -1478,12 +1478,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!user) {
         return res.status(404).json({ error: 'User not found' });
       }
-      
+
       const profile = await storage.getBusinessProfile(user.id);
       if (!profile) {
         return res.status(404).json({ error: 'Business profile not found' });
       }
-      
+
       res.json(profile);
     } catch (error) {
       console.error('Business profile fetch error:', error);
@@ -1497,7 +1497,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!user) {
         return res.status(404).json({ error: 'User not found' });
       }
-      
+
       await storage.saveBusinessProfile(user.id, req.body);
       res.json({ success: true });
     } catch (error) {
@@ -1513,9 +1513,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!user) {
         return res.status(404).json({ error: 'User not found' });
       }
-      
+
       const profile = await storage.getStoreProfile(user.id);
-      
+
       // Transform database fields to frontend field names
       const transformedProfile = profile ? {
         storeName: profile.storeName,
@@ -1523,9 +1523,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         address: profile.location || '',
         storeType: profile.storeType,
         location: profile.location,
-        description: profile.description
+        description: profile.description;
       } : {};
-      
+
       res.json(transformedProfile);
     } catch (error) {
       console.error('Store profile fetch error:', error);
@@ -1539,10 +1539,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!user) {
         return res.status(404).json({ error: 'User not found' });
       }
-      
+
       const existingProfile = await storage.getStoreProfile(user.id);
       let profile;
-      
+
       // Map frontend fields to database fields
       const profileData = {
         storeName: req.body.storeName,
@@ -1557,7 +1557,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } else {
         profile = await storage.saveStoreProfile(user.id, profileData);
       }
-      
+
       res.json(profile);
     } catch (error) {
       console.error('Store profile save error:', error);
@@ -1571,12 +1571,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!user) {
         return res.status(404).json({ error: 'User not found' });
       }
-      
+
       const { paybillTillNumber, consumerKey, consumerSecret } = req.body;
-      
+
       const existingProfile = await storage.getStoreProfile(user.id);
       let profile;
-      
+
       if (existingProfile) {
         profile = await storage.updateStoreProfile(user.id, {
           paybillTillNumber,
@@ -1592,7 +1592,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           consumerSecret;
         });
       }
-      
+
       res.json(profile);
     } catch (error) {
       console.error('M-Pesa settings save error:', error);
@@ -1607,7 +1607,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!user) {
         return res.status(404).json({ error: 'User not found' });
       }
-      
+
       const settings = await storage.getUserSettings(user.id);
       res.json(settings || { language: 'en' });
     } catch (error) {
@@ -1625,7 +1625,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!user) {
         return res.status(404).json({ error: 'User not found' });
       }
-      
+
       const settings = await storage.getUserSettings(user.id);
       res.json({ enabled: settings?.mpesaEnabled || false });
     } catch (error) {
@@ -1640,22 +1640,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!user) {
         return res.status(404).json({ error: 'User not found' });
       }
-      
+
       const { enabled } = req.body;
-      
+
       if (typeof enabled !== 'boolean') {
         return res.status(400).json({ error: 'Enabled must be a boolean value' });
       }
-      
+
       const existingSettings = await storage.getUserSettings(user.id);
       let settings;
-      
+
       if (existingSettings) {
         settings = await storage.updateUserSettings(user.id, { mpesaEnabled: enabled });
       } else {
         settings = await storage.saveUserSettings(user.id, { mpesaEnabled: enabled });
       }
-      
+
       res.json({ enabled: settings?.mpesaEnabled || false });
     } catch (error) {
       console.error('M-Pesa enabled setting save error:', error);
@@ -1670,7 +1670,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!user) {
         return res.status(404).json({ error: 'User not found' });
       }
-      
+
       const settings = await storage.getUserSettings(user.id);
       res.json({ theme: settings?.theme || 'dark' });
     } catch (error) {
@@ -1685,22 +1685,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (!user) {
         return res.status(404).json({ error: 'User not found' });
       }
-      
+
       const { theme } = req.body;
-      
+
       if (!['light', 'dark'].includes(theme)) {
-        return res.status(400).json({ error: 'Theme must be either "light" or "dark"' });
+        return res.status(400).json({ error: 'Theme must be either 'light' or 'dark'' });
       }
-      
+
       const existingSettings = await storage.getUserSettings(user.id);
       let settings;
-      
+
       if (existingSettings) {
         settings = await storage.updateUserSettings(user.id, { theme });
       } else {
         settings = await storage.saveUserSettings(user.id, { theme });
       }
-      
+
       res.json({ theme: settings?.theme || 'dark' });
     } catch (error) {
       console.error('Theme setting save error:', error);
@@ -1713,10 +1713,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       // For now, this is a placeholder that simulates a sync process
       // In a real implementation, this would sync with external services or databases
-      
+
       // Simulate some processing time
       await new Promise(resolve => setTimeout(resolve, 1000));
-      
+
       res.json({ success: true, message: 'Data synchronized successfully' });
     } catch (error) {
       console.error('Manual sync error:', error);
@@ -1743,14 +1743,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/search', requireAuth, async (req: any, res: any) => {
     try {
       const { q } = req.query;
-      
+
       if (!q || q.length < 3) {
         return res.json([]);
       }
-      
+
       const query = q.toLowerCase();
       const results: any[] = []
-      
+
       // Search products
       const products = await storage.searchProducts(query);
       for (const product of products) {
@@ -1762,15 +1762,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
           href: `/inventory?search=${encodeURIComponent(product.name)}`
         });
       }
-      
-      // Search customers  
+
+      // Search customers
       const customers = await storage.getCustomers();
-      const matchingCustomers = customers.filter(customer => 
+      const matchingCustomers = customers.filter(customer =>
         customer.name.toLowerCase().includes(query) ||
         (customer.phone && customer.phone.includes(query)) ||
         (customer.email && customer.email.toLowerCase().includes(query))
       );
-      
+
       for (const customer of matchingCustomers) {
         results.push({
           id: `customer-${customer.id}`,
@@ -1780,14 +1780,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           href: `/customers?search=${encodeURIComponent(customer.name)}`
         });
       }
-      
+
       // Search orders by reference or customer name
       const orders = await storage.getOrders();
-      const matchingOrders = orders.filter(order => 
+      const matchingOrders = orders.filter(order =>
         (order.reference && order.reference.toLowerCase().includes(query)) ||
         order.customerName.toLowerCase().includes(query)
       );
-      
+
       for (const order of matchingOrders) {
         results.push({
           id: `order-${order.id}`,
@@ -1797,7 +1797,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           href: `/reports?order=${order.id}`
         });
       }
-      
+
       // Sort by relevance and limit to 5 results
       const sortedResults = results
         .sort((a, b) => {
@@ -1806,17 +1806,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const bExact = b.title.toLowerCase() === query;
           if (aExact && !bExact) return -1;
           if (!aExact && bExact) return 1;
-          
+
           // Then prioritize title matches over subtitle matches
           const aTitleMatch = a.title.toLowerCase().includes(query);
           const bTitleMatch = b.title.toLowerCase().includes(query);
           if (aTitleMatch && !bTitleMatch) return -1;
           if (!aTitleMatch && bTitleMatch) return 1;
-          
+
           return 0;
         })
         .slice(0, 5);
-      
+
       res.json(sortedResults);
     } catch (error) {
       console.error('Search error:', error);

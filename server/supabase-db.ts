@@ -11,13 +11,13 @@ export const supabaseDb = {
   async getProducts() {
     const { data, error } = await supabase.from('products').select('*').order('created_at', { ascending: false });
     if (error) throw error;
-    return data;
+    return data
   },
 
   async getProductById(id: number) {
     const { data, error } = await supabase.from('products').select('*').eq('id', id).single();
     if (error) throw error;
-    return data;
+    return data
   },
 
   async createProduct(product: any) {
@@ -32,10 +32,10 @@ export const supabaseDb = {
       low_stock_threshold: product.lowStockThreshold || product.low_stock_threshold || 10,
       sales_count: product.salesCount || product.sales_count || 0
     };
-    
+
     const { data, error } = await supabase.from('products').insert(dbProduct).select().single();
     if (error) throw error;
-    return data;
+    return data
   },
 
   async updateProduct(id: number, updates: any) {
@@ -51,29 +51,29 @@ export const supabaseDb = {
     if (updates.low_stock_threshold !== undefined) dbUpdates.low_stock_threshold = updates.low_stock_threshold;
     if (updates.salesCount !== undefined) dbUpdates.sales_count = updates.salesCount;
     if (updates.sales_count !== undefined) dbUpdates.sales_count = updates.sales_count;
-    
+
     const { data, error } = await supabase.from('products').update(dbUpdates).eq('id', id).select().single();
     if (error) throw error;
-    return data;
+    return data
   },
 
   async deleteProduct(id: number) {
     const { error } = await supabase.from('products').delete().eq('id', id);
-    if (error) throw error;
+    if (error) throw error
   },
 
   async searchProducts(query: string) {
     if (!query) {
       return this.getProducts();
     }
-    
+
     const { data, error } = await supabase
       .from('products')
       .select('*')
       .or(`name.ilike.%${query}%,sku.ilike.%${query}%,category.ilike.%${query}%,description.ilike.%${query}%`)
       .order('name', { ascending: true })
       .limit(10);
-    
+
     if (error) throw error;
     return data || [];
   },
@@ -82,13 +82,13 @@ export const supabaseDb = {
   async getCustomers() {
     const { data, error } = await supabase.from('customers').select('*').order('created_at', { ascending: false });
     if (error) throw error;
-    return data;
+    return data
   },
 
   async getCustomerById(id: number) {
     const { data, error } = await supabase.from('customers').select('*').eq('id', id).single();
     if (error) throw error;
-    return data;
+    return data
   },
 
   async createCustomer(customer: any) {
@@ -98,12 +98,12 @@ export const supabaseDb = {
       email: customer.email,
       phone: customer.phone,
       address: customer.address,
-      balance: customer.balance || "0.00"
+      balance: customer.balance || '0.00'
     };
-    
+
     const { data, error } = await supabase.from('customers').insert(dbCustomer).select().single();
     if (error) throw error;
-    return data;
+    return data
   },
 
   async updateCustomer(id: number, updates: any) {
@@ -114,10 +114,10 @@ export const supabaseDb = {
     if (updates.phone !== undefined) dbUpdates.phone = updates.phone;
     if (updates.address !== undefined) dbUpdates.address = updates.address;
     if (updates.balance !== undefined) dbUpdates.balance = updates.balance;
-    
+
     const { data, error } = await supabase.from('customers').update(dbUpdates).eq('id', id).select().single();
     if (error) throw error;
-    return data;
+    return data
   },
 
   async findCustomerByNameOrPhone(nameOrPhone: string) {
@@ -126,19 +126,19 @@ export const supabaseDb = {
       .select('*')
       .or(`name.ilike.%${nameOrPhone}%,phone.ilike.%${nameOrPhone}%`)
       .limit(1);
-    
+
     if (error) throw error;
-    return data && data.length > 0 ? data[0] : null;
+    return data && data.length > 0 ? data[0] : null
   },
 
   // Orders
   async getOrders(limit?: number) {
     let query = supabase.from('orders').select('*').order('created_at', { ascending: false });
     if (limit) query = query.limit(limit);
-    
+
     const { data, error } = await query;
     if (error) throw error;
-    
+
     // Map snake_case to camelCase for frontend compatibility
     return data?.map(order => ({
       id: order.id,
@@ -163,17 +163,17 @@ export const supabaseDb = {
       status: order.status || 'pending',
       reference: order.reference
     };
-    
+
     const { data, error } = await supabase.from('orders').insert(dbOrder).select().single();
     if (error) throw error;
-    return data;
+    return data
   },
 
   // Order Items
   async getOrderItems(orderId: number) {
     const { data, error } = await supabase.from('order_items').select('*').eq('order_id', orderId);
     if (error) throw error;
-    return data;
+    return data
   },
 
   async createOrderItem(orderItem: any) {
@@ -185,17 +185,17 @@ export const supabaseDb = {
       quantity: orderItem.quantity,
       price: orderItem.price
     };
-    
+
     const { data, error } = await supabase.from('order_items').insert(dbOrderItem).select().single();
     if (error) throw error;
-    return data;
+    return data
   },
 
   // Users
   async getUserByEmail(email: string) {
     const { data, error } = await supabase.from('users').select('*').eq('email', email).single();
     if (error) throw error;
-    return data;
+    return data
   },
 
   async createUser(user: any) {
@@ -203,20 +203,20 @@ export const supabaseDb = {
     const dbUser = {
       username: user.username,
       email: user.email,
-      password_hash: user.passwordHash || user.password_hash,
+      password_hash: user.password_hash || user.passwordHash || user.password,
       phone: user.phone
     };
-    
+
     const { data, error } = await supabase.from('users').insert(dbUser).select().single();
     if (error) throw error;
-    return data;
+    return data
   },
 
   // User Settings
   async getUserSettings(userId: number) {
     const { data, error } = await supabase.from('user_settings').select('*').eq('user_id', userId).single();
     if (error) throw error;
-    return data;
+    return data
   },
 
   async updateUserSettings(userId: number, updates: any) {
@@ -227,17 +227,17 @@ export const supabaseDb = {
     if (updates.language !== undefined) dbUpdates.language = updates.language;
     if (updates.notifications !== undefined) dbUpdates.notifications = updates.notifications;
     if (updates.mpesaEnabled !== undefined) dbUpdates.mpesa_enabled = updates.mpesaEnabled;
-    
+
     const { data, error } = await supabase.from('user_settings').update(dbUpdates).eq('user_id', userId).select().single();
     if (error) throw error;
-    return data;
+    return data
   },
 
   // Store Profiles
   async getStoreProfile(userId: number) {
     const { data, error } = await supabase.from('store_profiles').select('*').eq('user_id', userId).single();
     if (error) throw error;
-    return data;
+    return data
   },
 
   async updateStoreProfile(userId: number, updates: any) {
@@ -257,10 +257,10 @@ export const supabaseDb = {
     if (updates.consumer_key !== undefined) dbUpdates.consumer_key = updates.consumer_key;
     if (updates.consumerSecret !== undefined) dbUpdates.consumer_secret = updates.consumerSecret;
     if (updates.consumer_secret !== undefined) dbUpdates.consumer_secret = updates.consumer_secret;
-    
+
     const { data, error } = await supabase.from('store_profiles').update(dbUpdates).eq('user_id', userId).select().single();
     if (error) throw error;
-    return data;
+    return data
   },
 
   async createStoreProfile(profile: any) {
@@ -276,33 +276,33 @@ export const supabaseDb = {
       consumer_key: profile.consumerKey || profile.consumer_key,
       consumer_secret: profile.consumerSecret || profile.consumer_secret
     };
-    
+
     const { data, error } = await supabase.from('store_profiles').insert(dbProfile).select().single();
     if (error) throw error;
-    return data;
+    return data
   },
 
   // Notifications
   async getNotifications(userId: number) {
     const { data, error } = await supabase.from('notifications').select('*').eq('user_id', userId).order('created_at', { ascending: false });
     if (error) throw error;
-    return data;
+    return data
   },
 
   async getUnreadNotificationsCount(userId: number) {
     const { count, error } = await supabase.from('notifications').select('*', { count: 'exact', head: true }).eq('user_id', userId).eq('is_read', false);
     if (error) throw error;
-    return count || 0;
+    return count || 0
   },
 
   async markNotificationAsRead(id: number) {
     const { error } = await supabase.from('notifications').update({ is_read: true }).eq('id', id);
-    if (error) throw error;
+    if (error) throw error
   },
 
   async deleteNotification(id: number) {
     const { error } = await supabase.from('notifications').delete().eq('id', id);
-    if (error) throw error;
+    if (error) throw error
   },
 
   async createNotification(notification: any) {
@@ -313,10 +313,10 @@ export const supabaseDb = {
       type: notification.type || 'info',
       is_read: notification.isRead || notification.is_read || false
     };
-    
+
     const { data, error } = await supabase.from('notifications').insert(dbNotification).select().single();
     if (error) throw error;
-    return data;
+    return data
   },
 
   async createUserSettings(settings: any) {
@@ -328,10 +328,10 @@ export const supabaseDb = {
       notifications: settings.notifications || true,
       mpesa_enabled: settings.mpesaEnabled || settings.mpesa_enabled || false
     };
-    
+
     const { data, error } = await supabase.from('user_settings').insert(dbSettings).select().single();
     if (error) throw error;
-    return data;
+    return data
   },
 
   // Custom queries for reports
@@ -341,42 +341,42 @@ export const supabaseDb = {
       .from('orders')
       .select('total')
       .eq('status', 'completed');
-    
+
     if (revenueError) throw revenueError;
-    
+
     const totalRevenue = revenueData.reduce((sum, order) => sum + parseFloat(order.total), 0);
-    
+
     // Get total orders count
     const { count: totalOrders, error: ordersError } = await supabase
       .from('orders')
       .select('*', { count: 'exact', head: true })
       .eq('status', 'completed');
-    
+
     if (ordersError) throw ordersError;
-    
+
     // Get total products count
     const { count: totalProducts, error: productsError } = await supabase
       .from('products')
       .select('*', { count: 'exact', head: true });
-    
+
     if (productsError) throw productsError;
-    
+
     // Get total customers count
     const { count: totalCustomers, error: customersError } = await supabase
       .from('customers')
       .select('*', { count: 'exact', head: true });
-    
+
     if (customersError) throw customersError;
-    
+
     // Get low stock count
     const { count: lowStockCount, error: lowStockError } = await supabase
       .from('products')
       .select('*', { count: 'exact', head: true })
       .not('stock', 'is', null)
       .lte('stock', 10);
-    
+
     if (lowStockError) throw lowStockError;
-    
+
     return {
       totalRevenue: totalRevenue.toFixed(2),
       totalOrders: totalOrders || 0,
@@ -393,9 +393,9 @@ export const supabaseDb = {
       .select('name, sales_count, price')
       .order('sales_count', { ascending: false })
       .limit(10);
-    
+
     if (error) throw error;
-    
+
     return data.map(product => ({
       productName: product.name,
       unitsSold: product.sales_count,
@@ -410,9 +410,9 @@ export const supabaseDb = {
       .gt('balance', 0)
       .order('balance', { ascending: false })
       .limit(5);
-    
+
     if (error) throw error;
-    
+
     return data.map(customer => ({
       customerName: customer.name,
       totalOwed: parseFloat(customer.balance).toFixed(2),
@@ -424,7 +424,7 @@ export const supabaseDb = {
   async getReportsSummary(period: string = 'week') {
     const now = new Date();
     let startDate: Date;
-    
+
     switch (period) {
       case 'day':
         startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
@@ -448,7 +448,7 @@ export const supabaseDb = {
       .select('total, payment_method')
       .eq('status', 'completed')
       .gte('created_at', startDate.toISOString());
-    
+
     if (revenueError) throw revenueError;
 
     // Calculate totals by payment method
@@ -479,7 +479,7 @@ export const supabaseDb = {
     const now = new Date();
     let groupBy: string;
     let startDate: Date;
-    
+
     switch (period) {
       case 'hour':
         groupBy = 'hour';
@@ -510,16 +510,16 @@ export const supabaseDb = {
       .eq('status', 'completed')
       .gte('created_at', startDate.toISOString())
       .order('created_at', { ascending: true });
-    
+
     if (error) throw error;
 
     // Group data by period
     const groupedData: { [key: string]: number } = {};
-    
+
     ordersData.forEach(order => {
       const date = new Date(order.created_at);
       let key: string;
-      
+
       if (groupBy === 'hour') {
         key = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()} ${date.getHours()}:00`;
       } else if (groupBy === 'day') {
@@ -531,7 +531,7 @@ export const supabaseDb = {
       } else {
         key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
       }
-      
+
       groupedData[key] = (groupedData[key] || 0) + parseFloat(order.total);
     });
 
@@ -543,11 +543,11 @@ export const supabaseDb = {
 
   // Raw SQL query support for complex operations
   async rawQuery(query: string, params: any[] = []) {
-    const { data, error } = await supabase.rpc('exec_sql', { 
-      sql_query: query, 
-      params: params 
+    const { data, error } = await supabase.rpc('exec_sql', {
+      sql_query: query,
+      params: params
     });
     if (error) throw error;
-    return data;
+    return data
   }
 };

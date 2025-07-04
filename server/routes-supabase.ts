@@ -1,11 +1,11 @@
-import type { Express } from "express";
-import { createServer, type Server } from "http";
-import { WebSocketServer, WebSocket } from "ws";
-import { supabaseDb, supabase } from "./supabase-db";
-import { z } from "zod";
-import { v4 as uuidv4 } from "uuid";
-import { Parser as Json2csvParser } from "json2csv";
-import bcrypt from "bcryptjs";
+import type { Express } from 'express';
+import { createServer, type Server } from 'http';
+import { WebSocketServer, WebSocket } from 'ws';
+import { supabaseDb, supabase } from './supabase-db';
+import { z } from 'zod';
+import { v4 as uuidv4 } from 'uuid';
+import { Parser as Json2csvParser } from 'json2csv';
+import bcrypt from 'bcryptjs';
 
 // WebSocket clients store
 const wsClients = new Set<WebSocket>();
@@ -25,7 +25,7 @@ async function getCurrentUser(req: any) {
   if (!req.user) {
     return null;
   }
-  
+
   try {
     const user = await supabaseDb.getUserByEmail(req.user.email);
     return user;
@@ -50,33 +50,33 @@ function requireAuth(req: any, res: any, next: any) {
 
 export async function registerSupabaseRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
-  
+
   // Set up WebSocket server
   const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
-  
+
   wss.on('connection', (ws) => {
     wsClients.add(ws);
-    
+
     ws.on('close', () => {
       wsClients.delete(ws);
     });
   });
 
   // Authentication routes
-  app.post("/api/auth/signup", async (req, res) => {
+  app.post('/api/auth/signup', async (req, res) => {
     try {
       const { email, password, username } = req.body;
-      
+
       // Hash password
       const passwordHash = await bcrypt.hash(password, 10);
-      
+
       // Create user
       const user = await supabaseDb.createUser({
         email,
         username,
-        password_hash: passwordHash
+        password_hash: passwordHash;
       });
-      
+
       res.json({ user: { id: user.id, email: user.email, username: user.username } });
     } catch (error) {
       console.error('Signup error:', error);
@@ -84,19 +84,19 @@ export async function registerSupabaseRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/auth/signin", async (req, res) => {
+  app.post('/api/auth/signin', async (req, res) => {
     try {
       const { email, password } = req.body;
-      
+
       // Get user from Supabase
       const user = await supabaseDb.getUserByEmail(email);
-      
+
       // Verify password
       const isValidPassword = await bcrypt.compare(password, user.password_hash);
       if (!isValidPassword) {
         return res.status(401).json({ error: 'Invalid credentials' });
       }
-      
+
       res.json({ user: { id: user.id, email: user.email, username: user.username } });
     } catch (error) {
       console.error('Signin error:', error);
@@ -105,7 +105,7 @@ export async function registerSupabaseRoutes(app: Express): Promise<Server> {
   });
 
   // Products routes
-  app.get("/api/products", requireAuth, async (req, res) => {
+  app.get('/api/products', requireAuth, async (req, res) => {
     try {
       const products = await supabaseDb.getProducts();
       res.json(products);
@@ -115,15 +115,15 @@ export async function registerSupabaseRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/products", requireAuth, async (req, res) => {
+  app.post('/api/products', requireAuth, async (req, res) => {
     try {
       const { unknownQuantity, ...productData } = req.body;
-      
+
       // Handle unknown quantity
       if (unknownQuantity) {
         productData.stock = null;
       }
-      
+
       const product = await supabaseDb.createProduct(productData);
       res.json(product);
     } catch (error) {
@@ -132,16 +132,16 @@ export async function registerSupabaseRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/products/:id", requireAuth, async (req, res) => {
+  app.put('/api/products/:id', requireAuth, async (req, res) => {
     try {
       const productId = parseInt(req.params.id);
       const { unknownQuantity, ...productData } = req.body;
-      
+
       // Handle unknown quantity
       if (unknownQuantity) {
         productData.stock = null;
       }
-      
+
       const product = await supabaseDb.updateProduct(productId, productData);
       res.json(product);
     } catch (error) {
@@ -150,7 +150,7 @@ export async function registerSupabaseRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/products/:id", requireAuth, async (req, res) => {
+  app.delete('/api/products/:id', requireAuth, async (req, res) => {
     try {
       const productId = parseInt(req.params.id);
       await supabaseDb.deleteProduct(productId);
@@ -162,7 +162,7 @@ export async function registerSupabaseRoutes(app: Express): Promise<Server> {
   });
 
   // Customers routes
-  app.get("/api/customers", requireAuth, async (req, res) => {
+  app.get('/api/customers', requireAuth, async (req, res) => {
     try {
       const customers = await supabaseDb.getCustomers();
       res.json(customers);
@@ -172,7 +172,7 @@ export async function registerSupabaseRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/customers", requireAuth, async (req, res) => {
+  app.post('/api/customers', requireAuth, async (req, res) => {
     try {
       const customer = await supabaseDb.createCustomer(req.body);
       res.json(customer);
@@ -182,7 +182,7 @@ export async function registerSupabaseRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/customers/:id", requireAuth, async (req, res) => {
+  app.put('/api/customers/:id', requireAuth, async (req, res) => {
     try {
       const customerId = parseInt(req.params.id);
       const customer = await supabaseDb.updateCustomer(customerId, req.body);
@@ -194,7 +194,7 @@ export async function registerSupabaseRoutes(app: Express): Promise<Server> {
   });
 
   // Orders routes
-  app.get("/api/orders/recent", requireAuth, async (req, res) => {
+  app.get('/api/orders/recent', requireAuth, async (req, res) => {
     try {
       const orders = await supabaseDb.getOrders(10);
       res.json(orders);
@@ -204,21 +204,21 @@ export async function registerSupabaseRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post("/api/orders", requireAuth, async (req, res) => {
+  app.post('/api/orders', requireAuth, async (req, res) => {
     try {
       const { items, customerName, paymentMethod } = req.body;
-      
+
       // Calculate total
       let total = 0;
       const products = await supabaseDb.getProducts();
-      
+
       for (const item of items) {
         const product = products.find(p => p.id === item.id);
         if (product) {
           total += parseFloat(product.price) * item.quantity;
         }
       }
-      
+
       // Create order
       const order = await supabaseDb.createOrder({
         customer_name: customerName,
@@ -226,7 +226,7 @@ export async function registerSupabaseRoutes(app: Express): Promise<Server> {
         payment_method: paymentMethod,
         status: 'completed'
       });
-      
+
       // Create order items and update product stock
       for (const item of items) {
         const product = products.find(p => p.id === item.id);
@@ -237,29 +237,29 @@ export async function registerSupabaseRoutes(app: Express): Promise<Server> {
             product_id: item.id,
             product_name: product.name,
             quantity: item.quantity,
-            price: product.price
+            price: product.price;
           });
-          
+
           // Update product stock and sales count
           if (product.stock !== null) {
             await supabaseDb.updateProduct(item.id, {
               stock: Math.max(0, product.stock - item.quantity),
-              sales_count: product.sales_count + item.quantity
+              sales_count: product.sales_count + item.quantity;
             });
           } else {
             await supabaseDb.updateProduct(item.id, {
-              sales_count: product.sales_count + item.quantity
+              sales_count: product.sales_count + item.quantity;
             });
           }
         }
       }
-      
+
       // Broadcast notification
       broadcastToClients({
         type: 'sale_completed',
         data: { orderId: order.id, total, customerName }
       });
-      
+
       res.json(order);
     } catch (error) {
       console.error('Error creating order:', error);
@@ -268,24 +268,24 @@ export async function registerSupabaseRoutes(app: Express): Promise<Server> {
   });
 
   // Sales endpoint (used by frontend)
-  app.post("/api/sales", requireAuth, async (req, res) => {
+  app.post('/api/sales', requireAuth, async (req, res) => {
     try {
       const { items, paymentType, customerName, customerPhone } = req.body;
-      
+
       // Calculate total
       let total = 0;
       const products = await supabaseDb.getProducts();
-      
+
       for (const item of items) {
         const product = products.find(p => p.id === item.id);
         if (product) {
           total += parseFloat(product.price) * item.quantity;
         }
       }
-      
+
       // Map payment types
       const paymentMethod = paymentType === 'mobileMoney' ? 'mobile_money' : paymentType;
-      
+
       // Create order
       const order = await supabaseDb.createOrder({
         customer_name: customerName || customerPhone || 'Walk-in Customer',
@@ -293,7 +293,7 @@ export async function registerSupabaseRoutes(app: Express): Promise<Server> {
         payment_method: paymentMethod,
         status: 'completed'
       });
-      
+
       // Create order items and update product stock
       for (const item of items) {
         const product = products.find(p => p.id === item.id);
@@ -304,29 +304,29 @@ export async function registerSupabaseRoutes(app: Express): Promise<Server> {
             product_id: item.id,
             product_name: product.name,
             quantity: item.quantity,
-            price: product.price
+            price: product.price;
           });
-          
+
           // Update product stock and sales count
           if (product.stock !== null) {
             await supabaseDb.updateProduct(item.id, {
               stock: Math.max(0, product.stock - item.quantity),
-              sales_count: product.sales_count + item.quantity
+              sales_count: product.sales_count + item.quantity;
             });
           } else {
             await supabaseDb.updateProduct(item.id, {
-              sales_count: product.sales_count + item.quantity
+              sales_count: product.sales_count + item.quantity;
             });
           }
         }
       }
-      
+
       // Handle credit sales - update customer balance
       if (paymentMethod === 'credit' && (customerName || customerPhone)) {
         try {
           const customerData = customerName || customerPhone;
           const customer = await supabaseDb.findCustomerByNameOrPhone(customerData);
-          
+
           if (customer) {
             // Update existing customer balance
             const newBalance = parseFloat(customer.balance) + total;
@@ -346,13 +346,13 @@ export async function registerSupabaseRoutes(app: Express): Promise<Server> {
           console.error('Error updating customer balance:', error);
         }
       }
-      
+
       // Broadcast notification
       broadcastToClients({
         type: 'sale_completed',
         data: { orderId: order.id, total, customerName: customerName || customerPhone }
       });
-      
+
       res.json({ success: true, orderId: order.id, total: total.toFixed(2) });
     } catch (error) {
       console.error('Error creating sale:', error);
@@ -361,7 +361,7 @@ export async function registerSupabaseRoutes(app: Express): Promise<Server> {
   });
 
   // Dashboard metrics
-  app.get("/api/dashboard/metrics", requireAuth, async (req, res) => {
+  app.get('/api/dashboard/metrics', requireAuth, async (req, res) => {
     try {
       const metrics = await supabaseDb.getDashboardMetrics();
       res.json(metrics);
@@ -372,13 +372,13 @@ export async function registerSupabaseRoutes(app: Express): Promise<Server> {
   });
 
   // Settings routes
-  app.get("/api/settings", requireAuth, async (req, res) => {
+  app.get('/api/settings', requireAuth, async (req, res) => {
     try {
       const user = await getCurrentUser(req);
       if (!user) {
         return res.status(401).json({ error: 'User not found' });
       }
-      
+
       const settings = await supabaseDb.getUserSettings(user.id);
       res.json(settings);
     } catch (error) {
@@ -387,13 +387,13 @@ export async function registerSupabaseRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/settings/theme", requireAuth, async (req, res) => {
+  app.put('/api/settings/theme', requireAuth, async (req, res) => {
     try {
       const user = await getCurrentUser(req);
       if (!user) {
         return res.status(401).json({ error: 'User not found' });
       }
-      
+
       const { theme } = req.body;
       await supabaseDb.updateUserSettings(user.id, { theme });
       res.json({ theme });
@@ -460,7 +460,7 @@ export async function registerSupabaseRoutes(app: Express): Promise<Server> {
       orders.forEach(order => {
         const amount = parseFloat(order.total);
         totalSales += amount;
-        
+
         switch (order.payment_method) {
           case 'cash':
             cashSales += amount;
@@ -497,20 +497,20 @@ export async function registerSupabaseRoutes(app: Express): Promise<Server> {
           // 24 hourly points
           trendData = Array.from({ length: 24 }, (_, i) => ({
             label: `${i.toString().padStart(2, '0')}:00`,
-            value: 0
+            value: 0;
           }));
-          
+
           const todayStart = new Date();
           todayStart.setHours(0, 0, 0, 0);
-          
+
           const { data: dailyOrders, error: dailyError } = await supabase
             .from('orders')
             .select('total, created_at')
             .gte('created_at', todayStart.toISOString())
             .eq('status', 'completed');
-          
+
           if (dailyError) throw dailyError;
-          
+
           dailyOrders.forEach(order => {
             const hour = new Date(order.created_at).getHours();
             trendData[hour].value += parseFloat(order.total);
@@ -521,18 +521,18 @@ export async function registerSupabaseRoutes(app: Express): Promise<Server> {
           // 7 daily points
           const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
           trendData = dayNames.map(day => ({ label: day, value: 0 }));
-          
+
           const weekStart = new Date();
           weekStart.setDate(weekStart.getDate() - 7);
-          
+
           const { data: weeklyOrders, error: weeklyError } = await supabase
             .from('orders')
             .select('total, created_at')
             .gte('created_at', weekStart.toISOString())
             .eq('status', 'completed');
-          
+
           if (weeklyError) throw weeklyError;
-          
+
           weeklyOrders.forEach(order => {
             const dayOfWeek = new Date(order.created_at).getDay();
             trendData[dayOfWeek].value += parseFloat(order.total);
@@ -543,20 +543,20 @@ export async function registerSupabaseRoutes(app: Express): Promise<Server> {
           // 30 daily points
           trendData = Array.from({ length: 30 }, (_, i) => ({
             label: (i + 1).toString(),
-            value: 0
+            value: 0;
           }));
-          
+
           const monthStart = new Date();
           monthStart.setDate(monthStart.getDate() - 30);
-          
+
           const { data: monthlyOrders, error: monthlyError } = await supabase
             .from('orders')
             .select('total, created_at')
             .gte('created_at', monthStart.toISOString())
             .eq('status', 'completed');
-          
+
           if (monthlyError) throw monthlyError;
-          
+
           monthlyOrders.forEach(order => {
             const dayOfMonth = new Date(order.created_at).getDate() - 1;
             if (dayOfMonth >= 0 && dayOfMonth < 30) {
@@ -580,7 +580,7 @@ export async function registerSupabaseRoutes(app: Express): Promise<Server> {
       res.json(topItems.map(item => ({
         name: item.productName,
         unitsSold: item.unitsSold,
-        revenue: item.totalRevenue
+        revenue: item.totalRevenue;
       })));
     } catch (error) {
       console.error('Top items reports error:', error);
@@ -595,7 +595,7 @@ export async function registerSupabaseRoutes(app: Express): Promise<Server> {
       res.json(topProducts.map(product => ({
         productName: product.productName,
         unitsSold: product.unitsSold,
-        totalRevenue: product.totalRevenue
+        totalRevenue: product.totalRevenue;
       })));
     } catch (error) {
       console.error('Top products reports error:', error);
@@ -611,13 +611,13 @@ export async function registerSupabaseRoutes(app: Express): Promise<Server> {
         .select('name, phone, balance')
         .gt('balance', 0)
         .order('balance', { ascending: false });
-      
+
       if (error) throw error;
-      
+
       res.json(customerCredits.map(customer => ({
         name: customer.name,
         phone: customer.phone || 'N/A',
-        balance: customer.balance
+        balance: customer.balance;
       })));
     } catch (error) {
       console.error('Customer credits reports error:', error);
@@ -678,7 +678,7 @@ export async function registerSupabaseRoutes(app: Express): Promise<Server> {
             reference: order.reference,
             products: items.map(item => ({
               name: item.product_name,
-              quantity: item.quantity
+              quantity: item.quantity;
             }))
           };
         })
@@ -704,13 +704,13 @@ export async function registerSupabaseRoutes(app: Express): Promise<Server> {
   });
 
   // Notifications routes
-  app.get("/api/notifications", requireAuth, async (req, res) => {
+  app.get('/api/notifications', requireAuth, async (req, res) => {
     try {
       const user = await getCurrentUser(req);
       if (!user) {
         return res.status(401).json({ error: 'User not found' });
       }
-      
+
       const notifications = await supabaseDb.getNotifications(user.id);
       res.json(notifications);
     } catch (error) {
@@ -719,13 +719,13 @@ export async function registerSupabaseRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/notifications/unread-count", requireAuth, async (req, res) => {
+  app.get('/api/notifications/unread-count', requireAuth, async (req, res) => {
     try {
       const user = await getCurrentUser(req);
       if (!user) {
         return res.status(401).json({ error: 'User not found' });
       }
-      
+
       const count = await supabaseDb.getUnreadNotificationsCount(user.id);
       res.json({ count: count.toString() });
     } catch (error) {
@@ -734,7 +734,7 @@ export async function registerSupabaseRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.delete("/api/notifications/:id", requireAuth, async (req, res) => {
+  app.delete('/api/notifications/:id', requireAuth, async (req, res) => {
     try {
       const notificationId = parseInt(req.params.id);
       await supabaseDb.deleteNotification(notificationId);
@@ -746,15 +746,15 @@ export async function registerSupabaseRoutes(app: Express): Promise<Server> {
   });
 
   // Store profile routes
-  app.get("/api/store", requireAuth, async (req, res) => {
+  app.get('/api/store', requireAuth, async (req, res) => {
     try {
       const user = await getCurrentUser(req);
       if (!user) {
         return res.status(404).json({ error: 'User not found' });
       }
-      
+
       const profile = await supabaseDb.getStoreProfile(user.id);
-      
+
       // Map snake_case to camelCase for frontend
       const transformedProfile = {
         storeName: profile.store_name,
@@ -762,9 +762,9 @@ export async function registerSupabaseRoutes(app: Express): Promise<Server> {
         address: profile.location,
         storeType: profile.store_type,
         location: profile.location,
-        description: profile.description
+        description: profile.description;
       };
-      
+
       res.json(transformedProfile);
     } catch (error) {
       console.error('Store profile fetch error:', error);
@@ -772,13 +772,13 @@ export async function registerSupabaseRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.put("/api/store", requireAuth, async (req, res) => {
+  app.put('/api/store', requireAuth, async (req, res) => {
     try {
       const user = await getCurrentUser(req);
       if (!user) {
         return res.status(404).json({ error: 'User not found' });
       }
-      
+
       try {
         const existingProfile = await supabaseDb.getStoreProfile(user.id);
         const profile = await supabaseDb.updateStoreProfile(user.id, req.body);
@@ -787,7 +787,7 @@ export async function registerSupabaseRoutes(app: Express): Promise<Server> {
         // Profile doesn't exist, create new one
         const profile = await supabaseDb.createStoreProfile({
           userId: user.id,
-          ...req.body
+          ...req.body;
         });
         res.json(profile);
       }
@@ -798,19 +798,19 @@ export async function registerSupabaseRoutes(app: Express): Promise<Server> {
   });
 
   // Product search routes
-  app.get("/api/products/search", requireAuth, async (req, res) => {
+  app.get('/api/products/search', requireAuth, async (req, res) => {
     try {
       const { q = '' } = req.query;
       const searchTerm = q.toString().toLowerCase();
-      
+
       const { data: products, error } = await supabase
         .from('products')
         .select('*')
         .or(`name.ilike.%${searchTerm}%,sku.ilike.%${searchTerm}%,category.ilike.%${searchTerm}%,description.ilike.%${searchTerm}%`)
         .limit(8);
-      
+
       if (error) throw error;
-      
+
       res.json(products);
     } catch (error) {
       console.error('Error searching products:', error);
@@ -818,16 +818,16 @@ export async function registerSupabaseRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get("/api/products/frequent", requireAuth, async (req, res) => {
+  app.get('/api/products/frequent', requireAuth, async (req, res) => {
     try {
       const { data: products, error } = await supabase
         .from('products')
         .select('*')
         .order('sales_count', { ascending: false })
         .limit(6);
-      
+
       if (error) throw error;
-      
+
       res.json(products);
     } catch (error) {
       console.error('Error fetching frequent products:', error);
@@ -836,22 +836,22 @@ export async function registerSupabaseRoutes(app: Express): Promise<Server> {
   });
 
   // Payment routes
-  app.post("/api/customers/:id/payment", requireAuth, async (req, res) => {
+  app.post('/api/customers/:id/payment', requireAuth, async (req, res) => {
     try {
       const customerId = parseInt(req.params.id);
       const { amount } = req.body;
-      
+
       // Get current customer
       const customer = await supabaseDb.getCustomerById(customerId);
       const currentBalance = parseFloat(customer.balance);
       const paymentAmount = parseFloat(amount);
       const newBalance = Math.max(0, currentBalance - paymentAmount);
-      
+
       // Update customer balance
       const updatedCustomer = await supabaseDb.updateCustomer(customerId, {
         balance: newBalance.toFixed(2)
       });
-      
+
       res.json(updatedCustomer);
     } catch (error) {
       console.error('Error processing payment:', error);
@@ -860,30 +860,30 @@ export async function registerSupabaseRoutes(app: Express): Promise<Server> {
   });
 
   // Search endpoints
-  app.get("/api/search", requireAuth, async (req, res) => {
+  app.get('/api/search', requireAuth, async (req, res) => {
     try {
       const { q = '' } = req.query;
       const searchTerm = q.toString().toLowerCase();
-      
+
       if (!searchTerm.trim()) {
         return res.json([]);
       }
-      
+
       const results: Array<{
         id: number
         type: string
         name: string
         subtitle: string
-        url: string
+        url: string;
       }> = [];
-      
+
       // Search products
       const { data: products, error: productsError } = await supabase
         .from('products')
         .select('id, name, sku, price')
         .or(`name.ilike.%${searchTerm}%,sku.ilike.%${searchTerm}%`)
         .limit(3);
-      
+
       if (!productsError) {
         products.forEach(product => {
           results.push({
@@ -895,14 +895,14 @@ export async function registerSupabaseRoutes(app: Express): Promise<Server> {
           });
         });
       }
-      
+
       // Search customers
       const { data: customers, error: customersError } = await supabase
         .from('customers')
         .select('id, name, phone')
         .or(`name.ilike.%${searchTerm}%,phone.ilike.%${searchTerm}%`)
         .limit(3);
-      
+
       if (!customersError) {
         customers.forEach(customer => {
           results.push({
@@ -914,14 +914,14 @@ export async function registerSupabaseRoutes(app: Express): Promise<Server> {
           });
         });
       }
-      
+
       // Search orders
       const { data: orders, error: ordersError } = await supabase
         .from('orders')
         .select('id, customer_name, total')
         .or(`customer_name.ilike.%${searchTerm}%`)
         .limit(2);
-      
+
       if (!ordersError) {
         orders.forEach(order => {
           results.push({
@@ -933,7 +933,7 @@ export async function registerSupabaseRoutes(app: Express): Promise<Server> {
           });
         });
       }
-      
+
       res.json(results.slice(0, 8));
     } catch (error) {
       console.error('Search error:', error);
@@ -942,7 +942,7 @@ export async function registerSupabaseRoutes(app: Express): Promise<Server> {
   });
 
   // Dashboard metrics helper
-  app.get("/api/metrics/dashboard", requireAuth, async (req, res) => {
+  app.get('/api/metrics/dashboard', requireAuth, async (req, res) => {
     try {
       const metrics = await supabaseDb.getDashboardMetrics();
       res.json(metrics);

@@ -12,7 +12,7 @@ export function NotificationsPage() {
   // Fetch notifications
   const { data: notifications = [], isLoading } = useQuery<Notification[]>({
     queryKey: ['/api/notifications'],
-    enabled: true
+    enabled: true;
   });
 
   // Mark all as read mutation
@@ -169,7 +169,7 @@ export function NotificationsPage() {
                 {filter === 'all' ? 'No notifications' : `No ${filter} notifications`}
               </h3>
               <p className="text-gray-500 dark:text-gray-400">
-                {filter === 'all' 
+                {filter === 'all'
                   ? 'You have no notifications at this time.'
                   : `You have no ${filter} notifications.`
                 }
@@ -182,8 +182,8 @@ export function NotificationsPage() {
                 <div
                   key={notification.id}
                   className={`bg-white dark:bg-[#1F1F1F] border border-gray-200 dark:border-gray-700 rounded-lg p-4 shadow-sm hover:bg-gray-50 dark:hover:bg-[#2A2A2A] transition-colors ${
-                    !notification.isRead 
-                      ? 'border-l-4 border-l-purple-500' 
+                    !notification.isRead
+                      ? 'border-l-4 border-l-purple-500'
                       : 'border-l-4 border-l-transparent'
                   }`}
                   role="button"
@@ -202,14 +202,14 @@ export function NotificationsPage() {
                     <div className="flex-shrink-0 mt-0.5">
                       {getNotificationIcon(notification.type)}
                     </div>
-                    
+
                     {/* Content */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-start justify-between">
                         <div>
                           <h3 className={`text-base font-medium ${
-                            !notification.isRead 
-                              ? 'text-gray-900 dark:text-gray-100' 
+                            !notification.isRead
+                              ? 'text-gray-900 dark:text-gray-100'
                               : 'text-gray-700 dark:text-gray-300'
                           }`}>
                             {notification.title}
@@ -223,7 +223,7 @@ export function NotificationsPage() {
                             {notification.createdAt ? formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true }) : 'Just now'}
                           </p>
                         </div>
-                        
+
                         {/* Actions */}
                         <div className="flex items-center gap-2 ml-4">
                           {!notification.isRead && (

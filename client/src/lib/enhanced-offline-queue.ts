@@ -42,7 +42,7 @@ class EnhancedOfflineQueue {
 
       request.onupgradeneeded = (event) => {
         const db = (event.target as IDBOpenDBRequest).result;
-        
+
         // Create object store for queued actions
         if (!db.objectStoreNames.contains(this.actionStoreName)) {
           const store = db.createObjectStore(this.actionStoreName, { keyPath: 'id' });
@@ -81,7 +81,7 @@ class EnhancedOfflineQueue {
       type,
       description,
       retryCount: 0,
-      maxRetries: 3
+      maxRetries: 3;
     };
 
     return new Promise((resolve, reject) => {
@@ -158,7 +158,7 @@ class EnhancedOfflineQueue {
         if (action) {
           action.retryCount += 1;
           const putRequest = store.put(action);
-          
+
           putRequest.onsuccess = () => resolve();
           putRequest.onerror = () => reject(putRequest.error);
         } else {
@@ -204,7 +204,7 @@ class EnhancedOfflineQueue {
       key,
       data,
       timestamp: Date.now(),
-      expires: expiresInMinutes ? Date.now() + (expiresInMinutes * 60 * 1000) : undefined
+      expires: expiresInMinutes ? Date.now() + (expiresInMinutes * 60 * 1000) : undefined;
     };
 
     return new Promise((resolve, reject) => {
@@ -334,7 +334,7 @@ export async function processQueuedActions(): Promise<void> {
 
   try {
     const queuedActions = await enhancedOfflineQueue.getQueuedActions();
-    
+
     if (queuedActions.length === 0) {
       return;
     }
@@ -349,7 +349,7 @@ export async function processQueuedActions(): Promise<void> {
         const response = await fetch(action.url, {
           method: action.method,
           headers: action.headers,
-          body: action.body
+          body: action.body;
         });
 
         if (response.ok) {
@@ -363,7 +363,7 @@ export async function processQueuedActions(): Promise<void> {
         } else {
           await enhancedOfflineQueue.incrementRetryCount(action.id);
           console.error(`Failed to process action ${action.description}:`, response.statusText);
-          
+
           // Show error toast
           if (window.dispatchEvent) {
             window.dispatchEvent(new CustomEvent('offline-sync-error', {
@@ -374,7 +374,7 @@ export async function processQueuedActions(): Promise<void> {
       } catch (error) {
         await enhancedOfflineQueue.incrementRetryCount(action.id);
         console.error(`Error processing action ${action.description}:`, error);
-        
+
         // Show error toast
         if (window.dispatchEvent) {
           const errorMessage = error instanceof Error ? error.message : String(error);
@@ -404,7 +404,7 @@ export async function offlineCapableFetch(
   }
 ): Promise<Response> {
   const method = (options.method || 'GET').toUpperCase();
-  
+
   // For GET requests, try cache first when offline
   if (method === 'GET' && !isOnline()) {
     const cachedData = await enhancedOfflineQueue.getCachedData(url);
@@ -418,7 +418,7 @@ export async function offlineCapableFetch(
       });
     }
   }
-  
+
   // For write operations when offline, queue them
   if (['POST', 'PUT', 'PATCH', 'DELETE'].includes(method) && !isOnline()) {
     const headers: Record<string, string> = {};
@@ -429,10 +429,10 @@ export async function offlineCapableFetch(
     } else if (options.headers) {
       Object.assign(headers, options.headers);
     }
-    
+
     const body = options.body || '';
     const bodyData = typeof body === 'string' ? JSON.parse(body || '{}') : body;
-    
+
     await enhancedOfflineQueue.queueAction(
       url,
       method as any,
@@ -441,38 +441,38 @@ export async function offlineCapableFetch(
       queueOptions?.description,
       headers
     );
-    
+
     // Show queued toast
     if (window.dispatchEvent) {
       window.dispatchEvent(new CustomEvent('action-queued', {
-        detail: { 
+        detail: {
           type: queueOptions?.type || 'other',
           description: queueOptions?.description || `${method} ${url}`
         }
       }));
     }
-    
-    return new Response(JSON.stringify({ 
-      success: true, 
-      queued: true, 
-      message: 'Action queued for sync when online' 
+
+    return new Response(JSON.stringify({
+      success: true,
+      queued: true,
+      message: 'Action queued for sync when online'
     }), {
       status: 202,
       headers: { 'Content-Type': 'application/json' }
     });
   }
-  
+
   // Otherwise, proceed with normal fetch
   try {
     const response = await fetch(url, options);
-    
+
     // Cache successful GET responses
     if (method === 'GET' && response.ok) {
       const responseClone = response.clone();
       const data = await responseClone.json();
       await enhancedOfflineQueue.cacheData(url, data, 30); // Cache for 30 minutes;
     }
-    
+
     return response;
   } catch (error) {
     // If fetch fails and we have cached data for GET requests, return it
@@ -488,7 +488,7 @@ export async function offlineCapableFetch(
         });
       }
     }
-    
+
     throw error;
   }
 }

@@ -134,7 +134,7 @@ export function PaymentMethodSelector({ total, onPaymentSelected, isProcessing =
               />
             </div>
             <div className="bg-yellow-50 dark:bg-yellow-900/20 p-3 rounded-lg text-sm">
-              <strong>Note:</strong> This sale will be recorded as a pending payment. 
+              <strong>Note:</strong> This sale will be recorded as a pending payment.
               The customer will need to pay later.
             </div>
             <div className="flex gap-2 pt-4">

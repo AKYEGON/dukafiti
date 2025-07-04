@@ -1,2 +1,2 @@
-// Production server entry point for Render deployment
-import('./dist/index.js').catch(console.error);
+// Production server entry point for Railway deployment
+import('./dist/index.js');

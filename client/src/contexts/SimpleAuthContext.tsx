@@ -35,13 +35,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   useEffect(() => {
     let mounted = true;
-    
+
     // Initialize authentication immediately
     const initAuth = () => {
       try {
         // Check for existing session
         const currentUser = SimpleAuth.getCurrentUser();
-        
+
         if (currentUser) {
           if (mounted) {
             setUser(currentUser);
@@ -93,16 +93,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           username: email.split('@')[0],
           phone: '+254712345678'
         };
-        
+
         SimpleAuth.setCurrentUser(user);
         setUser(user);
         setIsAuthenticated(true);
-        
+
         // Clear React Query cache to force refetch
         queryClient.clear();
         return { error: null };
       }
-      
+
       return { error: { message: 'Invalid credentials' } };
     } catch (error) {
       console.error('Login error:', error);
@@ -120,14 +120,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
           username: name,
           phone: '+254712345678'
         };
-        
+
         SimpleAuth.setCurrentUser(user);
         setUser(user);
         setIsAuthenticated(true);
-        
+
         return { error: null };
       }
-      
+
       return { error: { message: 'Registration failed' } };
     } catch (error) {
       console.error('Signup error:', error);
@@ -140,10 +140,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       SimpleAuth.clearSession();
       setUser(null);
       setIsAuthenticated(false);
-      
+
       // Clear React Query cache
       queryClient.clear();
-      
+
       } catch (error) {
       console.error('Logout error:', error);
     }
@@ -157,7 +157,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         isLoading,
         login,
         signup,
-        logout
+        logout;
       }}
     >
       {children}

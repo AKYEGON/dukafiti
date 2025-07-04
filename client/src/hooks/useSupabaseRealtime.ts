@@ -13,7 +13,7 @@ export function useSupabaseRealtime() {
     // Subscribe to products changes
     const productsSubscription = supabase
       .channel('products-changes')
-      .on('postgres_changes', 
+      .on('postgres_changes',
         { event: '*', schema: 'public', table: 'products' },
         () => {
           // Invalidate products queries when data changes

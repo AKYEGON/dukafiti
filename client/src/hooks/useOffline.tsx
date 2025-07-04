@@ -33,7 +33,7 @@ export const useOffline = () => {
 
     const handleServiceWorkerMessage = (event: MessageEvent) => {
       const { type, action, actionId } = event.data;
-      
+
       switch (type) {
         case 'ACTION_QUEUED':
           setQueuedActions(prev => [...prev, action]);
@@ -57,7 +57,7 @@ export const useOffline = () => {
     // Service worker message listener
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.addEventListener('message', handleServiceWorkerMessage);
-      
+
       // Check if service worker is ready
       navigator.serviceWorker.ready.then(() => {
         setIsServiceWorkerReady(true);
@@ -84,7 +84,7 @@ export const useOffline = () => {
 
   const forceSync = async () => {
     if (!isOnline || !isServiceWorkerReady) return false;
-    
+
     try {
       const registration = await navigator.serviceWorker.ready;
       registration.active?.postMessage({ type: 'TRIGGER_SYNC' });
@@ -101,7 +101,7 @@ export const useOffline = () => {
     queuedActions,
     queuedActionsCount: getQueuedActionsCount(),
     isServiceWorkerReady,
-    forceSync
+    forceSync;
   };
 };
 

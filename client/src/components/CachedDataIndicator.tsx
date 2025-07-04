@@ -7,10 +7,10 @@ interface CachedDataIndicatorProps {
   size?: 'sm' | 'md' | 'lg';
 }
 
-export const CachedDataIndicator = ({ 
-  isFromCache, 
+export const CachedDataIndicator = ({
+  isFromCache,
   className,
-  size = 'sm' 
+  size = 'sm'
 }: CachedDataIndicatorProps) => {
   if (!isFromCache) return null;
 
@@ -41,8 +41,8 @@ export const CachedDataIndicator = ({
   );
 };
 
-export const OfflineDataBanner = ({ 
-  isFromCache, 
+export const OfflineDataBanner = ({
+  isFromCache,
   title = "Showing cached data",
   description = "This data was saved offline and may not be current"
 }: {

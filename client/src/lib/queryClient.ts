@@ -1,13 +1,13 @@
-import { QueryClient, QueryFunction } from "@tanstack/react-query";
-import { offlineCapableFetch } from "./enhanced-offline-queue";
-import { supabase } from "../supabaseClient";
+import { QueryClient, QueryFunction } from '@tanstack/react-query';
+import { offlineCapableFetch } from './enhanced-offline-queue';
+import { supabase } from '../supabaseClient';
 
 async function throwIfResNotOk(res: Response) {
   // Handle queued responses (status 202)
   if (res.status === 202) {
     return; // Don't throw for queued actions;
   }
-  
+
   if (!res.ok) {
     try {
       // Try to parse as JSON first to get structured error messages
@@ -33,9 +33,9 @@ export async function apiRequest(
 ): Promise<Response> {
   // Get Supabase session token
   const { data: { session } } = await supabase.auth.getSession();
-  
-  const headers: Record<string, string> = data ? { "Content-Type": "application/json" } : {};
-  
+
+  const headers: Record<string, string> = data ? { 'Content-Type': 'application/json' } : {};
+
   // Add authorization header if we have a session
   if (session?.access_token) {
     headers.Authorization = `Bearer ${session.access_token}`;
@@ -45,7 +45,7 @@ export async function apiRequest(
     method,
     headers,
     body: data ? JSON.stringify(data) : undefined,
-    credentials: "include"
+    credentials: 'include'
   };
 
   const res = await offlineCapableFetch(url, options, offlineOptions);
@@ -53,7 +53,7 @@ export async function apiRequest(
   return res;
 }
 
-type UnauthorizedBehavior = "returnNull" | "throw";
+type UnauthorizedBehavior = 'returnNull' | 'throw';
 export const getQueryFn: <T>(options: {
   on401: UnauthorizedBehavior;
 }) => QueryFunction<T> =
@@ -61,9 +61,9 @@ export const getQueryFn: <T>(options: {
   async ({ queryKey }) => {
     // Get Supabase session token
     const { data: { session } } = await supabase.auth.getSession();
-    
+
     const headers: Record<string, string> = {};
-    
+
     // Add authorization header if we have a session
     if (session?.access_token) {
       headers.Authorization = `Bearer ${session.access_token}`;
@@ -71,31 +71,31 @@ export const getQueryFn: <T>(options: {
 
     const res = await offlineCapableFetch(queryKey[0] as string, {
       headers,
-      credentials: "include"
+      credentials: 'include'
     });
 
-    if (unauthorizedBehavior === "returnNull" && res.status === 401) {
+    if (unauthorizedBehavior === 'returnNull' && res.status === 401) {
       return null;
     }
 
     await throwIfResNotOk(res);
-    
+
     // Check if data is served from cache
     const isFromCache = res.headers.get('X-Served-From-Cache') === 'true';
     const data = await res.json();
-    
+
     // Add cache indicator to the data if served from cache
     if (isFromCache && typeof data === 'object' && data !== null) {
       return { ...data, _servedFromCache: true };
     }
-    
+
     return data;
   };
 
 export const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      queryFn: getQueryFn({ on401: "returnNull" }),
+      queryFn: getQueryFn({ on401: 'returnNull' }),
       refetchInterval: false,
       refetchOnWindowFocus: false,
       staleTime: 5 * 60 * 1000, // 5 minutes
@@ -108,7 +108,7 @@ export const queryClient = new QueryClient({
       }
     },
     mutations: {
-      retry: false
+      retry: false;
     }
   }
 });

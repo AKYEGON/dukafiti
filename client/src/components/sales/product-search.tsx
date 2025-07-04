@@ -80,8 +80,8 @@ export function ProductSearch({ onProductSelect }: ProductSearchProps) {
                           <span>{product.category}</span>
                           <span className="text-gray-400">•</span>
                           <span className={`${
-                            product.stock <= product.lowStockThreshold 
-                              ? 'text-red-500' 
+                            product.stock <= product.lowStockThreshold
+                              ? 'text-red-500'
                               : 'text-gray-500'
                           }`}>
                             Stock: {product.stock}

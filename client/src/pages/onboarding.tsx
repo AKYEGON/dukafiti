@@ -19,7 +19,7 @@ export default function Onboarding() {
     },
     {
       icon: Users,
-      title: "Customer Management", 
+      title: "Customer Management",
       description: "Keep track of your customers and their purchase history"
     }
   ];
@@ -50,12 +50,12 @@ export default function Onboarding() {
               </div>
             ))}
           </div>
-          
+
           <div className="text-center space-y-4 pt-6">
             <p className="text-gray-600">
               Everything is set up and ready for you to start managing your business.
             </p>
-            <Button 
+            <Button
               onClick={() => setLocation("/")}
               className="bg-green-600 hover:bg-green-700 px-8"
               size="lg"

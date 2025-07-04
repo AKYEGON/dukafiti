@@ -19,26 +19,26 @@ interface SaleConfirmationModalProps {
   isProcessing?: boolean;
 }
 
-export function SaleConfirmationModal({ 
-  open, 
-  onOpenChange, 
-  items, 
+export function SaleConfirmationModal({
+  open,
+  onOpenChange,
+  items,
   paymentMethod,
-  onConfirm, 
-  isProcessing 
+  onConfirm,
+  isProcessing
 }: SaleConfirmationModalProps) {
   const [selectedCustomerId, setSelectedCustomerId] = useState<string>('');
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
   const [isNewCustomer, setIsNewCustomer] = useState(false);
-  
+
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
   // Fetch existing customers
   const { data: customers = [] } = useQuery<Customer[]>({
     queryKey: ["/api/customers"],
-    enabled: paymentMethod === 'credit' && open
+    enabled: paymentMethod === 'credit' && open;
   });
 
   const total = items.reduce((sum, item) => sum + parseFloat(item.total), 0);
@@ -72,17 +72,17 @@ export function SaleConfirmationModal({
     if (paymentMethod === 'credit' && !customerName.trim()) {
       return; // Validation handled by button disabled state;
     }
-    
+
     if (paymentMethod === 'credit') {
       onConfirm({
         name: customerName.trim(),
         phone: customerPhone.trim() || undefined,
-        isNew: isNewCustomer
+        isNew: isNewCustomer;
       });
     } else {
       onConfirm();
     }
-    
+
     onOpenChange(false);
   };
 
@@ -109,7 +109,7 @@ export function SaleConfirmationModal({
             Confirm Sale
           </DialogTitle>
         </DialogHeader>
-        
+
         <div className="space-y-6 pt-4 overflow-y-auto flex-1 pr-2">
           {/* Cart Items Summary */}
           <div className="space-y-2">
@@ -145,7 +145,7 @@ export function SaleConfirmationModal({
             <div className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
               {getPaymentMethodIcon(paymentMethod)}
               <span className="capitalize font-medium">
-                {paymentMethod === 'mobileMoney' ? 'Mobile Money' : 
+                {paymentMethod === 'mobileMoney' ? 'Mobile Money' :
                  paymentMethod === 'credit' ? 'Credit Sale' :
                  paymentMethod === 'cash' ? 'Cash' : paymentMethod}
               </span>
@@ -159,7 +159,7 @@ export function SaleConfirmationModal({
                 <User className="w-5 h-5 text-blue-600" />
                 <h4 className="font-medium text-blue-900">Customer Information</h4>
               </div>
-              
+
               <div className="space-y-4">
                 {/* Customer Selection Tabs */}
                 <div className="flex gap-2">
@@ -189,8 +189,8 @@ export function SaleConfirmationModal({
                     <label className="block text-sm font-medium text-blue-700 mb-2">
                       Select Customer *
                     </label>
-                    <Select 
-                      value={selectedCustomerId} 
+                    <Select
+                      value={selectedCustomerId}
                       onValueChange={(value) => {
                         const customer = customers.find(c => c.id.toString() === value);
                         if (customer) {
@@ -216,7 +216,7 @@ export function SaleConfirmationModal({
                         ))}
                       </SelectContent>
                     </Select>
-                    
+
                     {/* Selected Customer Preview */}
                     {selectedCustomerId && customerName && (
                       <div className="mt-3 p-3 bg-blue-100 rounded-md border border-blue-200">
@@ -239,7 +239,7 @@ export function SaleConfirmationModal({
                       <Check className="w-4 h-4 text-green-600" />
                       <span className="text-sm font-medium text-green-800">Adding New Customer</span>
                     </div>
-                    
+
                     <div>
                       <label className="block text-sm font-medium text-green-700 mb-1">
                         Customer Name *
@@ -254,7 +254,7 @@ export function SaleConfirmationModal({
                         autoFocus
                       />
                     </div>
-                    
+
                     <div>
                       <label className="block text-sm font-medium text-green-700 mb-1">
                         Phone Number (Optional)
@@ -267,7 +267,7 @@ export function SaleConfirmationModal({
                         className="w-full px-3 py-2 border border-green-300 rounded-md focus:border-green-500 focus:ring-green-500/20 focus:outline-none bg-white"
                       />
                     </div>
-                    
+
                     <div className="text-xs text-green-600 bg-green-100 p-2 rounded">
                       💡 This customer will be automatically saved to your customers list
                     </div>

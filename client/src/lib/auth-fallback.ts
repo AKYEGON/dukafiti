@@ -5,7 +5,7 @@ export const authFallback = {
     email: 'test@dukafiti.com',
     password: 'password123'
   },
-  
+
   // Mock user data for development
   mockUser: {
     id: 'test-user-id',
@@ -13,12 +13,12 @@ export const authFallback = {
     username: 'testuser',
     phone: '+254712345678'
   },
-  
+
   // Check if we're in development mode
   isDevelopment: () => {
     return import.meta.env.DEV || process.env.NODE_ENV === 'development';
   },
-  
+
   // Simulate authentication success
   simulateAuth: () => {
     if (authFallback.isDevelopment()) {
@@ -30,7 +30,7 @@ export const authFallback = {
     }
     return false;
   },
-  
+
   // Get fallback user
   getFallbackUser: () => {
     if (authFallback.isDevelopment()) {
@@ -48,7 +48,7 @@ export const authFallback = {
     }
     return null;
   },
-  
+
   // Clear fallback auth
   clearFallback: () => {
     localStorage.removeItem('dukafiti_auth_fallback');

@@ -80,7 +80,7 @@ export function Sidebar({ className, collapsed = false, toggleSidebar }: Sidebar
               </div>
             </div>
           )}
-          
+
           {/* Mobile close button */}
           {isMobile && (
             <Button
@@ -105,7 +105,7 @@ export function Sidebar({ className, collapsed = false, toggleSidebar }: Sidebar
           {navigation.map((item) => {
             const Icon = item.icon;
             const isActive = location === item.href;
-            
+
             return (
               <Link key={item.name} href={item.href}>
                 <div
@@ -119,11 +119,11 @@ export function Sidebar({ className, collapsed = false, toggleSidebar }: Sidebar
                   onClick={() => setIsMobileMenuOpen(false)}
                   title={isCollapsed && !isMobile ? item.name : undefined}
                 >
-                  <Icon 
+                  <Icon
                     className={cn(
                       "w-6 h-6 flex-shrink-0",
                       isActive ? "text-white" : "text-purple-600"
-                    )} 
+                    )}
                   />
                   {(!isCollapsed || isMobile) && (
                     <span className="flex-1 text-base font-medium">
@@ -193,14 +193,14 @@ export function Sidebar({ className, collapsed = false, toggleSidebar }: Sidebar
         isMobileMenuOpen ? "opacity-100 visible" : "opacity-0 invisible"
       )}>
         {/* Backdrop */}
-        <div 
+        <div
           className={cn(
             "fixed inset-0 bg-black transition-opacity duration-300",
             isMobileMenuOpen ? "bg-opacity-50" : "bg-opacity-0"
           )}
-          onClick={() => setIsMobileMenuOpen(false)} 
+          onClick={() => setIsMobileMenuOpen(false)}
         />
-        
+
         {/* Mobile Drawer */}
         <aside className={cn(
           "fixed left-0 top-0 h-full w-80 bg-white dark:bg-gray-900 z-50 shadow-2xl transition-transform duration-300 ease-in-out border-r border-gray-200 dark:border-gray-700",

@@ -1,18 +1,18 @@
-import Database from "better-sqlite3";
-import bcrypt from "bcryptjs";
-import { db } from "./db";
-import { 
-  products, 
-  customers, 
+import Database from 'better-sqlite3';
+import bcrypt from 'bcryptjs';
+import { db } from './db';
+import {
+  products,
+  customers,
   users,
   userSettings;
-} from "../shared/schema";
+} from '../shared/schema';
 
 export async function initializeDatabase() {
   try {
     // Create tables using raw SQL since Drizzle migrations aren't working
     const sqlite = new Database('./database.sqlite');
-    
+
     // Create users table
     sqlite.exec(`
       CREATE TABLE IF NOT EXISTS users (
@@ -135,44 +135,44 @@ export async function initializeDatabase() {
     sqlite.close();
     // Check if we need to create initial data
     const existingUsers = await db.select().from(users).limit(1);
-    
+
     if (existingUsers.length === 0) {
       // Create default user
-      const hashedPassword = await bcrypt.hash("admin123", 10);
+      const hashedPassword = await bcrypt.hash('admin123', 10);
       const defaultUser = await db.insert(users).values({
-        username: "admin",
-        email: "admin@dukasmart.com",
+        username: 'admin',
+        email: 'admin@dukasmart.com',
         passwordHash: hashedPassword,
-        phone: "+254700000000"
+        phone: '+254700000000'
       }).returning().get();
-      
+
       // Create sample products
       const sampleProducts = [
         {
-          name: "Rice 2kg",
-          sku: "RICE-2KG",
-          description: "Premium quality rice",
+          name: 'Rice 2kg',
+          sku: 'RICE-2KG',
+          description: 'Premium quality rice',
           price: 150.00,
           stock: 50,
-          category: "Grains",
+          category: 'Grains',
           lowStockThreshold: 10;
         },
         {
-          name: "Cooking Oil 1L",
-          sku: "OIL-1L",
-          description: "Pure vegetable cooking oil",
+          name: 'Cooking Oil 1L',
+          sku: 'OIL-1L',
+          description: 'Pure vegetable cooking oil',
           price: 120.00,
           stock: 30,
-          category: "Cooking",
+          category: 'Cooking',
           lowStockThreshold: 5;
         },
         {
-          name: "Sugar 1kg",
-          sku: "SUGAR-1KG",
-          description: "White refined sugar",
+          name: 'Sugar 1kg',
+          sku: 'SUGAR-1KG',
+          description: 'White refined sugar',
           price: 80.00,
           stock: 25,
-          category: "Baking",
+          category: 'Baking',
           lowStockThreshold: 8;
         }
       ];
@@ -180,21 +180,21 @@ export async function initializeDatabase() {
       for (const product of sampleProducts) {
         await db.insert(products).values(product);
       }
-      
+
       // Create sample customers
       const sampleCustomers = [
         {
-          name: "John Doe",
-          email: "john@example.com",
-          phone: "+254700123456",
-          address: "123 Main St, Nairobi",
+          name: 'John Doe',
+          email: 'john@example.com',
+          phone: '+254700123456',
+          address: '123 Main St, Nairobi',
           balance: 0.00;
         },
         {
-          name: "Jane Smith",
-          email: "jane@example.com", 
-          phone: "+254700654321",
-          address: "456 Oak Ave, Mombasa",
+          name: 'Jane Smith',
+          email: 'jane@example.com',
+          phone: '+254700654321',
+          address: '456 Oak Ave, Mombasa',
           balance: 50.00;
         }
       ];
@@ -202,20 +202,20 @@ export async function initializeDatabase() {
       for (const customer of sampleCustomers) {
         await db.insert(customers).values(customer);
       }
-      
+
       // Create user settings for the default user
       await db.insert(userSettings).values({
         userId: defaultUser.id,
-        theme: "light",
-        currency: "KES",
-        language: "en",
+        theme: 'light',
+        currency: 'KES',
+        language: 'en',
         notifications: true;
       });
-      
+
       }
-    
+
     } catch (error) {
-    console.error("Database initialization error:", error);
+    console.error('Database initialization error:', error);
     throw error;
   }
 }

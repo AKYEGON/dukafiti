@@ -1,8 +1,6 @@
-import Database from "better-sqlite3";
+import Database from 'better-sqlite3';
 
 const sqlite = new Database('./database.sqlite');
-
-console.log("Creating database tables...");
 
 try {
   // Create users table
@@ -124,10 +122,8 @@ try {
     );
   `);
 
-  console.log("Database tables created successfully!");
-  
-} catch (error) {
-  console.error("Error creating tables:", error);
+  } catch (error) {
+  console.error('Error creating tables:', error);
   throw error;
 } finally {
   sqlite.close();

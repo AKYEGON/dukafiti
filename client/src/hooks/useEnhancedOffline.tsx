@@ -1,11 +1,11 @@
 import { useState, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
-import { 
-  enhancedOfflineQueue, 
-  isOnline, 
-  setupNetworkListeners, 
+import {
+  enhancedOfflineQueue,
+  isOnline,
+  setupNetworkListeners,
   processQueuedActions,
-  QueuedAction 
+  QueuedAction
 } from '@/lib/enhanced-offline-queue';
 
 export const useEnhancedOffline = () => {
@@ -33,7 +33,7 @@ export const useEnhancedOffline = () => {
       async () => {
         setOnline(true);
         await updateQueuedActions();
-        
+
         // Show back online notification
         toast({
           title: "Back Online",
@@ -44,7 +44,7 @@ export const useEnhancedOffline = () => {
       async () => {
         setOnline(false);
         await updateQueuedActions();
-        
+
         // Show offline notification
         toast({
           title: "You're Offline",
@@ -166,7 +166,7 @@ export const useEnhancedOffline = () => {
     isProcessing,
     forceSync,
     clearQueue,
-    getActionsByType
+    getActionsByType;
   };
 };
 

@@ -29,7 +29,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     retry: false,
     refetchInterval: false,
     refetchOnWindowFocus: false,
-    throwOnError: false
+    throwOnError: false;
   });
 
   useEffect(() => {

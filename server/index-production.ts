@@ -1,6 +1,6 @@
-import express, { type Request, Response, NextFunction } from "express";
-import session from "express-session";
-import path from "path";
+import express, { type Request, Response, NextFunction } from 'express';
+import session from 'express-session';
+import path from 'path';
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 
@@ -8,7 +8,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 // Import routes
-import { registerSupabaseRoutes } from "./routes-supabase.js";
+import { registerSupabaseRoutes } from './routes-supabase.js';
 
 // Type extensions
 declare module 'express-session' {
@@ -49,16 +49,16 @@ app.use((req, res, next) => {
   if (origin && allowedOrigins.includes(origin)) {
     res.setHeader('Access-Control-Allow-Origin', origin);
   }
-  
+
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
   res.setHeader('Access-Control-Allow-Credentials', 'true');
-  
+
   if (req.method === 'OPTIONS') {
     res.sendStatus(200);
     return;
   }
-  
+
   next();
 });
 
@@ -67,8 +67,8 @@ registerSupabaseRoutes(app);
 
 // Health check
 app.get('/health', (req, res) => {
-  res.json({ 
-    status: 'ok', 
+  res.json({
+    status: 'ok',
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV || 'development'
   });
@@ -78,7 +78,7 @@ app.get('/health', (req, res) => {
 if (process.env.NODE_ENV === 'production') {
   const staticPath = path.join(__dirname, 'public');
   app.use(express.static(staticPath));
-  
+
   // Catch-all handler for SPA
   app.get('*', (req, res) => {
     res.sendFile(path.join(staticPath, 'index.html'));

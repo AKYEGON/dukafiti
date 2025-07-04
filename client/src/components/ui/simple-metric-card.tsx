@@ -16,7 +16,7 @@ export function SimpleMetricCard({
   icon: Icon,
   isLoading = false,
   isRefreshing = false,
-  error = false
+  error = false;
 }: SimpleMetricCardProps) {
   return (
     <Card className="relative overflow-hidden hover:shadow-md transition-shadow">
@@ -31,7 +31,7 @@ export function SimpleMetricCard({
             )}
           </div>
         </div>
-        
+
         {isLoading ? (
           <div className="space-y-2">
             <div className="h-8 w-24 bg-gray-200 dark:bg-gray-700 rounded animate-pulse" />

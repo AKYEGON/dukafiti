@@ -115,7 +115,7 @@ export function PaymentMethodSelector({ total, onPaymentSelected, isProcessing, 
               M-Pesa Payment Reference
             </DialogTitle>
           </DialogHeader>
-          
+
           <div className="space-y-4 pt-4">
             <div className="text-center p-4 bg-green-50 rounded-lg border border-green-200">
               <div className="text-2xl font-bold text-green-700">
@@ -123,7 +123,7 @@ export function PaymentMethodSelector({ total, onPaymentSelected, isProcessing, 
               </div>
               <p className="text-sm text-green-600">Total Amount</p>
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="mpesa-reference">Payment Reference</Label>
               <Input
@@ -138,13 +138,13 @@ export function PaymentMethodSelector({ total, onPaymentSelected, isProcessing, 
                 Enter a reference for this M-Pesa payment
               </p>
             </div>
-            
+
             <div className="bg-yellow-50 p-3 rounded-lg border border-yellow-200">
               <p className="text-sm text-yellow-700">
                 <strong>Note:</strong> The customer will receive an M-Pesa prompt to complete the payment. This sale will be marked as pending until payment is confirmed.
               </p>
             </div>
-            
+
             <div className="flex gap-2 pt-4">
               <Button
                 variant="outline"

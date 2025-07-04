@@ -25,17 +25,14 @@ const apiRoutesToCache = [
 
 // Install event - cache all static assets and core API routes
 self.addEventListener('install', (event) => {
-  console.log('Service Worker: Installing...');
   event.waitUntil(
     Promise.all([
       // Cache static assets
       caches.open(CACHE_NAME).then((cache) => {
-        console.log('Service Worker: Caching static files');
         return cache.addAll(urlsToCache);
       }),
       // Cache core API routes
       caches.open(API_CACHE_NAME).then((cache) => {
-        console.log('Service Worker: Caching API routes');
         return Promise.all(
           apiRoutesToCache.map((url) => {
             return fetch(url)
@@ -52,7 +49,6 @@ self.addEventListener('install', (event) => {
       })
     ])
       .then(() => {
-        console.log('Service Worker: Installed');
         return self.skipWaiting();
       })
       .catch((error) => {
@@ -72,21 +68,18 @@ self.addEventListener('message', (event) => {
 
 // Activate event - clean up old caches
 self.addEventListener('activate', (event) => {
-  console.log('Service Worker: Activating...');
   event.waitUntil(
     caches.keys()
       .then((cacheNames) => {
         return Promise.all(
           cacheNames.map((cacheName) => {
             if (cacheName !== CACHE_NAME && cacheName !== API_CACHE_NAME) {
-              console.log('Service Worker: Deleting old cache:', cacheName);
               return caches.delete(cacheName);
             }
           })
         );
       })
       .then(() => {
-        console.log('Service Worker: Activated');
         return self.clients.claim();
       })
   );
@@ -100,7 +93,7 @@ self.addEventListener('fetch', (event) => {
   }
 
   const url = new URL(event.request.url);
-  
+
   // Handle API requests with network-first, cache-fallback strategy
   if (url.pathname.startsWith('/api/')) {
     event.respondWith(handleApiRequest(event.request));
@@ -113,11 +106,9 @@ self.addEventListener('fetch', (event) => {
       .then((response) => {
         // Return cached version or fetch from network
         if (response) {
-          console.log('Service Worker: Serving from cache:', event.request.url);
           return response;
         }
 
-        console.log('Service Worker: Fetching from network:', event.request.url);
         return fetch(event.request)
           .then((response) => {
             // Don't cache if not a valid response
@@ -136,12 +127,12 @@ self.addEventListener('fetch', (event) => {
           })
           .catch((error) => {
             console.error('Service Worker: Fetch failed:', error);
-            
+
             // Return offline page for navigation requests
             if (event.request.mode === 'navigate') {
               return caches.match('/offline.html') || caches.match('/');
             }
-            
+
             // For other requests, try to return cached version or fail gracefully
             return caches.match('/') || new Response('Offline', { status: 503 });
           });
@@ -153,7 +144,7 @@ self.addEventListener('fetch', (event) => {
 async function handleApiRequest(request) {
   const url = new URL(request.url);
   const isReadOperation = request.method === 'GET';
-  
+
   if (isReadOperation) {
     // For GET requests: try network first, then cache
     try {
@@ -165,24 +156,22 @@ async function handleApiRequest(request) {
         return networkResponse;
       }
     } catch (error) {
-      console.log('Service Worker: Network failed for API request, trying cache');
-    }
-    
+      }
+
     // Fallback to cache
     const cachedResponse = await caches.match(request);
     if (cachedResponse) {
-      console.log('Service Worker: Serving API from cache:', url.pathname);
       // Add cache indicator header
       const response = cachedResponse.clone();
       response.headers.set('X-Served-From-Cache', 'true');
       return response;
     }
-    
+
     // Return offline indicator for failed API requests
-    return new Response(JSON.stringify({ 
-      error: 'Offline', 
+    return new Response(JSON.stringify({
+      error: 'Offline',
       message: 'This data is not available offline',
-      cached: false 
+      cached: false
     }), {
       status: 503,
       headers: { 'Content-Type': 'application/json' }
@@ -192,7 +181,7 @@ async function handleApiRequest(request) {
     if (!navigator.onLine) {
       return queueOfflineAction(request);
     }
-    
+
     // Otherwise, pass through to network
     return fetch(request);
   }
@@ -210,33 +199,33 @@ async function queueOfflineAction(request) {
       body: body,
       timestamp: new Date().toISOString()
     };
-    
+
     const db = await openDB();
     await addToQueue(db, action);
-    
+
     // Notify clients about queued action
     self.clients.matchAll().then(clients => {
       clients.forEach(client => {
         client.postMessage({
           type: 'ACTION_QUEUED',
-          action: action
+          action: action;
         });
       });
     });
-    
-    return new Response(JSON.stringify({ 
-      success: true, 
-      queued: true, 
-      message: 'Action queued for sync when online' 
+
+    return new Response(JSON.stringify({
+      success: true,
+      queued: true,
+      message: 'Action queued for sync when online'
     }), {
       status: 202,
       headers: { 'Content-Type': 'application/json' }
     });
   } catch (error) {
     console.error('Service Worker: Failed to queue action:', error);
-    return new Response(JSON.stringify({ 
-      error: 'Failed to queue action', 
-      message: error.message 
+    return new Response(JSON.stringify({
+      error: 'Failed to queue action',
+      message: error.message
     }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' }
@@ -248,26 +237,26 @@ async function queueOfflineAction(request) {
 function openDB() {
   return new Promise((resolve, reject) => {
     const request = indexedDB.open('DukaFitiOffline', 2);
-    
+
     request.onerror = () => reject(request.error);
     request.onsuccess = () => resolve(request.result);
-    
+
     request.onupgradeneeded = (event) => {
       const db = event.target.result;
-      
+
       // Legacy sales store
       if (!db.objectStoreNames.contains('pendingSales')) {
         const store = db.createObjectStore('pendingSales', { keyPath: 'id' });
         store.createIndex('timestamp', 'timestamp', { unique: false });
       }
-      
+
       // Enhanced action queue for all operations
       if (!db.objectStoreNames.contains('actionQueue')) {
         const store = db.createObjectStore('actionQueue', { keyPath: 'id' });
         store.createIndex('timestamp', 'timestamp', { unique: false });
         store.createIndex('type', 'type', { unique: false });
       }
-      
+
       // Cache for offline data
       if (!db.objectStoreNames.contains('offlineCache')) {
         const store = db.createObjectStore('offlineCache', { keyPath: 'key' });
@@ -283,7 +272,7 @@ async function addToQueue(db, action) {
     const transaction = db.transaction(['actionQueue'], 'readwrite');
     const store = transaction.objectStore('actionQueue');
     const request = store.add(action);
-    
+
     request.onsuccess = () => resolve();
     request.onerror = () => reject(request.error);
   });
@@ -295,7 +284,7 @@ async function getQueuedActions(db) {
     const transaction = db.transaction(['actionQueue'], 'readonly');
     const store = transaction.objectStore('actionQueue');
     const request = store.getAll();
-    
+
     request.onsuccess = () => resolve(request.result);
     request.onerror = () => reject(request.error);
   });
@@ -307,7 +296,7 @@ async function removeFromQueue(db, actionId) {
     const transaction = db.transaction(['actionQueue'], 'readwrite');
     const store = transaction.objectStore('actionQueue');
     const request = store.delete(actionId);
-    
+
     request.onsuccess = () => resolve();
     request.onerror = () => reject(request.error);
   });
@@ -319,7 +308,7 @@ async function getPendingSales() {
     const transaction = db.transaction(['pendingSales'], 'readonly');
     const store = transaction.objectStore('pendingSales');
     const request = store.getAll();
-    
+
     request.onsuccess = () => resolve(request.result);
     request.onerror = () => reject(request.error);
   });
@@ -331,7 +320,7 @@ async function removePendingSale(saleId) {
     const transaction = db.transaction(['pendingSales'], 'readwrite');
     const store = transaction.objectStore('pendingSales');
     const request = store.delete(saleId);
-    
+
     request.onsuccess = () => resolve();
     request.onerror = () => reject(request.error);
   });
@@ -339,8 +328,6 @@ async function removePendingSale(saleId) {
 
 // Enhanced background sync for all queued actions
 self.addEventListener('sync', (event) => {
-  console.log('Service Worker: Sync event triggered with tag:', event.tag);
-  
   if (event.tag === 'sync-actions') {
     event.waitUntil(syncQueuedActions());
   } else if (event.tag === 'sync-sales') {
@@ -350,22 +337,17 @@ self.addEventListener('sync', (event) => {
 
 // Enhanced sync for all queued actions
 async function syncQueuedActions() {
-  console.log('Service Worker: Starting to sync queued actions...');
-  
   try {
     const db = await openDB();
     const queuedActions = await getQueuedActions(db);
-    
+
     if (queuedActions.length === 0) {
-      console.log('Service Worker: No queued actions to sync');
       return;
     }
 
-    console.log(`Service Worker: Found ${queuedActions.length} queued actions to sync`);
-    
     // Sort by timestamp (FIFO order)
     queuedActions.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
-    
+
     for (const action of queuedActions) {
       try {
         const response = await fetch(action.url, {
@@ -376,8 +358,6 @@ async function syncQueuedActions() {
 
         if (response.ok) {
           await removeFromQueue(db, action.id);
-          console.log(`Service Worker: Successfully synced action ${action.id}`);
-          
           // Send message to clients about successful sync
           self.clients.matchAll().then(clients => {
             clients.forEach(client => {
@@ -385,13 +365,13 @@ async function syncQueuedActions() {
                 type: 'ACTION_SYNCED',
                 actionId: action.id,
                 success: true,
-                action: action
+                action: action;
               });
             });
           });
         } else {
           console.error(`Service Worker: Failed to sync action ${action.id}:`, response.statusText);
-          
+
           // Send sync error message
           self.clients.matchAll().then(clients => {
             clients.forEach(client => {
@@ -399,14 +379,14 @@ async function syncQueuedActions() {
                 type: 'ACTION_SYNC_ERROR',
                 actionId: action.id,
                 error: response.statusText,
-                action: action
+                action: action;
               });
             });
           });
         }
       } catch (error) {
         console.error(`Service Worker: Error syncing action ${action.id}:`, error);
-        
+
         // Send sync error message
         self.clients.matchAll().then(clients => {
           clients.forEach(client => {
@@ -414,7 +394,7 @@ async function syncQueuedActions() {
               type: 'ACTION_SYNC_ERROR',
               actionId: action.id,
               error: error.message,
-              action: action
+              action: action;
             });
           });
         });
@@ -427,18 +407,13 @@ async function syncQueuedActions() {
 
 // Legacy sync for existing sales (backwards compatibility)
 async function syncPendingSales() {
-  console.log('Service Worker: Starting to sync pending sales...');
-  
   try {
     const pendingSales = await getPendingSales();
-    
+
     if (pendingSales.length === 0) {
-      console.log('Service Worker: No pending sales to sync');
       return;
     }
 
-    console.log(`Service Worker: Found ${pendingSales.length} pending sales to sync`);
-    
     for (const sale of pendingSales) {
       try {
         // Convert to API format
@@ -460,15 +435,13 @@ async function syncPendingSales() {
 
         if (response.ok) {
           await removePendingSale(sale.id);
-          console.log(`Service Worker: Successfully synced sale ${sale.id}`);
-          
           // Send message to clients about successful sync
           self.clients.matchAll().then(clients => {
             clients.forEach(client => {
               client.postMessage({
                 type: 'SALE_SYNCED',
                 saleId: sale.id,
-                success: true
+                success: true;
               });
             });
           });
@@ -477,7 +450,7 @@ async function syncPendingSales() {
         }
       } catch (error) {
         console.error(`Service Worker: Error syncing sale ${sale.id}:`, error);
-        // Sale remains in queue for next sync attempt
+        // Sale remains in queue for next sync attempt;
       }
     }
   } catch (error) {
@@ -489,8 +462,6 @@ async function syncPendingSales() {
 self.addEventListener('push', (event) => {
   if (event.data) {
     const data = event.data.json();
-    console.log('Service Worker: Push received:', data);
-    
     const options = {
       body: data.body || 'New notification from DukaFiti',
       icon: '/icons/icon-192.png',
@@ -498,7 +469,7 @@ self.addEventListener('push', (event) => {
       vibrate: [100, 50, 100],
       data: {
         dateOfArrival: Date.now(),
-        primaryKey: data.primaryKey || 1
+        primaryKey: data.primaryKey || 1;
       },
       actions: [
         {

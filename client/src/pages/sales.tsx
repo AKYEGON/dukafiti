@@ -15,14 +15,14 @@ export default function Sales() {
   const [cartItems, setCartItems] = useState<SaleLineItem[]>([]);
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
   const [paymentMethod, setPaymentMethod] = useState<'cash' | 'credit' | 'mobileMoney' | ''>('');
-  
+
   // Smart search state
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<Product[]>([]);
   const [showSearchDropdown, setShowSearchDropdown] = useState(false);
   const [selectedSearchIndex, setSelectedSearchIndex] = useState(-1);
   const [searchLoading, setSearchLoading] = useState(false);
-  
+
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -38,8 +38,8 @@ export default function Sales() {
     queryKey: ["/api/products/frequent"]
   });
 
-  const quickSelectProducts = frequentProducts.length > 0 
-    ? frequentProducts.slice(0, 6) 
+  const quickSelectProducts = frequentProducts.length > 0
+    ? frequentProducts.slice(0, 6)
     : products.slice(0, 6);
 
   // Debounced search function
@@ -83,7 +83,7 @@ export default function Sales() {
       switch (e.key) {
         case 'ArrowDown':
           e.preventDefault();
-          setSelectedSearchIndex(prev => 
+          setSelectedSearchIndex(prev =>
             prev < searchResults.length - 1 ? prev + 1 : prev
           );
           break;
@@ -131,10 +131,10 @@ export default function Sales() {
 
   const handleProductSelect = (product: Product) => {
     // Product selected for cart
-    
+
     // Check if product already exists in cart
     const existingItem = cartItems.find(item => item.product.id === product.id);
-    
+
     if (existingItem) {
       // Increment quantity of existing item
       handleQuantityChange(existingItem.id, existingItem.quantity + 1);
@@ -145,7 +145,7 @@ export default function Sales() {
         product,
         quantity: 1,
         unitPrice: product.price,
-        total: product.price
+        total: product.price;
       };
       setCartItems(prev => {
         const updated = [...prev, newItem];
@@ -162,7 +162,7 @@ export default function Sales() {
         title: "Product added",
         description: `${product.name} added to cart`,
         className: "bg-green-50 border-green-200 text-green-800",
-        duration: 2000
+        duration: 2000;
       });
     }
   };
@@ -200,19 +200,19 @@ export default function Sales() {
     const stockIssues = cartItems.filter(item => {
       const freshProduct = products.find(p => p.id === item.product.id);
       if (!freshProduct) return false; // Product not found, skip validation
-      
+
       // Skip validation for unknown quantity items (null stock)
       if (freshProduct.stock === null) return false;
-      
+
       // Check if requested quantity exceeds available stock
       return item.quantity > (freshProduct.stock || 0);
     });
-    
+
     if (stockIssues.length > 0) {
-      toast({ 
-        title: "Stock issue", 
+      toast({
+        title: "Stock issue",
         description: "Please adjust quantities for items that exceed available stock.",
-        variant: "destructive" 
+        variant: "destructive"
       });
       return;
     }
@@ -222,7 +222,7 @@ export default function Sales() {
 
   const handleConfirmSale = async (customer?: { name: string; phone?: string; isNew?: boolean }) => {
     if (!paymentMethod) return; // Safety check
-    
+
     // For credit sales, customer information is required
     if (paymentMethod === 'credit' && !customer?.name?.trim()) {
       toast({
@@ -232,9 +232,9 @@ export default function Sales() {
       });
       return;
     }
-    
+
     let customerName = customer?.name;
-    
+
     // If this is a new customer, save them to the database first
     if (customer?.isNew && customer.name) {
       try {
@@ -245,16 +245,16 @@ export default function Sales() {
           address: null,
           balance: "0.00"
         });
-        
+
         const savedCustomer = await newCustomer.json();
         // Invalidate customers cache
         queryClient.invalidateQueries({ queryKey: ["/api/customers"] });
-        
+
         toast({
           title: "Customer added",
           description: `${customer.name} has been added to your customers list`,
           className: "bg-green-50 border-green-200 text-green-800",
-          duration: 3000
+          duration: 3000;
         });
       } catch (error) {
         console.error('Error saving new customer:', error);
@@ -262,16 +262,16 @@ export default function Sales() {
           title: "Warning",
           description: "Customer couldn't be saved, but sale will proceed",
           variant: "destructive",
-          duration: 3000
+          duration: 3000;
         });
       }
     }
-    
+
     // Prepare sale data with correct field names that match backend
     const saleData = {
       items: cartItems.map(item => ({
         id: item.product.id,
-        quantity: item.quantity
+        quantity: item.quantity;
       })),
       paymentType: paymentMethod as 'cash' | 'credit' | 'mobileMoney',
       customerName: customer?.name || '',
@@ -287,23 +287,23 @@ export default function Sales() {
     setSearchQuery('');
     setShowSearchDropdown(false);
     setSelectedSearchIndex(-1);
-    
+
     // Blur the search input
     if (searchInputRef.current) {
       searchInputRef.current.blur();
     }
-    
+
     // Add success toast notification
     toast({
       title: "Product added",
       description: `${product.name} added to cart`,
       className: "bg-green-50 border-green-200 text-green-800",
-      duration: 2000
+      duration: 2000;
     });
   };
 
   const createSaleMutation = useMutation({
-    mutationFn: async (saleData: { 
+    mutationFn: async (saleData: {
       items: Array<{ id: number; quantity: number }>;
       paymentType: 'cash' | 'credit' | 'mobileMoney';
       customerName?: string;
@@ -320,7 +320,7 @@ export default function Sales() {
           })),
           paymentType: saleData.paymentType as 'cash' | 'credit' | 'mobileMoney',
           customerName: saleData.customerName,
-          customerPhone: saleData.customerPhone
+          customerPhone: saleData.customerPhone;
         });
 
         // Register background sync if supported
@@ -350,60 +350,60 @@ export default function Sales() {
       setShowConfirmationModal(false);
       setCartItems([]);
       setPaymentMethod('');
-      
+
       // Immediately refresh all relevant data if online
       if (isOnline()) {
         // Dashboard metrics
         queryClient.invalidateQueries({ queryKey: ["/api/dashboard/metrics"] });
         queryClient.invalidateQueries({ queryKey: ["/api/metrics/dashboard"] });
         queryClient.invalidateQueries({ queryKey: ["/api/orders/recent"] });
-        
-        // Reports data  
+
+        // Reports data
         queryClient.invalidateQueries({ queryKey: ["/api/reports/summary"] });
         queryClient.invalidateQueries({ queryKey: ["/api/reports/trend"] });
         queryClient.invalidateQueries({ queryKey: ["/api/orders"] });
-        
+
         // Inventory data
         queryClient.invalidateQueries({ queryKey: ["/api/products"] });
         queryClient.invalidateQueries({ queryKey: ["/api/products/frequent"] });
-        
+
         // Customer data for credit sales
         if (paymentMethod === 'credit') {
           queryClient.invalidateQueries({ queryKey: ["/api/customers"] });
         }
       }
-      
+
       // Show appropriate toast based on status
       const status = result.status;
       if (status === 'queued') {
-        toast({ 
-          title: "Sale queued – offline mode", 
+        toast({
+          title: "Sale queued – offline mode",
           description: "Sale will be processed when connection is restored",
           className: "bg-blue-50 border-blue-200 text-blue-800",
-          duration: 5000
+          duration: 5000;
         });
       } else if (status === 'paid') {
-        toast({ 
-          title: "Sale completed successfully!", 
+        toast({
+          title: "Sale completed successfully!",
           description: `Payment received via ${paymentMethod}`,
           className: "bg-green-50 border-green-200 text-green-800",
-          duration: 3000
+          duration: 3000;
         });
       } else if (status === 'pending') {
-        toast({ 
-          title: "Credit sale recorded", 
+        toast({
+          title: "Credit sale recorded",
           description: "Customer payment is pending",
           className: "bg-yellow-50 border-yellow-200 text-yellow-800",
-          duration: 3000
+          duration: 3000;
         });
       }
     },
     onError: (error: any) => {
       console.error('Sale error:', error);
-      toast({ 
-        title: "Sale failed", 
+      toast({
+        title: "Sale failed",
         description: "Please try again or contact support",
-        variant: "destructive" 
+        variant: "destructive"
       });
     }
   });
@@ -459,7 +459,7 @@ export default function Sales() {
       {/* 1. Smart Product Search Bar */}
       <div className="space-y-4">
         <h2 className="text-xl font-semibold">Sales</h2>
-        
+
         <div className="relative">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5 z-10" />
@@ -501,8 +501,8 @@ export default function Sales() {
                       handleSearchResultSelect(product);
                     }}
                     className={`px-4 py-4 cursor-pointer border-b border-gray-100 dark:border-gray-700 last:border-b-0 transition-all duration-150 ${
-                      index === selectedSearchIndex 
-                        ? 'bg-purple-50 dark:bg-purple-900/30 border-l-4 border-l-purple-500' 
+                      index === selectedSearchIndex
+                        ? 'bg-purple-50 dark:bg-purple-900/30 border-l-4 border-l-purple-500'
                         : 'hover:bg-gray-50 dark:hover:bg-gray-700/50'
                     }`}
                     style={{ minHeight: '60px' }}
@@ -552,7 +552,7 @@ export default function Sales() {
           <h3 className="text-lg font-semibold">Quick Select</h3>
           <div className="text-sm text-gray-500">Top {quickSelectProducts.length}</div>
         </div>
-        
+
         {quickSelectProducts.length === 0 ? (
           <div className="text-center py-6 text-gray-500">
             <ShoppingCart className="h-8 w-8 mx-auto mb-2 opacity-50" />
@@ -591,7 +591,7 @@ export default function Sales() {
       {/* 3. Mini-Cart Summary */}
       <div className="bg-white dark:bg-[#1F1F1F] rounded-lg p-4 shadow-md">
         <h3 className="text-lg font-semibold mb-3">Cart</h3>
-        
+
         {isCartEmpty ? (
           <div className="text-center py-8">
             <ShoppingCart className="h-12 w-12 text-muted-foreground mx-auto mb-2" />
@@ -600,8 +600,8 @@ export default function Sales() {
         ) : (
           <div className="space-y-3">
             {cartItems.map((item) => (
-              <div 
-                key={item.id} 
+              <div
+                key={item.id}
                 className="flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-700 last:border-b-0 transition-all duration-200"
               >
                 <div className="flex-1">
@@ -636,7 +636,7 @@ export default function Sales() {
                 </div>
               </div>
             ))}
-            
+
             {/* Grand Total */}
             <div className="border-t pt-3 mt-4">
               <div className="flex justify-between items-center">
@@ -666,7 +666,7 @@ export default function Sales() {
               <Banknote className="h-5 w-5" />
               Cash
             </button>
-            
+
             <button
               onClick={() => setPaymentMethod('mobileMoney')}
               className={`w-full h-12 rounded-lg font-medium transition-all duration-200 flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-green-600 ${
@@ -678,7 +678,7 @@ export default function Sales() {
               <Smartphone className="h-5 w-5" />
               Mobile Money
             </button>
-            
+
             <button
               onClick={() => setPaymentMethod('credit')}
               className={`w-full h-12 rounded-lg font-medium transition-all duration-200 flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-green-600 ${

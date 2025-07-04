@@ -25,14 +25,14 @@ export default function AuthCallback() {
         const params = new URLSearchParams(hashFragment.substring(1));
         const accessToken = params.get('access_token');
         const refreshToken = params.get('refresh_token');
-        
+
         if (!accessToken) {
           throw new Error('Invalid authentication link');
         }
 
         // Get the session using the access token
         const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-        
+
         if (sessionError) {
           throw sessionError;
         }
@@ -43,7 +43,7 @@ export default function AuthCallback() {
             title: "Email verified successfully!",
             description: "Please log in with your email and password"
           });
-          
+
           // Redirect to login page after a short delay
           setTimeout(() => {
             navigate('/login');
@@ -55,7 +55,7 @@ export default function AuthCallback() {
         console.error('Auth callback error:', err);
         setStatus('error');
         setError(err.message || 'Authentication failed');
-        
+
         toast({
           title: "Authentication failed",
           description: err.message || "Please try logging in again",
@@ -105,7 +105,7 @@ export default function AuthCallback() {
             <p className="text-sm text-gray-600 dark:text-gray-400">
               Your email has been verified successfully. Redirecting to login page...
             </p>
-            
+
             <div className="mt-6">
               <Button
                 onClick={() => navigate('/login')}
@@ -133,7 +133,7 @@ export default function AuthCallback() {
           <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">
             We couldn't verify your account. This could be because:
           </p>
-          
+
           <Alert className="mb-6 text-left">
             <AlertDescription className="text-sm">
               <ul className="list-disc list-inside space-y-1">
@@ -151,7 +151,7 @@ export default function AuthCallback() {
               </p>
             </div>
           )}
-          
+
           <div className="space-y-3">
             <Button
               onClick={handleRetry}
@@ -159,7 +159,7 @@ export default function AuthCallback() {
             >
               Try logging in again
             </Button>
-            
+
             <Button
               onClick={() => navigate('/')}
               variant="outline"

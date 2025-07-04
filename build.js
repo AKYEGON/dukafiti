@@ -7,15 +7,9 @@ const execAsync = promisify(exec);
 
 async function buildApp() {
   try {
-    console.log('🏗️  Building DukaFiti application...');
-    
     // Build frontend with Vite
-    console.log('📦 Building frontend...');
     await execAsync('npx vite build');
-    console.log('✅ Frontend build complete');
-    
     // Build backend with esbuild
-    console.log('⚙️  Building backend...');
     await build({
       entryPoints: ['server/index.ts'],
       bundle: true,
@@ -48,11 +42,7 @@ const __dirname = dirname(__filename);
         `
       }
     });
-    console.log('✅ Backend build complete');
-    
-    console.log('🎉 Build successful! Ready for deployment.');
-    
-  } catch (error) {
+    } catch (error) {
     console.error('❌ Build failed:', error);
     process.exit(1);
   }

@@ -72,20 +72,20 @@ const formatCurrency = (amount: string | number): string => {
     style: 'currency',
     currency: 'KES',
     minimumFractionDigits: 0,
-    maximumFractionDigits: 2
+    maximumFractionDigits: 2;
   }).format(num);
 };
 
 const convertToCSV = (data: any[], headers: string[]): string => {
   const csvHeaders = headers.join(',');
-  const csvRows = data.map(row => 
+  const csvRows = data.map(row =>
     headers.map(header => `"${row[header] || ''}"`).join(',')
   );
   return [csvHeaders, ...csvRows].join('\n');
 };
 
 const downloadCSV = (csvContent: string, filename: string): void => {
-  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  const blob = new Blob([csvContent], { type: 'text/csv;charset = utf-8;' });
   const link = document.createElement('a');
   const url = URL.createObjectURL(blob);
   link.setAttribute('href', url);
@@ -135,7 +135,7 @@ export default function Reports() {
   // Transform trend data format
   const trendData: TrendData[] | undefined = rawTrendData?.map((item: any) => ({
     label: item.date || item.label,
-    value: item.value || 0
+    value: item.value || 0;
   }));
 
   // Fetch top products data
@@ -152,7 +152,7 @@ export default function Reports() {
   const topItemsData: TopItem[] | undefined = topProductsData?.map(product => ({
     name: product.productName,
     unitsSold: product.unitsSold,
-    revenue: product.totalRevenue
+    revenue: product.totalRevenue;
   }));
 
   // Fetch customer credits data
@@ -169,7 +169,7 @@ export default function Reports() {
   const customerCreditsData: CustomerCredit[] | undefined = topCustomersData?.map(customer => ({
     name: customer.customerName,
     phone: '', // Not available in current data
-    balance: customer.totalOwed
+    balance: customer.totalOwed;
   }));
 
   // Fetch orders data
@@ -196,20 +196,20 @@ export default function Reports() {
       paymentMethod: order.paymentMethod,
       date: order.createdAt ? new Date(order.createdAt).toLocaleDateString('en-US', {
         year: 'numeric',
-        month: 'short', 
+        month: 'short',
         day: 'numeric'
       }) : 'No date',
       products: order.products || []
     })) || [],
     total: rawOrdersData.total || 0,
     page: rawOrdersData.page || 1,
-    totalPages: rawOrdersData.totalPages || 1
+    totalPages: rawOrdersData.totalPages || 1;
   } : undefined;
 
   // CSV Export Functions
   const exportSummaryCSV = async () => {
     if (!summaryData) return;
-    
+
     setExportingCSV('summary');
     try {
       const csvData = [
@@ -218,7 +218,7 @@ export default function Reports() {
         { type: 'Mobile Money Sales', amount: summaryData.mobileMoneySales },
         { type: 'Credit Sales', amount: summaryData.creditSales }
       ];
-      
+
       const csv = convertToCSV(csvData, ['type', 'amount']);
       downloadCSV(csv, `sales-summary-${summaryPeriod}-${new Date().toISOString().split('T')[0]}.csv`);
     } finally {
@@ -233,7 +233,7 @@ export default function Reports() {
       const response = await fetch(`/api/reports/export?period=${summaryPeriod}`, {
         method: 'GET'
       });
-      
+
       if (!response.ok) {
         throw new Error('Failed to export detailed CSV');
       }
@@ -253,10 +253,10 @@ export default function Reports() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h1 className="text-2xl font-bold text-neutral-900 dark:text-neutral-100">Sales Reports</h1>
-        
+
         <div className="flex flex-col sm:flex-row gap-2">
-          <Button 
-            onClick={exportSummaryCSV} 
+          <Button
+            onClick={exportSummaryCSV}
             disabled={!summaryData || exportingCSV === 'summary'}
             variant="outline"
             size="sm"
@@ -265,9 +265,9 @@ export default function Reports() {
             <FileSpreadsheet className="h-4 w-4" />
             {exportingCSV === 'summary' ? 'Exporting...' : 'Export Summary'}
           </Button>
-          
-          <Button 
-            onClick={exportDetailedCSV} 
+
+          <Button
+            onClick={exportDetailedCSV}
             disabled={exportingCSV === 'detailed'}
             size="sm"
             className="flex items-center gap-2"
@@ -371,18 +371,18 @@ export default function Reports() {
             <ResponsiveContainer width="100%" height="100%">
               <LineChart data={trendData}>
                 <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" className="dark:stroke-[#374151]" />
-                <XAxis 
-                  dataKey="label" 
-                  stroke="#6B7280" 
+                <XAxis
+                  dataKey="label"
+                  stroke="#6B7280"
                   fontSize={12}
                   className="dark:stroke-[#9CA3AF]"
                 />
-                <YAxis 
-                  stroke="#6B7280" 
+                <YAxis
+                  stroke="#6B7280"
                   fontSize={12}
                   className="dark:stroke-[#9CA3AF]"
                 />
-                <Tooltip 
+                <Tooltip
                   contentStyle={{
                     backgroundColor: 'white',
                     border: '1px solid #E5E7EB',
@@ -390,10 +390,10 @@ export default function Reports() {
                     boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
                   }}
                 />
-                <Line 
-                  type="monotone" 
-                  dataKey="value" 
-                  stroke="#00AA00" 
+                <Line
+                  type="monotone"
+                  dataKey="value"
+                  stroke="#00AA00"
                   strokeWidth={3}
                   dot={{ fill: '#00AA00', strokeWidth: 2 }}
                   className="dark:stroke-[#6B46C1]"
@@ -528,7 +528,7 @@ export default function Reports() {
                       <td className="p-3 text-sm text-neutral-900 dark:text-neutral-100">#{order.orderId}</td>
                       <td className="p-3 text-sm text-neutral-900 dark:text-neutral-100">{order.customerName}</td>
                       <td className="p-3 text-sm text-neutral-600 dark:text-neutral-400">
-                        {order.products && order.products.length > 0 
+                        {order.products && order.products.length > 0
                           ? order.products.map(p => p.name).join(', ')
                           : 'No products'
                         }
@@ -536,14 +536,14 @@ export default function Reports() {
                       <td className="p-3 text-sm font-medium text-neutral-900 dark:text-neutral-100">{formatCurrency(order.total)}</td>
                       <td className="p-3">
                         <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          order.paymentMethod === 'cash' 
+                          order.paymentMethod === 'cash'
                             ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'
                             : order.paymentMethod === 'credit'
                             ? 'bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400'
                             : 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400'
                         }`}>
-                          {order.paymentMethod === 'mobileMoney' ? 'Mobile Money' : 
-                           order.paymentMethod === 'mobile_money' ? 'Mobile Money' : 
+                          {order.paymentMethod === 'mobileMoney' ? 'Mobile Money' :
+                           order.paymentMethod === 'mobile_money' ? 'Mobile Money' :
                            order.paymentMethod.charAt(0).toUpperCase() + order.paymentMethod.slice(1)}
                         </span>
                       </td>
@@ -567,14 +567,14 @@ export default function Reports() {
                   </div>
                   <div className="flex justify-between items-center text-sm">
                     <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      order.paymentMethod === 'cash' 
+                      order.paymentMethod === 'cash'
                         ? 'bg-green-100 text-green-800 dark:bg-green-900/20 dark:text-green-400'
                         : order.paymentMethod === 'credit'
                         ? 'bg-orange-100 text-orange-800 dark:bg-orange-900/20 dark:text-orange-400'
                         : 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400'
                     }`}>
-                      {order.paymentMethod === 'mobileMoney' ? 'Mobile Money' : 
-                       order.paymentMethod === 'mobile_money' ? 'Mobile Money' : 
+                      {order.paymentMethod === 'mobileMoney' ? 'Mobile Money' :
+                       order.paymentMethod === 'mobile_money' ? 'Mobile Money' :
                        order.paymentMethod.charAt(0).toUpperCase() + order.paymentMethod.slice(1)}
                     </span>
                     <span className="text-neutral-600 dark:text-neutral-400">{order.date}</span>
