@@ -45,7 +45,7 @@ AlertDialogContent.displayName = AlertDialogPrimitive.Content.displayName
 
 const AlertDialogHeader = ({
   className,
-  ...props;
+  ...props
 }: React.HTMLAttributes<HTMLDivElement>) => (
   <div
     className={cn(
@@ -59,7 +59,7 @@ AlertDialogHeader.displayName = "AlertDialogHeader"
 
 const AlertDialogFooter = ({
   className,
-  ...props;
+  ...props
 }: React.HTMLAttributes<HTMLDivElement>) => (
   <div
     className={cn(

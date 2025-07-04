@@ -153,7 +153,7 @@ export function CustomerForm({ open, onOpenChange, customer }: CustomerFormProps
   const onSubmit = (data: CustomerFormData) => {
     // Keep the balance field as-is, let the mutation handle defaults
     const processedData = {
-      ...data;
+      ...data
     };
     
     if (customer) {

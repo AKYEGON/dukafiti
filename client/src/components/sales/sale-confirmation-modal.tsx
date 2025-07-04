@@ -77,7 +77,7 @@ export function SaleConfirmationModal({
       onConfirm({
         name: customerName.trim(),
         phone: customerPhone.trim() || undefined,
-        isNew: isNewCustomer;
+        isNew: isNewCustomer
       });
     } else {
       onConfirm();

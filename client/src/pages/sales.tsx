@@ -271,7 +271,7 @@ export default function Sales() {
     const saleData = {
       items: cartItems.map(item => ({
         id: item.product.id,
-        quantity: item.quantity;
+        quantity: item.quantity
       })),
       paymentType: paymentMethod as 'cash' | 'credit' | 'mobileMoney',
       customerName: customer?.name || '',
