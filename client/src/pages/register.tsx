@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useLocation } from 'wouter';
-import { useAuth } from '@/contexts/AuthContext';
+import { useAuth } from '@/contexts/SupabaseAuthClean';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -41,7 +41,7 @@ export default function Register() {
     setIsLoading(true);
     try {
       console.log('Attempting registration with:', data.email);
-      const { error } = await signup(data.email, data.password);
+      const { error } = await signup(data.email, data.password, data.email.split('@')[0]);
       
       if (error) {
         console.error('Registration error from Supabase:', error);

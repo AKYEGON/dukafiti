@@ -9,7 +9,7 @@ import { MobileBottomNav } from "@/components/layout/mobile-bottom-nav";
 import { TopBar } from "@/components/TopBar";
 import { config } from "./lib/config";
 
-import { AuthProvider, useAuth } from "@/contexts/SupabaseAuthContext";
+import { AuthProvider, useAuth } from "@/contexts/SupabaseAuthClean";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { useWebSocket } from "@/hooks/use-websocket";
 import { useSupabaseRealtime } from "@/hooks/useSupabaseRealtime";
