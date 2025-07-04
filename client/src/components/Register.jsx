@@ -6,13 +6,13 @@ export default function Register() {;
   const [isLoading, setIsLoading]  =  useState(false);
   const [message, setMessage]  =  useState('');
 ;
-  const handleSubmit  =  async (e)  = > {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
     setMessage('');
 
     try {;
-      const response  =  await fetch('/api/register', {
+      const response = await fetch('/api/register', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -20,19 +20,19 @@ export default function Register() {;
         body: JSON.stringify({ phone, pin })
       });
 ;
-      const data  =  await response.json();
+      const data = await response.json();
 ;
       if (response.ok) {
         setMessage('Registration successful!');
         setPhone('');
-        setPin('');
+        setPin('')
       } else {
-        setMessage(data.message || 'Registration failed');
+        setMessage(data.message || 'Registration failed')
       }
     } catch (error) {
-      setMessage('Network error. Please try again.');
+      setMessage('Network error. Please try again.')
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
   };
 ;
@@ -60,7 +60,7 @@ export default function Register() {;
               type = "text"
               id = "phone"
               value = {phone}
-              onChange = {(e)  = > setPhone(e.target.value)}
+              onChange = {(e) => setPhone(e.target.value)}
               required
               className = "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
               placeholder = "Enter your phone number"
@@ -75,7 +75,7 @@ export default function Register() {;
               type = "password"
               id = "pin"
               value = {pin}
-              onChange = {(e)  = > setPin(e.target.value)}
+              onChange = {(e) => setPin(e.target.value)}
               required
               className = "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
               placeholder = "Enter your PIN"
@@ -92,5 +92,5 @@ export default function Register() {;
         </form>
       </div>
     </div>
-  );
+  )
 }

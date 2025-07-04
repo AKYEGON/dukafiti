@@ -8,7 +8,7 @@ import {
   businessProfiles,
   payments,
   storeProfiles,
-  userSettings;
+  userSettings
 } from '../shared/schema.js';
 import bcrypt from 'bcryptjs';
 
@@ -58,7 +58,7 @@ async function initializeDatabase() {
     ];
 
     for (const product of sampleProducts) {
-      await db.insert(products).values(product);
+      await db.insert(products).values(product)
     }
 
     // Create sample customers
@@ -80,7 +80,7 @@ async function initializeDatabase() {
     ];
 
     for (const customer of sampleCustomers) {
-      await db.insert(customers).values(customer);
+      await db.insert(customers).values(customer)
     }
 
     // Create user settings for the default user
@@ -90,11 +90,11 @@ async function initializeDatabase() {
       currency: 'KES',
       language: 'en',
       notifications: true
-    });
+    })
 
     } catch (error) {
     console.error('Error initializing database:', error);
-    throw error;
+    throw error
   }
 }
 

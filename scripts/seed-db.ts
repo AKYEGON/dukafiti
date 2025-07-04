@@ -11,7 +11,7 @@ async function seedDatabase() {
 
     if (authError) {
       console.error('Error creating auth user:', authError);
-      return;
+      return
     }
 
     // Create user profile in database
@@ -28,7 +28,7 @@ async function seedDatabase() {
 
     if (userError) {
       console.error('Error creating user profile:', userError);
-      return;
+      return
     }
 
     // Create store profile
@@ -44,7 +44,7 @@ async function seedDatabase() {
       }]);
 
     if (storeError) {
-      console.error('Error creating store profile:', storeError);
+      console.error('Error creating store profile:', storeError)
     }
 
     // Create user settings
@@ -59,7 +59,7 @@ async function seedDatabase() {
       }]);
 
     if (settingsError) {
-      console.error('Error creating user settings:', settingsError);
+      console.error('Error creating user settings:', settingsError)
     }
 
     // Create sample products
@@ -101,7 +101,7 @@ async function seedDatabase() {
       .insert(sampleProducts);
 
     if (productsError) {
-      console.error('Error creating products:', productsError);
+      console.error('Error creating products:', productsError)
     } else {
       }
 
@@ -128,13 +128,13 @@ async function seedDatabase() {
       .insert(sampleCustomers);
 
     if (customersError) {
-      console.error('Error creating customers:', customersError);
+      console.error('Error creating customers:', customersError)
     } else {
       }
 
     } catch (error) {
     console.error('Error seeding database:', error);
-    process.exit(1);
+    process.exit(1)
   }
 }
 

@@ -11,55 +11,55 @@ export default function Debug() {;
   const [error, setError]  =  useState<string | null>(null);
   const { user, session, isAuthenticated }  =  useAuth();
 
-  useEffect(()  = > {;
-    const checkSession  =  async ()  = > {
+  useEffect(() => {;
+    const checkSession = async () => {
       try {;
         const { data: { session }, error }  =  await supabase.auth.getSession();
 ;
         if (error) {
           console.error('Error getting session:', error);
-          setError(error.message);
+          setError(error.message)
         } else {
-          setSessionData(session);
+          setSessionData(session)
         };
 
         const { data: { user }, error: userError }  =  await supabase.auth.getUser();
 
         if (userError) {
           console.error('Error getting user:', userError);
-          setError(userError.message);
+          setError(userError.message)
         } else {
-          setUserInfo(user);
+          setUserInfo(user)
         }
       } catch (err) {
         console.error('Debug page error:', err);
-        setError('Failed to check authentication');
+        setError('Failed to check authentication')
       } finally {
-        setLoading(false);
+        setLoading(false)
       }
     };
 
-    checkSession();
+    checkSession()
   }, []);
 ;
-  const testSignUp  =  async ()  = > {;
+  const testSignUp = async () => {;
     const { data, error }  =  await supabase.auth.signUp({
       email: 'test@example.com',
       password: 'testpassword123'
-    });
+    })
 
     };
 ;
-  const testSignIn  =  async ()  = > {;
+  const testSignIn = async () => {;
     const { data, error }  =  await supabase.auth.signInWithPassword({
       email: 'test@example.com',
       password: 'testpassword123'
-    });
+    })
 
     };
 ;
   if (loading) {;
-    return <div className = "p-8">Loading debug information...</div>;
+    return <div className = "p-8">Loading debug information...</div>
   };
 
   return (
@@ -170,5 +170,5 @@ export default function Debug() {;
         </Card>
       </div>
     </div>
-  );
+  )
 }

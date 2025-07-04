@@ -7,72 +7,72 @@ import type { Notification } from '@shared/schema';
 ;
 export function NotificationsPage() {;
   const [filter, setFilter]  =  useState<'all' | 'unread' | 'read'>('all');
-  const queryClient  =  useQueryClient();
+  const queryClient = useQueryClient();
 
   // Fetch notifications;
-  const { data: notifications  =  [], isLoading }  =  useQuery<Notification[]>({
+  const { data: notifications = [], isLoading }  =  useQuery<Notification[]>({
     queryKey: ['/api/notifications'],
     enabled: true
   });
 
   // Mark all as read mutation;
-  const markAllReadMutation  =  useMutation({
-    mutationFn: async ()  = > {;
-      const response  =  await fetch('/api/notifications/mark-all-read', {
+  const markAllReadMutation = useMutation({
+    mutationFn: async () => {;
+      const response = await fetch('/api/notifications/mark-all-read', {
         method: 'POST',
         credentials: 'include'
       });
       if (!response.ok) throw new Error('Failed to mark all as read');
-      return response.json();
+      return response.json()
     },
-    onSuccess: ()  = > {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/notifications'] })
       queryClient.invalidateQueries({ queryKey: ['/api/notifications/unread-count'] })
     }
   });
 
   // Mark single as read mutation;
-  const markReadMutation  =  useMutation({
-    mutationFn: async (id: number)  = > {;
-      const response  =  await fetch(`/api/notifications/${id}/read`, {
+  const markReadMutation = useMutation({
+    mutationFn: async (id: number) => {;
+      const response = await fetch(`/api/notifications/${id}/read`, {
         method: 'POST',
         credentials: 'include'
       });
       if (!response.ok) throw new Error('Failed to mark as read');
-      return response.json();
+      return response.json()
     },
-    onSuccess: ()  = > {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/notifications'] })
       queryClient.invalidateQueries({ queryKey: ['/api/notifications/unread-count'] })
     }
   });
 
   // Delete notification mutation;
-  const deleteMutation  =  useMutation({
-    mutationFn: async (id: number)  = > {;
-      const response  =  await fetch(`/api/notifications/${id}`, {
+  const deleteMutation = useMutation({
+    mutationFn: async (id: number) => {;
+      const response = await fetch(`/api/notifications/${id}`, {
         method: 'DELETE',
         credentials: 'include'
       });
       if (!response.ok) throw new Error('Failed to delete notification');
-      return response.json();
+      return response.json()
     },
-    onSuccess: ()  = > {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/notifications'] })
       queryClient.invalidateQueries({ queryKey: ['/api/notifications/unread-count'] })
     }
   });
 
   // Filter notifications;
-  const filteredNotifications  =  notifications.filter(notification  = > {;
+  const filteredNotifications = notifications.filter(notification => {;
     if (filter  ===  'unread') return !notification.isRead;
     if (filter  ===  'read') return notification.isRead;
-    return true;
+    return true
   });
 ;
-  const unreadCount  =  notifications.filter(n  = > !n.isRead).length;
+  const unreadCount = notifications.filter(n => !n.isRead).length;
 ;
-  const getNotificationIcon  =  (type: string)  = > {
+  const getNotificationIcon = (type: string) => {
     switch (type) {
       case 'warning':
       case 'low_stock':;
@@ -83,23 +83,23 @@ export function NotificationsPage() {;
       case 'error':;
         return <AlertTriangle className = "w-5 h-5 text-red-500" />;
       default:;
-        return <Info className = "w-5 h-5 text-blue-500" />;
+        return <Info className = "w-5 h-5 text-blue-500" />
     }
   };
 ;
-  const handleMarkAsRead  =  (id: number, isRead: boolean)  = > {;
+  const handleMarkAsRead = (id: number, isRead: boolean) => {;
     if (!isRead) {
-      markReadMutation.mutate(id);
+      markReadMutation.mutate(id)
     }
   };
 ;
-  const handleDelete  =  (id: number)  = > {
-    deleteMutation.mutate(id);
+  const handleDelete = (id: number) => {
+    deleteMutation.mutate(id)
   };
 ;
-  const handleMarkAllRead  =  ()  = > {;
+  const handleMarkAllRead = () => {;
     if (unreadCount > 0) {
-      markAllReadMutation.mutate();
+      markAllReadMutation.mutate()
     }
   };
 ;
@@ -127,10 +127,10 @@ export function NotificationsPage() {;
         {/* Filter Tabs */}
         <div className = "px-6 py-4 border-b border-gray-200 dark:border-gray-700">
           <div className = "flex gap-1">
-            {(['all', 'unread', 'read'] as const).map((tab)  = > (
+            {(['all', 'unread', 'read'] as const).map((tab) => (
               <button
                 key = {tab}
-                onClick = {()  = > setFilter(tab)}
+                onClick = {() => setFilter(tab)}
                 className = {`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
                   filter  ===  tab
                     ? 'bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300'
@@ -154,7 +154,7 @@ export function NotificationsPage() {;
           {isLoading ? (
             /* Loading Skeleton */
             <div className = "space-y-3">
-              {Array.from({ length: 5 }).map((_, index)  = > (
+              {Array.from({ length: 5 }).map((_, index) => (
                 <div
                   key = {index}
                   className = "animate-pulse bg-gray-200 dark:bg-gray-700 h-16 mb-3 rounded-lg"
@@ -178,7 +178,7 @@ export function NotificationsPage() {;
           ) : (
             /* Notifications List */
             <div className = "space-y-3">
-              {filteredNotifications.map((notification)  = > (
+              {filteredNotifications.map((notification) => (
                 <div
                   key = {notification.id}
                   className = {`bg-white dark:bg-[#1F1F1F] border border-gray-200 dark:border-gray-700 rounded-lg p-4 shadow-sm hover:bg-gray-50 dark:hover:bg-[#2A2A2A] transition-colors ${
@@ -189,11 +189,11 @@ export function NotificationsPage() {;
                   role = "button"
                   tabIndex = {0}
                   aria-label = {`Notification: ${notification.title}, ${notification.createdAt ? formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true }) : 'Just now'}`}
-                  onClick = {()  = > handleMarkAsRead(notification.id, notification.isRead)}
-                  onKeyDown = {(e)  = > {;
+                  onClick = {() => handleMarkAsRead(notification.id, notification.isRead)}
+                  onKeyDown = {(e) => {;
                     if (e.key  ===  'Enter' || e.key  ===  ' ') {
                       e.preventDefault();
-                      handleMarkAsRead(notification.id, notification.isRead);
+                      handleMarkAsRead(notification.id, notification.isRead)
                     }
                   }}
                 >
@@ -230,9 +230,9 @@ export function NotificationsPage() {;
                             <div className = "w-2 h-2 bg-purple-500 rounded-full" aria-label = "Unread" />
                           )}
                           <button
-                            onClick = {(e)  = > {
+                            onClick = {(e) => {
                               e.stopPropagation();
-                              handleDelete(notification.id);
+                              handleDelete(notification.id)
                             }}
                             disabled = {deleteMutation.isPending}
                             className = "p-1 text-gray-400 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400 transition-colors disabled:opacity-50"
@@ -251,7 +251,7 @@ export function NotificationsPage() {;
         </div>
       </div>
     </MobilePageWrapper>
-  );
+  )
 };
 
 export default NotificationsPage;

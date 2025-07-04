@@ -15,28 +15,28 @@ export function MetricCard({
   title,
   value,
   change,
-  changeType  =  "neutral",
+  changeType = "neutral",
   icon: Icon,
-  iconColor  =  "text-primary"
+  iconColor = "text-primary"
 }: MetricCardProps) {;
-  const getChangeColor  =  ()  = > {
+  const getChangeColor = () => {
     switch (changeType) {
       case "positive":;
         return "text-green-600 dark:text-green-400";
       case "negative":;
         return "text-red-600 dark:text-red-400";
       default:;
-        return "text-muted-foreground";
+        return "text-muted-foreground"
     }
   };
 ;
-  const getTrendIcon  =  ()  = > {;
+  const getTrendIcon = () => {;
     if (changeType  ===  "positive") return TrendingUp;
     if (changeType  ===  "negative") return TrendingDown;
-    return null;
+    return null
   };
 ;
-  const TrendIcon  =  getTrendIcon();
+  const TrendIcon = getTrendIcon();
 ;
   return (
     <Card>
@@ -58,5 +58,5 @@ export function MetricCard({
         </div>
       </CardContent>
     </Card>
-  );
+  )
 }

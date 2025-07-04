@@ -7,13 +7,13 @@ import { Download, FileSpreadsheet } from 'lucide-react';
 import download from 'downloadjs';
 
 // Lazy load recharts to reduce bundle size;
-const LineChart  =  lazy(()  = > import('recharts').then(module  = > ({ default: module.LineChart })));
-const Line  =  lazy(()  = > import('recharts').then(module  = > ({ default: module.Line })));
-const XAxis  =  lazy(()  = > import('recharts').then(module  = > ({ default: module.XAxis })));
-const YAxis  =  lazy(()  = > import('recharts').then(module  = > ({ default: module.YAxis })));
-const CartesianGrid  =  lazy(()  = > import('recharts').then(module  = > ({ default: module.CartesianGrid })));
-const Tooltip  =  lazy(()  = > import('recharts').then(module  = > ({ default: module.Tooltip })));
-const ResponsiveContainer  =  lazy(()  = > import('recharts').then(module  = > ({ default: module.ResponsiveContainer })))
+const LineChart = lazy(() => import('recharts').then(module => ({ default: module.LineChart })));
+const Line = lazy(() => import('recharts').then(module => ({ default: module.Line })));
+const XAxis = lazy(() => import('recharts').then(module => ({ default: module.XAxis })));
+const YAxis = lazy(() => import('recharts').then(module => ({ default: module.YAxis })));
+const CartesianGrid = lazy(() => import('recharts').then(module => ({ default: module.CartesianGrid })));
+const Tooltip = lazy(() => import('recharts').then(module => ({ default: module.Tooltip })));
+const ResponsiveContainer = lazy(() => import('recharts').then(module => ({ default: module.ResponsiveContainer })))
 
 // Types
 interface SummaryData {
@@ -62,7 +62,7 @@ interface OrdersResponse {
     products?: Array<{
       name: string
       quantity: number
-    }>;
+    }>
   }>;
   total: number
   page: number
@@ -70,34 +70,34 @@ interface OrdersResponse {
 }
 
 // Utility functions;
-const formatCurrency  =  (amount: string | number): string  = > {;
-  const num  =  typeof amount  ===  'string' ? parseFloat(amount) : amount;
+const formatCurrency = (amount: string | number): string => {;
+  const num = typeof amount  ===  'string' ? parseFloat(amount) : amount;
   return new Intl.NumberFormat('en-KE', {
     style: 'currency',
     currency: 'KES',
     minimumFractionDigits: 0,
     maximumFractionDigits: 2
-  }).format(num);
+  }).format(num)
 };
 ;
-const convertToCSV  =  (data: any[], headers: string[]): string  = > {;
-  const csvHeaders  =  headers.join(',');
-  const csvRows  =  data.map(row  = >
-    headers.map(header  = > `"${row[header] || ''}"`).join(',')
+const convertToCSV = (data: any[], headers: string[]): string => {;
+  const csvHeaders = headers.join(',');
+  const csvRows = data.map(row =>
+    headers.map(header => `"${row[header] || ''}"`).join(',')
   );
-  return [csvHeaders, ...csvRows].join('\n');
+  return [csvHeaders, ...csvRows].join('\n')
 };
 ;
-const downloadCSV  =  (csvContent: string, filename: string): void  = > {;
-  const blob  =  new Blob([csvContent], { type: 'text/csv;charset  =  utf-8;' });
-  const link  =  document.createElement('a');
-  const url  =  URL.createObjectURL(blob);
+const downloadCSV = (csvContent: string, filename: string): void => {;
+  const blob = new Blob([csvContent], { type: 'text/csv;charset = utf-8;' });
+  const link = document.createElement('a');
+  const url = URL.createObjectURL(blob);
   link.setAttribute('href', url);
   link.setAttribute('download', filename);
-  link.style.visibility  =  'hidden';
+  link.style.visibility = 'hidden';
   document.body.appendChild(link);
   link.click();
-  document.body.removeChild(link);
+  document.body.removeChild(link)
 };
 ;
 export default function Reports() {
@@ -114,15 +114,15 @@ export default function Reports() {
   // Fetch summary data;
   const { data: rawSummaryData, isLoading: summaryLoading, error: summaryError }  =  useQuery({
     queryKey: ['/api/reports/summary', summaryPeriod],
-    queryFn: async ()  = > {;
-      const response  =  await fetch(`/api/reports/summary?period = ${summaryPeriod}`);
+    queryFn: async () => {;
+      const response = await fetch(`/api/reports/summary?period = ${summaryPeriod}`);
       if (!response.ok) throw new Error('Failed to fetch summary');
-      return response.json();
+      return response.json()
     }
   });
 
   // Transform backend data format to frontend format;
-  const summaryData: SummaryData | undefined  =  rawSummaryData ? {
+  const summaryData: SummaryData | undefined = rawSummaryData ? {
     totalSales: rawSummaryData.totalRevenue || '0',
     cashSales: rawSummaryData.paymentBreakdown?.cash || '0',
     mobileMoneySales: rawSummaryData.paymentBreakdown?.mobileMoney || '0',
@@ -132,15 +132,15 @@ export default function Reports() {
   // Fetch trend data;
   const { data: rawTrendData, isLoading: trendLoading, error: trendError }  =  useQuery({
     queryKey: ['/api/reports/trend', trendPeriod],
-    queryFn: async ()  = > {;
-      const response  =  await fetch(`/api/reports/trend?period = ${trendPeriod}`);
+    queryFn: async () => {;
+      const response = await fetch(`/api/reports/trend?period = ${trendPeriod}`);
       if (!response.ok) throw new Error('Failed to fetch trend');
-      return response.json();
+      return response.json()
     }
   });
 
   // Transform trend data format;
-  const trendData: TrendData[] | undefined  =  rawTrendData?.map((item: any)  = > ({
+  const trendData: TrendData[] | undefined = rawTrendData?.map((item: any) => ({
     label: item.date || item.label,
     value: item.value || 0
   }));
@@ -148,15 +148,15 @@ export default function Reports() {
   // Fetch top products data (was top-items);
   const { data: topProductsData, isLoading: topItemsLoading }  =  useQuery<TopProduct[]>({
     queryKey: ['/api/reports/top-products'],
-    queryFn: async ()  = > {;
-      const response  =  await fetch('/api/reports/top-products');
+    queryFn: async () => {;
+      const response = await fetch('/api/reports/top-products');
       if (!response.ok) throw new Error('Failed to fetch top products');
-      return response.json();
+      return response.json()
     }
   });
 
   // Transform top products to top items format;
-  const topItemsData: TopItem[] | undefined  =  topProductsData?.map(product  = > ({
+  const topItemsData: TopItem[] | undefined = topProductsData?.map(product => ({
     name: product.productName,
     unitsSold: product.unitsSold,
     revenue: product.totalRevenue
@@ -165,15 +165,15 @@ export default function Reports() {
   // Fetch customer credits data (using top-customers endpoint);
   const { data: topCustomersData, isLoading: customerCreditsLoading }  =  useQuery<TopCustomer[]>({
     queryKey: ['/api/reports/top-customers'],
-    queryFn: async ()  = > {;
-      const response  =  await fetch('/api/reports/top-customers');
+    queryFn: async () => {;
+      const response = await fetch('/api/reports/top-customers');
       if (!response.ok) throw new Error('Failed to fetch top customers');
-      return response.json();
+      return response.json()
     }
   });
 
   // Transform top customers to customer credits format;
-  const customerCreditsData: CustomerCredit[] | undefined  =  topCustomersData?.map(customer  = > ({
+  const customerCreditsData: CustomerCredit[] | undefined = topCustomersData?.map(customer => ({
     name: customer.customerName,
     phone: '', // Not available in current data
     balance: customer.totalOwed
@@ -182,21 +182,21 @@ export default function Reports() {
   // Fetch orders data;
   const { data: rawOrdersData, isLoading: ordersLoading, error: ordersError }  =  useQuery({
     queryKey: ['/api/reports/orders', ordersPeriod, ordersPage],
-    queryFn: async ()  = > {;
-      const params  =  new URLSearchParams({
+    queryFn: async () => {;
+      const params = new URLSearchParams({
         period: ordersPeriod,
         page: ordersPage.toString(),
         limit: '10'
       });
-      const response  =  await fetch(`/api/reports/orders?${params}`);
+      const response = await fetch(`/api/reports/orders?${params}`);
       if (!response.ok) throw new Error('Failed to fetch orders');
-      return response.json();
+      return response.json()
     }
   });
 
   // Transform orders data to handle date formatting;
-  const ordersData: OrdersResponse | undefined  =  rawOrdersData ? {
-    orders: rawOrdersData.orders?.map((order: any)  = > ({
+  const ordersData: OrdersResponse | undefined = rawOrdersData ? {
+    orders: rawOrdersData.orders?.map((order: any) => ({
       orderId: order.id,
       customerName: order.customerName,
       total: order.total?.toString() || '0',
@@ -214,30 +214,30 @@ export default function Reports() {
   } : undefined
 
   // CSV Export Functions;
-  const exportSummaryCSV  =  async ()  = > {;
+  const exportSummaryCSV = async () => {;
     if (!summaryData) return;
 
     setExportingCSV('summary');
     try {;
-      const csvData  =  [
+      const csvData = [
         { type: 'Total Sales', amount: summaryData.totalSales },
         { type: 'Cash Sales', amount: summaryData.cashSales },
         { type: 'Mobile Money Sales', amount: summaryData.mobileMoneySales },
         { type: 'Credit Sales', amount: summaryData.creditSales }
       ];
 ;
-      const csv  =  convertToCSV(csvData, ['type', 'amount']);
-      downloadCSV(csv, `sales-summary-${summaryPeriod}-${new Date().toISOString().split('T')[0]}.csv`);
+      const csv = convertToCSV(csvData, ['type', 'amount']);
+      downloadCSV(csv, `sales-summary-${summaryPeriod}-${new Date().toISOString().split('T')[0]}.csv`)
     } finally {
-      setExportingCSV(null);
+      setExportingCSV(null)
     }
   };
 
   // Detailed CSV Export with full order and line item data;
-  const exportDetailedCSV  =  async ()  = > {
+  const exportDetailedCSV = async () => {
     setExportingCSV('detailed');
     try {;
-      const response  =  await fetch(`/api/reports/export-orders?period = ${summaryPeriod}`, {
+      const response = await fetch(`/api/reports/export-orders?period = ${summaryPeriod}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/csv'
@@ -245,21 +245,21 @@ export default function Reports() {
       });
 ;
       if (!response.ok) {;
-        throw new Error('Failed to export detailed CSV');
+        throw new Error('Failed to export detailed CSV')
       }
 
       // Get the blob data;
-      const blob  =  await response.blob();
-      const filename  =  `orders_detailed_${summaryPeriod}_${new Date().toISOString().split('T')[0]}.csv`;
+      const blob = await response.blob();
+      const filename = `orders_detailed_${summaryPeriod}_${new Date().toISOString().split('T')[0]}.csv`;
 
       // Use downloadjs to prompt download
-      download(blob, filename, 'text/csv');
+      download(blob, filename, 'text/csv')
 
     } catch (error) {
       console.error('Failed to export detailed CSV:', error);
-      // Could add toast notification here;
+      // Could add toast notification here
     } finally {
-      setExportingCSV(null);
+      setExportingCSV(null)
     }
   };
 ;
@@ -279,7 +279,7 @@ export default function Reports() {
             {/* Timeframe Selector */}
           <div className = "flex items-center gap-4">
             <label className = "text-sm font-medium text-neutral-900 dark:text-neutral-100">Timeframe:</label>
-            <Select value = {summaryPeriod} onValueChange = {(value: 'today' | 'weekly' | 'monthly')  = > setSummaryPeriod(value)}>
+            <Select value = {summaryPeriod} onValueChange = {(value: 'today' | 'weekly' | 'monthly') => setSummaryPeriod(value)}>
               <SelectTrigger className = "w-40 bg-gray-50 dark:bg-gray-800 border rounded px-3 py-2 focus:ring-2 focus:ring-emerald-500">
                 <SelectValue />
               </SelectTrigger>
@@ -346,7 +346,7 @@ export default function Reports() {
           <div className = "bg-white dark:bg-[#1F1F1F] border border-gray-200 dark:border-gray-700 rounded-lg p-6 shadow-sm">
             <div className = "flex items-center justify-between mb-4">
               <h3 className = "text-lg font-semibold text-neutral-900 dark:text-neutral-100">Sales Trend</h3>
-              <Select value = {trendPeriod} onValueChange = {(value: 'daily' | 'weekly' | 'monthly')  = > setTrendPeriod(value)}>
+              <Select value = {trendPeriod} onValueChange = {(value: 'daily' | 'weekly' | 'monthly') => setTrendPeriod(value)}>
                 <SelectTrigger className = "w-32 bg-gray-50 dark:bg-gray-800 border rounded px-3 py-2 focus:ring-2 focus:ring-emerald-500">
                   <SelectValue />
                 </SelectTrigger>
@@ -411,7 +411,7 @@ export default function Reports() {
             <h3 className = "text-lg font-semibold text-neutral-900 dark:text-neutral-100 mb-4">Top Customers (Credit)</h3>
             {customerCreditsLoading ? (
               <div className = "space-y-3">
-                {[...Array(5)].map((_, i)  = > (
+                {[...Array(5)].map((_, i) => (
                   <div key = {i} className = "flex justify-between items-center">
                     <div className = "space-y-1">
                       <Skeleton className = "h-4 w-24" />
@@ -423,7 +423,7 @@ export default function Reports() {
               </div>
             ) : topCustomersData && topCustomersData.length > 0 ? (
               <div className = "space-y-3">
-                {topCustomersData.map((customer, index)  = > (
+                {topCustomersData.map((customer, index) => (
                   <div key = {index} className = "flex justify-between items-center py-2 border-b border-gray-100 dark:border-gray-700 last:border-b-0">
                     <div>
                       <p className = "font-medium text-gray-900 dark:text-gray-100">{customer.customerName}</p>
@@ -447,7 +447,7 @@ export default function Reports() {
             <h3 className = "text-lg font-semibold text-neutral-900 dark:text-neutral-100 mb-4">Top-Selling Products</h3>
             {topProductsLoading ? (
               <div className = "space-y-3">
-                {[...Array(5)].map((_, i)  = > (
+                {[...Array(5)].map((_, i) => (
                   <div key = {i} className = "flex justify-between items-center">
                     <div className = "space-y-1">
                       <Skeleton className = "h-4 w-24" />
@@ -459,7 +459,7 @@ export default function Reports() {
               </div>
             ) : topProductsData && topProductsData.length > 0 ? (
               <div className = "space-y-3">
-                {topProductsData.map((product, index)  = > (
+                {topProductsData.map((product, index) => (
                   <div key = {index} className = "py-2 border-b border-gray-100 dark:border-gray-700 last:border-b-0">
                     <div className = "flex justify-between items-start mb-2">
                       <div>
@@ -495,7 +495,7 @@ export default function Reports() {
 
             {ordersLoading ? (
               <div className = "space-y-3">
-                {[...Array(5)].map((_, i)  = > (
+                {[...Array(5)].map((_, i) => (
                   <Skeleton key = {i} className = "h-16 w-full" />
                 ))}
               </div>
@@ -515,13 +515,13 @@ export default function Reports() {
                       </tr>
                     </thead>
                     <tbody>
-                      {ordersData.orders.map((order)  = > (
+                      {ordersData.orders.map((order) => (
                         <tr key = {order.orderId} className = "hover:bg-gray-50 dark:hover:bg-gray-700/50 border-b border-gray-100 dark:border-gray-700">
                           <td className = "px-3 py-3 font-medium text-gray-900 dark:text-gray-100">#{order.orderId}</td>
                           <td className = "px-3 py-3 text-gray-700 dark:text-gray-300">{order.customerName}</td>
                           <td className = "px-3 py-3 text-gray-700 dark:text-gray-300">
                             {order.products && order.products.length > 0
-                              ? order.products.map(p  = > `${p.name} x${p.quantity}`).join(', ')
+                              ? order.products.map(p => `${p.name} x${p.quantity}`).join(', ')
                               : 'No products'
                             }
                           </td>
@@ -549,7 +549,7 @@ export default function Reports() {
 
                 {/* Mobile Cards */}
                 <div className = "md:hidden space-y-3">
-                  {ordersData.orders.map((order)  = > (
+                  {ordersData.orders.map((order) => (
                     <div key = {order.orderId} className = "bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
                       <div className = "flex justify-between items-start mb-2">
                         <div>
@@ -562,7 +562,7 @@ export default function Reports() {
                         <p className = "text-sm text-gray-700 dark:text-gray-300">
                           <span className = "font-medium">Products: </span>
                           {order.products && order.products.length > 0
-                            ? order.products.map(p  = > `${p.name} x${p.quantity}`).join(', ')
+                            ? order.products.map(p => `${p.name} x${p.quantity}`).join(', ')
                             : 'No products'
                           }
                         </p>
@@ -615,5 +615,5 @@ export default function Reports() {
         </div>
       </div>
     </div>
-  );
+  )
 }

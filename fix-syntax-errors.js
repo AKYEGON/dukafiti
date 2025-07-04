@@ -3,7 +3,7 @@
 import { readFileSync, writeFileSync } from 'fs';
 
 // Fix specific syntax errors introduced by cleanup;
-const fixes  =  [
+const fixes = [
   // Fix server/index.ts errors
   {
     file: 'server/index.ts',
@@ -31,19 +31,19 @@ const fixes  =  [
 ;
 for (const filefix of fixes) {
   try {;
-    let content  =  readFileSync(filefix.file, 'utf8');
-    let changed  =  false;
+    let content = readFileSync(filefix.file, 'utf8');
+    let changed = false;
     ;
     for (const fix of filefix.fixes) {;
-      const newContent  =  content.replace(fix.from, fix.to);
+      const newContent = content.replace(fix.from, fix.to);
       if (newContent !== content) {
-        content  =  newContent;
-        changed  =  true;
+        content = newContent;
+        changed = true
       }
     };
 
     if (changed) {
-      writeFileSync(filefix.file, content);
+      writeFileSync(filefix.file, content)
 
     }
   } catch (error) {

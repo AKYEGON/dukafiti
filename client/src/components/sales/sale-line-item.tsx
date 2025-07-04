@@ -16,22 +16,22 @@ export interface SaleLineItem {
 
 interface SaleLineItemProps {
   item: SaleLineItem
-  onQuantityChange: (id: string, quantity: number)  = > void
-  onRemove: (id: string)  = > void
+  onQuantityChange: (id: string, quantity: number) => void
+  onRemove: (id: string) => void
 };
 
 export function SaleLineItemComponent({ item, onQuantityChange, onRemove }: SaleLineItemProps) {;
   const [isRemoving, setIsRemoving]  =  useState(false);
 ;
-  const handleRemove  =  ()  = > {
+  const handleRemove = () => {
     setIsRemoving(true);
-    setTimeout(()  = > {
-      onRemove(item.id);
-    }, 150);
+    setTimeout(() => {
+      onRemove(item.id)
+    }, 150)
   };
 ;
-  const isLowStock  =  item.product.stock <= item.product.lowStockThreshold;
-  const isOutOfStock  =  item.quantity > item.product.stock;
+  const isLowStock = item.product.stock <= item.product.lowStockThreshold;
+  const isOutOfStock = item.quantity > item.product.stock;
 ;
   return (
     <Card className = {`transition-all duration-150 ${isRemoving ? 'opacity-0 scale-95' : 'opacity-100 scale-100'} ${isOutOfStock ? 'border-red-200 bg-red-50/50' : 'border-gray-200'}`}>
@@ -73,7 +73,7 @@ export function SaleLineItemComponent({ item, onQuantityChange, onRemove }: Sale
               <span className = "text-sm text-gray-600 whitespace-nowrap">Qty:</span>
               <QuantityStepper
                 value = {item.quantity}
-                onChange = {(quantity)  = > onQuantityChange(item.id, quantity)}
+                onChange = {(quantity) => onQuantityChange(item.id, quantity)}
                 min = {1}
                 max = {item.product.stock}
               />
@@ -105,5 +105,5 @@ export function SaleLineItemComponent({ item, onQuantityChange, onRemove }: Sale
         </div>
       </CardContent>
     </Card>
-  );
+  )
 }

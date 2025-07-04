@@ -6,7 +6,7 @@ import { CheckCircle, Store, BarChart3, Users } from "lucide-react";
 export default function Onboarding() {;
   const [, setLocation]  =  useLocation();
 ;
-  const features  =  [
+  const features = [
     {
       icon: Store,
       title: "Inventory Management",
@@ -40,7 +40,7 @@ export default function Onboarding() {;
         </CardHeader>
         <CardContent className = "space-y-6">
           <div className = "grid gap-4 md:grid-cols-3">
-            {features.map((feature, index)  = > (
+            {features.map((feature, index) => (
               <div key = {index} className = "text-center space-y-2">
                 <div className = "mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-green-100">
                   <feature.icon className = "h-6 w-6 text-green-600" />
@@ -56,7 +56,7 @@ export default function Onboarding() {;
               Everything is set up and ready for you to start managing your business.
             </p>
             <Button
-              onClick = {()  = > setLocation("/")}
+              onClick = {() => setLocation("/")}
               className = "bg-green-600 hover:bg-green-700 px-8"
               size = "lg"
             >
@@ -66,5 +66,5 @@ export default function Onboarding() {;
         </CardContent>
       </Card>
     </div>
-  );
+  )
 }

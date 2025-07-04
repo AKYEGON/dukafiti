@@ -13,21 +13,21 @@ import type { Customer } from "@shared/schema";
 
 interface RecordRepaymentModalProps {
   isOpen: boolean
-  onClose: ()  = > void
+  onClose: () => void
   customer: Customer
   previousPayments?: Array<{ date: string; amount: string; method: string }>
 };
 
-export function RecordRepaymentModal({ isOpen, onClose, customer, previousPayments  =  [] }: RecordRepaymentModalProps) {;
+export function RecordRepaymentModal({ isOpen, onClose, customer, previousPayments = [] }: RecordRepaymentModalProps) {;
   const [amount, setAmount]  =  useState("");
   const [method, setMethod]  =  useState<"cash" | "mobileMoney">("cash");
   const [note, setNote]  =  useState("");
   const { toast }  =  useToast();
-  const queryClient  =  useQueryClient();
+  const queryClient = useQueryClient();
 ;
-  const recordPayment  =  useMutation({
-    mutationFn: async (data: { customerId: number; amount: string; method: string; note?: string })  = > {;
-      const response  =  await fetch(`/api/customers/${data.customerId}/payments`, {
+  const recordPayment = useMutation({
+    mutationFn: async (data: { customerId: number; amount: string; method: string; note?: string }) => {;
+      const response = await fetch(`/api/customers/${data.customerId}/payments`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -37,12 +37,12 @@ export function RecordRepaymentModal({ isOpen, onClose, customer, previousPaymen
         })
       });
       if (!response.ok) {;
-        const error  =  await response.json();
-        throw new Error(error.message || "Failed to record payment");
+        const error = await response.json();
+        throw new Error(error.message || "Failed to record payment")
       };
-      return response.json();
+      return response.json()
     },
-    onSuccess: (data)  = > {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["/api/customers"] })
       toast({
         title: "Payment Recorded",
@@ -50,28 +50,28 @@ export function RecordRepaymentModal({ isOpen, onClose, customer, previousPaymen
         className: "bg-green-600 text-white"
       });
       onClose();
-      resetForm();
+      resetForm()
     },
-    onError: (error: any)  = > {
+    onError: (error: any) => {
       toast({
         title: "Error",
         description: error.message || "Failed to record payment",
         variant: "destructive"
-      });
+      })
     }
   });
 ;
-  const resetForm  =  ()  = > {
+  const resetForm = () => {
     setAmount("");
     setMethod("cash");
-    setNote("");
+    setNote("")
   };
 ;
-  const handleSubmit  =  (e: React.FormEvent)  = > {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 ;
-    const paymentAmount  =  parseFloat(amount);
-    const totalOwed  =  parseFloat(customer.balance || "0");
+    const paymentAmount = parseFloat(amount);
+    const totalOwed = parseFloat(customer.balance || "0");
 ;
     if (!amount || paymentAmount <= 0) {
       toast({
@@ -79,7 +79,7 @@ export function RecordRepaymentModal({ isOpen, onClose, customer, previousPaymen
         description: "Please enter a valid payment amount",
         variant: "destructive"
       });
-      return;
+      return
     };
 
     if (paymentAmount > totalOwed) {
@@ -88,7 +88,7 @@ export function RecordRepaymentModal({ isOpen, onClose, customer, previousPaymen
         description: "Payment amount cannot exceed total debt",
         variant: "destructive"
       });
-      return;
+      return
     }
 
     recordPayment.mutate({
@@ -96,13 +96,13 @@ export function RecordRepaymentModal({ isOpen, onClose, customer, previousPaymen
       amount: amount,
       method: method,
       note: note.trim() || undefined
-    });
+    })
   };
 ;
-  const handleClose  =  ()  = > {;
+  const handleClose = () => {;
     if (!recordPayment.isPending) {
       onClose();
-      resetForm();
+      resetForm()
     }
   };
 ;
@@ -147,7 +147,7 @@ export function RecordRepaymentModal({ isOpen, onClose, customer, previousPaymen
                     <div className = "pt-2 border-t border-gray-200 dark:border-gray-700">
                       <p className = "text-xs text-gray-500 dark:text-gray-400 mb-2">Recent Payments:</p>
                       <div className = "space-y-1 max-h-20 overflow-y-auto">
-                        {previousPayments.slice(0, 3).map((payment, index)  = > (
+                        {previousPayments.slice(0, 3).map((payment, index) => (
                           <div key = {index} className = "flex justify-between text-xs">
                             <span className = "text-gray-600 dark:text-gray-400">{payment.date}</span>
                             <span className = "text-green-600 dark:text-green-400">
@@ -174,7 +174,7 @@ export function RecordRepaymentModal({ isOpen, onClose, customer, previousPaymen
                     min = "0.01"
                     max = {customer.balance}
                     value = {amount}
-                    onChange = {(e)  = > setAmount(e.target.value)}
+                    onChange = {(e) => setAmount(e.target.value)}
                     placeholder = "0.00"
                     className = "text-lg border-gray-300 dark:border-gray-600 focus:border-green-500 focus:ring-green-500"
                     aria-label = "Payment amount"
@@ -190,7 +190,7 @@ export function RecordRepaymentModal({ isOpen, onClose, customer, previousPaymen
                   <div className = "grid grid-cols-2 gap-3">
                     <button
                       type = "button"
-                      onClick = {()  = > setMethod("cash")}
+                      onClick = {() => setMethod("cash")}
                       className = {`flex flex-col items-center justify-center p-4 rounded-lg border-2 transition-all ${
                         method  ===  "cash"
                           ? "border-green-500 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400"
@@ -204,7 +204,7 @@ export function RecordRepaymentModal({ isOpen, onClose, customer, previousPaymen
 
                     <button
                       type = "button"
-                      onClick = {()  = > setMethod("mobileMoney")}
+                      onClick = {() => setMethod("mobileMoney")}
                       className = {`flex flex-col items-center justify-center p-4 rounded-lg border-2 transition-all ${
                         method  ===  "mobileMoney"
                           ? "border-green-500 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400"
@@ -226,7 +226,7 @@ export function RecordRepaymentModal({ isOpen, onClose, customer, previousPaymen
                   <Textarea
                     id = "note"
                     value = {note}
-                    onChange = {(e)  = > setNote(e.target.value)}
+                    onChange = {(e) => setNote(e.target.value)}
                     placeholder = "Add any notes or reference details..."
                     className = "resize-none border-gray-300 dark:border-gray-600 focus:border-green-500 focus:ring-green-500"
                     rows = {3}
@@ -266,5 +266,5 @@ export function RecordRepaymentModal({ isOpen, onClose, customer, previousPaymen
         </Dialog>
       )}
     </AnimatePresence>
-  );
+  )
 }

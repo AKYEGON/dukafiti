@@ -17,7 +17,7 @@ export function calcPctChange(current: number, prior: number): string {
   const rounded = Math.round(change * 10) / 10;
   const sign = rounded > 0 ? '+' : ''
 
-  return `${sign}${rounded.toFixed(1)}%`;
+  return `${sign}${rounded.toFixed(1)}%`
 }
 
 /**
@@ -37,7 +37,7 @@ export function getDayBounds(date: Date): { start: Date; end: Date } {
   const end = new Date(date);
   end.setHours(23, 59, 59, 999);
 
-  return { start, end };
+  return { start, end }
 }
 
 /**
@@ -73,5 +73,5 @@ export function getDateRanges() {
     yesterday: yesterdayBounds,
     weekToDate: { start: weekStart, end: today.end },
     priorWeekToDate: { start: priorWeekStart, end: priorWeekEnd }
-  };
+  }
 }

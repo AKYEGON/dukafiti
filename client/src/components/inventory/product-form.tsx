@@ -26,16 +26,16 @@ import { Checkbox } from "@/components/ui/checkbox";
 
 interface ProductFormProps {
   open: boolean
-  onOpenChange: (open: boolean)  = > void
+  onOpenChange: (open: boolean) => void
   product?: Product
 };
 
 export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {;
   const { toast }  =  useToast();
-  const queryClient  =  useQueryClient();
+  const queryClient = useQueryClient();
   const [unknownQuantity, setUnknownQuantity]  =  useState(false);
 ;
-  const form  =  useForm<InsertProduct>({
+  const form = useForm<InsertProduct>({
     resolver: zodResolver(insertProductSchema),
     defaultValues: {
       name: "",
@@ -50,9 +50,9 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
   });
 
   // Reset form with product data when editing
-  useEffect(()  = > {;
+  useEffect(() => {;
     if (product) {;
-      const hasUnknownQuantity  =  product.stock  ===  null;
+      const hasUnknownQuantity = product.stock  ===  null;
       setUnknownQuantity(hasUnknownQuantity);
       form.reset({
         name: product.name || "",
@@ -63,7 +63,7 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
         category: product.category || "",
         lowStockThreshold: product.lowStockThreshold || 10,
         unknownQuantity: hasUnknownQuantity
-      });
+      })
     } else {
       // Reset to empty form when creating new product
       setUnknownQuantity(false);
@@ -76,57 +76,57 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
         category: "",
         lowStockThreshold: 10,
         unknownQuantity: false
-      });
+      })
     }
   }, [product, form]);
 ;
-  const createMutation  =  useMutation({
-    mutationFn: async (data: InsertProduct)  = > {;
-      const response  =  await apiRequest("POST", "/api/products", data);
-      return response.json();
+  const createMutation = useMutation({
+    mutationFn: async (data: InsertProduct) => {;
+      const response = await apiRequest("POST", "/api/products", data);
+      return response.json()
     },
-    onSuccess: ()  = > {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/products"] })
       queryClient.invalidateQueries({ queryKey: ["/api/dashboard/metrics"] })
       toast({ title: "Product created successfully" })
       onOpenChange(false);
-      form.reset();
+      form.reset()
     },
-    onError: (error: any)  = > {;
-      const errorMessage  =  error?.response?.data?.message || "Failed to create product";
+    onError: (error: any) => {;
+      const errorMessage = error?.response?.data?.message || "Failed to create product";
       toast({ title: errorMessage, variant: "destructive" })
     }
   });
 ;
-  const updateMutation  =  useMutation({
-    mutationFn: async (data: InsertProduct)  = > {;
-      const response  =  await apiRequest("PUT", `/api/products/${product!.id}`, data);
-      return response.json();
+  const updateMutation = useMutation({
+    mutationFn: async (data: InsertProduct) => {;
+      const response = await apiRequest("PUT", `/api/products/${product!.id}`, data);
+      return response.json()
     },
-    onSuccess: ()  = > {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/products"] })
       queryClient.invalidateQueries({ queryKey: ["/api/dashboard/metrics"] })
       toast({ title: "Product updated successfully" })
-      onOpenChange(false);
+      onOpenChange(false)
     },
-    onError: (error: any)  = > {;
-      const errorMessage  =  error?.response?.data?.message || "Failed to update product";
+    onError: (error: any) => {;
+      const errorMessage = error?.response?.data?.message || "Failed to update product";
       toast({ title: errorMessage, variant: "destructive" })
     }
   });
 ;
-  const onSubmit  =  (data: InsertProduct)  = > {
+  const onSubmit = (data: InsertProduct) => {
     // Handle unknown quantity logic;
-    const processedData  =  {
+    const processedData = {
       ...data,
       stock: unknownQuantity ? null : data.stock,
       unknownQuantity: unknownQuantity
     };
 ;
     if (product) {
-      updateMutation.mutate(processedData);
+      updateMutation.mutate(processedData)
     } else {
-      createMutation.mutate(processedData);
+      createMutation.mutate(processedData)
     }
   };
 ;
@@ -148,7 +148,7 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
               <FormField
                 control = {form.control}
                 name = "name"
-                render = {({ field })  = > (
+                render = {({ field }) => (
                   <FormItem>
                     <FormLabel className = "text-sm font-medium text-gray-700 dark:text-gray-300">Product Name *</FormLabel>
                     <FormControl>
@@ -166,7 +166,7 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
               <FormField
                 control = {form.control}
                 name = "sku"
-                render = {({ field })  = > (
+                render = {({ field }) => (
                   <FormItem>
                     <FormLabel className = "text-sm font-medium text-gray-700 dark:text-gray-300">SKU (Product Code) *</FormLabel>
                     <FormControl>
@@ -185,14 +185,14 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
               <FormField
                 control = {form.control}
                 name = "description"
-                render = {({ field })  = > (
+                render = {({ field }) => (
                   <FormItem>
                     <FormLabel className = "text-sm font-medium text-gray-700 dark:text-gray-300">Description</FormLabel>
                     <FormControl>
                       <Textarea
                         {...field}
                         value = {field.value ?? ""}
-                        onChange = {(e)  = > field.onChange(e.target.value)}
+                        onChange = {(e) => field.onChange(e.target.value)}
                         placeholder = "Enter product description (optional)"
                         className = "min-h-[80px] text-base resize-none"
                       />
@@ -210,7 +210,7 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
                 <FormField
                   control = {form.control}
                   name = "price"
-                  render = {({ field })  = > (
+                  render = {({ field }) => (
                     <FormItem>
                       <FormLabel className = "text-sm font-medium text-gray-700 dark:text-gray-300">Price (KES) *</FormLabel>
                       <FormControl>
@@ -230,7 +230,7 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
                 <FormField
                   control = {form.control}
                   name = "stock"
-                  render = {({ field })  = > (
+                  render = {({ field }) => (
                     <FormItem>
                       <FormLabel className = "text-sm font-medium text-gray-700 dark:text-gray-300">
                         Stock Quantity {unknownQuantity && "(Disabled)"}
@@ -242,9 +242,9 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
                           value = {unknownQuantity ? "" : (field.value || "")}
                           placeholder = {unknownQuantity ? "Unknown quantity" : "Enter stock quantity"}
                           disabled = {unknownQuantity}
-                          onChange = {(e)  = > {;
+                          onChange = {(e) => {;
                             if (!unknownQuantity) {
-                              field.onChange(parseInt(e.target.value) || 0);
+                              field.onChange(parseInt(e.target.value) || 0)
                             }
                           }}
                           className = {`h-10 text-base ${unknownQuantity ? "bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400" : ""}`}
@@ -263,14 +263,14 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
                     <Checkbox
                       id = "unknown-quantity"
                       checked = {unknownQuantity}
-                      onCheckedChange = {(checked)  = > {
+                      onCheckedChange = {(checked) => {
                         setUnknownQuantity(checked  ===  true);
                         form.setValue("unknownQuantity", checked  ===  true);
                         if (checked) {
-                          form.setValue("stock", 0);
+                          form.setValue("stock", 0)
                         }
                       }}
-                      className = "w-5 h-5 data-[state  =  checked]:bg-purple-600 data-[state  =  checked]:border-purple-600 data-[state  =  checked]:text-white border-2 border-purple-300 dark:border-purple-600 rounded-md transition-all duration-200 hover:border-purple-400 dark:hover:border-purple-500"
+                      className = "w-5 h-5 data-[state = checked]:bg-purple-600 data-[state = checked]:border-purple-600 data-[state = checked]:text-white border-2 border-purple-300 dark:border-purple-600 rounded-md transition-all duration-200 hover:border-purple-400 dark:hover:border-purple-500"
                     />
                   </div>
                   <div className = "flex-1">
@@ -297,7 +297,7 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
                 <FormField
                   control = {form.control}
                   name = "category"
-                  render = {({ field })  = > (
+                  render = {({ field }) => (
                     <FormItem>
                       <FormLabel className = "text-sm font-medium text-gray-700 dark:text-gray-300">Category</FormLabel>
                       <FormControl>
@@ -315,14 +315,14 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
                 <FormField
                   control = {form.control}
                   name = "lowStockThreshold"
-                  render = {({ field })  = > (
+                  render = {({ field }) => (
                     <FormItem>
                       <FormLabel className = "text-sm font-medium text-gray-700 dark:text-gray-300">Low Stock Alert</FormLabel>
                       <FormControl>
                         <Input
                           type = "number"
                           {...field}
-                          onChange = {(e)  = > field.onChange(parseInt(e.target.value) || 0)}
+                          onChange = {(e) => field.onChange(parseInt(e.target.value) || 0)}
                           placeholder = "10"
                           className = "h-10 text-base"
                           disabled = {unknownQuantity}
@@ -342,7 +342,7 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
               <Button
                 type = "button"
                 variant = "outline"
-                onClick = {()  = > onOpenChange(false)}
+                onClick = {() => onOpenChange(false)}
                 disabled = {createMutation.isPending || updateMutation.isPending}
                 className = "h-10 px-6 text-base"
               >
@@ -364,5 +364,5 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
         </Form>
       </DialogContent>
     </Dialog>
-  );
+  )
 }

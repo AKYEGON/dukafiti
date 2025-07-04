@@ -13,13 +13,13 @@ import { apiRequest } from "@/lib/queryClient";
 import { useTheme } from "@/contexts/theme-context";
 
 // Form validation schemas;
-const storeProfileSchema  =  z.object({
+const storeProfileSchema = z.object({
   storeName: z.string().min(1, "Store name is required"),
   ownerName: z.string().min(1, "Owner name is required"),
   address: z.string().min(1, "Address is required")
 });
 
-type StoreProfileData  =  z.infer<typeof storeProfileSchema>;
+type StoreProfileData = z.infer<typeof storeProfileSchema>;
 
 interface StoreData {
   storeName?: string
@@ -32,14 +32,14 @@ interface EditableSectionProps {
   icon: React.ElementType
   children: React.ReactNode
   isEditing: boolean
-  onEditToggle: ()  = > void
-  onSave?: ()  = > void
-  onCancel?: ()  = > void
+  onEditToggle: () => void
+  onSave?: () => void
+  onCancel?: () => void
   isLoading?: boolean
 }
 
 // Editable Section Component;
-const EditableSection  =  ({
+const EditableSection = ({
   title,
   icon: Icon,
   children,
@@ -47,8 +47,8 @@ const EditableSection  =  ({
   onEditToggle,
   onSave,
   onCancel,
-  isLoading  =  false
-}: EditableSectionProps)  = > (
+  isLoading = false
+}: EditableSectionProps) => (
   <div className = "bg-white dark:bg-[#1F1F1F] border border-gray-200 dark:border-gray-700 rounded-lg p-6 shadow-sm hover:shadow-md transition dark:shadow-[0_4px_8px_rgba(0,0,0,0.5)]">
     <div className = "flex items-center justify-between mb-6">
       <div className = "flex items-center gap-3">
@@ -98,7 +98,7 @@ const EditableSection  =  ({
 ;
 export default function SettingsPage() {;
   const { toast }  =  useToast();
-  const queryClient  =  useQueryClient();
+  const queryClient = useQueryClient();
   const { theme, setTheme }  =  useTheme();
 
   // Editing states;
@@ -112,7 +112,7 @@ export default function SettingsPage() {;
   });
 
   // Store profile form;
-  const storeForm  =  useForm<StoreProfileData>({
+  const storeForm = useForm<StoreProfileData>({
     resolver: zodResolver(storeProfileSchema),
     defaultValues: {
       storeName: "",
@@ -122,69 +122,69 @@ export default function SettingsPage() {;
   });
 
   // Update form when store data loads
-  useEffect(()  = > {;
+  useEffect(() => {;
     if (storeData) {
       storeForm.reset({
         storeName: storeData.storeName || "",
         ownerName: storeData.ownerName || "",
         address: storeData.address || ""
-      });
+      })
     }
   }, [storeData, storeForm]);
 
   // Store profile mutation;
-  const storeMutation  =  useMutation({
-    mutationFn: async (data: StoreProfileData)  = > {;
-      const response  =  await apiRequest("PUT", "/api/store", data);
-      return response.json();
+  const storeMutation = useMutation({
+    mutationFn: async (data: StoreProfileData) => {;
+      const response = await apiRequest("PUT", "/api/store", data);
+      return response.json()
     },
-    onSuccess: ()  = > {
+    onSuccess: () => {
       toast({ title: "Store profile updated successfully" })
       queryClient.invalidateQueries({ queryKey: ['/api/store'] })
-      setEditingStore(false);
+      setEditingStore(false)
     },
-    onError: (error: any)  = > {
+    onError: (error: any) => {
       toast({
         title: "Failed to update store profile",
         description: error?.message || "Please try again",
         variant: "destructive"
-      });
+      })
     }
   });
 
   // Manual sync mutation;
-  const syncMutation  =  useMutation({
-    mutationFn: async ()  = > {;
-      const response  =  await apiRequest("GET", "/api/sync");
-      return response.json();
+  const syncMutation = useMutation({
+    mutationFn: async () => {;
+      const response = await apiRequest("GET", "/api/sync");
+      return response.json()
     },
-    onSuccess: ()  = > {
+    onSuccess: () => {
       toast({ title: "Data synced successfully" })
-      setLastSyncTime(new Date().toLocaleString());
+      setLastSyncTime(new Date().toLocaleString())
     },
-    onError: (error: any)  = > {
+    onError: (error: any) => {
       toast({
         title: "Sync failed",
         description: error?.message || "Please try again",
         variant: "destructive"
-      });
+      })
     }
   });
 
   // Event handlers;
-  const handleStoreSave  =  ()  = > {
-    storeForm.handleSubmit((data)  = > {
-      storeMutation.mutate(data);
-    })();
+  const handleStoreSave = () => {
+    storeForm.handleSubmit((data) => {
+      storeMutation.mutate(data)
+    })()
   };
 ;
-  const handleStoreCancel  =  ()  = > {
+  const handleStoreCancel = () => {
     storeForm.reset({
       storeName: storeData?.storeName || "",
       ownerName: storeData?.ownerName || "",
       address: storeData?.address || ""
     });
-    setEditingStore(false);
+    setEditingStore(false)
   };
 ;
   if (storeLoading) {;
@@ -197,7 +197,7 @@ export default function SettingsPage() {;
           </div>
         </div>
       </div>
-    );
+    )
   };
 
   return (
@@ -220,7 +220,7 @@ export default function SettingsPage() {;
             title = "Store Profile"
             icon = {Store}
             isEditing = {editingStore}
-            onEditToggle = {()  = > setEditingStore(true)}
+            onEditToggle = {() => setEditingStore(true)}
             onSave = {handleStoreSave}
             onCancel = {handleStoreCancel}
             isLoading = {storeMutation.isPending}
@@ -304,7 +304,7 @@ export default function SettingsPage() {;
             title = "Dark Mode"
             icon = {theme  ===  'dark' ? Moon : Sun}
             isEditing = {false}
-            onEditToggle = {()  = > {}}
+            onEditToggle = {() => {}}
           >
             <div className = "flex items-center justify-between leading-relaxed">
               <div className = "space-y-2">
@@ -315,7 +315,7 @@ export default function SettingsPage() {;
               </div>
               <Switch
                 checked = {theme  ===  'dark'}
-                onCheckedChange = {(checked)  = > setTheme(checked ? 'dark' : 'light')}
+                onCheckedChange = {(checked) => setTheme(checked ? 'dark' : 'light')}
                 className = "focus:ring-2 focus:ring-purple-600"
               />
             </div>
@@ -327,7 +327,7 @@ export default function SettingsPage() {;
               title = "Manual Sync"
               icon = {RotateCcw}
               isEditing = {false}
-              onEditToggle = {()  = > {}}
+              onEditToggle = {() => {}}
             >
               <div className = "text-center space-y-6">
                 <div className = "space-y-2">
@@ -342,7 +342,7 @@ export default function SettingsPage() {;
                 </div>
 
                 <Button
-                  onClick = {()  = > syncMutation.mutate()}
+                  onClick = {() => syncMutation.mutate()}
                   disabled = {syncMutation.isPending}
                   className = "bg-green-600 hover:bg-green-700 text-white px-8 py-3 h-12 rounded-md text-lg font-medium focus:outline-none focus:ring-2 focus:ring-green-600 min-w-[200px]"
                 >
@@ -357,5 +357,5 @@ export default function SettingsPage() {;
         </div>
       </div>
     </div>
-  );
+  )
 }

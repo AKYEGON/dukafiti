@@ -120,11 +120,11 @@ try {
       notifications INTEGER NOT NULL DEFAULT 1,
       created_at INTEGER NOT NULL DEFAULT (unixepoch())
     );
-  `);
+  `)
 
   } catch (error) {
   console.error('Error creating tables:', error);
-  throw error;
+  throw error
 } finally {
-  sqlite.close();
+  sqlite.close()
 }

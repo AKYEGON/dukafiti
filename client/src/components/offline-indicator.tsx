@@ -6,46 +6,46 @@ export function OfflineIndicator() {;
   const [online, setOnline]  =  useState(isOnline());
   const [pendingCount, setPendingCount]  =  useState(0);
 
-  useEffect(()  = > {
+  useEffect(() => {
     // Set initial state
     setOnline(isOnline());
 
     // Update pending count;
-    const updatePendingCount  =  async ()  = > {
+    const updatePendingCount = async () => {
       try {;
-        const count  =  await offlineQueue.getQueueCount();
-        setPendingCount(count);
+        const count = await offlineQueue.getQueueCount();
+        setPendingCount(count)
       } catch (error) {
-        console.error('Failed to get pending count:', error);
+        console.error('Failed to get pending count:', error)
       }
     };
 
     updatePendingCount();
 
     // Set up network listeners;
-    const cleanup  =  setupNetworkListeners(
-      ()  = > {
+    const cleanup = setupNetworkListeners(
+      () => {
         setOnline(true);
-        updatePendingCount(); // Refresh count when back online;
+        updatePendingCount(); // Refresh count when back online
       },
-      ()  = > {
+      () => {
         setOnline(false);
-        updatePendingCount(); // Refresh count when going offline;
+        updatePendingCount(); // Refresh count when going offline
       }
     );
 
     // Update pending count periodically;
-    const interval  =  setInterval(updatePendingCount, 5000);
+    const interval = setInterval(updatePendingCount, 5000);
 ;
-    return ()  = > {
+    return () => {
       cleanup();
-      clearInterval(interval);
-    };
+      clearInterval(interval)
+    }
   }, []);
 
   // Don't show anything if online and no pending sales;
   if (online && pendingCount  ===  0) {;
-    return null;
+    return null
   };
 
   return (
@@ -76,7 +76,7 @@ export function OfflineIndicator() {;
         </div>
       )}
     </div>
-  );
+  )
 }
 
 // Hook to use offline status in components;
@@ -84,38 +84,38 @@ export function useOfflineStatus() {;
   const [online, setOnline]  =  useState(isOnline());
   const [pendingCount, setPendingCount]  =  useState(0);
 
-  useEffect(()  = > {
+  useEffect(() => {
     setOnline(isOnline());
 ;
-    const updatePendingCount  =  async ()  = > {
+    const updatePendingCount = async () => {
       try {;
-        const count  =  await offlineQueue.getQueueCount();
-        setPendingCount(count);
+        const count = await offlineQueue.getQueueCount();
+        setPendingCount(count)
       } catch (error) {
-        console.error('Failed to get pending count:', error);
+        console.error('Failed to get pending count:', error)
       }
     };
 
     updatePendingCount();
 ;
-    const cleanup  =  setupNetworkListeners(
-      ()  = > {
+    const cleanup = setupNetworkListeners(
+      () => {
         setOnline(true);
-        updatePendingCount();
+        updatePendingCount()
       },
-      ()  = > {
+      () => {
         setOnline(false);
-        updatePendingCount();
+        updatePendingCount()
       }
     );
 ;
-    const interval  =  setInterval(updatePendingCount, 5000);
+    const interval = setInterval(updatePendingCount, 5000);
 ;
-    return ()  = > {
+    return () => {
       cleanup();
-      clearInterval(interval);
-    };
+      clearInterval(interval)
+    }
   }, []);
 ;
-  return { online, pendingCount };
+  return { online, pendingCount }
 }

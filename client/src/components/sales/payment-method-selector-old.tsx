@@ -9,32 +9,32 @@ import { formatCurrency } from "@/lib/utils";
 
 interface PaymentMethodSelectorProps {
   total: number
-  onPaymentSelected: (method: 'cash' | 'credit' | 'mobileMoney', reference?: string)  = > void
+  onPaymentSelected: (method: 'cash' | 'credit' | 'mobileMoney', reference?: string) => void
   isProcessing?: boolean
 };
 
-export function PaymentMethodSelector({ total, onPaymentSelected, isProcessing, mpesaEnabled  =  false }: PaymentMethodSelectorProps) {;
+export function PaymentMethodSelector({ total, onPaymentSelected, isProcessing, mpesaEnabled = false }: PaymentMethodSelectorProps) {;
   const [showMpesaDialog, setShowMpesaDialog]  =  useState(false);
   const [mpesaReference, setMpesaReference]  =  useState("");
 ;
-  const handleCashPayment  =  ()  = > {
-    onPaymentSelected('cash');
+  const handleCashPayment = () => {
+    onPaymentSelected('cash')
   };
 ;
-  const handleMpesaPayment  =  ()  = > {
-    setShowMpesaDialog(true);
+  const handleMpesaPayment = () => {
+    setShowMpesaDialog(true)
   };
 ;
-  const handleMpesaConfirm  =  ()  = > {;
+  const handleMpesaConfirm = () => {;
     if (mpesaReference.trim()) {
       onPaymentSelected('mpesa', mpesaReference.trim());
       setShowMpesaDialog(false);
-      setMpesaReference("");
+      setMpesaReference("")
     }
   };
 ;
-  const handleCreditPayment  =  ()  = > {
-    onPaymentSelected('credit');
+  const handleCreditPayment = () => {
+    onPaymentSelected('credit')
   };
 ;
   return (
@@ -130,7 +130,7 @@ export function PaymentMethodSelector({ total, onPaymentSelected, isProcessing, 
                 id = "mpesa-reference"
                 placeholder = "e.g., Sale #123, Customer Name, Invoice #456"
                 value = {mpesaReference}
-                onChange = {(e)  = > setMpesaReference(e.target.value)}
+                onChange = {(e) => setMpesaReference(e.target.value)}
                 className = "border-2 border-gray-200 focus:border-green-500"
                 disabled = {isProcessing}
               />
@@ -149,7 +149,7 @@ export function PaymentMethodSelector({ total, onPaymentSelected, isProcessing, 
               <Button
                 variant = "outline"
                 className = "flex-1"
-                onClick = {()  = > setShowMpesaDialog(false)}
+                onClick = {() => setShowMpesaDialog(false)}
                 disabled = {isProcessing}
               >
                 Cancel
@@ -167,5 +167,5 @@ export function PaymentMethodSelector({ total, onPaymentSelected, isProcessing, 
         </DialogContent>
       </Dialog>
     </>
-  );
+  )
 }

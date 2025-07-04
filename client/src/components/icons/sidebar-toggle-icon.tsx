@@ -3,7 +3,7 @@ interface SidebarToggleIconProps {
   size?: number
 };
 
-export function SidebarToggleIcon({ className  =  "", size  =  20 }: SidebarToggleIconProps) {;
+export function SidebarToggleIcon({ className = "", size = 20 }: SidebarToggleIconProps) {;
   return (
     <svg
       width = {size}
@@ -21,5 +21,5 @@ export function SidebarToggleIcon({ className  =  "", size  =  20 }: SidebarTogg
       {/* Inner rectangle/square */}
       <rect x = "6" y = "9" width = "6" height = "6" rx = "1" ry = "1" />
     </svg>
-  );
+  )
 }

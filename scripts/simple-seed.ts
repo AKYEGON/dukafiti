@@ -130,12 +130,12 @@ async function seedDatabase() {
       }
     ];
 
-    await db.insert(notifications).values(sampleNotifications);
+    await db.insert(notifications).values(sampleNotifications)
     } catch (error) {
-    console.error('Error seeding database:', error);
+    console.error('Error seeding database:', error)
   }
 }
 
 seedDatabase().then(() => {
-  process.exit(0);
+  process.exit(0)
 });

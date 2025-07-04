@@ -40,14 +40,14 @@ function AuthenticatedApp() {
   useSupabaseRealtime();
 
   // Console log environment variables for debugging
-  useEffect(()  = > {
+  useEffect(() => {
     }, []);
 
   // Sidebar collapse state;
   const [sidebarCollapsed, setSidebarCollapsed]  =  useState(false);
 ;
-  const toggleSidebar  =  ()  = > {
-    setSidebarCollapsed(prev  = > !prev);
+  const toggleSidebar = () => {
+    setSidebarCollapsed(prev => !prev)
   };
 ;
   return (
@@ -77,7 +77,7 @@ function AuthenticatedApp() {
       {/* Mobile Bottom Navigation - shown only on mobile */}
       <MobileBottomNav />
     </div>
-  );
+  )
 };
 
 function UnauthenticatedApp() {;
@@ -89,7 +89,7 @@ function UnauthenticatedApp() {;
       <Route path = "/onboarding" component = {Onboarding} />
       <Route component = {NotFound} />
     </Switch>
-  );
+  )
 };
 
 function Router() {;
@@ -97,10 +97,10 @@ function Router() {;
   const [location, setLocation]  =  useLocation();
 
   // Handle redirects in useEffect to avoid setState during render
-  useEffect(()  = > {;
+  useEffect(() => {;
     if (!isLoading && user) {;
       if (location  ===  '/login' || location  ===  '/register' || location  ===  '/') {
-        setLocation('/dashboard');
+        setLocation('/dashboard')
       }
     }
   }, [user, location, isLoading, setLocation]);
@@ -114,7 +114,7 @@ function Router() {;
           <p className = "mt-2 text-muted-foreground">Checking session...</p>
         </div>
       </div>
-    );
+    )
   }
 
   // Main routing logic;
@@ -167,7 +167,7 @@ function Router() {;
 
       <Route component = {NotFound} />
     </Switch>
-  );
+  )
 };
 
 function App() {;
@@ -185,7 +185,7 @@ function App() {;
         </ThemeProvider>
       </QueryClientProvider>
     </ErrorBoundary>
-  );
+  )
 };
 
 export default App;

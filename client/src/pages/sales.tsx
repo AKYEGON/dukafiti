@@ -24,138 +24,138 @@ export default function Sales() {;
   const [searchLoading, setSearchLoading]  =  useState(false);
 ;
   const { toast }  =  useToast();
-  const queryClient  =  useQueryClient();
-  const buttonRef  =  useRef<HTMLButtonElement>(null);
-  const searchInputRef  =  useRef<HTMLInputElement>(null);
+  const queryClient = useQueryClient();
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   // Fetch all products for quick select functionality;
-  const { data: products  =  [], isLoading: productsLoading }  =  useQuery<Product[]>({
+  const { data: products = [], isLoading: productsLoading }  =  useQuery<Product[]>({
     queryKey: ["/api/products"]
   });
 
   // Get frequent products (first 6 for quick select);
-  const { data: frequentProducts  =  [] }  =  useQuery<Product[]>({
+  const { data: frequentProducts = [] }  =  useQuery<Product[]>({
     queryKey: ["/api/products/frequent"]
   });
 ;
-  const quickSelectProducts  =  frequentProducts.length > 0
+  const quickSelectProducts = frequentProducts.length > 0
     ? frequentProducts.slice(0, 6)
     : products.slice(0, 6);
 
   // Debounced search function;
-  const debouncedSearch  =  useCallback(
-    debounce(async (query: string)  = > {;
+  const debouncedSearch = useCallback(
+    debounce(async (query: string) => {;
       if (query.length < 1) {
         setSearchResults([]);
         setShowSearchDropdown(false);
         setSearchLoading(false);
-        return;
+        return
       }
 
       setSearchLoading(true);
       try {;
-        const response  =  await apiRequest("GET", `/api/products/search?q = ${encodeURIComponent(query)}`);
-        const data  =  await response.json();
+        const response = await apiRequest("GET", `/api/products/search?q = ${encodeURIComponent(query)}`);
+        const data = await response.json();
         setSearchResults(data || []);
         setShowSearchDropdown(true);
-        setSelectedSearchIndex(-1);
+        setSelectedSearchIndex(-1)
       } catch (error) {
         console.error('Search error:', error);
         setSearchResults([]);
-        setShowSearchDropdown(false);
+        setShowSearchDropdown(false)
       } finally {
-        setSearchLoading(false);
+        setSearchLoading(false)
       }
     }, 300),
     []
   );
 
   // Trigger search when query changes
-  useEffect(()  = > {
-    debouncedSearch(searchQuery);
+  useEffect(() => {
+    debouncedSearch(searchQuery)
   }, [searchQuery, debouncedSearch]);
 
   // Handle keyboard navigation for search
-  useEffect(()  = > {;
-    const handleKeyDown  =  (e: KeyboardEvent)  = > {;
+  useEffect(() => {;
+    const handleKeyDown = (e: KeyboardEvent) => {;
       if (!showSearchDropdown || searchResults.length  ===  0) return;
 
       switch (e.key) {
         case 'ArrowDown':
           e.preventDefault();
-          setSelectedSearchIndex(prev  = >
+          setSelectedSearchIndex(prev =>
             prev < searchResults.length - 1 ? prev + 1 : prev
           );
           break;
         case 'ArrowUp':
           e.preventDefault();
-          setSelectedSearchIndex(prev  = > prev > 0 ? prev - 1 : prev)
+          setSelectedSearchIndex(prev => prev > 0 ? prev - 1 : prev)
           break;
         case 'Enter':
           e.preventDefault();
           if (selectedSearchIndex >= 0 && selectedSearchIndex < searchResults.length) {
-            handleSearchResultSelect(searchResults[selectedSearchIndex]);
+            handleSearchResultSelect(searchResults[selectedSearchIndex])
           }
           break;
         case 'Escape':
           setShowSearchDropdown(false);
           setSelectedSearchIndex(-1);
           if (searchInputRef.current) {
-            searchInputRef.current.blur();
+            searchInputRef.current.blur()
           }
-          break;
+          break
       }
     };
 ;
     if (showSearchDropdown) {
       document.addEventListener('keydown', handleKeyDown);
-      return ()  = > document.removeEventListener('keydown', handleKeyDown);
+      return () => document.removeEventListener('keydown', handleKeyDown)
     }
   }, [showSearchDropdown, searchResults, selectedSearchIndex]);
 
   // Close search dropdown when clicking outside
-  useEffect(()  = > {;
-    const handleClickOutside  =  (event: MouseEvent)  = > {;
+  useEffect(() => {;
+    const handleClickOutside = (event: MouseEvent) => {;
       if (searchInputRef.current && !searchInputRef.current.contains(event.target as Node)) {
         // Small delay to allow for item selection
-        setTimeout(()  = > {
+        setTimeout(() => {
           setShowSearchDropdown(false);
-          setSelectedSearchIndex(-1);
-        }, 150);
+          setSelectedSearchIndex(-1)
+        }, 150)
       }
     };
 
     document.addEventListener('mousedown', handleClickOutside);
-    return ()  = > document.removeEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside)
   }, []);
 ;
-  const handleProductSelect  =  (product: Product)  = > {
+  const handleProductSelect = (product: Product) => {
     // Product selected for cart
 
     // Check if product already exists in cart;
-    const existingItem  =  cartItems.find(item  = > item.product.id  ===  product.id);
+    const existingItem = cartItems.find(item => item.product.id  ===  product.id);
 ;
     if (existingItem) {
       // Increment quantity of existing item
-      handleQuantityChange(existingItem.id, existingItem.quantity + 1);
+      handleQuantityChange(existingItem.id, existingItem.quantity + 1)
     } else {
       // Add new item to cart;
-      const newItem: SaleLineItem  =  {
+      const newItem: SaleLineItem = {
         id: `${product.id}-${Date.now()}`,
         product,
         quantity: 1,
         unitPrice: product.price,
         total: product.price
       };
-      setCartItems(prev  = > {;
-        const updated  =  [...prev, newItem];
-        return updated;
-      });
+      setCartItems(prev => {;
+        const updated = [...prev, newItem];
+        return updated
+      })
     }
   };
 ;
-  const handleQuickSelectProduct  =  (productId: number)  = > {;
-    const product  =  products.find(p  = > p.id  ===  productId);
+  const handleQuickSelectProduct = (productId: number) => {;
+    const product = products.find(p => p.id  ===  productId);
     if (product) {
       handleProductSelect(product);
       toast({
@@ -163,49 +163,49 @@ export default function Sales() {;
         description: `${product.name} added to cart`,
         className: "bg-green-50 border-green-200 text-green-800",
         duration: 2000
-      });
+      })
     }
   };
 ;
-  const handleQuantityChange  =  (itemId: string, newQuantity: number)  = > {
-    setCartItems(prev  = > prev.map(item  = > {;
+  const handleQuantityChange = (itemId: string, newQuantity: number) => {
+    setCartItems(prev => prev.map(item => {;
       if (item.id  ===  itemId) {;
-        const total  =  (parseFloat(item.unitPrice) * newQuantity).toFixed(2);
-        return { ...item, quantity: newQuantity, total };
+        const total = (parseFloat(item.unitPrice) * newQuantity).toFixed(2);
+        return { ...item, quantity: newQuantity, total }
       };
-      return item;
-    }));
+      return item
+    }))
   };
 ;
-  const handleRemoveItem  =  (itemId: string)  = > {
-    setCartItems(prev  = > prev.filter(item  = > item.id !== itemId));
+  const handleRemoveItem = (itemId: string) => {
+    setCartItems(prev => prev.filter(item => item.id !== itemId))
   };
 ;
-  const handleClearCart  =  ()  = > {
-    setCartItems([]);
+  const handleClearCart = () => {
+    setCartItems([])
   };
 ;
-  const handleSellClick  =  ()  = > {;
+  const handleSellClick = () => {;
     if (cartItems.length  ===  0) {
       toast({ title: "Cart is empty", variant: "destructive" })
-      return;
+      return
     };
 
     if (!paymentMethod) {
       toast({ title: "Please select a payment method", variant: "destructive" })
-      return;
+      return
     }
 
     // Check for stock issues using fresh product data (skip products with unknown quantities);
-    const stockIssues  =  cartItems.filter(item  = > {;
-      const freshProduct  =  products.find(p  = > p.id  ===  item.product.id);
+    const stockIssues = cartItems.filter(item => {;
+      const freshProduct = products.find(p => p.id  ===  item.product.id);
       if (!freshProduct) return false; // Product not found, skip validation
 
       // Skip validation for unknown quantity items (null stock);
       if (freshProduct.stock  ===  null) return false;
 
       // Check if requested quantity exceeds available stock;
-      return item.quantity > (freshProduct.stock || 0);
+      return item.quantity > (freshProduct.stock || 0)
     });
 ;
     if (stockIssues.length > 0) {
@@ -214,13 +214,13 @@ export default function Sales() {;
         description: "Please adjust quantities for items that exceed available stock.",
         variant: "destructive"
       });
-      return;
+      return
     }
 
-    setShowConfirmationModal(true);
+    setShowConfirmationModal(true)
   };
 ;
-  const handleConfirmSale  =  async (customer?: { name: string; phone?: string; isNew?: boolean })  = > {;
+  const handleConfirmSale = async (customer?: { name: string; phone?: string; isNew?: boolean }) => {;
     if (!paymentMethod) return; // Safety check
 
     // For credit sales, customer information is required;
@@ -230,15 +230,15 @@ export default function Sales() {;
         description: "Please select or add a customer for credit sales",
         variant: "destructive"
       });
-      return;
+      return
     };
 
-    let customerName  =  customer?.name;
+    let customerName = customer?.name;
 
     // If this is a new customer, save them to the database first;
     if (customer?.isNew && customer.name) {
       try {;
-        const newCustomer  =  await apiRequest("POST", "/api/customers", {
+        const newCustomer = await apiRequest("POST", "/api/customers", {
           name: customer.name,
           phone: customer.phone || null,
           email: null,
@@ -246,7 +246,7 @@ export default function Sales() {;
           balance: "0.00"
         });
 ;
-        const savedCustomer  =  await newCustomer.json();
+        const savedCustomer = await newCustomer.json();
         // Invalidate customers cache
         queryClient.invalidateQueries({ queryKey: ["/api/customers"] })
 
@@ -255,7 +255,7 @@ export default function Sales() {;
           description: `${customer.name} has been added to your customers list`,
           className: "bg-green-50 border-green-200 text-green-800",
           duration: 3000
-        });
+        })
       } catch (error) {
         console.error('Error saving new customer:', error);
         toast({
@@ -263,13 +263,13 @@ export default function Sales() {;
           description: "Customer couldn't be saved, but sale will proceed",
           variant: "destructive",
           duration: 3000
-        });
+        })
       }
     }
 
     // Prepare sale data with correct field names that match backend;
-    const saleData  =  {
-      items: cartItems.map(item  = > ({
+    const saleData = {
+      items: cartItems.map(item => ({
         id: item.product.id,
         quantity: item.quantity
       })),
@@ -278,11 +278,11 @@ export default function Sales() {;
       customerPhone: customer?.phone || ''
     };
 
-    createSaleMutation.mutate(saleData);
+    createSaleMutation.mutate(saleData)
   };
 
   // Handle search result selection;
-  const handleSearchResultSelect  =  (product: Product)  = > {
+  const handleSearchResultSelect = (product: Product) => {
     handleProductSelect(product);
     setSearchQuery('');
     setShowSearchDropdown(false);
@@ -290,7 +290,7 @@ export default function Sales() {;
 
     // Blur the search input;
     if (searchInputRef.current) {
-      searchInputRef.current.blur();
+      searchInputRef.current.blur()
     }
 
     // Add success toast notification
@@ -299,24 +299,24 @@ export default function Sales() {;
       description: `${product.name} added to cart`,
       className: "bg-green-50 border-green-200 text-green-800",
       duration: 2000
-    });
+    })
   };
 ;
-  const createSaleMutation  =  useMutation({
+  const createSaleMutation = useMutation({
     mutationFn: async (saleData: {
       items: Array<{ id: number; quantity: number }>
       paymentType: 'cash' | 'credit' | 'mobileMoney'
       customerName?: string
       customerPhone?: string
-    })  = > {
+    }) => {
       // Check if online;
       if (!isOnline()) {
         // Queue sale for offline processing;
-        const queuedSaleId  =  await offlineQueue.queueSale({
-          items: saleData.items.map(item  = > ({
+        const queuedSaleId = await offlineQueue.queueSale({
+          items: saleData.items.map(item => ({
             productId: item.id,
             quantity: item.quantity,
-            price: cartItems.find(cartItem  = > cartItem.product.id  ===  item.id)?.unitPrice || "0"
+            price: cartItems.find(cartItem => cartItem.product.id  ===  item.id)?.unitPrice || "0"
           })),
           paymentType: saleData.paymentType as 'cash' | 'credit' | 'mobileMoney',
           customerName: saleData.customerName,
@@ -325,27 +325,27 @@ export default function Sales() {;
 
         // Register background sync if supported;
         if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-          navigator.serviceWorker.ready.then(registration  = > {
+          navigator.serviceWorker.ready.then(registration => {
             try {
               // Use any to bypass TypeScript limitations with experimental API;
-              const syncManager  =  (registration as any).sync;
+              const syncManager = (registration as any).sync;
               if (syncManager) {
-                syncManager.register('sync-sales');
+                syncManager.register('sync-sales')
               }
             } catch (error) {
-              console.error('Background sync registration failed:', error);
+              console.error('Background sync registration failed:', error)
             }
-          });
+          })
         };
 
         return { success: true, status: 'queued', saleId: queuedSaleId }
       }
 
       // Online - proceed with normal API call;
-      const response  =  await apiRequest("POST", "/api/sales", saleData);
-      return response.json();
+      const response = await apiRequest("POST", "/api/sales", saleData);
+      return response.json()
     },
-    onSuccess: (result: any)  = > {
+    onSuccess: (result: any) => {
       // Close modal and clear cart
       setShowConfirmationModal(false);
       setCartItems([]);
@@ -374,66 +374,66 @@ export default function Sales() {;
       }
 
       // Show appropriate toast based on status;
-      const status  =  result.status;
+      const status = result.status;
       if (status  ===  'queued') {
         toast({
           title: "Sale queued – offline mode",
           description: "Sale will be processed when connection is restored",
           className: "bg-blue-50 border-blue-200 text-blue-800",
           duration: 5000
-        });
+        })
       } else if (status  ===  'paid') {
         toast({
           title: "Sale completed successfully!",
           description: `Payment received via ${paymentMethod}`,
           className: "bg-green-50 border-green-200 text-green-800",
           duration: 3000
-        });
+        })
       } else if (status  ===  'pending') {
         toast({
           title: "Credit sale recorded",
           description: "Customer payment is pending",
           className: "bg-yellow-50 border-yellow-200 text-yellow-800",
           duration: 3000
-        });
+        })
       }
     },
-    onError: (error: any)  = > {
+    onError: (error: any) => {
       console.error('Sale error:', error);
       toast({
         title: "Sale failed",
         description: "Please try again or contact support",
         variant: "destructive"
-      });
+      })
     }
   });
 ;
-  const cartTotal  =  cartItems.reduce((sum, item)  = > sum + parseFloat(item.total), 0);
-  const isCartEmpty  =  cartItems.length  ===  0;
-  const canProceed  =  !isCartEmpty && paymentMethod !== '';
+  const cartTotal = cartItems.reduce((sum, item) => sum + parseFloat(item.total), 0);
+  const isCartEmpty = cartItems.length  ===  0;
+  const canProceed = !isCartEmpty && paymentMethod !== '';
 
   // Button click handler with ripple effect;
-  const handleSellButtonClick  =  ()  = > {;
+  const handleSellButtonClick = () => {;
     if (!canProceed) {;
       if (isCartEmpty) {
         toast({ title: "Cart is empty", description: "Scan or select items to start a sale", variant: "destructive" })
       } else {
         toast({ title: "Select payment method", variant: "destructive" })
       }
-      return;
+      return
     }
 
     // Add button animation;
     if (buttonRef.current) {
-      buttonRef.current.style.transform  =  'scale(0.95)';
-      setTimeout(()  = > {;
+      buttonRef.current.style.transform = 'scale(0.95)';
+      setTimeout(() => {;
         if (buttonRef.current) {
-          buttonRef.current.style.transform  =  'scale(1)';
+          buttonRef.current.style.transform = 'scale(1)'
         }
-      }, 100);
+      }, 100)
     }
 
-    setShowConfirmationModal(true);
+    setShowConfirmationModal(true)
   };
 ;
   if (productsLoading) {;
@@ -444,14 +444,14 @@ export default function Sales() {;
           <Skeleton className = "h-12 w-12" />
         </div>
         <div className = "grid grid-cols-2 gap-3">
-          {Array.from({ length: 6 }).map((_, i)  = > (
+          {Array.from({ length: 6 }).map((_, i) => (
             <Skeleton key = {i} className = "h-20" />
           ))}
         </div>
         <Skeleton className = "h-40" />
         <Skeleton className = "h-32" />
       </div>
-    );
+    )
   };
 
   return (
@@ -468,10 +468,10 @@ export default function Sales() {;
               type = "text"
               placeholder = "Search products to add to cart..."
               value = {searchQuery}
-              onChange = {(e)  = > setSearchQuery(e.target.value)}
-              onFocus = {()  = > {;
+              onChange = {(e) => setSearchQuery(e.target.value)}
+              onFocus = {() => {;
                 if (searchQuery.length > 0 && searchResults.length > 0) {
-                  setShowSearchDropdown(true);
+                  setShowSearchDropdown(true)
                 }
               }}
               className = "w-full h-12 pl-10 pr-4 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:border-purple-500 dark:focus:border-purple-400 focus:outline-none bg-white dark:bg-gray-800 text-base transition-all duration-200"
@@ -493,12 +493,12 @@ export default function Sales() {;
                 </p>
               </div>
               <div className = "max-h-64 overflow-y-auto">
-                {searchResults.map((product, index)  = > (
+                {searchResults.map((product, index) => (
                   <div
                     key = {product.id}
-                    onMouseDown = {(e)  = > {
+                    onMouseDown = {(e) => {
                       e.preventDefault(); // Prevent input blur
-                      handleSearchResultSelect(product);
+                      handleSearchResultSelect(product)
                     }}
                     className = {`px-4 py-4 cursor-pointer border-b border-gray-100 dark:border-gray-700 last:border-b-0 transition-all duration-150 ${
                       index  ===  selectedSearchIndex
@@ -560,10 +560,10 @@ export default function Sales() {;
           </div>
         ) : (
           <div className = "grid grid-cols-2 gap-3">
-            {quickSelectProducts.map((product)  = > (
+            {quickSelectProducts.map((product) => (
               <button
                 key = {product.id}
-                onClick = {()  = > handleQuickSelectProduct(product.id)}
+                onClick = {() => handleQuickSelectProduct(product.id)}
                 className = "p-3 bg-gray-50 dark:bg-gray-800 rounded-lg hover:bg-purple-50 dark:hover:bg-purple-900/20 hover:border-purple-200 dark:hover:border-purple-700 border border-transparent transition-all duration-200 text-left focus:outline-none focus:ring-2 focus:ring-purple-500 group"
                 style = {{ minHeight: '60px' }}
               >
@@ -599,7 +599,7 @@ export default function Sales() {;
           </div>
         ) : (
           <div className = "space-y-3">
-            {cartItems.map((item)  = > (
+            {cartItems.map((item) => (
               <div
                 key = {item.id}
                 className = "flex items-center justify-between py-2 border-b border-gray-100 dark:border-gray-700 last:border-b-0 transition-all duration-200"
@@ -612,20 +612,20 @@ export default function Sales() {;
                 </div>
                 <div className = "flex items-center gap-2">
                   <button
-                    onClick = {()  = > handleQuantityChange(item.id, Math.max(1, item.quantity - 1))}
+                    onClick = {() => handleQuantityChange(item.id, Math.max(1, item.quantity - 1))}
                     className = "w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-lg font-bold hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
                   >
                     -
                   </button>
                   <span className = "w-8 text-center font-medium">{item.quantity}</span>
                   <button
-                    onClick = {()  = > handleQuantityChange(item.id, item.quantity + 1)}
+                    onClick = {() => handleQuantityChange(item.id, item.quantity + 1)}
                     className = "w-8 h-8 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center text-lg font-bold hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
                   >
                     +
                   </button>
                   <button
-                    onClick = {()  = > handleRemoveItem(item.id)}
+                    onClick = {() => handleRemoveItem(item.id)}
                     className = "ml-2 w-8 h-8 rounded-full bg-red-100 dark:bg-red-900/20 text-red-600 flex items-center justify-center hover:bg-red-200 dark:hover:bg-red-900/40 transition-colors"
                   >
                     ×
@@ -656,7 +656,7 @@ export default function Sales() {;
           <h3 className = "text-lg font-semibold mb-3">Payment Method</h3>
           <div className = "space-y-2">
             <button
-              onClick = {()  = > setPaymentMethod('cash')}
+              onClick = {() => setPaymentMethod('cash')}
               className = {`w-full h-12 rounded-lg font-medium transition-all duration-200 flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-green-600 ${
                 paymentMethod  ===  'cash'
                   ? 'bg-green-600 text-white'
@@ -668,7 +668,7 @@ export default function Sales() {;
             </button>
 
             <button
-              onClick = {()  = > setPaymentMethod('mobileMoney')}
+              onClick = {() => setPaymentMethod('mobileMoney')}
               className = {`w-full h-12 rounded-lg font-medium transition-all duration-200 flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-green-600 ${
                 paymentMethod  ===  'mobileMoney'
                   ? 'bg-green-600 text-white'
@@ -680,7 +680,7 @@ export default function Sales() {;
             </button>
 
             <button
-              onClick = {()  = > setPaymentMethod('credit')}
+              onClick = {() => setPaymentMethod('credit')}
               className = {`w-full h-12 rounded-lg font-medium transition-all duration-200 flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-green-600 ${
                 paymentMethod  ===  'credit'
                   ? 'bg-green-600 text-white'
@@ -720,17 +720,17 @@ export default function Sales() {;
         isProcessing = {createSaleMutation.isPending}
       />
     </div>
-  );
+  )
 }
 
 // Debounce utility function;
-function debounce<T extends (...args: any[])  = > any>(
+function debounce<T extends (...args: any[]) => any>(
   func: T,
   wait: number
-): (...args: Parameters<T>)  = > void {;
+): (...args: Parameters<T>) => void {;
   let timeout: NodeJS.Timeout;
-  return (...args: Parameters<T>)  = > {
+  return (...args: Parameters<T>) => {
     clearTimeout(timeout);
-    timeout  =  setTimeout(()  = > func(...args), wait);
-  };
+    timeout = setTimeout(() => func(...args), wait)
+  }
 }

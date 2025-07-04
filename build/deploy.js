@@ -35,10 +35,10 @@ app.use((req, res, next) => {
   
   if (req.method === 'OPTIONS') {
     res.sendStatus(200);
-    return;
+    return
   }
   
-  next();
+  next()
 });
 
 // Health check
@@ -47,7 +47,7 @@ app.get('/health', (req, res) => {
     status: 'ok', 
     timestamp: new Date().toISOString(),
     environment: process.env.NODE_ENV || 'development'
-  });
+  })
 });
 
 // Serve static files
@@ -56,12 +56,12 @@ app.use(express.static(staticPath));
 
 // SPA fallback
 app.get('*', (req, res) => {
-  res.sendFile(path.join(staticPath, 'index.html'));
+  res.sendFile(path.join(staticPath, 'index.html'))
 });
 
 // Start server
 app.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 DukaFiti running on port ${PORT}`);
+  console.log(`🚀 DukaFiti running on port ${PORT}`)
 });
 
 export default app;

@@ -6,17 +6,17 @@ import {
   users,
   userSettings,
   notifications,
-  storeProfiles;
+  storeProfiles
 } from '../shared/schema';
 ;
 export async function seedDatabase() {
   try {
     // Check if we need to create initial data;
-    const existingUsers  =  await db.select().from(users).limit(1);
+    const existingUsers = await db.select().from(users).limit(1);
 ;
     if (existingUsers.length  ===  0) {
       // Create default user;
-      const hashedPassword  =  await bcrypt.hash('password', 10);
+      const hashedPassword = await bcrypt.hash('password', 10);
       const [defaultUser]  =  await db.insert(users).values({
         username: 'test',
         email: 'test@example.com',
@@ -25,7 +25,7 @@ export async function seedDatabase() {
       }).returning();
 
       // Create sample products;
-      const sampleProducts  =  [
+      const sampleProducts = [
         {
           name: 'Rice 2kg',
           sku: 'RICE-2KG',
@@ -83,11 +83,11 @@ export async function seedDatabase() {
       ];
 ;
       for (const product of sampleProducts) {
-        await db.insert(products).values(product);
+        await db.insert(products).values(product)
       }
 
       // Create sample customers;
-      const sampleCustomers  =  [
+      const sampleCustomers = [
         {
           name: 'Mary Wanjiku',
           email: 'mary@example.com',
@@ -112,7 +112,7 @@ export async function seedDatabase() {
       ];
 ;
       for (const customer of sampleCustomers) {
-        await db.insert(customers).values(customer);
+        await db.insert(customers).values(customer)
       }
 
       // Create user settings for the default user
@@ -150,12 +150,12 @@ export async function seedDatabase() {
           type: 'warning',
           isRead: false
         }
-      ]);
+      ])
 
       }
 
     } catch (error) {
     console.error('Database seeding error:', error);
-    throw error;
+    throw error
   }
 }

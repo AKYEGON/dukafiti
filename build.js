@@ -41,10 +41,10 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
         `
       }
-    });
+    })
     } catch (error) {
     console.error('❌ Build failed:', error);
-    process.exit(1);
+    process.exit(1)
   }
 }
 

@@ -23,11 +23,11 @@ killProcess.on('close', () => {
   
   server.on('error', (err) => {
     console.error('Failed to start production server:', err);
-    process.exit(1);
+    process.exit(1)
   });
   
   server.on('close', (code) => {
     console.log(`Production server exited with code ${code}`);
-    process.exit(code);
-  });
+    process.exit(code)
+  })
 });

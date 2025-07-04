@@ -32,12 +32,12 @@ app.use(express.urlencoded({ extended: true }));
 // Simple authentication middleware
 function requireAuth(req: any, res: any, next: any) {
   req.user = { email: 'admin@dukafiti.com', id: 1 };
-  next();
+  next()
 }
 
 // Health check endpoint
 app.get('/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  res.json({ status: 'ok', timestamp: new Date().toISOString() })
 });
 
 // API Routes - apply auth only to API routes
@@ -56,7 +56,7 @@ app.get('/api/dashboard/metrics', async (req, res) => {
     const todayOrders = orders?.filter(order => {
       const orderDate = new Date(order.createdAt);
       const today = new Date();
-      return orderDate.toDateString() === today.toDateString();
+      return orderDate.toDateString() === today.toDateString()
     }).length || 0;
     
     const lowStockProducts = products?.filter(product => 
@@ -69,10 +69,10 @@ app.get('/api/dashboard/metrics', async (req, res) => {
       inventoryItems: products?.length || 0,
       lowStockProducts,
       recentOrders: orders?.slice(0, 5) || []
-    });
+    })
   } catch (error) {
     console.error('Dashboard metrics error:', error);
-    res.status(500).json({ error: 'Failed to fetch dashboard metrics' });
+    res.status(500).json({ error: 'Failed to fetch dashboard metrics' })
   }
 });
 
@@ -80,10 +80,10 @@ app.get('/api/dashboard/metrics', async (req, res) => {
 app.get('/api/products', async (req, res) => {
   try {
     const { data: products } = await supabase.from('products').select('*');
-    res.json(products || []);
+    res.json(products || [])
   } catch (error) {
     console.error('Products fetch error:', error);
-    res.status(500).json({ error: 'Failed to fetch products' });
+    res.status(500).json({ error: 'Failed to fetch products' })
   }
 });
 
@@ -97,10 +97,10 @@ app.post('/api/products', async (req, res) => {
     
     if (error) throw error;
     
-    res.json(product);
+    res.json(product)
   } catch (error) {
     console.error('Product creation error:', error);
-    res.status(500).json({ error: 'Failed to create product' });
+    res.status(500).json({ error: 'Failed to create product' })
   }
 });
 
@@ -115,10 +115,10 @@ app.put('/api/products/:id', async (req, res) => {
     
     if (error) throw error;
     
-    res.json(product);
+    res.json(product)
   } catch (error) {
     console.error('Product update error:', error);
-    res.status(500).json({ error: 'Failed to update product' });
+    res.status(500).json({ error: 'Failed to update product' })
   }
 });
 
@@ -131,10 +131,10 @@ app.delete('/api/products/:id', async (req, res) => {
     
     if (error) throw error;
     
-    res.json({ success: true });
+    res.json({ success: true })
   } catch (error) {
     console.error('Product deletion error:', error);
-    res.status(500).json({ error: 'Failed to delete product' });
+    res.status(500).json({ error: 'Failed to delete product' })
   }
 });
 
@@ -176,7 +176,7 @@ app.post('/api/orders', async (req, res) => {
             stock: item.newStock,
             salesCount: item.salesCount + item.quantity
           })
-          .eq('id', item.productId);
+          .eq('id', item.productId)
       }
     }
     
@@ -186,14 +186,14 @@ app.post('/api/orders', async (req, res) => {
         client.send(JSON.stringify({
           type: 'sale_completed',
           data: { order, items }
-        }));
+        }))
       }
     });
     
-    res.json(order);
+    res.json(order)
   } catch (error) {
     console.error('Order creation error:', error);
-    res.status(500).json({ error: 'Failed to create order' });
+    res.status(500).json({ error: 'Failed to create order' })
   }
 });
 
@@ -202,8 +202,8 @@ wss.on('connection', (ws) => {
   wsClients.add(ws);
   
   ws.on('close', () => {
-    wsClients.delete(ws);
-  });
+    wsClients.delete(ws)
+  })
 });
 
 // Serve static files (development uses Vite, production uses dist)
@@ -211,21 +211,21 @@ if (process.env.NODE_ENV === 'production') {
   app.use(express.static(path.join(__dirname, '../dist/public')));
   
   app.get('*', (req, res) => {
-    res.sendFile(path.resolve(__dirname, '../dist/public/index.html'));
-  });
+    res.sendFile(path.resolve(__dirname, '../dist/public/index.html'))
+  })
 } else {
   // Development - serve from client directory
   app.use(express.static(path.join(__dirname, '../client/public')));
   
   app.get('*', (req, res) => {
-    res.sendFile(path.resolve(__dirname, '../client/index.html'));
-  });
+    res.sendFile(path.resolve(__dirname, '../client/index.html'))
+  })
 }
 
 // Start server
 server.listen(port, () => {
   console.log(`Server running on port ${port}`);
-  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`)
 });
 
 export default app;

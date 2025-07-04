@@ -7,20 +7,20 @@ interface CachedDataIndicatorProps {
   size?: 'sm' | 'md' | 'lg'
 };
 
-export const CachedDataIndicator  =  ({
+export const CachedDataIndicator = ({
   isFromCache,
   className,
-  size  =  'sm'
-}: CachedDataIndicatorProps)  = > {;
+  size = 'sm'
+}: CachedDataIndicatorProps) => {;
   if (!isFromCache) return null;
 ;
-  const iconSize  =  {
+  const iconSize = {
     sm: 'h-3 w-3',
     md: 'h-4 w-4',
     lg: 'h-5 w-5'
   }[size];
 ;
-  const textSize  =  {
+  const textSize = {
     sm: 'text-xs',
     md: 'text-sm',
     lg: 'text-base'
@@ -38,18 +38,18 @@ export const CachedDataIndicator  =  ({
         Cached Data
       </span>
     </div>
-  );
+  )
 };
 ;
-export const OfflineDataBanner  =  ({
+export const OfflineDataBanner = ({
   isFromCache,
-  title  =  "Showing cached data",
-  description  =  "This data was saved offline and may not be current"
+  title = "Showing cached data",
+  description = "This data was saved offline and may not be current"
 }: {
   isFromCache?: boolean
   title?: string
   description?: string
-})  = > {;
+}) => {;
   if (!isFromCache) return null;
 ;
   return (
@@ -66,7 +66,7 @@ export const OfflineDataBanner  =  ({
         </div>
       </div>
     </div>
-  );
+  )
 };
 ;
 export default CachedDataIndicator;

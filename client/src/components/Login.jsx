@@ -8,13 +8,13 @@ export default function Login() {;
   const [error, setError]  =  useState('');
   const [, setLocation]  =  useLocation();
 ;
-  const handleSubmit  =  async (e)  = > {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
 
     try {;
-      const response  =  await fetch('/api/login', {
+      const response = await fetch('/api/login', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -22,18 +22,18 @@ export default function Login() {;
         body: JSON.stringify({ phone, pin })
       });
 ;
-      const data  =  await response.json();
+      const data = await response.json();
 ;
       if (response.ok && data.success) {
         // Redirect to onboarding on successful login
-        setLocation('/onboarding');
+        setLocation('/onboarding')
       } else {
-        setError(data.message || 'Login failed');
+        setError(data.message || 'Login failed')
       }
     } catch (error) {
-      setError('Network error. Please try again.');
+      setError('Network error. Please try again.')
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
   };
 ;
@@ -57,7 +57,7 @@ export default function Login() {;
               type = "text"
               id = "phone"
               value = {phone}
-              onChange = {(e)  = > setPhone(e.target.value)}
+              onChange = {(e) => setPhone(e.target.value)}
               required
               className = "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
               placeholder = "Enter your phone number"
@@ -72,7 +72,7 @@ export default function Login() {;
               type = "password"
               id = "pin"
               value = {pin}
-              onChange = {(e)  = > setPin(e.target.value)}
+              onChange = {(e) => setPin(e.target.value)}
               required
               className = "w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
               placeholder = "Enter your PIN"
@@ -89,5 +89,5 @@ export default function Login() {;
         </form>
       </div>
     </div>
-  );
+  )
 }

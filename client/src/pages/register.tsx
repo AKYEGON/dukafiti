@@ -13,12 +13,12 @@ import { Link } from 'wouter';
 import { Mail, ArrowLeft, Store, Eye, EyeOff } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 ;
-const registerSchema  =  z.object({
+const registerSchema = z.object({
   email: z.string().email('Please enter a valid email'),
   password: z.string().min(6, 'Password must be at least 6 characters')
 });
 
-type RegisterFormData  =  z.infer<typeof registerSchema>;
+type RegisterFormData = z.infer<typeof registerSchema>;
 ;
 export default function Register() {;
   const [, navigate]  =  useLocation();
@@ -37,7 +37,7 @@ export default function Register() {;
     resolver: zodResolver(registerSchema)
   });
 ;
-  const onSubmit  =  async (data: RegisterFormData)  = > {
+  const onSubmit = async (data: RegisterFormData) => {
     setIsLoading(true);
     try {;
       const { error }  =  await signup(data.email, data.password, data.email.split('@')[0]);
@@ -48,23 +48,23 @@ export default function Register() {;
           title: "Registration failed",
           description: error.message || "Failed to create account",
           variant: "destructive"
-        });
+        })
       } else {
         setSubmittedEmail(data.email);
         setIsSubmitted(true);
         toast({
           title: "Account created successfully!",
           description: "Please check your email to verify your account"
-        });
+        })
       }
     } catch (error) {
       toast({
         title: "Registration failed",
         description: "An unexpected error occurred",
         variant: "destructive"
-      });
+      })
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
   };
 ;
@@ -104,7 +104,7 @@ export default function Register() {;
             </div>
 
             <Button
-              onClick = {()  = > setIsSubmitted(false)}
+              onClick = {() => setIsSubmitted(false)}
               variant = "outline"
               className = "w-full h-12"
             >
@@ -114,7 +114,7 @@ export default function Register() {;
           </div>
         </div>
       </div>
-    );
+    )
   };
 
   return (
@@ -166,7 +166,7 @@ export default function Register() {;
               />
               <button
                 type = "button"
-                onClick = {()  = > setShowPassword(!showPassword)}
+                onClick = {() => setShowPassword(!showPassword)}
                 className = "absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 focus:outline-none focus:ring-2 focus:ring-primaryGreen rounded"
                 aria-label = {showPassword ? 'Hide password' : 'Show password'}
               >
@@ -208,5 +208,5 @@ export default function Register() {;
         </div>
       </div>
     </div>
-  );
+  )
 }

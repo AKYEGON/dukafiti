@@ -12,12 +12,12 @@ import { Link } from 'wouter';
 import { Mail, ArrowLeft, Store, Eye, EyeOff } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 ;
-const loginSchema  =  z.object({
+const loginSchema = z.object({
   email: z.string().email('Please enter a valid email'),
   password: z.string().min(6, 'Password must be at least 6 characters')
 });
 
-type LoginFormData  =  z.infer<typeof loginSchema>;
+type LoginFormData = z.infer<typeof loginSchema>;
 ;
 export default function Login() {;
   const [, navigate]  =  useLocation();
@@ -34,7 +34,7 @@ export default function Login() {;
     resolver: zodResolver(loginSchema)
   });
 ;
-  const onSubmit  =  async (data: LoginFormData)  = > {
+  const onSubmit = async (data: LoginFormData) => {
     setIsLoading(true);
     try {;
       const { error }  =  await login(data.email, data.password);
@@ -44,22 +44,22 @@ export default function Login() {;
           title: "Login failed",
           description: error.message || "Invalid email or password",
           variant: "destructive"
-        });
+        })
       } else {
         toast({
           title: "Welcome back!",
           description: "You have been logged in successfully"
         });
-        navigate('/dashboard');
+        navigate('/dashboard')
       }
     } catch (error) {
       toast({
         title: "Login failed",
         description: "An unexpected error occurred",
         variant: "destructive"
-      });
+      })
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
   };
 ;
@@ -112,7 +112,7 @@ export default function Login() {;
               />
               <button
                 type = "button"
-                onClick = {()  = > setShowPassword(!showPassword)}
+                onClick = {() => setShowPassword(!showPassword)}
                 className = "absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 focus:outline-none focus:ring-2 focus:ring-primaryGreen rounded"
                 aria-label = {showPassword ? 'Hide password' : 'Show password'}
               >
@@ -146,7 +146,7 @@ export default function Login() {;
         {/* Forgot Password Link */}
         <div className = "text-center mt-4">
           <button
-            onClick = {()  = > navigate('/register')}
+            onClick = {() => navigate('/register')}
             className = "text-sm text-primaryGreen hover:underline font-medium focus:outline-none focus:ring-2 focus:ring-primaryGreen rounded transition-all duration-200"
           >
             Forgot your password?
@@ -164,5 +164,5 @@ export default function Login() {;
         </div>
       </div>
     </div>
-  );
+  )
 }

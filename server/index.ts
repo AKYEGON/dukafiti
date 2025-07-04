@@ -32,26 +32,26 @@ app.use(express.urlencoded({ extended: true }));
 // Set proper MIME types for ES modules
 app.use((req, res, next) => {
   if (req.path.endsWith('.js')) {
-    res.setHeader('Content-Type', 'application/javascript');
+    res.setHeader('Content-Type', 'application/javascript')
   } else if (req.path.endsWith('.ts')) {
-    res.setHeader('Content-Type', 'application/javascript');
+    res.setHeader('Content-Type', 'application/javascript')
   } else if (req.path.endsWith('.tsx')) {
-    res.setHeader('Content-Type', 'application/javascript');
+    res.setHeader('Content-Type', 'application/javascript')
   } else if (req.path.endsWith('.jsx')) {
-    res.setHeader('Content-Type', 'application/javascript');
+    res.setHeader('Content-Type', 'application/javascript')
   }
-  next();
+  next()
 });
 
 // Simple authentication middleware
 function requireAuth(req: any, res: any, next: any) {
   req.user = { email: 'admin@dukafiti.com', id: 1 };
-  next();
+  next()
 }
 
 // Health check endpoint (required for Railway)
 app.get('/health', (req, res) => {
-  res.json({ status: 'ok', timestamp: new Date().toISOString() });
+  res.json({ status: 'ok', timestamp: new Date().toISOString() })
 });
 
 // API Routes with basic responses - apply auth only to API routes
@@ -77,10 +77,10 @@ app.get('/api/dashboard/metrics', async (req, res) => {
       ordersToday,
       inventoryItems: products?.length || 0,
       customers: customers?.length || 0
-    });
+    })
   } catch (error) {
     console.error('Dashboard metrics error:', error);
-    res.status(500).json({ error: 'Failed to fetch dashboard metrics' });
+    res.status(500).json({ error: 'Failed to fetch dashboard metrics' })
   }
 });
 
@@ -88,10 +88,10 @@ app.get('/api/products', async (req, res) => {
   try {
     const { data: products, error } = await supabase.from('products').select('*');
     if (error) throw error;
-    res.json(products || []);
+    res.json(products || [])
   } catch (error) {
     console.error('Products fetch error:', error);
-    res.status(500).json({ error: 'Failed to fetch products' });
+    res.status(500).json({ error: 'Failed to fetch products' })
   }
 });
 
@@ -99,10 +99,10 @@ app.get('/api/customers', async (req, res) => {
   try {
     const { data: customers, error } = await supabase.from('customers').select('*');
     if (error) throw error;
-    res.json(customers || []);
+    res.json(customers || [])
   } catch (error) {
     console.error('Customers fetch error:', error);
-    res.status(500).json({ error: 'Failed to fetch customers' });
+    res.status(500).json({ error: 'Failed to fetch customers' })
   }
 });
 
@@ -110,10 +110,10 @@ app.get('/api/orders', async (req, res) => {
   try {
     const { data: orders, error } = await supabase.from('orders').select('*');
     if (error) throw error;
-    res.json(orders || []);
+    res.json(orders || [])
   } catch (error) {
     console.error('Orders fetch error:', error);
-    res.status(500).json({ error: 'Failed to fetch orders' });
+    res.status(500).json({ error: 'Failed to fetch orders' })
   }
 });
 
@@ -121,10 +121,10 @@ app.get('/api/notifications', async (req, res) => {
   try {
     const { data: notifications, error } = await supabase.from('notifications').select('*').order('created_at', { ascending: false });
     if (error) throw error;
-    res.json(notifications || []);
+    res.json(notifications || [])
   } catch (error) {
     console.error('Notifications fetch error:', error);
-    res.status(500).json({ error: 'Failed to fetch notifications' });
+    res.status(500).json({ error: 'Failed to fetch notifications' })
   }
 });
 
@@ -135,16 +135,16 @@ app.get('/api/notifications/unread-count', async (req, res) => {
       .select('*')
       .eq('is_read', false);
     if (error) throw error;
-    res.json({ count: notifications?.length || 0 });
+    res.json({ count: notifications?.length || 0 })
   } catch (error) {
     console.error('Unread notifications error:', error);
-    res.status(500).json({ error: 'Failed to fetch unread count' });
+    res.status(500).json({ error: 'Failed to fetch unread count' })
   }
 });
 
 // Catch-all for other API routes
 app.use('/api/*', (req, res) => {
-  res.status(404).json({ error: 'Endpoint not implemented yet' });
+  res.status(404).json({ error: 'Endpoint not implemented yet' })
 });
 
 // SPA catch-all handler - serve index.html for all non-API routes
@@ -156,15 +156,15 @@ app.get('*', (req, res) => {
   res.sendFile(indexPath, (err) => {
     if (err) {
       console.error('Error serving index.html:', err);
-      res.status(500).send('Error loading application');
+      res.status(500).send('Error loading application')
     }
-  });
+  })
 });
 
 // Error handling middleware
 app.use((err: any, req: any, res: any, next: any) => {
   console.error('Server error:', err);
-  res.status(500).json({ error: 'Internal server error' });
+  res.status(500).json({ error: 'Internal server error' })
 });
 
 // WebSocket connection handling
@@ -172,8 +172,8 @@ wss.on('connection', (ws) => {
   wsClients.add(ws);
   
   ws.on('close', () => {
-    wsClients.delete(ws);
-  });
+    wsClients.delete(ws)
+  })
 });
 
 // Serve static files based on environment
@@ -182,14 +182,14 @@ if (process.env.NODE_ENV === 'production') {
   app.use(express.static(path.join(__dirname, '../dist/public')));
   
   app.get('*', (req, res) => {
-    res.sendFile(path.resolve(__dirname, '../dist/public/index.html'));
-  });
+    res.sendFile(path.resolve(__dirname, '../dist/public/index.html'))
+  })
 } else {
   // In development, handle static file serving manually
   app.use('/src', express.static(path.join(__dirname, '../client/src'), {
     setHeaders: (res, path) => {
       if (path.endsWith('.ts') || path.endsWith('.tsx')) {
-        res.setHeader('Content-Type', 'application/javascript');
+        res.setHeader('Content-Type', 'application/javascript')
       }
     }
   }));
@@ -200,16 +200,16 @@ if (process.env.NODE_ENV === 'production') {
   // Serve index.html for all non-API routes
   app.get('*', (req, res) => {
     if (req.path.startsWith('/api/')) {
-      return res.status(404).json({ error: 'API endpoint not found' });
+      return res.status(404).json({ error: 'API endpoint not found' })
     }
-    res.sendFile(path.resolve(__dirname, '../client/index.html'));
-  });
+    res.sendFile(path.resolve(__dirname, '../client/index.html'))
+  })
 }
 
 // Start server
 server.listen(port, () => {
   console.log(`Server running on port ${port}`);
-  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`)
 });
 
 export default app;

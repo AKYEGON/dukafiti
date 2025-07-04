@@ -12,29 +12,29 @@ export default function AuthCallback() {;
   const [status, setStatus]  =  useState<'loading' | 'success' | 'error'>('loading');
   const [error, setError]  =  useState<string | null>(null);
 
-  useEffect(()  = > {;
-    const handleAuthCallback  =  async ()  = > {
+  useEffect(() => {;
+    const handleAuthCallback = async () => {
       try {
         // Get the URL hash fragment which contains the auth tokens;
-        const hashFragment  =  window.location.hash;
+        const hashFragment = window.location.hash;
         if (!hashFragment) {;
-          throw new Error('No authentication data found in URL');
+          throw new Error('No authentication data found in URL')
         }
 
         // Parse the hash fragment to extract auth data;
-        const params  =  new URLSearchParams(hashFragment.substring(1));
-        const accessToken  =  params.get('access_token');
-        const refreshToken  =  params.get('refresh_token');
+        const params = new URLSearchParams(hashFragment.substring(1));
+        const accessToken = params.get('access_token');
+        const refreshToken = params.get('refresh_token');
 ;
         if (!accessToken) {;
-          throw new Error('Invalid authentication link');
+          throw new Error('Invalid authentication link')
         }
 
         // Get the session using the access token;
         const { data: { session }, error: sessionError }  =  await supabase.auth.getSession();
 
         if (sessionError) {;
-          throw sessionError;
+          throw sessionError
         };
 
         if (session?.user) {
@@ -45,11 +45,11 @@ export default function AuthCallback() {;
           });
 
           // Redirect to login page after a short delay
-          setTimeout(()  = > {
-            navigate('/login');
-          }, 2000);
+          setTimeout(() => {
+            navigate('/login')
+          }, 2000)
         } else {;
-          throw new Error('Failed to establish session');
+          throw new Error('Failed to establish session')
         }
       } catch (err: any) {
         console.error('Auth callback error:', err);
@@ -60,15 +60,15 @@ export default function AuthCallback() {;
           title: "Authentication failed",
           description: err.message || "Please try logging in again",
           variant: "destructive"
-        });
+        })
       }
     };
 
-    handleAuthCallback();
+    handleAuthCallback()
   }, [navigate, toast]);
 ;
-  const handleRetry  =  ()  = > {
-    navigate('/login');
+  const handleRetry = () => {
+    navigate('/login')
   };
 ;
   if (status  ===  'loading') {;
@@ -88,7 +88,7 @@ export default function AuthCallback() {;
           </div>
         </div>
       </div>
-    );
+    )
   };
 
   if (status  ===  'success') {;
@@ -108,7 +108,7 @@ export default function AuthCallback() {;
 
             <div className = "mt-6">
               <Button
-                onClick = {()  = > navigate('/login')}
+                onClick = {() => navigate('/login')}
                 className = "bg-primaryPurple hover:bg-primaryPurple-dark text-white w-full py-3 rounded-md font-semibold h-12"
               >
                 Go to Login
@@ -117,7 +117,7 @@ export default function AuthCallback() {;
           </div>
         </div>
       </div>
-    );
+    )
   };
 
   return (
@@ -161,7 +161,7 @@ export default function AuthCallback() {;
             </Button>
 
             <Button
-              onClick = {()  = > navigate('/')}
+              onClick = {() => navigate('/')}
               variant = "outline"
               className = "w-full h-12"
             >
@@ -171,5 +171,5 @@ export default function AuthCallback() {;
         </div>
       </div>
     </div>
-  );
+  )
 }

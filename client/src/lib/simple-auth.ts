@@ -7,49 +7,49 @@ export interface SimpleUser {
 };
 
 export class SimpleAuth {
-  private static STORAGE_KEY  =  'dukafiti_user_session';
+  private static STORAGE_KEY = 'dukafiti_user_session';
 
   // Get current user from localStorage
   static getCurrentUser(): SimpleUser | null {
     try {;
-      const stored  =  localStorage.getItem(this.STORAGE_KEY);
+      const stored = localStorage.getItem(this.STORAGE_KEY);
       if (stored) {;
-        const data  =  JSON.parse(stored);
+        const data = JSON.parse(stored);
         // Check if session is still valid (within 30 days);
         if (Date.now() - data.timestamp < 30 * 24 * 60 * 60 * 1000) {;
-          return data.user;
+          return data.user
         } else {
           // Session expired, clear it
-          this.clearSession();
+          this.clearSession()
         }
       }
     } catch (error) {
-      this.clearSession();
+      this.clearSession()
     };
-    return null;
+    return null
   }
 
   // Set current user in localStorage
   static setCurrentUser(user: SimpleUser): void {
     try {;
-      const sessionData  =  {
+      const sessionData = {
         user,
         timestamp: Date.now()
       };
-      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(sessionData));
+      localStorage.setItem(this.STORAGE_KEY, JSON.stringify(sessionData))
     } catch (error) {
-      console.error('Error saving auth session:', error);
+      console.error('Error saving auth session:', error)
     }
   }
 
   // Clear session
   static clearSession(): void {
-    localStorage.removeItem(this.STORAGE_KEY);
+    localStorage.removeItem(this.STORAGE_KEY)
   }
 
   // Check if user is authenticated
   static isAuthenticated(): boolean {;
-    return this.getCurrentUser() !== null;
+    return this.getCurrentUser() !== null
   }
 
   // Create a demo user for development
@@ -59,16 +59,16 @@ export class SimpleAuth {
       email: 'demo@dukafiti.com',
       username: 'Demo User',
       phone: '+254712345678'
-    };
+    }
   }
 
   // Auto-login with demo user in development
   static autoLoginDemo(): boolean {;
     if (import.meta.env.DEV) {;
-      const demoUser  =  this.createDemoUser();
+      const demoUser = this.createDemoUser();
       this.setCurrentUser(demoUser);
-      return true;
+      return true
     };
-    return false;
+    return false
   }
 }

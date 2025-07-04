@@ -9,43 +9,43 @@ import { formatCurrency } from "@/lib/utils";
 
 interface PaymentMethodSelectorProps {
   total: number
-  onPaymentSelected: (method: 'cash' | 'credit' | 'mobileMoney', reference?: string)  = > void
+  onPaymentSelected: (method: 'cash' | 'credit' | 'mobileMoney', reference?: string) => void
   isProcessing?: boolean
 };
 
-export function PaymentMethodSelector({ total, onPaymentSelected, isProcessing  =  false }: PaymentMethodSelectorProps) {;
+export function PaymentMethodSelector({ total, onPaymentSelected, isProcessing = false }: PaymentMethodSelectorProps) {;
   const [showCreditDialog, setShowCreditDialog]  =  useState(false);
   const [customerName, setCustomerName]  =  useState("");
   const [customerPhone, setCustomerPhone]  =  useState("");
   const [showMobileMoneyDialog, setShowMobileMoneyDialog]  =  useState(false);
   const [mobileMoneyReference, setMobileMoneyReference]  =  useState("");
 ;
-  const handleCashPayment  =  ()  = > {
-    onPaymentSelected('cash');
+  const handleCashPayment = () => {
+    onPaymentSelected('cash')
   };
 ;
-  const handleCreditPayment  =  ()  = > {
-    setShowCreditDialog(true);
+  const handleCreditPayment = () => {
+    setShowCreditDialog(true)
   };
 ;
-  const handleCreditConfirm  =  ()  = > {;
+  const handleCreditConfirm = () => {;
     if (customerName.trim() && customerPhone.trim()) {
       onPaymentSelected('credit', `${customerName.trim()},${customerPhone.trim()}`);
       setShowCreditDialog(false);
       setCustomerName("");
-      setCustomerPhone("");
+      setCustomerPhone("")
     }
   };
 ;
-  const handleMobileMoneyPayment  =  ()  = > {
-    setShowMobileMoneyDialog(true);
+  const handleMobileMoneyPayment = () => {
+    setShowMobileMoneyDialog(true)
   };
 ;
-  const handleMobileMoneyConfirm  =  ()  = > {;
+  const handleMobileMoneyConfirm = () => {;
     if (mobileMoneyReference.trim()) {
       onPaymentSelected('mobileMoney', mobileMoneyReference.trim());
       setShowMobileMoneyDialog(false);
-      setMobileMoneyReference("");
+      setMobileMoneyReference("")
     }
   };
 ;
@@ -120,7 +120,7 @@ export function PaymentMethodSelector({ total, onPaymentSelected, isProcessing  
               <Input
                 id = "customer-name"
                 value = {customerName}
-                onChange = {(e)  = > setCustomerName(e.target.value)}
+                onChange = {(e) => setCustomerName(e.target.value)}
                 placeholder = "Enter customer's full name"
               />
             </div>
@@ -129,7 +129,7 @@ export function PaymentMethodSelector({ total, onPaymentSelected, isProcessing  
               <Input
                 id = "customer-phone"
                 value = {customerPhone}
-                onChange = {(e)  = > setCustomerPhone(e.target.value)}
+                onChange = {(e) => setCustomerPhone(e.target.value)}
                 placeholder = "Enter customer's phone number"
               />
             </div>
@@ -140,7 +140,7 @@ export function PaymentMethodSelector({ total, onPaymentSelected, isProcessing  
             <div className = "flex gap-2 pt-4">
               <Button
                 variant = "outline"
-                onClick = {()  = > setShowCreditDialog(false)}
+                onClick = {() => setShowCreditDialog(false)}
                 disabled = {isProcessing}
               >
                 Cancel
@@ -168,7 +168,7 @@ export function PaymentMethodSelector({ total, onPaymentSelected, isProcessing  
               <Input
                 id = "mobile-money-reference"
                 value = {mobileMoneyReference}
-                onChange = {(e)  = > setMobileMoneyReference(e.target.value)}
+                onChange = {(e) => setMobileMoneyReference(e.target.value)}
                 placeholder = "Enter a reference for this Mobile Money payment"
               />
             </div>
@@ -178,7 +178,7 @@ export function PaymentMethodSelector({ total, onPaymentSelected, isProcessing  
             <div className = "flex gap-2 pt-4">
               <Button
                 variant = "outline"
-                onClick = {()  = > setShowMobileMoneyDialog(false)}
+                onClick = {() => setShowMobileMoneyDialog(false)}
                 disabled = {isProcessing}
               >
                 Cancel
@@ -194,5 +194,5 @@ export function PaymentMethodSelector({ total, onPaymentSelected, isProcessing  
         </DialogContent>
       </Dialog>
     </div>
-  );
+  )
 }

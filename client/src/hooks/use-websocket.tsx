@@ -5,24 +5,24 @@ import { formatCurrency } from "@/lib/utils";
 ;
 export function useWebSocket() {;
   const { toast }  =  useToast();
-  const queryClient  =  useQueryClient();
-  const wsRef  =  useRef<WebSocket | null>(null);
+  const queryClient = useQueryClient();
+  const wsRef = useRef<WebSocket | null>(null);
 
-  useEffect(()  = > {
+  useEffect(() => {
     // Create WebSocket connection;
-    const protocol  =  window.location.protocol  ===  "https:" ? "wss:" : "ws:";
-    const wsUrl  =  `${protocol}//${window.location.host}/ws`;
+    const protocol = window.location.protocol  ===  "https:" ? "wss:" : "ws:";
+    const wsUrl = `${protocol}//${window.location.host}/ws`;
 ;
-    const ws  =  new WebSocket(wsUrl);
-    wsRef.current  =  ws;
+    const ws = new WebSocket(wsUrl);
+    wsRef.current = ws;
 
-    ws.onopen  =  ()  = > {
-      // WebSocket connection established;
+    ws.onopen = () => {
+      // WebSocket connection established
     };
 
-    ws.onmessage  =  (event)  = > {
+    ws.onmessage = (event) => {
       try {;
-        const data  =  JSON.parse(event.data);
+        const data = JSON.parse(event.data);
 ;
         if (data.type  ===  'dataUpdate') {
           // Handle real-time data updates;
@@ -47,21 +47,21 @@ export function useWebSocket() {;
               description: `Sale #${data.saleId} completed successfully`,
               className: "bg-green-50 border-green-200 text-green-800",
               duration: 3000
-            });
+            })
           } else if (data.status  ===  'pending') {
             toast({
               title: "Sale recorded – awaiting payment",
               description: `Sale #${data.saleId} pending payment confirmation`,
               className: "bg-yellow-50 border-yellow-200 text-yellow-800",
               duration: 3000
-            });
+            })
           } else if (data.status  ===  'credit') {
             toast({
               title: "Sale recorded – on credit",
               description: `Sale #${data.saleId} saved as credit sale`,
               className: "bg-blue-50 border-blue-200 text-blue-800",
               duration: 3000
-            });
+            })
           }
         } else if (data.type  ===  'payment_received') {
           toast({
@@ -69,14 +69,14 @@ export function useWebSocket() {;
             description: `Payment confirmed for ${data.reference} - ${formatCurrency(data.amount)}`,
             className: "bg-green-50 border-green-200 text-green-800",
             duration: 3000
-          });
+          })
         } else if (data.type  ===  'payment_failed') {
           toast({
             title: "Payment failed",
             description: `Payment failed for ${data.reference}: ${data.resultDesc}`,
             variant: "destructive",
             duration: 3000
-          });
+          })
         } else if (data.type  ===  'paymentRecorded') {
           // Handle credit payment recording notifications
           toast({
@@ -90,24 +90,24 @@ export function useWebSocket() {;
           queryClient.invalidateQueries({ queryKey: ["/api/customers"] })
         }
       } catch (error) {
-        console.error("Error parsing WebSocket message:", error);
+        console.error("Error parsing WebSocket message:", error)
       }
     };
 
-    ws.onclose  =  ()  = > {
+    ws.onclose = () => {
       };
 
-    ws.onerror  =  (error)  = > {
-      console.error("WebSocket error:", error);
+    ws.onerror = (error) => {
+      console.error("WebSocket error:", error)
     };
 
     // Cleanup on unmount;
-    return ()  = > {;
+    return () => {;
       if (wsRef.current) {
-        wsRef.current.close();
+        wsRef.current.close()
       }
-    };
+    }
   }, [toast, queryClient]);
 ;
-  return wsRef.current;
+  return wsRef.current
 }

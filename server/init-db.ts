@@ -5,13 +5,13 @@ import {
   products,
   customers,
   users,
-  userSettings;
+  userSettings
 } from '../shared/schema';
 ;
 export async function initializeDatabase() {
   try {
     // Create tables using raw SQL since Drizzle migrations aren't working;
-    const sqlite  =  new Database('./database.sqlite');
+    const sqlite = new Database('./database.sqlite');
 
     // Create users table
     sqlite.exec(`
@@ -134,12 +134,12 @@ export async function initializeDatabase() {
 
     sqlite.close();
     // Check if we need to create initial data;
-    const existingUsers  =  await db.select().from(users).limit(1);
+    const existingUsers = await db.select().from(users).limit(1);
 ;
     if (existingUsers.length  ===  0) {
       // Create default user;
-      const hashedPassword  =  await bcrypt.hash('admin123', 10);
-      const defaultUser  =  await db.insert(users).values({
+      const hashedPassword = await bcrypt.hash('admin123', 10);
+      const defaultUser = await db.insert(users).values({
         username: 'admin',
         email: 'admin@dukasmart.com',
         passwordHash: hashedPassword,
@@ -147,7 +147,7 @@ export async function initializeDatabase() {
       }).returning().get();
 
       // Create sample products;
-      const sampleProducts  =  [
+      const sampleProducts = [
         {
           name: 'Rice 2kg',
           sku: 'RICE-2KG',
@@ -178,11 +178,11 @@ export async function initializeDatabase() {
       ];
 ;
       for (const product of sampleProducts) {
-        await db.insert(products).values(product);
+        await db.insert(products).values(product)
       }
 
       // Create sample customers;
-      const sampleCustomers  =  [
+      const sampleCustomers = [
         {
           name: 'John Doe',
           email: 'john@example.com',
@@ -200,7 +200,7 @@ export async function initializeDatabase() {
       ];
 ;
       for (const customer of sampleCustomers) {
-        await db.insert(customers).values(customer);
+        await db.insert(customers).values(customer)
       }
 
       // Create user settings for the default user
@@ -210,12 +210,12 @@ export async function initializeDatabase() {
         currency: 'KES',
         language: 'en',
         notifications: true
-      });
+      })
 
       }
 
     } catch (error) {
     console.error('Database initialization error:', error);
-    throw error;
+    throw error
   }
 }

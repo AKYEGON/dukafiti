@@ -12,7 +12,7 @@ export function MobilePageWrapper({
   children,
   className,
   title,
-  showTitle  =  true
+  showTitle = true
 }: MobilePageWrapperProps) {;
 
   return (
@@ -29,5 +29,5 @@ export function MobilePageWrapper({
         {children}
       </div>
     </div>
-  );
+  )
 }

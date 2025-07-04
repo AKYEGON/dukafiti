@@ -5,36 +5,36 @@ import type { User } from '@supabase/supabase-js';
 interface AuthContextType {
   user: User | null
   loading: boolean
-  signUp: (email: string, password: string)  = > Promise<{ error?: any }>
-  signIn: (email: string, password: string)  = > Promise<{ error?: any }>
-  signOut: ()  = > Promise<void>
+  signUp: (email: string, password: string) => Promise<{ error?: any }>
+  signIn: (email: string, password: string) => Promise<{ error?: any }>
+  signOut: () => Promise<void>
 };
 
-const AuthContext  =  createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 ;
-export const useAuth  =  ()  = > {;
-  const context  =  useContext(AuthContext);
+export const useAuth = () => {;
+  const context = useContext(AuthContext);
   if (!context) {;
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error('useAuth must be used within an AuthProvider')
   };
-  return context;
+  return context
 };
 ;
-export const AuthProvider: React.FC<{ children: React.ReactNode }>  =  ({ children })  = > {;
+export const AuthProvider: React.FC<{ children: React.ReactNode }>  =  ({ children }) => {;
   const [user, setUser]  =  useState<User | null>(null);
   const [loading, setLoading]  =  useState(true);
 
-  useEffect(()  = > {
+  useEffect(() => {
     // Get initial session;
-    const getSession  =  async ()  = > {
+    const getSession = async () => {
       try {;
         const { data: { session } }  =  await supabase.auth.getSession()
-        setUser(session?.user ?? null);
+        setUser(session?.user ?? null)
       } catch (error) {
         console.error('Error getting session:', error);
-        setUser(null);
+        setUser(null)
       } finally {
-        setLoading(false);
+        setLoading(false)
       }
     };
 
@@ -42,19 +42,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }>  =  ({ childr
 
     // Listen for auth changes
     supabase.auth.onAuthStateChange(
-      async (event: any, session: any)  = > {
+      async (event: any, session: any) => {
         // Auth state changed
         setUser(session?.user ?? null);
-        setLoading(false);
+        setLoading(false)
       }
     );
 ;
-    return ()  = > {
-      // Cleanup will be handled by Supabase automatically;
-    };
+    return () => {
+      // Cleanup will be handled by Supabase automatically
+    }
   }, []);
 ;
-  const signUp  =  async (email: string, password: string)  = > {
+  const signUp = async (email: string, password: string) => {
     try {;
       const { error }  =  await supabase.auth.signUp({
         email,
@@ -63,39 +63,39 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }>  =  ({ childr
           emailRedirectTo: `${window.location.origin}/auth/callback`
         }
       });
-      return { error };
+      return { error }
     } catch (error) {;
-      return { error };
+      return { error }
     }
   };
 ;
-  const signIn  =  async (email: string, password: string)  = > {
+  const signIn = async (email: string, password: string) => {
     try {;
       const { error }  =  await supabase.auth.signInWithPassword({
         email,
-        password;
+        password
       });
-      return { error };
+      return { error }
     } catch (error) {;
-      return { error };
+      return { error }
     }
   };
 ;
-  const signOut  =  async ()  = > {
+  const signOut = async () => {
     try {
-      await supabase.auth.signOut();
+      await supabase.auth.signOut()
     } catch (error) {
-      console.error('Error signing out:', error);
+      console.error('Error signing out:', error)
     }
   };
 ;
-  const value  =  {
+  const value = {
     user,
     loading,
     signUp,
     signIn,
-    signOut;
+    signOut
   };
 ;
-  return <AuthContext.Provider value = {value}>{children}</AuthContext.Provider>;
+  return <AuthContext.Provider value = {value}>{children}</AuthContext.Provider>
 };

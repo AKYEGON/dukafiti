@@ -1,7 +1,7 @@
 import { useEnhancedOffline } from '@/hooks/useEnhancedOffline';
 import { Wifi, WifiOff, Clock, RefreshCw } from 'lucide-react';
 ;
-export const OfflineBanner  =  ()  = > {;
+export const OfflineBanner = () => {;
   const {
     isOffline,
     queuedActionsCount,
@@ -13,7 +13,7 @@ export const OfflineBanner  =  ()  = > {;
   }  =  useEnhancedOffline();
 ;
   if (!isOffline && queuedActionsCount  ===  0) {;
-    return null;
+    return null
   };
 
   return (
@@ -77,7 +77,7 @@ export const OfflineBanner  =  ()  = > {;
         </div>
       </div>
     </div>
-  );
+  )
 };
 ;
 export default OfflineBanner;

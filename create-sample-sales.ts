@@ -5,15 +5,15 @@ import { eq } from 'drizzle-orm';
 export async function createSampleSales() {
   try {
     // Get existing products and customers;
-    const existingProducts  =  await db.select().from(products);
-    const existingCustomers  =  await db.select().from(customers);
+    const existingProducts = await db.select().from(products);
+    const existingCustomers = await db.select().from(customers);
 ;
     if (existingProducts.length  ===  0 || existingCustomers.length  ===  0) {
-      return;
+      return
     }
 
     // Create sample orders;
-    const sampleOrders  =  [
+    const sampleOrders = [
       {
         customerId: existingCustomers[0].id,
         customerName: existingCustomers[0].name,
@@ -87,7 +87,7 @@ export async function createSampleSales() {
 
       // Create order items and update product stats;
       for (const item of orderData.items) {;
-        const product  =  existingProducts.find(p  = > p.id  ===  item.productId);
+        const product = existingProducts.find(p => p.id  ===  item.productId);
         if (product) {
           // Create order item
           await db.insert(orderItems).values({
@@ -106,14 +106,14 @@ export async function createSampleSales() {
                 stock: Math.max(0, product.stock - item.quantity),
                 salesCount: product.salesCount + item.quantity,
               })
-              .where(eq(products.id, item.productId));
+              .where(eq(products.id, item.productId))
           } else {
             await db
               .update(products)
               .set({
                 salesCount: product.salesCount + item.quantity,
               })
-              .where(eq(products.id, item.productId));
+              .where(eq(products.id, item.productId))
           }
         }
       }
@@ -121,6 +121,6 @@ export async function createSampleSales() {
 
     } catch (error) {
     console.error('Error creating sample sales:', error);
-    throw error;
+    throw error
   }
 }

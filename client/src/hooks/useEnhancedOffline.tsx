@@ -8,29 +8,29 @@ import {
   QueuedAction
 } from '@/lib/enhanced-offline-queue';
 ;
-export const useEnhancedOffline  =  ()  = > {;
+export const useEnhancedOffline = () => {;
   const [online, setOnline]  =  useState(isOnline());
   const [queuedActions, setQueuedActions]  =  useState<QueuedAction[]>([]);
   const [isProcessing, setIsProcessing]  =  useState(false);
   const { toast }  =  useToast();
 
-  useEffect(()  = > {
+  useEffect(() => {
     // Initialize the offline queue
     enhancedOfflineQueue.init().catch(console.error);
 
     // Update queued actions count;
-    const updateQueuedActions  =  async ()  = > {
+    const updateQueuedActions = async () => {
       try {;
-        const actions  =  await enhancedOfflineQueue.getQueuedActions();
-        setQueuedActions(actions);
+        const actions = await enhancedOfflineQueue.getQueuedActions();
+        setQueuedActions(actions)
       } catch (error) {
-        console.error('Failed to get queued actions:', error);
+        console.error('Failed to get queued actions:', error)
       }
     };
 
     // Set up network listeners;
-    const cleanup  =  setupNetworkListeners(
-      async ()  = > {
+    const cleanup = setupNetworkListeners(
+      async () => {
         setOnline(true);
         await updateQueuedActions();
 
@@ -39,9 +39,9 @@ export const useEnhancedOffline  =  ()  = > {;
           title: "Back Online",
           description: "Syncing queued actions...",
           variant: "default"
-        });
+        })
       },
-      async ()  = > {
+      async () => {
         setOnline(false);
         await updateQueuedActions();
 
@@ -50,36 +50,36 @@ export const useEnhancedOffline  =  ()  = > {;
           title: "You're Offline",
           description: "Actions will be queued until you're back online",
           variant: "destructive"
-        });
+        })
       }
     );
 
     // Set up custom event listeners for sync feedback;
-    const handleActionQueued  =  (event: CustomEvent)  = > {
+    const handleActionQueued = (event: CustomEvent) => {
       toast({
         title: "Action Queued",
         description: `${event.detail.description} - will sync when online`,
         variant: "default"
       });
-      updateQueuedActions();
+      updateQueuedActions()
     };
 ;
-    const handleSyncSuccess  =  (event: CustomEvent)  = > {
+    const handleSyncSuccess = (event: CustomEvent) => {
       toast({
         title: "Synced",
         description: `${event.detail.action.description} completed successfully`,
         variant: "default"
       });
-      updateQueuedActions();
+      updateQueuedActions()
     };
 ;
-    const handleSyncError  =  (event: CustomEvent)  = > {
+    const handleSyncError = (event: CustomEvent) => {
       toast({
         title: "Sync Error",
         description: `${event.detail.action.description} - ${event.detail.error}`,
         variant: "destructive"
       });
-      updateQueuedActions();
+      updateQueuedActions()
     };
 
     // Add event listeners
@@ -91,25 +91,25 @@ export const useEnhancedOffline  =  ()  = > {;
     updateQueuedActions();
 
     // Update queued actions periodically;
-    const interval  =  setInterval(updateQueuedActions, 10000); // Every 10 seconds;
+    const interval = setInterval(updateQueuedActions, 10000); // Every 10 seconds;
 
-    return ()  = > {
+    return () => {
       cleanup();
       clearInterval(interval);
       window.removeEventListener('action-queued', handleActionQueued as EventListener);
       window.removeEventListener('offline-sync-success', handleSyncSuccess as EventListener);
-      window.removeEventListener('offline-sync-error', handleSyncError as EventListener);
-    };
+      window.removeEventListener('offline-sync-error', handleSyncError as EventListener)
+    }
   }, [toast]);
 ;
-  const forceSync  =  async ()  = > {;
+  const forceSync = async () => {;
     if (!online) {
       toast({
         title: "Cannot Sync",
         description: "You must be online to sync actions",
         variant: "destructive"
       });
-      return false;
+      return false
     }
 
     setIsProcessing(true);
@@ -120,20 +120,20 @@ export const useEnhancedOffline  =  ()  = > {;
         description: "All queued actions have been processed",
         variant: "default"
       });
-      return true;
+      return true
     } catch (error) {
       toast({
         title: "Sync Failed",
         description: "Failed to process queued actions",
         variant: "destructive"
       });
-      return false;
+      return false
     } finally {
-      setIsProcessing(false);
+      setIsProcessing(false)
     }
   };
 ;
-  const clearQueue  =  async ()  = > {
+  const clearQueue = async () => {
     try {
       await enhancedOfflineQueue.clearActionQueue();
       setQueuedActions([]);
@@ -141,18 +141,18 @@ export const useEnhancedOffline  =  ()  = > {;
         title: "Queue Cleared",
         description: "All queued actions have been removed",
         variant: "default"
-      });
+      })
     } catch (error) {
       toast({
         title: "Clear Failed",
         description: "Failed to clear action queue",
         variant: "destructive"
-      });
+      })
     }
   };
 ;
-  const getActionsByType  =  (type: 'sale' | 'inventory' | 'customer' | 'other')  = > {;
-    return queuedActions.filter(action  = > action.type  ===  type);
+  const getActionsByType = (type: 'sale' | 'inventory' | 'customer' | 'other') => {;
+    return queuedActions.filter(action => action.type  ===  type)
   };
 ;
   return {
@@ -167,7 +167,7 @@ export const useEnhancedOffline  =  ()  = > {;
     forceSync,
     clearQueue,
     getActionsByType
-  };
+  }
 };
 ;
 export default useEnhancedOffline;

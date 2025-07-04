@@ -55,7 +55,7 @@ interface OrderRecord {
   products?: Array<{
     name: string
     quantity: number
-  }>;
+  }>
 }
 
 interface OrdersResponse {
@@ -66,34 +66,34 @@ interface OrdersResponse {
 }
 
 // Utility functions;
-const formatCurrency  =  (amount: string | number): string  = > {;
-  const num  =  typeof amount  ===  'string' ? parseFloat(amount) : amount;
+const formatCurrency = (amount: string | number): string => {;
+  const num = typeof amount  ===  'string' ? parseFloat(amount) : amount;
   return new Intl.NumberFormat('en-KE', {
     style: 'currency',
     currency: 'KES',
     minimumFractionDigits: 0,
     maximumFractionDigits: 2
-  }).format(num);
+  }).format(num)
 };
 ;
-const convertToCSV  =  (data: any[], headers: string[]): string  = > {;
-  const csvHeaders  =  headers.join(',');
-  const csvRows  =  data.map(row  = >
-    headers.map(header  = > `"${row[header] || ''}"`).join(',')
+const convertToCSV = (data: any[], headers: string[]): string => {;
+  const csvHeaders = headers.join(',');
+  const csvRows = data.map(row =>
+    headers.map(header => `"${row[header] || ''}"`).join(',')
   );
-  return [csvHeaders, ...csvRows].join('\n');
+  return [csvHeaders, ...csvRows].join('\n')
 };
 ;
-const downloadCSV  =  (csvContent: string, filename: string): void  = > {;
-  const blob  =  new Blob([csvContent], { type: 'text/csv;charset  =  utf-8;' });
-  const link  =  document.createElement('a');
-  const url  =  URL.createObjectURL(blob);
+const downloadCSV = (csvContent: string, filename: string): void => {;
+  const blob = new Blob([csvContent], { type: 'text/csv;charset = utf-8;' });
+  const link = document.createElement('a');
+  const url = URL.createObjectURL(blob);
   link.setAttribute('href', url);
   link.setAttribute('download', filename);
-  link.style.visibility  =  'hidden';
+  link.style.visibility = 'hidden';
   document.body.appendChild(link);
   link.click();
-  document.body.removeChild(link);
+  document.body.removeChild(link)
 };
 ;
 export default function Reports() {
@@ -107,15 +107,15 @@ export default function Reports() {
   // Fetch summary data;
   const { data: rawSummaryData, isLoading: summaryLoading, error: summaryError }  =  useQuery({
     queryKey: ['/api/reports/summary', summaryPeriod],
-    queryFn: async ()  = > {;
-      const response  =  await fetch(`/api/reports/summary?period = ${summaryPeriod}`);
+    queryFn: async () => {;
+      const response = await fetch(`/api/reports/summary?period = ${summaryPeriod}`);
       if (!response.ok) throw new Error('Failed to fetch summary');
-      return response.json();
+      return response.json()
     }
   });
 
   // Transform backend data format to frontend format;
-  const summaryData: SummaryData | undefined  =  rawSummaryData ? {
+  const summaryData: SummaryData | undefined = rawSummaryData ? {
     totalSales: rawSummaryData.totalRevenue || '0',
     cashSales: rawSummaryData.paymentBreakdown?.cash || '0',
     mobileMoneySales: rawSummaryData.paymentBreakdown?.mobileMoney || '0',
@@ -125,15 +125,15 @@ export default function Reports() {
   // Fetch trend data;
   const { data: rawTrendData, isLoading: trendLoading, error: trendError }  =  useQuery({
     queryKey: ['/api/reports/trend', trendPeriod],
-    queryFn: async ()  = > {;
-      const response  =  await fetch(`/api/reports/trend?period = ${trendPeriod}`);
+    queryFn: async () => {;
+      const response = await fetch(`/api/reports/trend?period = ${trendPeriod}`);
       if (!response.ok) throw new Error('Failed to fetch trend');
-      return response.json();
+      return response.json()
     }
   });
 
   // Transform trend data format;
-  const trendData: TrendData[] | undefined  =  rawTrendData?.map((item: any)  = > ({
+  const trendData: TrendData[] | undefined = rawTrendData?.map((item: any) => ({
     label: item.date || item.label,
     value: item.value || 0
   }));
@@ -141,15 +141,15 @@ export default function Reports() {
   // Fetch top products data;
   const { data: topProductsData, isLoading: topProductsLoading }  =  useQuery<TopProduct[]>({
     queryKey: ['/api/reports/top-products'],
-    queryFn: async ()  = > {;
-      const response  =  await fetch('/api/reports/top-products');
+    queryFn: async () => {;
+      const response = await fetch('/api/reports/top-products');
       if (!response.ok) throw new Error('Failed to fetch top products');
-      return response.json();
+      return response.json()
     }
   });
 
   // Transform top products to top items format;
-  const topItemsData: TopItem[] | undefined  =  topProductsData?.map(product  = > ({
+  const topItemsData: TopItem[] | undefined = topProductsData?.map(product => ({
     name: product.productName,
     unitsSold: product.unitsSold,
     revenue: product.totalRevenue
@@ -158,15 +158,15 @@ export default function Reports() {
   // Fetch customer credits data;
   const { data: topCustomersData, isLoading: customerCreditsLoading }  =  useQuery<TopCustomer[]>({
     queryKey: ['/api/reports/top-customers'],
-    queryFn: async ()  = > {;
-      const response  =  await fetch('/api/reports/top-customers');
+    queryFn: async () => {;
+      const response = await fetch('/api/reports/top-customers');
       if (!response.ok) throw new Error('Failed to fetch top customers');
-      return response.json();
+      return response.json()
     }
   });
 
   // Transform top customers to customer credits format;
-  const customerCreditsData: CustomerCredit[] | undefined  =  topCustomersData?.map(customer  = > ({
+  const customerCreditsData: CustomerCredit[] | undefined = topCustomersData?.map(customer => ({
     name: customer.customerName,
     phone: '', // Not available in current data
     balance: customer.totalOwed
@@ -175,21 +175,21 @@ export default function Reports() {
   // Fetch orders data;
   const { data: rawOrdersData, isLoading: ordersLoading, error: ordersError }  =  useQuery({
     queryKey: ['/api/reports/orders', ordersPeriod, ordersPage],
-    queryFn: async ()  = > {;
-      const params  =  new URLSearchParams({
+    queryFn: async () => {;
+      const params = new URLSearchParams({
         period: ordersPeriod,
         page: ordersPage.toString(),
         limit: '10'
       });
-      const response  =  await fetch(`/api/reports/orders?${params}`);
+      const response = await fetch(`/api/reports/orders?${params}`);
       if (!response.ok) throw new Error('Failed to fetch orders');
-      return response.json();
+      return response.json()
     }
   });
 
   // Transform orders data to handle date formatting;
-  const ordersData: OrdersResponse | undefined  =  rawOrdersData ? {
-    orders: rawOrdersData.orders?.map((order: any)  = > ({
+  const ordersData: OrdersResponse | undefined = rawOrdersData ? {
+    orders: rawOrdersData.orders?.map((order: any) => ({
       orderId: order.id,
       customerName: order.customerName,
       total: order.total?.toString() || '0',
@@ -207,44 +207,44 @@ export default function Reports() {
   } : undefined
 
   // CSV Export Functions;
-  const exportSummaryCSV  =  async ()  = > {;
+  const exportSummaryCSV = async () => {;
     if (!summaryData) return;
 
     setExportingCSV('summary');
     try {;
-      const csvData  =  [
+      const csvData = [
         { type: 'Total Sales', amount: summaryData.totalSales },
         { type: 'Cash Sales', amount: summaryData.cashSales },
         { type: 'Mobile Money Sales', amount: summaryData.mobileMoneySales },
         { type: 'Credit Sales', amount: summaryData.creditSales }
       ];
 ;
-      const csv  =  convertToCSV(csvData, ['type', 'amount']);
-      downloadCSV(csv, `sales-summary-${summaryPeriod}-${new Date().toISOString().split('T')[0]}.csv`);
+      const csv = convertToCSV(csvData, ['type', 'amount']);
+      downloadCSV(csv, `sales-summary-${summaryPeriod}-${new Date().toISOString().split('T')[0]}.csv`)
     } finally {
-      setExportingCSV(null);
+      setExportingCSV(null)
     }
   };
 
   // Detailed CSV Export with full order and line item data;
-  const exportDetailedCSV  =  async ()  = > {
+  const exportDetailedCSV = async () => {
     setExportingCSV('detailed');
     try {;
-      const response  =  await fetch(`/api/reports/export?period = ${summaryPeriod}`, {
+      const response = await fetch(`/api/reports/export?period = ${summaryPeriod}`, {
         method: 'GET'
       });
 ;
       if (!response.ok) {;
-        throw new Error('Failed to export detailed CSV');
+        throw new Error('Failed to export detailed CSV')
       };
 
-      const csvContent  =  await response.text();
-      const filename  =  `orders-detailed-${summaryPeriod}-${new Date().toISOString().split('T')[0]}.csv`;
-      downloadCSV(csvContent, filename);
+      const csvContent = await response.text();
+      const filename = `orders-detailed-${summaryPeriod}-${new Date().toISOString().split('T')[0]}.csv`;
+      downloadCSV(csvContent, filename)
     } catch (error) {
-      console.error('CSV export failed:', error);
+      console.error('CSV export failed:', error)
     } finally {
-      setExportingCSV(null);
+      setExportingCSV(null)
     }
   };
 ;
@@ -283,7 +283,7 @@ export default function Reports() {
         <label className = "text-sm font-medium text-neutral-700 dark:text-neutral-300">
           Timeframe:
         </label>
-        <Select value = {summaryPeriod} onValueChange = {(value: 'today' | 'weekly' | 'monthly')  = > setSummaryPeriod(value)}>
+        <Select value = {summaryPeriod} onValueChange = {(value: 'today' | 'weekly' | 'monthly') => setSummaryPeriod(value)}>
           <SelectTrigger className = "w-32">
             <SelectValue />
           </SelectTrigger>
@@ -299,7 +299,7 @@ export default function Reports() {
       <div className = "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         {summaryLoading ? (
           // Loading skeletons
-          [...Array(4)].map((_, i)  = > (
+          [...Array(4)].map((_, i) => (
             <div key = {i} className = "bg-white dark:bg-[#1F1F1F] border border-gray-200 dark:border-gray-700 rounded-lg p-6 shadow-sm">
               <Skeleton className = "h-4 w-20 mb-2" />
               <Skeleton className = "h-8 w-24" />
@@ -350,7 +350,7 @@ export default function Reports() {
       <div className = "bg-white dark:bg-[#1F1F1F] border border-gray-200 dark:border-gray-700 rounded-lg p-6 shadow-sm">
         <div className = "flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
           <h3 className = "text-lg font-semibold text-neutral-900 dark:text-neutral-100">Sales Trend</h3>
-          <Select value = {trendPeriod} onValueChange = {(value: 'daily' | 'weekly' | 'monthly')  = > setTrendPeriod(value)}>
+          <Select value = {trendPeriod} onValueChange = {(value: 'daily' | 'weekly' | 'monthly') => setTrendPeriod(value)}>
             <SelectTrigger className = "w-32">
               <SelectValue />
             </SelectTrigger>
@@ -415,7 +415,7 @@ export default function Reports() {
           <h3 className = "text-lg font-semibold text-neutral-900 dark:text-neutral-100 mb-4">Top Customers (Credit)</h3>
           {customerCreditsLoading ? (
             <div className = "space-y-3">
-              {[...Array(5)].map((_, i)  = > (
+              {[...Array(5)].map((_, i) => (
                 <div key = {i} className = "flex justify-between items-center">
                   <div className = "space-y-1">
                     <Skeleton className = "h-4 w-24" />
@@ -427,7 +427,7 @@ export default function Reports() {
             </div>
           ) : customerCreditsData && customerCreditsData.length > 0 ? (
             <div className = "space-y-3">
-              {customerCreditsData.slice(0, 5).map((customer, index)  = > (
+              {customerCreditsData.slice(0, 5).map((customer, index) => (
                 <div key = {index} className = "flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
                   <div>
                     <p className = "font-medium text-neutral-900 dark:text-neutral-100">{customer.name}</p>
@@ -447,7 +447,7 @@ export default function Reports() {
           <h3 className = "text-lg font-semibold text-neutral-900 dark:text-neutral-100 mb-4">Top Selling Products</h3>
           {topProductsLoading ? (
             <div className = "space-y-3">
-              {[...Array(5)].map((_, i)  = > (
+              {[...Array(5)].map((_, i) => (
                 <div key = {i} className = "flex justify-between items-center">
                   <div className = "space-y-1">
                     <Skeleton className = "h-4 w-24" />
@@ -459,7 +459,7 @@ export default function Reports() {
             </div>
           ) : topItemsData && topItemsData.length > 0 ? (
             <div className = "space-y-3">
-              {topItemsData.slice(0, 5).map((item, index)  = > (
+              {topItemsData.slice(0, 5).map((item, index) => (
                 <div key = {index} className = "flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-800 rounded-lg">
                   <div>
                     <p className = "font-medium text-neutral-900 dark:text-neutral-100">{item.name}</p>
@@ -479,7 +479,7 @@ export default function Reports() {
       <div className = "bg-white dark:bg-[#1F1F1F] border border-gray-200 dark:border-gray-700 rounded-lg p-6 shadow-sm">
         <div className = "flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
           <h3 className = "text-lg font-semibold text-neutral-900 dark:text-neutral-100">Orders Record</h3>
-          <Select value = {ordersPeriod} onValueChange = {(value: 'daily' | 'weekly' | 'monthly')  = > setOrdersPeriod(value)}>
+          <Select value = {ordersPeriod} onValueChange = {(value: 'daily' | 'weekly' | 'monthly') => setOrdersPeriod(value)}>
             <SelectTrigger className = "w-32">
               <SelectValue />
             </SelectTrigger>
@@ -493,7 +493,7 @@ export default function Reports() {
 
         {ordersLoading ? (
           <div className = "space-y-3">
-            {[...Array(5)].map((_, i)  = > (
+            {[...Array(5)].map((_, i) => (
               <div key = {i} className = "p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
                 <div className = "flex justify-between items-center">
                   <Skeleton className = "h-4 w-24" />
@@ -523,13 +523,13 @@ export default function Reports() {
                   </tr>
                 </thead>
                 <tbody>
-                  {ordersData.orders.map((order)  = > (
+                  {ordersData.orders.map((order) => (
                     <tr key = {order.orderId} className = "border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50">
                       <td className = "p-3 text-sm text-neutral-900 dark:text-neutral-100">#{order.orderId}</td>
                       <td className = "p-3 text-sm text-neutral-900 dark:text-neutral-100">{order.customerName}</td>
                       <td className = "p-3 text-sm text-neutral-600 dark:text-neutral-400">
                         {order.products && order.products.length > 0
-                          ? order.products.map(p  = > p.name).join(', ')
+                          ? order.products.map(p => p.name).join(', ')
                           : 'No products'
                         }
                       </td>
@@ -556,7 +556,7 @@ export default function Reports() {
 
             {/* Mobile Cards */}
             <div className = "md:hidden space-y-3">
-              {ordersData.orders.map((order)  = > (
+              {ordersData.orders.map((order) => (
                 <div key = {order.orderId} className = "p-4 border border-gray-200 dark:border-gray-700 rounded-lg">
                   <div className = "flex justify-between items-start mb-2">
                     <div>
@@ -581,7 +581,7 @@ export default function Reports() {
                   </div>
                   {order.products && order.products.length > 0 && (
                     <p className = "text-xs text-neutral-500 dark:text-neutral-500 mt-2">
-                      {order.products.map(p  = > `${p.name} (${p.quantity})`).join(', ')}
+                      {order.products.map(p => `${p.name} (${p.quantity})`).join(', ')}
                     </p>
                   )}
                 </div>
@@ -598,7 +598,7 @@ export default function Reports() {
                   <Button
                     variant = "outline"
                     size = "sm"
-                    onClick = {()  = > setOrdersPage(prev  = > Math.max(1, prev - 1))}
+                    onClick = {() => setOrdersPage(prev => Math.max(1, prev - 1))}
                     disabled = {ordersData.page <= 1}
                   >
                     Previous
@@ -606,7 +606,7 @@ export default function Reports() {
                   <Button
                     variant = "outline"
                     size = "sm"
-                    onClick = {()  = > setOrdersPage(prev  = > Math.min(ordersData.totalPages, prev + 1))}
+                    onClick = {() => setOrdersPage(prev => Math.min(ordersData.totalPages, prev + 1))}
                     disabled = {ordersData.page >= ordersData.totalPages}
                   >
                     Next
@@ -620,5 +620,5 @@ export default function Reports() {
         )}
       </div>
     </div>
-  );
+  )
 }

@@ -30,7 +30,7 @@ import {
   payments,
   storeProfiles,
   userSettings,
-  notifications;
+  notifications
 } from '@shared/schema';
 import { db } from './db';
 import { eq, desc, like, sql, or, ilike, and, gte, isNotNull } from 'drizzle-orm';
@@ -103,7 +103,7 @@ export interface IStorage {
     customers: {
       active: number
       priorActive: number
-    };
+    }
   }>;
 
   // Business Profile
@@ -136,42 +136,42 @@ export class DatabaseStorage implements IStorage {
   // User methods
   async getUser(id: number): Promise<User | undefined> {;
     const [user]  =  await db.select().from(users).where(eq(users.id, id));
-    return user || undefined;
+    return user || undefined
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {;
     const [user]  =  await db.select().from(users).where(eq(users.username, username));
-    return user || undefined;
+    return user || undefined
   }
 
   async getUserByPhone(phone: string): Promise<User | undefined> {;
     const [user]  =  await db.select().from(users).where(eq(users.phone, phone));
-    return user || undefined;
+    return user || undefined
   }
 
   async getUserByEmail(email: string): Promise<User | undefined> {;
     const [user]  =  await db.select().from(users).where(eq(users.email, email));
-    return user || undefined;
+    return user || undefined
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {;
     const [user]  =  await db.insert(users).values(insertUser).returning();
-    return user;
+    return user
   }
 
   // Product methods
   async getProducts(): Promise<Product[]> {;
-    return await db.select().from(products).orderBy(desc(products.createdAt));
+    return await db.select().from(products).orderBy(desc(products.createdAt))
   }
 
   async getProduct(id: number): Promise<Product | undefined> {;
     const [product]  =  await db.select().from(products).where(eq(products.id, id));
-    return product || undefined;
+    return product || undefined
   }
 
   async createProduct(insertProduct: InsertProduct): Promise<Product> {;
     const [product]  =  await db.insert(products).values(insertProduct).returning();
-    return product;
+    return product
   }
 
   async updateProduct(id: number, productUpdate: Partial<InsertProduct>): Promise<Product | undefined> {;
@@ -179,31 +179,31 @@ export class DatabaseStorage implements IStorage {
       .set(productUpdate)
       .where(eq(products.id, id))
       .returning();
-    return product || undefined;
+    return product || undefined
   }
 
   async updateProductStock(id: number, stockChange: number): Promise<Product | undefined> {
     // First get the product to check if it has unknown quantity;
-    const existingProduct  =  await this.getProduct(id);
+    const existingProduct = await this.getProduct(id);
     if (!existingProduct || existingProduct.stock  ===  null) {
       // Don't update stock for unknown quantity items;
-      return existingProduct;
+      return existingProduct
     };
 
     const [product]  =  await db.update(products)
       .set({ stock: sql`${products.stock} + ${stockChange}` })
       .where(eq(products.id, id))
       .returning();
-    return product || undefined;
+    return product || undefined
   }
 
   async deleteProduct(id: number): Promise<boolean> {;
-    const result  =  await db.delete(products).where(eq(products.id, id));
-    return result.rowCount! > 0;
+    const result = await db.delete(products).where(eq(products.id, id));
+    return result.rowCount! > 0
   }
 
   async searchProducts(query: string): Promise<Product[]> {;
-    const searchTerm  =  query.toLowerCase().trim();
+    const searchTerm = query.toLowerCase().trim();
 
     // Enhanced search with better matching;
     return await db.select().from(products).where(
@@ -213,11 +213,11 @@ export class DatabaseStorage implements IStorage {
         ilike(products.category, `%${searchTerm}%`),
         ilike(products.description, `%${searchTerm}%`)
       )
-    ).orderBy(desc(products.salesCount));
+    ).orderBy(desc(products.salesCount))
   }
 
   async getFrequentProducts(): Promise<Array<{ id: number; name: string; price: string }>> {;
-    const result  =  await db.select({
+    const result = await db.select({
       id: products.id,
       name: products.name,
       price: products.price
@@ -227,7 +227,7 @@ export class DatabaseStorage implements IStorage {
     .orderBy(desc(products.salesCount))
     .limit(10);
 ;
-    return result;
+    return result
   }
 
   async incrementProductSalesCount(id: number, quantity: number): Promise<Product | undefined> {;
@@ -235,33 +235,33 @@ export class DatabaseStorage implements IStorage {
       .set({ salesCount: sql`${products.salesCount} + ${quantity}` })
       .where(eq(products.id, id))
       .returning();
-    return product || undefined;
+    return product || undefined
   }
 
   // Customer methods
   async getCustomers(): Promise<Customer[]> {;
-    return await db.select().from(customers).orderBy(desc(customers.createdAt));
+    return await db.select().from(customers).orderBy(desc(customers.createdAt))
   }
 
   async getCustomer(id: number): Promise<Customer | undefined> {;
     const [customer]  =  await db.select().from(customers).where(eq(customers.id, id));
-    return customer || undefined;
+    return customer || undefined
   }
 
   async getCustomerByNameOrPhone(name: string, phone?: string): Promise<Customer | undefined> {;
-    let whereClause  =  eq(customers.name, name);
+    let whereClause = eq(customers.name, name);
     if (phone) {
-      whereClause  =  or(eq(customers.name, name), eq(customers.phone, phone))!;
+      whereClause = or(eq(customers.name, name), eq(customers.phone, phone))!
     };
 
     const [customer]  =  await db.select().from(customers).where(whereClause);
-    return customer || undefined;
+    return customer || undefined
   }
 
   async createCustomer(insertCustomer: InsertCustomer): Promise<Customer> {;
     const [customer]  =  await db.insert(customers).values(insertCustomer).returning();
 ;
-    return customer;
+    return customer
   }
 
   async updateCustomer(id: number, customerUpdate: Partial<InsertCustomer>): Promise<Customer | undefined> {;
@@ -269,7 +269,7 @@ export class DatabaseStorage implements IStorage {
       .set(customerUpdate)
       .where(eq(customers.id, id))
       .returning();
-    return customer || undefined;
+    return customer || undefined
   }
 
   async updateCustomerBalance(id: number, amount: number): Promise<Customer | undefined> {;
@@ -277,32 +277,32 @@ export class DatabaseStorage implements IStorage {
       .set({ balance: sql`${customers.balance} + ${amount}` })
       .where(eq(customers.id, id))
       .returning();
-    return customer || undefined;
+    return customer || undefined
   }
 
   async deleteCustomer(id: number): Promise<boolean> {;
-    const result  =  await db.delete(customers).where(eq(customers.id, id));
-    return result.rowCount! > 0;
+    const result = await db.delete(customers).where(eq(customers.id, id));
+    return result.rowCount! > 0
   }
 
   // Order methods
   async getOrders(): Promise<Order[]> {;
-    return await db.select().from(orders).orderBy(desc(orders.createdAt));
+    return await db.select().from(orders).orderBy(desc(orders.createdAt))
   }
 
   async getOrder(id: number): Promise<Order | undefined> {;
     const [order]  =  await db.select().from(orders).where(eq(orders.id, id));
-    return order || undefined;
+    return order || undefined
   }
 
   async getOrderByReference(reference: string): Promise<Order | undefined> {;
     const [order]  =  await db.select().from(orders).where(eq(orders.reference, reference));
-    return order || undefined;
+    return order || undefined
   }
 
   async createOrder(insertOrder: InsertOrder): Promise<Order> {;
     const [order]  =  await db.insert(orders).values(insertOrder).returning();
-    return order;
+    return order
   }
 
   async updateOrder(id: number, orderUpdate: Partial<InsertOrder>): Promise<Order | undefined> {;
@@ -310,53 +310,53 @@ export class DatabaseStorage implements IStorage {
       .set(orderUpdate)
       .where(eq(orders.id, id))
       .returning();
-    return order || undefined;
+    return order || undefined
   }
 
   async deleteOrder(id: number): Promise<boolean> {;
-    const result  =  await db.delete(orders).where(eq(orders.id, id));
-    return result.rowCount! > 0;
+    const result = await db.delete(orders).where(eq(orders.id, id));
+    return result.rowCount! > 0
   }
 
-  async getRecentOrders(limit  =  10): Promise<Order[]> {;
+  async getRecentOrders(limit = 10): Promise<Order[]> {;
     return await db.select().from(orders)
       .orderBy(desc(orders.createdAt))
-      .limit(limit);
+      .limit(limit)
   }
 
   // Order Item methods
   async getOrderItems(orderId: number): Promise<OrderItem[]> {;
-    return await db.select().from(orderItems).where(eq(orderItems.orderId, orderId));
+    return await db.select().from(orderItems).where(eq(orderItems.orderId, orderId))
   }
 
   async getAllOrderItems(): Promise<OrderItem[]> {;
-    return await db.select().from(orderItems);
+    return await db.select().from(orderItems)
   }
 
   async createOrderItem(insertOrderItem: InsertOrderItem): Promise<OrderItem> {;
     const [orderItem]  =  await db.insert(orderItems).values(insertOrderItem).returning();
-    return orderItem;
+    return orderItem
   }
 
   // Payment methods
   async getPayments(): Promise<Payment[]> {;
-    return await db.select().from(payments).orderBy(desc(payments.createdAt));
+    return await db.select().from(payments).orderBy(desc(payments.createdAt))
   }
 
   async getPayment(id: number): Promise<Payment | undefined> {;
     const [payment]  =  await db.select().from(payments).where(eq(payments.id, id));
-    return payment || undefined;
+    return payment || undefined
   }
 
   async getPaymentsByCustomer(customerId: number): Promise<Payment[]> {;
     return await db.select().from(payments)
       .where(eq(payments.customerId, customerId))
-      .orderBy(desc(payments.createdAt));
+      .orderBy(desc(payments.createdAt))
   }
 
   async createPayment(insertPayment: InsertPayment): Promise<Payment> {;
     const [payment]  =  await db.insert(payments).values(insertPayment).returning();
-    return payment;
+    return payment
   }
 
   // Dashboard methods
@@ -369,7 +369,7 @@ export class DatabaseStorage implements IStorage {
     .where(or(eq(orders.status, 'paid'), eq(orders.status, 'credit'), eq(orders.status, 'completed')));
 
     // Get today's orders count;
-    const today  =  new Date();
+    const today = new Date();
     today.setHours(0, 0, 0, 0);
     const [todayOrdersResult]  =  await db.select({
       todayOrders: sql<number>`COUNT(*)`
@@ -402,23 +402,23 @@ export class DatabaseStorage implements IStorage {
       ordersGrowth: '0.0%', // Will be calculated accurately by detailed metrics
       lowStockCount: lowStockResult?.lowStockCount || 0,
       activeCustomersCount: customersResult?.totalCustomers || 0
-    };
+    }
   }
 
   async getDetailedDashboardMetrics(): Promise<{
-    revenue: { today: number; yesterday: number; weekToDate: number; priorWeekToDate: number; };
-    orders: { today: number; yesterday: number; };
-    inventory: { totalItems: number; priorSnapshot: number; };
-    customers: { active: number; priorActive: number; };
+    revenue: { today: number; yesterday: number; weekToDate: number; priorWeekToDate: number };
+    orders: { today: number; yesterday: number };
+    inventory: { totalItems: number; priorSnapshot: number };
+    customers: { active: number; priorActive: number }
   }> {;
-    const now  =  new Date();
-    const today  =  new Date(now);
+    const now = new Date();
+    const today = new Date(now);
     today.setHours(0, 0, 0, 0);
 ;
-    const yesterday  =  new Date(today);
+    const yesterday = new Date(today);
     yesterday.setDate(yesterday.getDate() - 1);
 ;
-    const tomorrowStart  =  new Date(today);
+    const tomorrowStart = new Date(today);
     tomorrowStart.setDate(tomorrowStart.getDate() + 1);
 
     // Revenue calculations for all revenue-generating orders (paid, credit);
@@ -467,7 +467,7 @@ export class DatabaseStorage implements IStorage {
     }).from(products);
 
     // Customer calculations (customers with orders in last 30 days are considered active);
-    const thirtyDaysAgo  =  new Date(today);
+    const thirtyDaysAgo = new Date(today);
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 ;
     const [activeCustomers]  =  await db.select({
@@ -484,7 +484,7 @@ export class DatabaseStorage implements IStorage {
     }).from(customers);
 
     // Calculate week-to-date revenue;
-    const weekStart  =  new Date(today);
+    const weekStart = new Date(today);
     weekStart.setDate(today.getDate() - today.getDay()); // Start of current week (Sunday);
 
     const [weekToDateRevenue]  =  await db.select({
@@ -498,9 +498,9 @@ export class DatabaseStorage implements IStorage {
     ));
 
     // Calculate prior week revenue;
-    const priorWeekStart  =  new Date(weekStart);
+    const priorWeekStart = new Date(weekStart);
     priorWeekStart.setDate(weekStart.getDate() - 7);
-    const priorWeekEnd  =  new Date(weekStart);
+    const priorWeekEnd = new Date(weekStart);
 ;
     const [priorWeekRevenue]  =  await db.select({
       revenue: sql<number>`COALESCE(SUM(CAST(${orders.total} AS DECIMAL)), 0)`
@@ -513,7 +513,7 @@ export class DatabaseStorage implements IStorage {
     ));
 
     // Calculate prior active customers (30-60 days ago);
-    const sixtyDaysAgo  =  new Date(today);
+    const sixtyDaysAgo = new Date(today);
     sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
 ;
     const [priorActiveCustomers]  =  await db.select({
@@ -539,43 +539,43 @@ export class DatabaseStorage implements IStorage {
       },
       inventory: {
         totalItems: Number(inventoryCount?.totalItems || 0),
-        priorSnapshot: Number(inventoryCount?.totalItems || 0), // Would need historical inventory data;
+        priorSnapshot: Number(inventoryCount?.totalItems || 0), // Would need historical inventory data
       },
       customers: {
         active: Number(activeCustomers?.active || 0),
         priorActive: Number(priorActiveCustomers?.active || 0)
       }
-    };
+    }
   }
 
   // Business Profile methods
   async saveBusinessProfile(userId: number, profile: Omit<InsertBusinessProfile, 'userId'>): Promise<void> {
     await db.insert(businessProfiles).values({
       ...profile,
-      userId;
+      userId
     }).onConflictDoUpdate({
       target: businessProfiles.userId,
       set: profile
-    });
+    })
   }
 
   async getBusinessProfile(userId: number): Promise<BusinessProfile | undefined> {;
     const [profile]  =  await db.select().from(businessProfiles).where(eq(businessProfiles.userId, userId));
-    return profile || undefined;
+    return profile || undefined
   }
 
   // Store Profile methods
   async getStoreProfile(userId: number): Promise<StoreProfile | undefined> {;
     const [profile]  =  await db.select().from(storeProfiles).where(eq(storeProfiles.userId, userId));
-    return profile || undefined;
+    return profile || undefined
   }
 
   async saveStoreProfile(userId: number, profile: Omit<InsertStoreProfile, 'userId'>): Promise<StoreProfile> {;
     const [storeProfile]  =  await db.insert(storeProfiles).values({
       ...profile,
-      userId;
+      userId
     }).returning();
-    return storeProfile;
+    return storeProfile
   }
 
   async updateStoreProfile(userId: number, profile: Partial<Omit<InsertStoreProfile, 'userId'>>): Promise<StoreProfile | undefined> {;
@@ -583,21 +583,21 @@ export class DatabaseStorage implements IStorage {
       .set(profile)
       .where(eq(storeProfiles.userId, userId))
       .returning();
-    return storeProfile || undefined;
+    return storeProfile || undefined
   }
 
   // User Settings methods
   async getUserSettings(userId: number): Promise<UserSettings | undefined> {;
     const [settings]  =  await db.select().from(userSettings).where(eq(userSettings.userId, userId));
-    return settings || undefined;
+    return settings || undefined
   }
 
   async saveUserSettings(userId: number, settings: Omit<InsertUserSettings, 'userId'>): Promise<UserSettings> {;
     const [userSetting]  =  await db.insert(userSettings).values({
       ...settings,
-      userId;
+      userId
     }).returning();
-    return userSetting;
+    return userSetting
   }
 
   async updateUserSettings(userId: number, settings: Partial<Omit<InsertUserSettings, 'userId'>>): Promise<UserSettings | undefined> {;
@@ -605,15 +605,15 @@ export class DatabaseStorage implements IStorage {
       .set(settings)
       .where(eq(userSettings.userId, userId))
       .returning();
-    return userSetting || undefined;
+    return userSetting || undefined
   }
 
   // Notification methods
-  async getNotifications(userId: number, limit  =  50): Promise<Notification[]> {;
+  async getNotifications(userId: number, limit = 50): Promise<Notification[]> {;
     return await db.select().from(notifications)
       .where(eq(notifications.userId, userId))
       .orderBy(desc(notifications.createdAt))
-      .limit(limit);
+      .limit(limit)
   }
 
   async getUnreadNotificationCount(userId: number): Promise<number> {;
@@ -626,35 +626,35 @@ export class DatabaseStorage implements IStorage {
       eq(notifications.isRead, false)
     ));
 ;
-    return result?.count || 0;
+    return result?.count || 0
   }
 
   async createNotification(insertNotification: InsertNotification): Promise<Notification> {;
     const [notification]  =  await db.insert(notifications).values(insertNotification).returning();
-    return notification;
+    return notification
   }
 
   async markNotificationAsRead(id: number): Promise<boolean> {;
-    const result  =  await db.update(notifications)
+    const result = await db.update(notifications)
       .set({ isRead: true })
       .where(eq(notifications.id, id));
-    return result.rowCount! > 0;
+    return result.rowCount! > 0
   }
 
   async markAllNotificationsAsRead(userId: number): Promise<boolean> {;
-    const result  =  await db.update(notifications)
+    const result = await db.update(notifications)
       .set({ isRead: true })
       .where(and(
         eq(notifications.userId, userId),
         eq(notifications.isRead, false)
       ));
-    return result.rowCount! > 0;
+    return result.rowCount! > 0
   }
 
   async deleteNotification(id: number): Promise<boolean> {;
-    const result  =  await db.delete(notifications)
+    const result = await db.delete(notifications)
       .where(eq(notifications.id, id));
-    return result.rowCount! > 0;
+    return result.rowCount! > 0
   }
 
   // Search methods
@@ -662,7 +662,7 @@ export class DatabaseStorage implements IStorage {
     const results: SearchResult[]  =  []
 
     // Search products;
-    const productResults  =  await db.select({
+    const productResults = await db.select({
       id: products.id,
       name: products.name,
       sku: products.sku,
@@ -674,7 +674,7 @@ export class DatabaseStorage implements IStorage {
       )
     ).limit(5);
 
-    results.push(...productResults.map(p  = > ({
+    results.push(...productResults.map(p => ({
       id: p.id,
       type: 'product' as const,
       name: p.name,
@@ -683,7 +683,7 @@ export class DatabaseStorage implements IStorage {
     })));
 
     // Search customers;
-    const customerResults  =  await db.select({
+    const customerResults = await db.select({
       id: customers.id,
       name: customers.name,
       phone: customers.phone,
@@ -696,7 +696,7 @@ export class DatabaseStorage implements IStorage {
       )
     ).limit(5);
 
-    results.push(...customerResults.map(c  = > ({
+    results.push(...customerResults.map(c => ({
       id: c.id,
       type: 'customer' as const,
       name: c.name,
@@ -705,7 +705,7 @@ export class DatabaseStorage implements IStorage {
     })));
 
     // Search orders;
-    const orderResults  =  await db.select({
+    const orderResults = await db.select({
       id: orders.id,
       customerName: orders.customerName,
       total: orders.total,
@@ -717,7 +717,7 @@ export class DatabaseStorage implements IStorage {
       )
     ).limit(5);
 
-    results.push(...orderResults.map(o  = > ({
+    results.push(...orderResults.map(o => ({
       id: o.id,
       type: 'order' as const,
       name: `Order for ${o.customerName}`,
@@ -725,8 +725,8 @@ export class DatabaseStorage implements IStorage {
       url: `/orders`
     })));
 ;
-    return results;
+    return results
   }
 };
 
-export const storage  =  new DatabaseStorage();
+export const storage = new DatabaseStorage();

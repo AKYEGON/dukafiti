@@ -26,7 +26,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 
-type SortOption  =  "name-asc" | "name-desc" | "price-asc" | "price-desc";
+type SortOption = "name-asc" | "name-desc" | "price-asc" | "price-desc";
 ;
 export default function Inventory() {;
   const [search, setSearch]  =  useState("");
@@ -35,36 +35,36 @@ export default function Inventory() {;
   const [editingProduct, setEditingProduct]  =  useState<Product | undefined>();
   const [deleteProduct, setDeleteProduct]  =  useState<Product | undefined>();
   const { toast }  =  useToast();
-  const queryClient  =  useQueryClient();
+  const queryClient = useQueryClient();
 ;
   const { data: products, isLoading }  =  useQuery<Product[]>({
     queryKey: ["/api/products"]
   });
 ;
-  const deleteMutation  =  useMutation({
-    mutationFn: async (id: number)  = > {
-      await apiRequest("DELETE", `/api/products/${id}`);
+  const deleteMutation = useMutation({
+    mutationFn: async (id: number) => {
+      await apiRequest("DELETE", `/api/products/${id}`)
     },
-    onSuccess: ()  = > {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/products"] })
       queryClient.invalidateQueries({ queryKey: ["/api/dashboard/metrics"] })
       toast({ title: "Product deleted successfully" })
-      setDeleteProduct(undefined);
+      setDeleteProduct(undefined)
     },
-    onError: ()  = > {
+    onError: () => {
       toast({ title: "Failed to delete product", variant: "destructive" })
     }
   });
 ;
-  const filteredAndSortedProducts  =  useMemo(()  = > {;
-    let result  =  products?.filter(product  = >
+  const filteredAndSortedProducts = useMemo(() => {;
+    let result = products?.filter(product =>
       product.name.toLowerCase().includes(search.toLowerCase()) ||
       product.sku.toLowerCase().includes(search.toLowerCase()) ||
       product.category.toLowerCase().includes(search.toLowerCase())
     ) || [];
 
     // Sort products
-    result.sort((a, b)  = > {
+    result.sort((a, b) => {
       switch (sortBy) {
         case "name-asc":;
           return a.name.localeCompare(b.name);
@@ -82,18 +82,18 @@ export default function Inventory() {;
     return result
   }, [products, search, sortBy]);
 ;
-  const handleEdit  =  (product: Product)  = > {
+  const handleEdit = (product: Product) => {
     setEditingProduct(product);
-    setShowProductForm(true);
+    setShowProductForm(true)
   };
 ;
-  const handleDelete  =  (product: Product)  = > {
-    setDeleteProduct(product);
+  const handleDelete = (product: Product) => {
+    setDeleteProduct(product)
   };
 ;
-  const handleFormClose  =  ()  = > {
+  const handleFormClose = () => {
     setShowProductForm(false);
-    setEditingProduct(undefined);
+    setEditingProduct(undefined)
   };
 ;
   return (
@@ -109,13 +109,13 @@ export default function Inventory() {;
               <Input
                 placeholder = "Search products..."
                 value = {search}
-                onChange = {(e)  = > setSearch(e.target.value)}
+                onChange = {(e) => setSearch(e.target.value)}
                 className = "pl-10 min-h-[48px]"
               />
             </div>
 
             <Button
-              onClick = {()  = > setShowProductForm(true)}
+              onClick = {() => setShowProductForm(true)}
               className = "bg-purple-600 hover:bg-purple-700 text-white min-h-[48px] px-4 whitespace-nowrap"
             >
               <Plus className = "h-4 w-4 mr-2" />
@@ -126,7 +126,7 @@ export default function Inventory() {;
 
         {/* Sort dropdown */}
         <div className = "mt-4 flex justify-start sm:justify-end">
-          <Select value = {sortBy} onValueChange = {(value: SortOption)  = > setSortBy(value)}>
+          <Select value = {sortBy} onValueChange = {(value: SortOption) => setSortBy(value)}>
             <SelectTrigger className = "w-full sm:w-48 min-h-[48px]">
               <SelectValue placeholder = "Sort by..." />
             </SelectTrigger>
@@ -144,7 +144,7 @@ export default function Inventory() {;
       <div className = "container mx-auto px-4 sm:px-6 py-4 sm:py-6">
         {isLoading ? (
           <div className = "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-            {[...Array(6)].map((_, i)  = > (
+            {[...Array(6)].map((_, i) => (
               <div key = {i} className = "bg-white dark:bg-[#1F1F1F] border border-gray-200 dark:border-gray-700 rounded-lg p-4 sm:p-6">
                 <Skeleton className = "h-6 w-3/4 mb-3" />
                 <Skeleton className = "h-4 w-1/2 mb-2" />
@@ -166,7 +166,7 @@ export default function Inventory() {;
           </div>
         ) : (
           <div className = "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-            {filteredAndSortedProducts.map((product)  = > (
+            {filteredAndSortedProducts.map((product) => (
               <div
                 key = {product.id}
                 className = "bg-white dark:bg-[#1F1F1F] border border-gray-200 dark:border-gray-700 rounded-lg p-4 shadow-md hover:shadow-lg transition-shadow duration-200 dark:shadow-[0_4px_8px_rgba(0,0,0,0.5)]"
@@ -199,14 +199,14 @@ export default function Inventory() {;
                 {/* Action Buttons */}
                 <div className = "flex gap-2 mt-4">
                   <Button
-                    onClick = {()  = > handleEdit(product)}
+                    onClick = {() => handleEdit(product)}
                     className = "flex-1 md:flex-none md:px-4 py-1 bg-green-600 hover:bg-green-700 text-white rounded-md transition-colors duration-200"
                   >
                     <Edit className = "h-4 w-4 mr-1" />
                     Edit
                   </Button>
                   <Button
-                    onClick = {()  = > handleDelete(product)}
+                    onClick = {() => handleDelete(product)}
                     className = "flex-1 md:flex-none md:px-4 py-1 bg-red-600 hover:bg-red-700 text-white rounded-md transition-colors duration-200"
                   >
                     <Trash2 className = "h-4 w-4 mr-1" />
@@ -227,7 +227,7 @@ export default function Inventory() {;
       />
 
       {/* Delete Confirmation Dialog */}
-      <AlertDialog open = {!!deleteProduct} onOpenChange = {()  = > setDeleteProduct(undefined)}>
+      <AlertDialog open = {!!deleteProduct} onOpenChange = {() => setDeleteProduct(undefined)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Product</AlertDialogTitle>
@@ -238,7 +238,7 @@ export default function Inventory() {;
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
-              onClick = {()  = > deleteProduct && deleteMutation.mutate(deleteProduct.id)}
+              onClick = {() => deleteProduct && deleteMutation.mutate(deleteProduct.id)}
               className = "bg-red-600 hover:bg-red-700"
             >
               Delete
@@ -247,5 +247,5 @@ export default function Inventory() {;
         </AlertDialogContent>
       </AlertDialog>
     </div>
-  );
+  )
 }

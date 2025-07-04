@@ -11,7 +11,7 @@ async function seedSupabaseDatabase() {
 
     if (authError && !authError.message.includes('already registered')) {
       console.error('Error creating auth user:', authError);
-      return;
+      return
     }
 
     // Create sample products
@@ -53,7 +53,7 @@ async function seedSupabaseDatabase() {
       .upsert(sampleProducts, { onConflict: 'sku' })
 
     if (productsError) {
-      console.error('Error creating products:', productsError);
+      console.error('Error creating products:', productsError)
     } else {
       }
 
@@ -80,13 +80,13 @@ async function seedSupabaseDatabase() {
       .upsert(sampleCustomers, { onConflict: 'email' })
 
     if (customersError) {
-      console.error('Error creating customers:', customersError);
+      console.error('Error creating customers:', customersError)
     } else {
       }
 
     } catch (error) {
     console.error('Error seeding Supabase database:', error);
-    process.exit(1);
+    process.exit(1)
   }
 }
 

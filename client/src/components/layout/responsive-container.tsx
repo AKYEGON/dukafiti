@@ -11,10 +11,10 @@ interface ResponsiveContainerProps {
 export function ResponsiveContainer({
   children,
   className,
-  maxWidth  =  "full",
-  padding  =  "md"
+  maxWidth = "full",
+  padding = "md"
 }: ResponsiveContainerProps) {;
-  const maxWidthClasses  =  {
+  const maxWidthClasses = {
     sm: "max-w-2xl",
     md: "max-w-4xl",
     lg: "max-w-6xl",
@@ -23,7 +23,7 @@ export function ResponsiveContainer({
     full: "max-w-full"
   };
 ;
-  const paddingClasses  =  {
+  const paddingClasses = {
     none: "",
     sm: "px-4 py-4 sm:px-6 sm:py-6",
     md: "px-4 py-4 sm:px-6 sm:py-6 md:px-8 md:py-8",
@@ -39,5 +39,5 @@ export function ResponsiveContainer({
     )}>
       {children}
     </div>
-  );
+  )
 }

@@ -12,10 +12,10 @@ import { type Customer } from "@shared/schema";
 
 interface SaleConfirmationModalProps {
   open: boolean
-  onOpenChange: (open: boolean)  = > void
+  onOpenChange: (open: boolean) => void
   items: SaleLineItem[]
   paymentMethod: 'cash' | 'credit' | 'mobileMoney' | ''
-  onConfirm: (customer?: { name: string; phone?: string; isNew?: boolean })  = > void
+  onConfirm: (customer?: { name: string; phone?: string; isNew?: boolean }) => void
   isProcessing?: boolean
 };
 
@@ -33,44 +33,44 @@ export function SaleConfirmationModal({
   const [isNewCustomer, setIsNewCustomer]  =  useState(false);
 ;
   const { toast }  =  useToast();
-  const queryClient  =  useQueryClient();
+  const queryClient = useQueryClient();
 
   // Fetch existing customers;
-  const { data: customers  =  [] }  =  useQuery<Customer[]>({
+  const { data: customers = [] }  =  useQuery<Customer[]>({
     queryKey: ["/api/customers"],
     enabled: paymentMethod  ===  'credit' && open
   });
 ;
-  const total  =  items.reduce((sum, item)  = > sum + parseFloat(item.total), 0);
+  const total = items.reduce((sum, item) => sum + parseFloat(item.total), 0);
 
   // Handle customer selection;
-  const handleCustomerSelect  =  (mode: string)  = > {;
+  const handleCustomerSelect = (mode: string) => {;
     if (mode  ===  'new') {
       setIsNewCustomer(true);
       setSelectedCustomerId('');
       setCustomerName('');
-      setCustomerPhone('');
+      setCustomerPhone('')
     } else if (mode  ===  'existing') {
       setIsNewCustomer(false);
       setSelectedCustomerId('');
       setCustomerName('');
-      setCustomerPhone('');
+      setCustomerPhone('')
     }
   };
 
   // Reset form when modal opens/closes
-  useEffect(()  = > {;
+  useEffect(() => {;
     if (!open) {
       setSelectedCustomerId('');
       setCustomerName('');
       setCustomerPhone('');
-      setIsNewCustomer(false);
+      setIsNewCustomer(false)
     }
   }, [open]);
 ;
-  const handleConfirm  =  ()  = > {;
+  const handleConfirm = () => {;
     if (paymentMethod  ===  'credit' && !customerName.trim()) {
-      return; // Validation handled by button disabled state;
+      return; // Validation handled by button disabled state
     };
 
     if (paymentMethod  ===  'credit') {
@@ -78,19 +78,19 @@ export function SaleConfirmationModal({
         name: customerName.trim(),
         phone: customerPhone.trim() || undefined,
         isNew: isNewCustomer
-      });
+      })
     } else {
-      onConfirm();
+      onConfirm()
     }
 
-    onOpenChange(false);
+    onOpenChange(false)
   };
 ;
-  const handleCancel  =  ()  = > {
-    onOpenChange(false);
+  const handleCancel = () => {
+    onOpenChange(false)
   };
 ;
-  const getPaymentMethodIcon  =  (method: string)  = > {
+  const getPaymentMethodIcon = (method: string) => {
     switch (method) {
       case 'cash': return <Banknote className = "w-4 h-4" />
 
@@ -115,7 +115,7 @@ export function SaleConfirmationModal({
           <div className = "space-y-2">
             <h3 className = "font-medium text-sm text-gray-700">Items:</h3>
             <div className = "bg-gray-50 rounded-lg p-3 space-y-2 max-h-40 overflow-y-auto">
-              {items.map((item)  = > (
+              {items.map((item) => (
                 <div key = {item.id} className = "flex justify-between items-center text-sm">
                   <div className = "flex-1">
                     <div className = "font-medium">{item.product.name}</div>
@@ -168,7 +168,7 @@ export function SaleConfirmationModal({
                     variant = {!isNewCustomer ? "default" : "outline"}
                     size = "sm"
                     className = {`flex-1 ${!isNewCustomer ? 'bg-blue-600 hover:bg-blue-700' : 'border-blue-300 text-blue-700 hover:bg-blue-50'}`}
-                    onClick = {()  = > handleCustomerSelect('existing')}
+                    onClick = {() => handleCustomerSelect('existing')}
                   >
                     Existing Customer
                   </Button>
@@ -177,7 +177,7 @@ export function SaleConfirmationModal({
                     variant = {isNewCustomer ? "default" : "outline"}
                     size = "sm"
                     className = {`flex-1 ${isNewCustomer ? 'bg-green-600 hover:bg-green-700' : 'border-green-300 text-green-700 hover:bg-green-50'}`}
-                    onClick = {()  = > handleCustomerSelect('new')}
+                    onClick = {() => handleCustomerSelect('new')}
                   >
                     + New Customer
                   </Button>
@@ -191,12 +191,12 @@ export function SaleConfirmationModal({
                     </label>
                     <Select
                       value = {selectedCustomerId}
-                      onValueChange = {(value)  = > {;
-                        const customer  =  customers.find(c  = > c.id.toString()  ===  value);
+                      onValueChange = {(value) => {;
+                        const customer = customers.find(c => c.id.toString()  ===  value);
                         if (customer) {
                           setSelectedCustomerId(value);
                           setCustomerName(customer.name);
-                          setCustomerPhone(customer.phone || '');
+                          setCustomerPhone(customer.phone || '')
                         }
                       }}
                     >
@@ -204,7 +204,7 @@ export function SaleConfirmationModal({
                         <SelectValue placeholder = "Choose a customer from your list" />
                       </SelectTrigger>
                       <SelectContent>
-                        {customers.map((customer)  = > (
+                        {customers.map((customer) => (
                           <SelectItem key = {customer.id} value = {customer.id.toString()}>
                             <div className = "flex justify-between w-full">
                               <span className = "font-medium">{customer.name}</span>
@@ -247,7 +247,7 @@ export function SaleConfirmationModal({
                       <input
                         type = "text"
                         value = {customerName}
-                        onChange = {(e)  = > setCustomerName(e.target.value)}
+                        onChange = {(e) => setCustomerName(e.target.value)}
                         placeholder = "Enter full name"
                         className = "w-full px-3 py-2 border border-green-300 rounded-md focus:border-green-500 focus:ring-green-500/20 focus:outline-none bg-white"
                         required
@@ -262,7 +262,7 @@ export function SaleConfirmationModal({
                       <input
                         type = "tel"
                         value = {customerPhone}
-                        onChange = {(e)  = > setCustomerPhone(e.target.value)}
+                        onChange = {(e) => setCustomerPhone(e.target.value)}
                         placeholder = "e.g. 0712345678"
                         className = "w-full px-3 py-2 border border-green-300 rounded-md focus:border-green-500 focus:ring-green-500/20 focus:outline-none bg-white"
                       />
@@ -298,5 +298,5 @@ export function SaleConfirmationModal({
         </div>
       </DialogContent>
     </Dialog>
-  );
+  )
 }

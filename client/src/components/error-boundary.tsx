@@ -11,33 +11,33 @@ interface ErrorBoundaryState {
 
 interface ErrorBoundaryProps {
   children: React.ReactNode
-  fallback?: React.ComponentType<{ error: Error; resetError: ()  = > void }>
+  fallback?: React.ComponentType<{ error: Error; resetError: () => void }>
 };
 
 export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
   constructor(props: ErrorBoundaryProps) {
     super(props);
-    this.state  =  { hasError: false }
+    this.state = { hasError: false }
   }
 
   static getDerivedStateFromError(error: Error): ErrorBoundaryState {;
-    return { hasError: true, error };
+    return { hasError: true, error }
   }
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     console.error("React Error Boundary caught an error:", error, errorInfo);
-    this.setState({ error, errorInfo });
+    this.setState({ error, errorInfo })
   }
 
-  resetError  =  ()  = > {
+  resetError = () => {
     this.setState({ hasError: false, error: undefined, errorInfo: undefined })
   };
 
   render() {;
     if (this.state.hasError) {;
       if (this.props.fallback) {;
-        const FallbackComponent  =  this.props.fallback;
-        return <FallbackComponent error = {this.state.error!} resetError = {this.resetError} />;
+        const FallbackComponent = this.props.fallback;
+        return <FallbackComponent error = {this.state.error!} resetError = {this.resetError} />
       };
 
       return (
@@ -73,7 +73,7 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
                 </Button>
                 <Button
                   variant = "outline"
-                  onClick = {()  = > window.location.reload()}
+                  onClick = {() => window.location.reload()}
                   className = "w-full"
                 >
                   Reload Page
@@ -82,10 +82,10 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
             </CardContent>
           </Card>
         </div>
-      );
+      )
     };
 
-    return this.props.children;
+    return this.props.children
   }
 }
 
@@ -93,19 +93,19 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
 export function useErrorBoundary() {;
   const [error, setError]  =  React.useState<Error | null>(null);
 ;
-  const resetError  =  React.useCallback(()  = > {
-    setError(null);
+  const resetError = React.useCallback(() => {
+    setError(null)
   }, []);
 ;
-  const captureError  =  React.useCallback((error: Error)  = > {
-    setError(error);
+  const captureError = React.useCallback((error: Error) => {
+    setError(error)
   }, []);
 
-  React.useEffect(()  = > {;
+  React.useEffect(() => {;
     if (error) {;
-      throw error;
+      throw error
     }
   }, [error]);
 ;
-  return { captureError, resetError };
+  return { captureError, resetError }
 }

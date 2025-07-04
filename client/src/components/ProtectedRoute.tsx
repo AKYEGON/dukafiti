@@ -6,13 +6,13 @@ interface ProtectedRouteProps {
   children: React.ReactNode
 };
 
-export const ProtectedRoute: React.FC<ProtectedRouteProps>  =  ({ children })  = > {;
+export const ProtectedRoute: React.FC<ProtectedRouteProps>  =  ({ children }) => {;
   const { user, isLoading }  =  useAuth();
   const [, navigate]  =  useLocation();
 
-  React.useEffect(()  = > {;
+  React.useEffect(() => {;
     if (!isLoading && !user) {
-      navigate('/login');
+      navigate('/login')
     }
   }, [user, isLoading, navigate]);
 ;
@@ -24,14 +24,14 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps>  =  ({ children })  =
           <p className = "text-gray-600 dark:text-gray-400">Loading...</p>
         </div>
       </div>
-    );
+    )
   };
 
   if (!user) {;
-    return null; // Will redirect to login via useEffect;
+    return null; // Will redirect to login via useEffect
   };
 
-  return <>{children}</>;
+  return <>{children}</>
 };
 ;
 export default ProtectedRoute;

@@ -13,11 +13,11 @@ function runCommand(command, description) {
   console.log(`\n🔄 ${description}...`);
   try {
     execSync(command, { stdio: 'inherit' });
-    console.log(`✅ ${description} completed`);
+    console.log(`✅ ${description} completed`)
   } catch (error) {
     console.error(`❌ ${description} failed:`);
     console.error(error.message);
-    process.exit(1);
+    process.exit(1)
   }
 }
 
@@ -39,20 +39,20 @@ function main() {
   // Verify the dist directory exists
   if (!fs.existsSync('dist')) {
     console.error('❌ Build failed: dist directory not created');
-    process.exit(1);
+    process.exit(1)
   }
 
   // Verify the backend bundle exists
   if (!fs.existsSync('dist/index.js')) {
     console.error('❌ Build failed: backend bundle not created');
-    process.exit(1);
+    process.exit(1)
   }
 
   console.log('\n✅ Railway build completed successfully!');
   console.log('📁 Output files:');
   console.log('   - Frontend: dist/public/');
   console.log('   - Backend: dist/index.js');
-  console.log('\n🚀 Ready for Railway deployment');
+  console.log('\n🚀 Ready for Railway deployment')
 }
 
 main();

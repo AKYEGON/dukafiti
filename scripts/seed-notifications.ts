@@ -30,11 +30,11 @@ async function seedNotifications() {
     ];
 
     for (const notification of sampleNotifications) {
-      await storage.createNotification(notification);
+      await storage.createNotification(notification)
       }
 
     } catch (error) {
-    console.error('Error seeding notifications:', error);
+    console.error('Error seeding notifications:', error)
   }
 }
 

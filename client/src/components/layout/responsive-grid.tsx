@@ -16,18 +16,18 @@ interface ResponsiveGridProps {
 export function ResponsiveGrid({
   children,
   className,
-  columns  =  { mobile: 1, tablet: 2, desktop: 3 },
-  gap  =  "md",
-  minItemWidth  =  "300px"
+  columns = { mobile: 1, tablet: 2, desktop: 3 },
+  gap = "md",
+  minItemWidth = "300px"
 }: ResponsiveGridProps) {;
-  const gapClasses  =  {
+  const gapClasses = {
     sm: "gap-3 sm:gap-4",
     md: "gap-4 sm:gap-6",
     lg: "gap-6 sm:gap-8"
   };
 
   // Build responsive grid classes;
-  const gridClasses  =  [
+  const gridClasses = [
     `grid-cols-${columns.mobile}`,
     columns.tablet && `sm:grid-cols-${columns.tablet}`,
     columns.desktop && `lg:grid-cols-${columns.desktop}`
@@ -47,7 +47,7 @@ export function ResponsiveGrid({
     >
       {children}
     </div>
-  );
+  )
 }
 
 // Responsive card component optimized for mobile and tablet
@@ -61,10 +61,10 @@ interface ResponsiveCardProps {
 export function ResponsiveCard({
   children,
   className,
-  hover  =  true,
-  padding  =  "md"
+  hover = true,
+  padding = "md"
 }: ResponsiveCardProps) {;
-  const paddingClasses  =  {
+  const paddingClasses = {
     sm: "p-4 sm:p-5",
     md: "p-4 sm:p-6",
     lg: "p-6 sm:p-8"
@@ -79,5 +79,5 @@ export function ResponsiveCard({
     )}>
       {children}
     </div>
-  );
+  )
 }

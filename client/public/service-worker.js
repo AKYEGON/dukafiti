@@ -29,7 +29,7 @@ self.addEventListener('install', (event) => {
     Promise.all([
       // Cache static assets
       caches.open(CACHE_NAME).then((cache) => {
-        return cache.addAll(urlsToCache);
+        return cache.addAll(urlsToCache)
       }),
       // Cache core API routes
       caches.open(API_CACHE_NAME).then((cache) => {
@@ -38,31 +38,31 @@ self.addEventListener('install', (event) => {
             return fetch(url)
               .then((response) => {
                 if (response.ok) {
-                  return cache.put(url, response);
+                  return cache.put(url, response)
                 }
               })
               .catch((error) => {
-                console.warn(`Service Worker: Failed to cache API route ${url}:`, error);
-              });
+                console.warn(`Service Worker: Failed to cache API route ${url}:`, error)
+              })
           })
-        );
+        )
       })
     ])
       .then(() => {
-        return self.skipWaiting();
+        return self.skipWaiting()
       })
       .catch((error) => {
-        console.error('Service Worker: Install failed:', error);
+        console.error('Service Worker: Install failed:', error)
       })
-  );
+  )
 });
 
 // Handle skip waiting message and sync triggers
 self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'SKIP_WAITING') {
-    self.skipWaiting();
+    self.skipWaiting()
   } else if (event.data && event.data.type === 'TRIGGER_SYNC') {
-    syncQueuedActions();
+    syncQueuedActions()
   }
 });
 
@@ -74,22 +74,22 @@ self.addEventListener('activate', (event) => {
         return Promise.all(
           cacheNames.map((cacheName) => {
             if (cacheName !== CACHE_NAME && cacheName !== API_CACHE_NAME) {
-              return caches.delete(cacheName);
+              return caches.delete(cacheName)
             }
           })
-        );
+        )
       })
       .then(() => {
-        return self.clients.claim();
+        return self.clients.claim()
       })
-  );
+  )
 });
 
 // Fetch event - enhanced offline strategy
 self.addEventListener('fetch', (event) => {
   // Skip cross-origin requests
   if (!event.request.url.startsWith(self.location.origin)) {
-    return;
+    return
   }
 
   const url = new URL(event.request.url);
@@ -97,7 +97,7 @@ self.addEventListener('fetch', (event) => {
   // Handle API requests with network-first, cache-fallback strategy
   if (url.pathname.startsWith('/api/')) {
     event.respondWith(handleApiRequest(event.request));
-    return;
+    return
   }
 
   // Handle static assets with cache-first strategy
@@ -106,38 +106,38 @@ self.addEventListener('fetch', (event) => {
       .then((response) => {
         // Return cached version or fetch from network
         if (response) {
-          return response;
+          return response
         }
 
         return fetch(event.request)
           .then((response) => {
             // Don't cache if not a valid response
             if (!response || response.status !== 200 || response.type !== 'basic') {
-              return response;
+              return response
             }
 
             // Clone the response before caching
             const responseToCache = response.clone();
             caches.open(CACHE_NAME)
               .then((cache) => {
-                cache.put(event.request, responseToCache);
+                cache.put(event.request, responseToCache)
               });
 
-            return response;
+            return response
           })
           .catch((error) => {
             console.error('Service Worker: Fetch failed:', error);
 
             // Return offline page for navigation requests
             if (event.request.mode === 'navigate') {
-              return caches.match('/offline.html') || caches.match('/');
+              return caches.match('/offline.html') || caches.match('/')
             }
 
             // For other requests, try to return cached version or fail gracefully
-            return caches.match('/') || new Response('Offline', { status: 503 });
-          });
+            return caches.match('/') || new Response('Offline', { status: 503 })
+          })
       })
-  );
+  )
 });
 
 // Enhanced API request handler
@@ -153,7 +153,7 @@ async function handleApiRequest(request) {
         // Cache successful responses
         const cache = await caches.open(API_CACHE_NAME);
         cache.put(request, networkResponse.clone());
-        return networkResponse;
+        return networkResponse
       }
     } catch (error) {
       }
@@ -164,7 +164,7 @@ async function handleApiRequest(request) {
       // Add cache indicator header
       const response = cachedResponse.clone();
       response.headers.set('X-Served-From-Cache', 'true');
-      return response;
+      return response
     }
 
     // Return offline indicator for failed API requests
@@ -175,15 +175,15 @@ async function handleApiRequest(request) {
     }), {
       status: 503,
       headers: { 'Content-Type': 'application/json' }
-    });
+    })
   } else {
     // For write operations: check if offline and queue
     if (!navigator.onLine) {
-      return queueOfflineAction(request);
+      return queueOfflineAction(request)
     }
 
     // Otherwise, pass through to network
-    return fetch(request);
+    return fetch(request)
   }
 }
 
@@ -208,9 +208,9 @@ async function queueOfflineAction(request) {
       clients.forEach(client => {
         client.postMessage({
           type: 'ACTION_QUEUED',
-          action: action;
-        });
-      });
+          action: action
+        })
+      })
     });
 
     return new Response(JSON.stringify({
@@ -220,7 +220,7 @@ async function queueOfflineAction(request) {
     }), {
       status: 202,
       headers: { 'Content-Type': 'application/json' }
-    });
+    })
   } catch (error) {
     console.error('Service Worker: Failed to queue action:', error);
     return new Response(JSON.stringify({
@@ -229,7 +229,7 @@ async function queueOfflineAction(request) {
     }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' }
-    });
+    })
   }
 }
 
@@ -247,23 +247,23 @@ function openDB() {
       // Legacy sales store
       if (!db.objectStoreNames.contains('pendingSales')) {
         const store = db.createObjectStore('pendingSales', { keyPath: 'id' });
-        store.createIndex('timestamp', 'timestamp', { unique: false });
+        store.createIndex('timestamp', 'timestamp', { unique: false })
       }
 
       // Enhanced action queue for all operations
       if (!db.objectStoreNames.contains('actionQueue')) {
         const store = db.createObjectStore('actionQueue', { keyPath: 'id' });
         store.createIndex('timestamp', 'timestamp', { unique: false });
-        store.createIndex('type', 'type', { unique: false });
+        store.createIndex('type', 'type', { unique: false })
       }
 
       // Cache for offline data
       if (!db.objectStoreNames.contains('offlineCache')) {
         const store = db.createObjectStore('offlineCache', { keyPath: 'key' });
-        store.createIndex('timestamp', 'timestamp', { unique: false });
+        store.createIndex('timestamp', 'timestamp', { unique: false })
       }
-    };
-  });
+    }
+  })
 }
 
 // Add action to queue
@@ -274,8 +274,8 @@ async function addToQueue(db, action) {
     const request = store.add(action);
 
     request.onsuccess = () => resolve();
-    request.onerror = () => reject(request.error);
-  });
+    request.onerror = () => reject(request.error)
+  })
 }
 
 // Get all queued actions
@@ -286,8 +286,8 @@ async function getQueuedActions(db) {
     const request = store.getAll();
 
     request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error);
-  });
+    request.onerror = () => reject(request.error)
+  })
 }
 
 // Remove action from queue
@@ -298,8 +298,8 @@ async function removeFromQueue(db, actionId) {
     const request = store.delete(actionId);
 
     request.onsuccess = () => resolve();
-    request.onerror = () => reject(request.error);
-  });
+    request.onerror = () => reject(request.error)
+  })
 }
 
 async function getPendingSales() {
@@ -310,8 +310,8 @@ async function getPendingSales() {
     const request = store.getAll();
 
     request.onsuccess = () => resolve(request.result);
-    request.onerror = () => reject(request.error);
-  });
+    request.onerror = () => reject(request.error)
+  })
 }
 
 async function removePendingSale(saleId) {
@@ -322,16 +322,16 @@ async function removePendingSale(saleId) {
     const request = store.delete(saleId);
 
     request.onsuccess = () => resolve();
-    request.onerror = () => reject(request.error);
-  });
+    request.onerror = () => reject(request.error)
+  })
 }
 
 // Enhanced background sync for all queued actions
 self.addEventListener('sync', (event) => {
   if (event.tag === 'sync-actions') {
-    event.waitUntil(syncQueuedActions());
+    event.waitUntil(syncQueuedActions())
   } else if (event.tag === 'sync-sales') {
-    event.waitUntil(syncPendingSales());
+    event.waitUntil(syncPendingSales())
   }
 });
 
@@ -342,7 +342,7 @@ async function syncQueuedActions() {
     const queuedActions = await getQueuedActions(db);
 
     if (queuedActions.length === 0) {
-      return;
+      return
     }
 
     // Sort by timestamp (FIFO order)
@@ -365,10 +365,10 @@ async function syncQueuedActions() {
                 type: 'ACTION_SYNCED',
                 actionId: action.id,
                 success: true,
-                action: action;
-              });
-            });
-          });
+                action: action
+              })
+            })
+          })
         } else {
           console.error(`Service Worker: Failed to sync action ${action.id}:`, response.statusText);
 
@@ -379,10 +379,10 @@ async function syncQueuedActions() {
                 type: 'ACTION_SYNC_ERROR',
                 actionId: action.id,
                 error: response.statusText,
-                action: action;
-              });
-            });
-          });
+                action: action
+              })
+            })
+          })
         }
       } catch (error) {
         console.error(`Service Worker: Error syncing action ${action.id}:`, error);
@@ -394,14 +394,14 @@ async function syncQueuedActions() {
               type: 'ACTION_SYNC_ERROR',
               actionId: action.id,
               error: error.message,
-              action: action;
-            });
-          });
-        });
+              action: action
+            })
+          })
+        })
       }
     }
   } catch (error) {
-    console.error('Service Worker: Error during actions sync:', error);
+    console.error('Service Worker: Error during actions sync:', error)
   }
 }
 
@@ -411,7 +411,7 @@ async function syncPendingSales() {
     const pendingSales = await getPendingSales();
 
     if (pendingSales.length === 0) {
-      return;
+      return
     }
 
     for (const sale of pendingSales) {
@@ -441,20 +441,20 @@ async function syncPendingSales() {
               client.postMessage({
                 type: 'SALE_SYNCED',
                 saleId: sale.id,
-                success: true;
-              });
-            });
-          });
+                success: true
+              })
+            })
+          })
         } else {
-          console.error(`Service Worker: Failed to sync sale ${sale.id}:`, response.statusText);
+          console.error(`Service Worker: Failed to sync sale ${sale.id}:`, response.statusText)
         }
       } catch (error) {
         console.error(`Service Worker: Error syncing sale ${sale.id}:`, error);
-        // Sale remains in queue for next sync attempt;
+        // Sale remains in queue for next sync attempt
       }
     }
   } catch (error) {
-    console.error('Service Worker: Error during sales sync:', error);
+    console.error('Service Worker: Error during sales sync:', error)
   }
 }
 
@@ -469,7 +469,7 @@ self.addEventListener('push', (event) => {
       vibrate: [100, 50, 100],
       data: {
         dateOfArrival: Date.now(),
-        primaryKey: data.primaryKey || 1;
+        primaryKey: data.primaryKey || 1
       },
       actions: [
         {
@@ -487,6 +487,6 @@ self.addEventListener('push', (event) => {
 
     event.waitUntil(
       self.registration.showNotification(data.title || 'DukaFiti', options)
-    );
+    )
   }
 });

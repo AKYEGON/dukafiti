@@ -25,47 +25,45 @@ export default function Customers() {;
   const [filterType, setFilterType]  =  useState<"all" | "withDebt" | "noDebt">("all");
 
   // Filter and search customers;
-  const filteredCustomers  =  useMemo(()  = > {;
+  const filteredCustomers = useMemo(() => {;
     if (!customers) return [];
 ;
-    let filtered  =  customers.filter(customer  = > {;
-      const matchesSearch  =
-        customer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    let filtered = customers.filter(customer => {;
+      const matchesSearch =        customer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         (customer.phone && customer.phone.includes(searchQuery));
 ;
-      const balance  =  parseFloat(customer.balance || "0");
-      const matchesFilter  =
-        filterType  ===  "all" ||
+      const balance = parseFloat(customer.balance || "0");
+      const matchesFilter =        filterType  ===  "all" ||
         (filterType  ===  "withDebt" && balance > 0) ||
         (filterType  ===  "noDebt" && balance <= 0);
 ;
-      return matchesSearch && matchesFilter;
+      return matchesSearch && matchesFilter
     });
 
     // Sort by debt status (with debt first), then by name;
-    return filtered.sort((a, b)  = > {;
-      const aBalance  =  parseFloat(a.balance || "0");
-      const bBalance  =  parseFloat(b.balance || "0");
+    return filtered.sort((a, b) => {;
+      const aBalance = parseFloat(a.balance || "0");
+      const bBalance = parseFloat(b.balance || "0");
 ;
       if (aBalance > 0 && bBalance <= 0) return -1;
       if (aBalance <= 0 && bBalance > 0) return 1;
-      return a.name.localeCompare(b.name);
-    });
+      return a.name.localeCompare(b.name)
+    })
   }, [customers, searchQuery, filterType]);
 ;
-  const handleEditCustomer  =  (customer: Customer)  = > {
+  const handleEditCustomer = (customer: Customer) => {
     setSelectedCustomer(customer);
-    setShowEditCustomerForm(true);
+    setShowEditCustomerForm(true)
   };
 ;
-  const handleRecordRepayment  =  (customer: Customer)  = > {
+  const handleRecordRepayment = (customer: Customer) => {
     setSelectedCustomer(customer);
-    setShowRepaymentModal(true);
+    setShowRepaymentModal(true)
   };
 ;
-  const handleCloseRepaymentModal  =  ()  = > {
+  const handleCloseRepaymentModal = () => {
     setShowRepaymentModal(false);
-    setSelectedCustomer(null);
+    setSelectedCustomer(null)
   };
 ;
   if (isLoading) {;
@@ -80,7 +78,7 @@ export default function Customers() {;
 
           {/* Loading Cards */}
           <div className = "grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {[...Array(6)].map((_, i)  = > (
+            {[...Array(6)].map((_, i) => (
               <Card key = {i} className = "animate-pulse bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
                 <CardContent className = "p-6">
                   <div className = "h-4 bg-gray-200 dark:bg-gray-700 rounded mb-2"></div>
@@ -92,7 +90,7 @@ export default function Customers() {;
           </div>
         </div>
       </MobilePageWrapper>
-    );
+    )
   };
 
   return (
@@ -102,7 +100,7 @@ export default function Customers() {;
         <div className = "space-y-4">
           <div className = "flex items-center justify-between">
             <Button
-              onClick = {()  = > setShowNewCustomerForm(true)}
+              onClick = {() => setShowNewCustomerForm(true)}
               className = "bg-purple-600 hover:bg-purple-700 text-white min-h-[48px] px-6"
               aria-label = "Add new customer"
             >
@@ -119,14 +117,14 @@ export default function Customers() {;
                 type = "text"
                 placeholder = "Search by name or phone..."
                 value = {searchQuery}
-                onChange = {(e)  = > setSearchQuery(e.target.value)}
+                onChange = {(e) => setSearchQuery(e.target.value)}
                 className = "pl-10 min-h-[48px] border-gray-300 dark:border-gray-600 focus:border-green-500 focus:ring-green-500"
                 aria-label = "Search customers"
               />
             </div>
             <div className = "flex items-center gap-2">
               <Filter className = "h-4 w-4 text-gray-500" />
-              <Select value = {filterType} onValueChange = {(value: "all" | "withDebt" | "noDebt")  = > setFilterType(value)}>
+              <Select value = {filterType} onValueChange = {(value: "all" | "withDebt" | "noDebt") => setFilterType(value)}>
                 <SelectTrigger className = "w-40 min-h-[48px] border-gray-300 dark:border-gray-600 focus:border-green-500 focus:ring-green-500">
                   <SelectValue />
                 </SelectTrigger>
@@ -156,7 +154,7 @@ export default function Customers() {;
               </p>
               {customers?.length  ===  0 && (
                 <Button
-                  onClick = {()  = > setShowNewCustomerForm(true)}
+                  onClick = {() => setShowNewCustomerForm(true)}
                   className = "bg-green-600 hover:bg-green-700 text-white min-h-[48px]"
                 >
                   <Plus className = "mr-2 h-4 w-4" />
@@ -169,9 +167,9 @@ export default function Customers() {;
           /* Customer Cards Grid */
           <AnimatePresence>
             <div className = "grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-              {filteredCustomers.map((customer, index)  = > {;
-                const balance  =  parseFloat(customer.balance || "0");
-                const hasDebt  =  balance > 0;
+              {filteredCustomers.map((customer, index) => {;
+                const balance = parseFloat(customer.balance || "0");
+                const hasDebt = balance > 0;
 ;
                 return (
                   <motion.div
@@ -239,7 +237,7 @@ export default function Customers() {;
                         {/* Action Buttons */}
                         <div className = "flex gap-2 w-full">
                           <Button
-                            onClick = {()  = > handleEditCustomer(customer)}
+                            onClick = {() => handleEditCustomer(customer)}
                             variant = "outline"
                             size = "sm"
                             className = "min-h-[40px] border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 text-xs xl:text-sm px-3"
@@ -251,7 +249,7 @@ export default function Customers() {;
 
                           {hasDebt && (
                             <Button
-                              onClick = {()  = > handleRecordRepayment(customer)}
+                              onClick = {() => handleRecordRepayment(customer)}
                               size = "sm"
                               className = "flex-1 min-h-[40px] bg-green-600 hover:bg-green-700 text-white text-xs xl:text-sm px-2"
                               aria-label = {`Record repayment for ${customer.name}`}
@@ -264,7 +262,7 @@ export default function Customers() {;
                       </CardContent>
                     </Card>
                   </motion.div>
-                );
+                )
               })}
             </div>
           </AnimatePresence>
@@ -293,5 +291,5 @@ export default function Customers() {;
         )}
       </div>
     </MobilePageWrapper>
-  );
+  )
 }

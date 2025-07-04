@@ -23,7 +23,7 @@ type CustomerFormData = z.infer<typeof customerFormSchema>;
 interface CustomerFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  customer?: Customer;
+  customer?: Customer
 }
 
 export function CustomerForm({ open, onOpenChange, customer }: CustomerFormProps) {
@@ -46,13 +46,13 @@ export function CustomerForm({ open, onOpenChange, customer }: CustomerFormProps
         name: customer.name || "",
         phone: customer.phone || "",
         balance: customer.balance || ""
-      });
+      })
     } else {
       form.reset({
         name: "",
         phone: "",
         balance: ""
-      });
+      })
     }
   }, [customer, form]);
 
@@ -68,7 +68,7 @@ export function CustomerForm({ open, onOpenChange, customer }: CustomerFormProps
         })
       });
       if (!response.ok) throw new Error("Failed to create customer");
-      return response.json();
+      return response.json()
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/customers"] });
@@ -77,14 +77,14 @@ export function CustomerForm({ open, onOpenChange, customer }: CustomerFormProps
         description: "Customer created successfully"
       });
       onOpenChange(false);
-      form.reset();
+      form.reset()
     },
     onError: (error) => {
       toast({
         title: "Error",
         description: `Failed to create customer: ${error.message}`,
         variant: "destructive"
-      });
+      })
     }
   });
 
@@ -99,7 +99,7 @@ export function CustomerForm({ open, onOpenChange, customer }: CustomerFormProps
           balance: data.balance || "0.00"
         })
       });
-      return response;
+      return response
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/customers"] });
@@ -107,22 +107,22 @@ export function CustomerForm({ open, onOpenChange, customer }: CustomerFormProps
         title: "Success",
         description: "Customer updated successfully"
       });
-      onOpenChange(false);
+      onOpenChange(false)
     },
     onError: (error) => {
       toast({
         title: "Error",
         description: `Failed to update customer: ${error.message}`,
         variant: "destructive"
-      });
+      })
     }
   });
 
   const onSubmit = (data: CustomerFormData) => {
     if (customer) {
-      updateCustomer.mutate(data);
+      updateCustomer.mutate(data)
     } else {
-      createCustomer.mutate(data);
+      createCustomer.mutate(data)
     }
   };
 
@@ -212,5 +212,5 @@ export function CustomerForm({ open, onOpenChange, customer }: CustomerFormProps
         </Card>
       </DialogContent>
     </Dialog>
-  );
+  )
 }

@@ -7,10 +7,10 @@ import { formatCurrency } from "@/lib/utils";
 
 interface MiniCartProps {
   items: SaleLineItem[]
-  onQuantityChange: (id: string, quantity: number)  = > void
-  onRemoveItem: (id: string)  = > void
-  onClearCart: ()  = > void
-  onCheckout: ()  = > void
+  onQuantityChange: (id: string, quantity: number) => void
+  onRemoveItem: (id: string) => void
+  onClearCart: () => void
+  onCheckout: () => void
   isProcessing?: boolean
 };
 
@@ -20,13 +20,13 @@ export function MiniCart({
   onRemoveItem,
   onClearCart,
   onCheckout,
-  isProcessing  =  false;
+  isProcessing = false
 }: MiniCartProps) {;
-  const totalAmount  =  items.reduce((sum, item)  = > {;
-    return sum + parseFloat(item.total);
+  const totalAmount = items.reduce((sum, item) => {;
+    return sum + parseFloat(item.total)
   }, 0);
 ;
-  const totalItems  =  items.reduce((sum, item)  = > sum + item.quantity, 0);
+  const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
 ;
   if (items.length  ===  0) {;
     return (
@@ -41,7 +41,7 @@ export function MiniCart({
           </p>
         </CardContent>
       </Card>
-    );
+    )
   };
 
   return (
@@ -56,7 +56,7 @@ export function MiniCart({
       <CardContent className = "space-y-3">
         {/* Line Items */}
         <div className = "space-y-3 max-h-96 overflow-y-auto">
-          {items.map((item)  = > (
+          {items.map((item) => (
             <SaleLineItemComponent
               key = {item.id}
               item = {item}
@@ -106,7 +106,7 @@ export function MiniCart({
         </div>
 
         {/* Stock Warnings */}
-        {items.some(item  = > item.quantity > item.product.stock) && (
+        {items.some(item => item.quantity > item.product.stock) && (
           <div className = "bg-red-50 border border-red-200 rounded-lg p-3 mt-4">
             <div className = "flex items-start gap-2">
               <div className = "w-4 h-4 bg-red-500 rounded-full flex items-center justify-center flex-shrink-0 mt-0.5">
@@ -123,5 +123,5 @@ export function MiniCart({
         )}
       </CardContent>
     </Card>
-  );
+  )
 }

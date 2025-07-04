@@ -15,14 +15,14 @@ try {
   if (fs.existsSync(distPublicDir)) {
     // Remove build directory if it exists
     if (fs.existsSync(buildDir)) {
-      fs.rmSync(buildDir, { recursive: true, force: true });
+      fs.rmSync(buildDir, { recursive: true, force: true })
     }
 
     // Create symlink from build to dist/public
-    fs.symlinkSync(distPublicDir, buildDir);
+    fs.symlinkSync(distPublicDir, buildDir)
     } else {
     if (!fs.existsSync(buildDir)) {
-      fs.mkdirSync(buildDir, { recursive: true });
+      fs.mkdirSync(buildDir, { recursive: true })
     }
 
     // Create a simple index.html for fallback
@@ -38,9 +38,9 @@ try {
 </body>
 </html>`;
 
-    fs.writeFileSync(path.join(buildDir, 'index.html'), fallbackHtml);
+    fs.writeFileSync(path.join(buildDir, 'index.html'), fallbackHtml)
     }
 } catch (error) {
   console.error('Error setting up build directory:', error);
-  process.exit(1);
+  process.exit(1)
 }

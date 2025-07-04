@@ -9,10 +9,10 @@ const distDir = path.join(__dirname, '..', 'dist');
 const publicDir = path.join(distDir, 'public');
 
 if (!fs.existsSync(distDir)) {
-  fs.mkdirSync(distDir, { recursive: true });
+  fs.mkdirSync(distDir, { recursive: true })
 }
 if (!fs.existsSync(publicDir)) {
-  fs.mkdirSync(publicDir, { recursive: true });
+  fs.mkdirSync(publicDir, { recursive: true })
 }
 
 try {
@@ -41,9 +41,9 @@ try {
     }
   };
 
-  fs.writeFileSync(path.join(distDir, 'package.json'), JSON.stringify(packageJson, null, 2));
+  fs.writeFileSync(path.join(distDir, 'package.json'), JSON.stringify(packageJson, null, 2))
 
   } catch (error) {
   console.error('❌ Build failed:', error.message);
-  process.exit(1);
+  process.exit(1)
 }

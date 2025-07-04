@@ -45,7 +45,7 @@ interface DetailedMetrics {
   customers: {
     active: number
     priorActive: number
-  };
+  }
 };
 
 export default function Dashboard() {;
@@ -66,40 +66,40 @@ export default function Dashboard() {;
   });
 
   // Quick Actions handlers;
-  const handleAddProduct  =  ()  = > {
-    setShowProductForm(true);
+  const handleAddProduct = () => {
+    setShowProductForm(true)
   };
 ;
-  const handleCreateOrder  =  ()  = > {
-    setLocation("/sales");
+  const handleCreateOrder = () => {
+    setLocation("/sales")
   };
 ;
-  const handleAddCustomer  =  ()  = > {
-    setShowCustomerForm(true);
+  const handleAddCustomer = () => {
+    setShowCustomerForm(true)
   };
 ;
-  const handleGenerateReport  =  ()  = > {
-    setLocation("/reports");
+  const handleGenerateReport = () => {
+    setLocation("/reports")
   };
 ;
-  const handleViewAllOrders  =  ()  = > {
-    setLocation("/reports");
+  const handleViewAllOrders = () => {
+    setLocation("/reports")
   };
 
   // Summary Card Component with accessibility and skeleton loading;
-  const SummaryCard  =  ({
+  const SummaryCard = ({
     title,
     value,
     icon: Icon,
     isLoading,
-    iconColor  =  "bg-green-600"
+    iconColor = "bg-green-600"
   }: {
     title: string
     value: string
     icon: any
     isLoading: boolean
     iconColor?: string
-  })  = > (
+  }) => (
     <div className = "bg-white dark:bg-[#1F1F1F] border border-gray-200 dark:border-gray-700 rounded-lg p-4 shadow-md hover:shadow-lg transition-shadow duration-200">
       <div className = "flex items-start justify-between">
         <div className = "flex-1">
@@ -122,17 +122,17 @@ export default function Dashboard() {;
   );
 
   // Quick Action Button Component;
-  const QuickActionButton  =  ({
+  const QuickActionButton = ({
     onClick,
     icon: Icon,
     label,
     ariaLabel
   }: {
-    onClick: ()  = > void
+    onClick: () => void
     icon: any
     label: string
     ariaLabel: string
-  })  = > (
+  }) => (
     <button
       onClick = {onClick}
       aria-label = {ariaLabel}
@@ -144,12 +144,12 @@ export default function Dashboard() {;
   );
 
   // Loading State Component;
-  const DashboardSkeleton  =  ()  = > (
+  const DashboardSkeleton = () => (
     <div className = "container mx-auto p-6">
       <div className = "grid grid-cols-1 gap-8">
         {/* Summary Cards Skeleton */}
         <div className = "grid grid-cols-2 sm:grid-cols-4 gap-4">
-          {[...Array(4)].map((_, i)  = > (
+          {[...Array(4)].map((_, i) => (
             <div key = {i} className = "bg-white dark:bg-[#1F1F1F] border border-gray-200 dark:border-gray-700 rounded-lg p-4">
               <Skeleton className = "h-4 w-3/4 mb-3 animate-pulse bg-gray-200 dark:bg-gray-700 rounded" />
               <Skeleton className = "h-8 w-1/2 animate-pulse bg-gray-200 dark:bg-gray-700 rounded" />
@@ -159,7 +159,7 @@ export default function Dashboard() {;
 
         {/* Quick Actions Skeleton */}
         <div className = "flex flex-wrap gap-4">
-          {[...Array(4)].map((_, i)  = > (
+          {[...Array(4)].map((_, i) => (
             <Skeleton key = {i} className = "h-16 w-48 rounded-lg animate-pulse bg-gray-200 dark:bg-gray-700" />
           ))}
         </div>
@@ -168,7 +168,7 @@ export default function Dashboard() {;
         <div className = "bg-white dark:bg-[#1F1F1F] border border-gray-200 dark:border-gray-700 rounded-lg p-6">
           <Skeleton className = "h-6 w-48 mb-4 animate-pulse bg-gray-200 dark:bg-gray-700 rounded" />
           <div className = "space-y-3">
-            {[...Array(4)].map((_, i)  = > (
+            {[...Array(4)].map((_, i) => (
               <Skeleton key = {i} className = "h-12 w-full animate-pulse bg-gray-200 dark:bg-gray-700 rounded" />
             ))}
           </div>
@@ -178,7 +178,7 @@ export default function Dashboard() {;
   );
 ;
   if (metricsLoading) {;
-    return <DashboardSkeleton />;
+    return <DashboardSkeleton />
   };
 
   return (
@@ -261,7 +261,7 @@ export default function Dashboard() {;
 
               {ordersLoading ? (
                 <div className = "space-y-3">
-                  {[...Array(4)].map((_, i)  = > (
+                  {[...Array(4)].map((_, i) => (
                     <Skeleton key = {i} className = "h-12 w-full animate-pulse bg-gray-200 dark:bg-gray-700 rounded" />
                   ))}
                 </div>
@@ -279,7 +279,7 @@ export default function Dashboard() {;
                         </TableRow>
                       </TableHeader>
                       <TableBody>
-                        {recentOrders.map((order, index)  = > (
+                        {recentOrders.map((order, index) => (
                           <TableRow
                             key = {order.id}
                             className = {`${
@@ -306,7 +306,7 @@ export default function Dashboard() {;
 
                   {/* Mobile Cards */}
                   <div className = "md:hidden space-y-4">
-                    {recentOrders.map((order)  = > (
+                    {recentOrders.map((order) => (
                       <div key = {order.id} className = "bg-white dark:bg-[#1F1F1F] border border-gray-200 dark:border-gray-700 p-4 rounded-lg">
                         <div className = "flex justify-between items-start mb-2">
                           <span className = "font-medium text-neutral-900 dark:text-neutral-100">
@@ -344,5 +344,5 @@ export default function Dashboard() {;
         onOpenChange = {setShowCustomerForm}
       />
     </div>
-  );
+  )
 }

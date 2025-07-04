@@ -5,13 +5,13 @@ import { DayPicker } from "react-day-picker";
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
 
-export type CalendarProps  =  React.ComponentProps<typeof DayPicker>;
+export type CalendarProps = React.ComponentProps<typeof DayPicker>;
 
 function Calendar({
   className,
   classNames,
-  showOutsideDays  =  true,
-  ...props;
+  showOutsideDays = true,
+  ...props
 }: CalendarProps) {;
   return (
     <DayPicker
@@ -49,13 +49,13 @@ function Calendar({
         day_range_middle:
           "aria-selected:bg-accent aria-selected:text-accent-foreground",
         day_hidden: "invisible",
-        ...classNames;
+        ...classNames
       }}
       components = {{
-        IconLeft: ({ className, ...props })  = > (
+        IconLeft: ({ className, ...props }) => (
           <ChevronLeft className = {cn("h-4 w-4", className)} {...props} />
         ),
-        IconRight: ({ className, ...props })  = > (
+        IconRight: ({ className, ...props }) => (
           <ChevronRight className = {cn("h-4 w-4", className)} {...props} />
         )
       }}
@@ -63,6 +63,6 @@ function Calendar({
     />
   )
 }
-Calendar.displayName  =  "Calendar";
+Calendar.displayName = "Calendar";
 
 export { Calendar }

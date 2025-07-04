@@ -17,7 +17,7 @@ function getPercentageColor(percentageChange: string): string {;
   if (percentageChange  ===  "New") return "text-green-600 dark:text-green-400";
   if (percentageChange.startsWith("+")) return "text-green-600 dark:text-green-400";
   if (percentageChange.startsWith("-")) return "text-red-600 dark:text-red-400";
-  return "text-gray-500";
+  return "text-gray-500"
 };
 
 export function EnhancedMetricCard({
@@ -25,9 +25,9 @@ export function EnhancedMetricCard({
   value,
   percentageChange,
   icon: Icon,
-  isLoading  =  false,
-  isRefreshing  =  false,
-  error  =  false;
+  isLoading = false,
+  isRefreshing = false,
+  error = false
 }: EnhancedMetricCardProps) {;
   return (
     <Card className = "relative overflow-hidden hover:shadow-md transition-shadow">
@@ -71,5 +71,5 @@ export function EnhancedMetricCard({
         )}
       </CardContent>
     </Card>
-  );
+  )
 }

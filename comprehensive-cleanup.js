@@ -14,7 +14,7 @@ const EXCLUDED_FILES = ['comprehensive-cleanup.js', 'package-lock.json'];
 
 function cleanFile(filePath) {
   if (EXCLUDED_FILES.some(file => filePath.includes(file))) {
-    return;
+    return
   }
 
   try {
@@ -26,14 +26,14 @@ function cleanFile(filePath) {
     const consoleLogRegex = /^\s*console\.log\([^)]*\);\s*$/gm;
     if (consoleLogRegex.test(content)) {
       content = content.replace(consoleLogRegex, '');
-      changed = true;
+      changed = true
     }
 
     // Remove debugging comments
     const debugCommentRegex = /^\s*\/\/ (DEBUG|TEMP|TODO|FIXME|console\.log).*$/gm;
     if (debugCommentRegex.test(content)) {
       content = content.replace(debugCommentRegex, '');
-      changed = true;
+      changed = true
     }
 
     // Fix common JavaScript/TypeScript syntax issues
@@ -42,12 +42,12 @@ function cleanFile(filePath) {
       content = content.replace(/(?<!;)\n(\s*)(export |import |const |let |var |function |class |if |for |while |return |throw )/g, ';\n$1$2');
       
       // Remove duplicate semicolons
-      content = content.replace(/;;+/g, ';');
+      content = content.replace(/;+/g, ';');
       
       // Fix spacing around operators
       content = content.replace(/([^=!<>])=([^=])/g, '$1 = $2');
       content = content.replace(/([^=!<>])==([^=])/g, '$1 == $2');
-      content = content.replace(/([^=!<>])===([^=])/g, '$1 === $2');
+      content = content.replace(/([^=!<>])===([^=])/g, '$1 === $2')
     }
 
     // Clean up excessive whitespace
@@ -56,14 +56,14 @@ function cleanFile(filePath) {
 
     if (content !== originalContent) {
       fs.writeFileSync(filePath, content, 'utf8');
-      changed = true;
+      changed = true
     }
 
     if (changed) {
-      console.log(`✅ Cleaned: ${filePath}`);
+      console.log(`✅ Cleaned: ${filePath}`)
     }
   } catch (error) {
-    console.warn(`⚠️  Could not clean ${filePath}: ${error.message}`);
+    console.warn(`⚠️  Could not clean ${filePath}: ${error.message}`)
   }
 }
 
@@ -87,11 +87,11 @@ function main() {
       
       files.forEach(file => {
         if (!EXCLUDED_DIRS.some(dir => file.includes(dir))) {
-          cleanFile(file);
+          cleanFile(file)
         }
-      });
+      })
     } catch (error) {
-      console.warn(`Warning: Could not process pattern ${pattern}: ${error.message}`);
+      console.warn(`Warning: Could not process pattern ${pattern}: ${error.message}`)
     }
   });
 
@@ -100,11 +100,11 @@ function main() {
   console.log('   - Removed console.log statements');
   console.log('   - Fixed syntax inconsistencies');
   console.log('   - Cleaned whitespace');
-  console.log('   - Improved production readiness');
+  console.log('   - Improved production readiness')
 }
 
 if (import.meta.url === `file://${process.argv[1]}`) {
-  main();
+  main()
 }
 
 export { cleanFile, main };

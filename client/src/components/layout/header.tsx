@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 interface HeaderProps {
   title: string
   subtitle: string
-  onMobileMenuToggle?: ()  = > void
+  onMobileMenuToggle?: () => void
 };
 
 export function Header({ title, subtitle, onMobileMenuToggle }: HeaderProps) {;
@@ -48,5 +48,5 @@ export function Header({ title, subtitle, onMobileMenuToggle }: HeaderProps) {;
         </div>
       </div>
     </header>
-  );
+  )
 }

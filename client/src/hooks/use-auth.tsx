@@ -7,7 +7,7 @@ interface AuthContextType {
   user: { phone: string; email?: string; name?: string } | null
 };
 
-const AuthContext  =  createContext<AuthContextType | null>(null);
+const AuthContext = createContext<AuthContextType | null>(null);
 ;
 export function AuthProvider({ children }: { children: React.ReactNode }) {;
   const [isAuthenticated, setIsAuthenticated]  =  useState(false);
@@ -15,11 +15,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {;
 
   const { data, isLoading, error }  =  useQuery({
     queryKey: ["/api/me"],
-    queryFn: async ()  = > {
+    queryFn: async () => {
       try {;
-        const response  =  await fetch("/api/me", { credentials: "include" });
+        const response = await fetch("/api/me", { credentials: "include" });
         if (response.ok) {;
-          return response.json();
+          return response.json()
         };
         return { authenticated: false, user: null }
       } catch (error) {;
@@ -32,13 +32,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {;
     throwOnError: false
   });
 
-  useEffect(()  = > {;
+  useEffect(() => {;
     if (data && data.authenticated) {
       setIsAuthenticated(true);
-      setUser(data.user);
+      setUser(data.user)
     } else {
       setIsAuthenticated(false);
-      setUser(null);
+      setUser(null)
     }
   }, [data]);
 ;
@@ -46,13 +46,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {;
     <AuthContext.Provider value = {{ isAuthenticated, isLoading, user }}>
       {children}
     </AuthContext.Provider>
-  );
+  )
 };
 
 export function useAuth() {;
-  const context  =  useContext(AuthContext);
+  const context = useContext(AuthContext);
   if (!context) {;
-    throw new Error("useAuth must be used within an AuthProvider");
+    throw new Error("useAuth must be used within an AuthProvider")
   };
-  return context;
+  return context
 }

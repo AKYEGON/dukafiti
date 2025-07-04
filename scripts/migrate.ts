@@ -9,5 +9,5 @@ try {
   migrate(db, { migrationsFolder: './drizzle' })
   } catch (error) {
   console.error('Migration failed:', error);
-  process.exit(1);
+  process.exit(1)
 }

@@ -8,7 +8,7 @@ export default function Home() {;
   const [, setLocation]  =  useLocation();
   const [mobileMenuOpen, setMobileMenuOpen]  =  useState(false);
 ;
-  const features  =  [
+  const features = [
     {
       icon: Store,
       title: "Smart Inventory",
@@ -29,7 +29,7 @@ export default function Home() {;
     }
   ];
 ;
-  const testimonials  =  [
+  const testimonials = [
     {
       quote: "DukaFiti helped me increase my profits by 40% in just 3 months. The inventory alerts saved me from stockouts during peak season.",
       author: "Mary Wanjiku",
@@ -58,7 +58,7 @@ export default function Home() {;
             {/* Desktop Navigation */}
             <div className = "hidden md:block">
               <Button
-                onClick = {()  = > setLocation("/login")}
+                onClick = {() => setLocation("/login")}
                 variant = "outline"
                 className = "border-gray-300 text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800"
               >
@@ -69,7 +69,7 @@ export default function Home() {;
             {/* Mobile menu button */}
             <div className = "md:hidden">
               <button
-                onClick = {()  = > setMobileMenuOpen(!mobileMenuOpen)}
+                onClick = {() => setMobileMenuOpen(!mobileMenuOpen)}
                 className = "text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
               >
                 {mobileMenuOpen ? <X className = "h-6 w-6" /> : <Menu className = "h-6 w-6" />}
@@ -81,7 +81,7 @@ export default function Home() {;
           {mobileMenuOpen && (
             <div className = "md:hidden py-4 border-t border-gray-200 dark:border-gray-700">
               <Button
-                onClick = {()  = > setLocation("/login")}
+                onClick = {() => setLocation("/login")}
                 variant = "outline"
                 className = "w-full border-gray-300 text-gray-700 hover:bg-gray-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-800"
               >
@@ -104,7 +104,7 @@ export default function Home() {;
                 Grow your business with intelligent inventory management, real-time sales tracking, and customer insights designed specifically for Kenyan retailers.
               </p>
               <Button
-                onClick = {()  = > setLocation("/register")}
+                onClick = {() => setLocation("/register")}
                 className = "bg-green-600 hover:bg-green-700 text-white px-8 py-4 text-lg font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 w-full sm:w-auto"
                 size = "lg"
               >
@@ -159,7 +159,7 @@ export default function Home() {;
           </div>
 
           <div className = "grid md:grid-cols-3 gap-8">
-            {features.map((feature, index)  = > (
+            {features.map((feature, index) => (
               <Card key = {index} className = {`bg-white dark:bg-gray-800 border-l-4 ${feature.accentColor} shadow-lg hover:shadow-xl transition-shadow duration-300`}>
                 <CardContent className = "p-8">
                   <div className = "mb-6">
@@ -221,11 +221,11 @@ export default function Home() {;
           </div>
 
           <div className = "grid md:grid-cols-2 gap-8">
-            {testimonials.map((testimonial, index)  = > (
+            {testimonials.map((testimonial, index) => (
               <Card key = {index} className = "bg-white dark:bg-gray-900 border-l-4 border-l-purple-600 shadow-lg p-6">
                 <CardContent className = "p-0">
                   <div className = "flex mb-4">
-                    {[...Array(5)].map((_, i)  = > (
+                    {[...Array(5)].map((_, i) => (
                       <Star key = {i} className = "h-5 w-5 text-yellow-400 fill-current" />
                     ))}
                   </div>
@@ -253,7 +253,7 @@ export default function Home() {;
             Join thousands of Kenyan retailers who are already growing with DukaFiti
           </p>
           <Button
-            onClick = {()  = > setLocation("/register")}
+            onClick = {() => setLocation("/register")}
             className = "bg-white text-green-600 hover:bg-gray-100 px-8 py-4 text-lg font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-200"
             size = "lg"
           >
@@ -283,5 +283,5 @@ export default function Home() {;
         </div>
       </footer>
     </div>
-  );
+  )
 }

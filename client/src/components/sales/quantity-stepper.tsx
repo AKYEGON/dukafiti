@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/input";
 
 interface QuantityStepperProps {
   value: number
-  onChange: (value: number)  = > void
+  onChange: (value: number) => void
   min?: number
   max?: number
   disabled?: boolean
@@ -13,26 +13,26 @@ interface QuantityStepperProps {
 export function QuantityStepper({
   value,
   onChange,
-  min  =  1,
-  max  =  999,
-  disabled  =  false
+  min = 1,
+  max = 999,
+  disabled = false
 }: QuantityStepperProps) {;
-  const handleIncrement  =  ()  = > {;
+  const handleIncrement = () => {;
     if (value < max) {
-      onChange(value + 1);
+      onChange(value + 1)
     }
   };
 ;
-  const handleDecrement  =  ()  = > {;
+  const handleDecrement = () => {;
     if (value > min) {
-      onChange(value - 1);
+      onChange(value - 1)
     }
   };
 ;
-  const handleInputChange  =  (e: React.ChangeEvent<HTMLInputElement>)  = > {;
-    const newValue  =  parseInt(e.target.value) || min;
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {;
+    const newValue = parseInt(e.target.value) || min;
     if (newValue >= min && newValue <= max) {
-      onChange(newValue);
+      onChange(newValue)
     }
   };
 ;
@@ -70,5 +70,5 @@ export function QuantityStepper({
         <Plus className = "h-4 w-4 text-[#00AA00]" />
       </Button>
     </div>
-  );
+  )
 }

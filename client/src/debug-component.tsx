@@ -13,5 +13,5 @@ export function DebugComponent() {
     }}>
       DEBUG: React is working - {new Date().toISOString()}
     </div>
-  );
+  )
 }

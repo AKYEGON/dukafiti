@@ -8,53 +8,53 @@ interface AuthContextType {
   session: Session | null
   isAuthenticated: boolean
   isLoading: boolean
-  login: (email: string, password: string)  = > Promise<{ error?: any }>
-  signup: (email: string, password: string)  = > Promise<{ error?: any }>
-  logout: ()  = > Promise<void>
+  login: (email: string, password: string) => Promise<{ error?: any }>
+  signup: (email: string, password: string) => Promise<{ error?: any }>
+  logout: () => Promise<void>
 };
 
-const AuthContext  =  createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<AuthContextType | undefined>(undefined);
 ;
-export const useAuth  =  ()  = > {;
-  const context  =  useContext(AuthContext);
+export const useAuth = () => {;
+  const context = useContext(AuthContext);
   if (context  ===  undefined) {;
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error('useAuth must be used within an AuthProvider')
   };
-  return context;
+  return context
 };
 
 interface AuthProviderProps {
   children: ReactNode
 };
 
-export const AuthProvider: React.FC<AuthProviderProps>  =  ({ children })  = > {;
+export const AuthProvider: React.FC<AuthProviderProps>  =  ({ children }) => {;
   const [user, setUser]  =  useState<User | null>(null);
   const [session, setSession]  =  useState<Session | null>(null);
   const [isAuthenticated, setIsAuthenticated]  =  useState(false);
   const [isLoading, setIsLoading]  =  useState(true);
-  const queryClient  =  useQueryClient();
+  const queryClient = useQueryClient();
 
-  useEffect(()  = > {;
-    let mounted  =  true;
+  useEffect(() => {;
+    let mounted = true;
 
     // Get initial session;
-    const initSession  =  async ()  = > {
+    const initSession = async () => {
       try {;
         const { data: { session }, error }  =  await supabase.auth.getSession();
 ;
         if (error) {
-          console.error('Error getting session:', error);
+          console.error('Error getting session:', error)
         } else if (session && mounted) {
           setSession(session);
           setUser(session.user);
-          setIsAuthenticated(true);
+          setIsAuthenticated(true)
         } else {
           }
       } catch (error) {
-        console.error('Session initialization error:', error);
+        console.error('Session initialization error:', error)
       } finally {;
         if (mounted) {
-          setIsLoading(false);
+          setIsLoading(false)
         }
       }
     };
@@ -62,7 +62,7 @@ export const AuthProvider: React.FC<AuthProviderProps>  =  ({ children })  = > {
     // Set up auth state listener;
     const {
       data: { subscription }
-    }  =  supabase.auth.onAuthStateChange(async (event, session)  = > {;
+    }  =  supabase.auth.onAuthStateChange(async (event, session) => {;
       if (mounted) {
         setSession(session);
         setUser(session?.user ?? null);
@@ -70,20 +70,20 @@ export const AuthProvider: React.FC<AuthProviderProps>  =  ({ children })  = > {
 
         // Clear React Query cache on auth changes;
         if (event  ===  'SIGNED_IN' || event  ===  'SIGNED_OUT') {
-          queryClient.clear();
+          queryClient.clear()
         }
       }
     });
 
     initSession();
 ;
-    return ()  = > {
-      mounted  =  false;
-      subscription.unsubscribe();
-    };
+    return () => {
+      mounted = false;
+      subscription.unsubscribe()
+    }
   }, [queryClient]);
 ;
-  const login  =  async (email: string, password: string)  = > {
+  const login = async (email: string, password: string) => {
     try {;
       const { data, error }  =  await supabase.auth.signInWithPassword({
         email,
@@ -92,7 +92,7 @@ export const AuthProvider: React.FC<AuthProviderProps>  =  ({ children })  = > {
 ;
       if (error) {
         console.error('Login error from Supabase:', error);
-        return { error };
+        return { error }
       };
 
       return { error: null }
@@ -102,7 +102,7 @@ export const AuthProvider: React.FC<AuthProviderProps>  =  ({ children })  = > {
     }
   };
 ;
-  const signup  =  async (email: string, password: string)  = > {
+  const signup = async (email: string, password: string) => {
     try {;
       const { data, error }  =  await supabase.auth.signUp({
         email,
@@ -111,7 +111,7 @@ export const AuthProvider: React.FC<AuthProviderProps>  =  ({ children })  = > {
 ;
       if (error) {
         console.error('Signup error from Supabase:', error);
-        return { error };
+        return { error }
       };
 
       return { error: null }
@@ -121,12 +121,12 @@ export const AuthProvider: React.FC<AuthProviderProps>  =  ({ children })  = > {
     }
   };
 ;
-  const logout  =  async ()  = > {
+  const logout = async () => {
     try {;
       const { error }  =  await supabase.auth.signOut();
 ;
       if (error) {
-        console.error('Logout error:', error);
+        console.error('Logout error:', error)
       } else {
         }
 
@@ -136,9 +136,9 @@ export const AuthProvider: React.FC<AuthProviderProps>  =  ({ children })  = > {
       setIsAuthenticated(false);
 
       // Clear React Query cache
-      queryClient.clear();
+      queryClient.clear()
     } catch (error) {
-      console.error('Logout catch error:', error);
+      console.error('Logout catch error:', error)
     }
   };
 ;
@@ -156,5 +156,5 @@ export const AuthProvider: React.FC<AuthProviderProps>  =  ({ children })  = > {
     >
       {children}
     </AuthContext.Provider>
-  );
+  )
 };

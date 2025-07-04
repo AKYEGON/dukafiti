@@ -10,43 +10,43 @@ export interface QueuedAction {
   type?: string
 };
 
-export const useOffline  =  ()  = > {;
+export const useOffline = () => {;
   const [isOnline, setIsOnline]  =  useState(navigator.onLine);
   const [queuedActions, setQueuedActions]  =  useState<QueuedAction[]>([]);
   const [isServiceWorkerReady, setIsServiceWorkerReady]  =  useState(false);
 
-  useEffect(()  = > {;
-    const handleOnline  =  ()  = > {
+  useEffect(() => {;
+    const handleOnline = () => {
       setIsOnline(true);
       // Trigger sync when coming back online;
       if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.ready.then(registration  = > {
+        navigator.serviceWorker.ready.then(registration => {
           // Use postMessage to trigger sync instead of sync API
           registration.active?.postMessage({ type: 'TRIGGER_SYNC' })
-        });
+        })
       }
     };
 ;
-    const handleOffline  =  ()  = > {
-      setIsOnline(false);
+    const handleOffline = () => {
+      setIsOnline(false)
     };
 ;
-    const handleServiceWorkerMessage  =  (event: MessageEvent)  = > {;
+    const handleServiceWorkerMessage = (event: MessageEvent) => {;
       const { type, action, actionId }  =  event.data;
 
       switch (type) {
         case 'ACTION_QUEUED':
-          setQueuedActions(prev  = > [...prev, action]);
+          setQueuedActions(prev => [...prev, action]);
           break;
         case 'ACTION_SYNCED':
-          setQueuedActions(prev  = > prev.filter(a  = > a.id !== actionId));
+          setQueuedActions(prev => prev.filter(a => a.id !== actionId));
           break;
         case 'ACTION_SYNC_ERROR':
           // Keep action in queue for retry
           break;
         case 'SALE_SYNCED':
           // Legacy support for existing sales
-          break;
+          break
       }
     };
 
@@ -59,39 +59,39 @@ export const useOffline  =  ()  = > {;
       navigator.serviceWorker.addEventListener('message', handleServiceWorkerMessage);
 
       // Check if service worker is ready
-      navigator.serviceWorker.ready.then(()  = > {
-        setIsServiceWorkerReady(true);
-      });
+      navigator.serviceWorker.ready.then(() => {
+        setIsServiceWorkerReady(true)
+      })
     }
 
     // Initial sync attempt if online;
     if (isOnline && 'serviceWorker' in navigator) {
-      navigator.serviceWorker.ready.then(registration  = > {
+      navigator.serviceWorker.ready.then(registration => {
         registration.active?.postMessage({ type: 'TRIGGER_SYNC' })
-      });
+      })
     };
 
-    return ()  = > {
+    return () => {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
       if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.removeEventListener('message', handleServiceWorkerMessage);
+        navigator.serviceWorker.removeEventListener('message', handleServiceWorkerMessage)
       }
-    };
+    }
   }, [isOnline]);
 ;
-  const getQueuedActionsCount  =  ()  = > queuedActions.length;
+  const getQueuedActionsCount = () => queuedActions.length;
 ;
-  const forceSync  =  async ()  = > {;
+  const forceSync = async () => {;
     if (!isOnline || !isServiceWorkerReady) return false;
 
     try {;
-      const registration  =  await navigator.serviceWorker.ready;
+      const registration = await navigator.serviceWorker.ready;
       registration.active?.postMessage({ type: 'TRIGGER_SYNC' });
-      return true;
+      return true
     } catch (error) {
       console.error('Failed to trigger sync:', error);
-      return false;
+      return false
     }
   };
 ;
@@ -101,8 +101,8 @@ export const useOffline  =  ()  = > {;
     queuedActions,
     queuedActionsCount: getQueuedActionsCount(),
     isServiceWorkerReady,
-    forceSync;
-  };
+    forceSync
+  }
 };
 ;
 export default useOffline;

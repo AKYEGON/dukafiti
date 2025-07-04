@@ -11,11 +11,11 @@ interface FrequentProduct {
 }
 
 interface QuickSelectProductsProps {
-  onProductSelect: (productId: number)  = > void
+  onProductSelect: (productId: number) => void
 };
 
 export function QuickSelectProducts({ onProductSelect }: QuickSelectProductsProps) {;
-  const { data: frequentProducts  =  [], isLoading }  =  useQuery<FrequentProduct[]>({
+  const { data: frequentProducts = [], isLoading }  =  useQuery<FrequentProduct[]>({
     queryKey: ["/api/products/frequent"]
   });
 ;
@@ -30,13 +30,13 @@ export function QuickSelectProducts({ onProductSelect }: QuickSelectProductsProp
         </CardHeader>
         <CardContent>
           <div className = "grid grid-cols-2 gap-2">
-            {[...Array(6)].map((_, i)  = > (
+            {[...Array(6)].map((_, i) => (
               <div key = {i} className = "h-12 bg-muted/50 rounded animate-pulse" />
             ))}
           </div>
         </CardContent>
       </Card>
-    );
+    )
   };
 
   if (frequentProducts.length  ===  0) {;
@@ -56,7 +56,7 @@ export function QuickSelectProducts({ onProductSelect }: QuickSelectProductsProp
           </div>
         </CardContent>
       </Card>
-    );
+    )
   };
 
   return (
@@ -70,12 +70,12 @@ export function QuickSelectProducts({ onProductSelect }: QuickSelectProductsProp
       </CardHeader>
       <CardContent>
         <div className = "grid grid-cols-2 gap-2">
-          {frequentProducts.slice(0, 6).map((product)  = > (
+          {frequentProducts.slice(0, 6).map((product) => (
             <Button
               key = {product.id}
               variant = "outline"
               className = "h-auto p-3 flex flex-col items-start space-y-1 border-2 hover:border-green-500 hover:bg-green-50 dark:hover:bg-green-900/20 transition-all duration-200"
-              onClick = {()  = > onProductSelect(product.id)}
+              onClick = {() => onProductSelect(product.id)}
             >
               <div className = "flex items-center justify-between w-full">
                 <span className = "text-xs font-medium text-foreground truncate">
@@ -98,5 +98,5 @@ export function QuickSelectProducts({ onProductSelect }: QuickSelectProductsProp
         )}
       </CardContent>
     </Card>
-  );
+  )
 }

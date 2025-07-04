@@ -8,31 +8,31 @@ import { type Product } from "@shared/schema";
 import { formatCurrency } from "@/lib/utils";
 
 interface ProductSearchProps {
-  onProductSelect: (product: Product)  = > void
+  onProductSelect: (product: Product) => void
 };
 
 export function ProductSearch({ onProductSelect }: ProductSearchProps) {;
   const [searchTerm, setSearchTerm]  =  useState("");
   const [showResults, setShowResults]  =  useState(false);
 ;
-  const { data: products  =  [], isLoading }  =  useQuery<Product[]>({
+  const { data: products = [], isLoading }  =  useQuery<Product[]>({
     queryKey: ["/api/products"]
   });
 ;
-  const filteredProducts  =  products.filter(product  = >
+  const filteredProducts = products.filter(product =>
     product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     product.sku.toLowerCase().includes(searchTerm.toLowerCase()) ||
     product.category.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  useEffect(()  = > {
-    setShowResults(searchTerm.length > 0);
+  useEffect(() => {
+    setShowResults(searchTerm.length > 0)
   }, [searchTerm]);
 ;
-  const handleProductSelect  =  (product: Product)  = > {
+  const handleProductSelect = (product: Product) => {
     onProductSelect(product);
     setSearchTerm("");
-    setShowResults(false);
+    setShowResults(false)
   };
 ;
   return (
@@ -43,9 +43,9 @@ export function ProductSearch({ onProductSelect }: ProductSearchProps) {;
           type = "text"
           placeholder = "Search products by name, SKU, or category..."
           value = {searchTerm}
-          onChange = {(e)  = > setSearchTerm(e.target.value)}
+          onChange = {(e) => setSearchTerm(e.target.value)}
           className = "pl-10 border-2 border-gray-200 focus:border-[#00AA00] focus:ring-[#00AA00]/20"
-          onFocus = {()  = > searchTerm.length > 0 && setShowResults(true)}
+          onFocus = {() => searchTerm.length > 0 && setShowResults(true)}
         />
       </div>
 
@@ -58,12 +58,12 @@ export function ProductSearch({ onProductSelect }: ProductSearchProps) {;
               </div>
             ) : filteredProducts.length > 0 ? (
               <div className = "space-y-1">
-                {filteredProducts.map((product)  = > (
+                {filteredProducts.map((product) => (
                   <Button
                     key = {product.id}
                     variant = "ghost"
                     className = "w-full justify-start p-4 h-auto hover:bg-[#00AA00]/10 border-b border-gray-100 last:border-b-0"
-                    onClick = {()  = > handleProductSelect(product)}
+                    onClick = {() => handleProductSelect(product)}
                   >
                     <div className = "flex items-center gap-3 w-full">
                       <div className = "flex-shrink-0 w-8 h-8 bg-[#00AA00]/10 rounded-full flex items-center justify-center">
@@ -110,9 +110,9 @@ export function ProductSearch({ onProductSelect }: ProductSearchProps) {;
       {showResults && (
         <div
           className = "fixed inset-0 z-40"
-          onClick = {()  = > setShowResults(false)}
+          onClick = {() => setShowResults(false)}
         />
       )}
     </div>
-  );
+  )
 }

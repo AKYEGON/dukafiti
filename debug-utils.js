@@ -8,13 +8,13 @@ function calcPctChangeTest(current, prior) {
   if (prior  ===  0 && current < 0) return 'New';
 
   // Calculate percentage change;
-  const change  =  ((current - prior) / prior) * 100;
+  const change = ((current - prior) / prior) * 100;
 
   // Round to one decimal place and add proper sign;
-  const rounded  =  Math.round(change * 10) / 10;
-  const sign  =  rounded > 0 ? '+' : '';
+  const rounded = Math.round(change * 10) / 10;
+  const sign = rounded > 0 ? '+' : '';
 ;
-  return `${sign}${rounded.toFixed(1)}%`;
+  return `${sign}${rounded.toFixed(1)}%`
 }
 
 // Test cases

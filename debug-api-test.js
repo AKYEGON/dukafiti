@@ -2,7 +2,7 @@
 import http from 'http';
 ;
 function makeRequest() {;
-  const options  =  {
+  const options = {
     hostname: 'localhost',
     port: 5000,
     path: '/api/metrics/dashboard',
@@ -12,17 +12,17 @@ function makeRequest() {;
     }
   };
 ;
-  const req  =  http.request(options, (res)  = > {;
-    let data  =  '';
+  const req = http.request(options, (res) => {;
+    let data = '';
 
-    res.on('data', (chunk)  = > {
-      data + =  chunk;
+    res.on('data', (chunk) => {
+      data += chunk
     });
 
-    res.on('end', ()  = > {;
+    res.on('end', () => {;
       if (res.statusCode  ===  200) {
         try {;
-          const parsed  =  JSON.parse(data);
+          const parsed = JSON.parse(data);
           );
 
           // Test calcPctChange with exact API values;
@@ -32,27 +32,27 @@ function makeRequest() {;
             if (prior  ===  0 && current > 0) return 'New';
             if (prior  ===  0 && current < 0) return 'New';
 ;
-            const change  =  ((current - prior) / prior) * 100;
-            const rounded  =  Math.round(change * 10) / 10;
-            const sign  =  rounded > 0 ? '+' : '';
+            const change = ((current - prior) / prior) * 100;
+            const rounded = Math.round(change * 10) / 10;
+            const sign = rounded > 0 ? '+' : '';
 ;
-            return `${sign}${rounded.toFixed(1)}%`;
+            return `${sign}${rounded.toFixed(1)}%`
           };
 
-          const result  =  calcPctChange(parsed.revenue.today, parsed.revenue.yesterday);
+          const result = calcPctChange(parsed.revenue.today, parsed.revenue.yesterday)
           } catch (error) {
-          console.error('JSON Parse Error:', error);
+          console.error('JSON Parse Error:', error)
           }
       } else {
         }
-    });
+    })
   });
 
-  req.on('error', (error)  = > {
-    console.error('Request Error:', error);
+  req.on('error', (error) => {
+    console.error('Request Error:', error)
   });
 
-  req.end();
+  req.end()
 }
 
 makeRequest();

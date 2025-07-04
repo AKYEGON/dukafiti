@@ -23,7 +23,7 @@ import { useAuth } from '@/contexts/SupabaseAuthClean';
 
 interface TopBarProps {
   onToggleSidebar?: () => void;
-  isSidebarCollapsed?: boolean;
+  isSidebarCollapsed?: boolean
 }
 
 export function TopBar({ onToggleSidebar }: TopBarProps) {
@@ -39,7 +39,7 @@ export function TopBar({ onToggleSidebar }: TopBarProps) {
         const response = await fetch('/api/notifications/unread-count');
         if (response.ok) {
           const data = await response.json();
-          setUnreadCount(data.count || 0);
+          setUnreadCount(data.count || 0)
         }
       } catch (error) {
         // Notification fetch failed - not critical
@@ -48,13 +48,13 @@ export function TopBar({ onToggleSidebar }: TopBarProps) {
 
     fetchUnreadCount();
     const interval = setInterval(fetchUnreadCount, 30000);
-    return () => clearInterval(interval);
+    return () => clearInterval(interval)
   }, []);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      setLocation(`/search?q=${encodeURIComponent(searchQuery)}`);
+      setLocation(`/search?q=${encodeURIComponent(searchQuery)}`)
     }
   };
 
@@ -62,9 +62,9 @@ export function TopBar({ onToggleSidebar }: TopBarProps) {
     try {
       await logout();
       setIsLogoutModalOpen(false);
-      setLocation('/');
+      setLocation('/')
     } catch (error) {
-      console.error('Logout failed:', error);
+      console.error('Logout failed:', error)
     }
   };
 
@@ -178,5 +178,5 @@ export function TopBar({ onToggleSidebar }: TopBarProps) {
         </DialogContent>
       </Dialog>
     </>
-  );
+  )
 }

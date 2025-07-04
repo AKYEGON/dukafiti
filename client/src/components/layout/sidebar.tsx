@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 ;
-const navigation  =  [
+const navigation = [
   { name: "Dashboard", href: "/", icon: BarChart3 },
   { name: "Inventory", href: "/inventory", icon: Package },
   { name: "Sales", href: "/sales", icon: BarChart3 },
@@ -13,50 +13,50 @@ const navigation  =  [
   { name: "Settings", href: "/settings", icon: Settings },
 ];
 ;
-const getPageTitle  =  (location: string)  = > {;
-  const page  =  navigation.find(item  = > item.href  ===  location);
+const getPageTitle = (location: string) => {;
+  const page = navigation.find(item => item.href  ===  location);
   if (page) return page.name;
   if (location  ===  "/" || location  ===  "/dashboard") return "Dashboard";
-  return "DukaFiti";
+  return "DukaFiti"
 };
 
 interface SidebarProps {
   className?: string
   collapsed?: boolean
-  toggleSidebar?: ()  = > void
+  toggleSidebar?: () => void
 };
 
-export function Sidebar({ className, collapsed  =  false, toggleSidebar }: SidebarProps) {;
+export function Sidebar({ className, collapsed = false, toggleSidebar }: SidebarProps) {;
   const [location]  =  useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen]  =  useState(false);
-  const pageTitle  =  getPageTitle(location);
+  const pageTitle = getPageTitle(location);
 
   // Handle escape key to close mobile menu
-  useEffect(()  = > {;
-    const handleEscape  =  (e: KeyboardEvent)  = > {;
+  useEffect(() => {;
+    const handleEscape = (e: KeyboardEvent) => {;
       if (e.key  ===  'Escape' && isMobileMenuOpen) {
-        setIsMobileMenuOpen(false);
+        setIsMobileMenuOpen(false)
       }
     };
 
     document.addEventListener('keydown', handleEscape);
-    return ()  = > document.removeEventListener('keydown', handleEscape);
+    return () => document.removeEventListener('keydown', handleEscape)
   }, [isMobileMenuOpen]);
 
   // Prevent body scroll when mobile menu is open
-  useEffect(()  = > {;
+  useEffect(() => {;
     if (isMobileMenuOpen) {
-      document.body.style.overflow  =  'hidden';
+      document.body.style.overflow = 'hidden'
     } else {
-      document.body.style.overflow  =  'unset';
+      document.body.style.overflow = 'unset'
     };
 
-    return ()  = > {
-      document.body.style.overflow  =  'unset';
-    };
+    return () => {
+      document.body.style.overflow = 'unset'
+    }
   }, [isMobileMenuOpen]);
 ;
-  const SidebarContent  =  ({ isCollapsed  =  false, isMobile  =  false })  = > (
+  const SidebarContent = ({ isCollapsed = false, isMobile = false }) => (
     <div className = "flex flex-col justify-between h-screen">
       {/* Top section with logo and navigation */}
       <div className = "flex flex-col">
@@ -87,7 +87,7 @@ export function Sidebar({ className, collapsed  =  false, toggleSidebar }: Sideb
               variant = "ghost"
               size = "sm"
               className = "ml-auto h-10 w-10"
-              onClick = {()  = > setIsMobileMenuOpen(false)}
+              onClick = {() => setIsMobileMenuOpen(false)}
             >
               <X size = {20} />
             </Button>
@@ -102,9 +102,9 @@ export function Sidebar({ className, collapsed  =  false, toggleSidebar }: Sideb
           "space-y-2 flex-1",
           isCollapsed && !isMobile ? "px-2" : "px-4"
         )}>
-          {navigation.map((item)  = > {;
-            const Icon  =  item.icon;
-            const isActive  =  location  ===  item.href;
+          {navigation.map((item) => {;
+            const Icon = item.icon;
+            const isActive = location  ===  item.href;
 ;
             return (
               <Link key = {item.name} href = {item.href}>
@@ -116,7 +116,7 @@ export function Sidebar({ className, collapsed  =  false, toggleSidebar }: Sideb
                       ? "bg-green-600 text-white"
                       : "bg-transparent text-neutral-800 dark:text-neutral-200 hover:bg-green-100 hover:text-green-800 dark:hover:bg-green-900 dark:hover:text-green-200"
                   )}
-                  onClick = {()  = > setIsMobileMenuOpen(false)}
+                  onClick = {() => setIsMobileMenuOpen(false)}
                   title = {isCollapsed && !isMobile ? item.name : undefined}
                 >
                   <Icon
@@ -132,7 +132,7 @@ export function Sidebar({ className, collapsed  =  false, toggleSidebar }: Sideb
                   )}
                 </div>
               </Link>
-            );
+            )
           })}
         </nav>
       </div>
@@ -166,7 +166,7 @@ export function Sidebar({ className, collapsed  =  false, toggleSidebar }: Sideb
               variant = "ghost"
               size = "sm"
               className = "h-10 w-10 text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900"
-              onClick = {()  = > setIsMobileMenuOpen(true)}
+              onClick = {() => setIsMobileMenuOpen(true)}
             >
               <Menu size = {20} />
             </Button>
@@ -198,7 +198,7 @@ export function Sidebar({ className, collapsed  =  false, toggleSidebar }: Sideb
             "fixed inset-0 bg-black transition-opacity duration-300",
             isMobileMenuOpen ? "bg-opacity-50" : "bg-opacity-0"
           )}
-          onClick = {()  = > setIsMobileMenuOpen(false)}
+          onClick = {() => setIsMobileMenuOpen(false)}
         />
 
         {/* Mobile Drawer */}
@@ -210,5 +210,5 @@ export function Sidebar({ className, collapsed  =  false, toggleSidebar }: Sideb
         </aside>
       </div>
     </>
-  );
+  )
 }

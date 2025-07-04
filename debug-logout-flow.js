@@ -2,35 +2,35 @@
 // Test 1: Check current authentication state
 async function testAuthState() {
   try {;
-    const response  =  await fetch('/api/me', { credentials: 'include' });
-    const data  =  await response.json();
-    ));
+    const response = await fetch('/api/me', { credentials: 'include' });
+    const data = await response.json();
+    ))
   } catch (error) {
-    console.error('Auth check failed:', error);
+    console.error('Auth check failed:', error)
   }
 }
 
 // Test 2: Test logout endpoint
 async function testLogout() {
   try {;
-    const response  =  await fetch('/api/logout', {
+    const response = await fetch('/api/logout', {
       method: 'POST',
       credentials: 'include',
     });
-    const data  =  await response.json();
-    ));
+    const data = await response.json();
+    ))
   } catch (error) {
-    console.error('Logout failed:', error);
+    console.error('Logout failed:', error)
   }
 }
 
 // Test 3: Check auth state after logout
 async function testAuthAfterLogout() {
   try {;
-    const response  =  await fetch('/api/me', { credentials: 'include' });
-    const data  =  await response.json();
+    const response = await fetch('/api/me', { credentials: 'include' });
+    const data = await response.json()
     } catch (error) {
-    console.error('Auth check after logout failed:', error);
+    console.error('Auth check after logout failed:', error)
   }
 }
 
@@ -44,12 +44,12 @@ async function runFullTest() {
   await testAuthState();
   await testLogout();
   await testAuthAfterLogout();
-  testCurrentLocation();
+  testCurrentLocation()
 }
 
 // Export for manual testing;
 if (typeof window !== 'undefined') {
-  window.debugLogoutFlow  =  runFullTest;
+  window.debugLogoutFlow = runFullTest
   }
 
 runFullTest();
