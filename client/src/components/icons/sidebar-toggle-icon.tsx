@@ -1,9 +1,8 @@
 interface SidebarToggleIconProps {
   className?: string
   size?: number
-};
-
-export function SidebarToggleIcon({ className = "", size = 20 }: SidebarToggleIconProps) {;
+}
+export function SidebarToggleIcon({ className = "", size = 20 }: SidebarToggleIconProps) {
   return (
     <svg
       width = {size}

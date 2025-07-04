@@ -1,5 +1,4 @@
-import { supabase } from '../server/supabase';
-
+import { supabase } from '../server/supabase'
 async function seedSupabaseDatabase() {
   try {
     // Create a test user in Supabase Auth
@@ -7,10 +6,9 @@ async function seedSupabaseDatabase() {
       email: 'test@example.com',
       password: 'password',
       user_metadata: { name: 'Test User' }
-    });
-
+    })
     if (authError && !authError.message.includes('already registered')) {
-      console.error('Error creating auth user:', authError);
+      console.error('Error creating auth user:', authError)
       return
     }
 
@@ -46,8 +44,7 @@ async function seedSupabaseDatabase() {
         low_stock_threshold: 5,
         sales_count: 0
       }
-    ];
-
+    ]
     const { error: productsError } = await supabase
       .from('products')
       .upsert(sampleProducts, { onConflict: 'sku' })
@@ -73,8 +70,7 @@ async function seedSupabaseDatabase() {
         address: '456 Oak Ave, Nairobi',
         balance: '100.00'
       }
-    ];
-
+    ]
     const { error: customersError } = await supabase
       .from('customers')
       .upsert(sampleCustomers, { onConflict: 'email' })
@@ -85,7 +81,7 @@ async function seedSupabaseDatabase() {
       }
 
     } catch (error) {
-    console.error('Error seeding Supabase database:', error);
+    console.error('Error seeding Supabase database:', error)
     process.exit(1)
   }
 }

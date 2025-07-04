@@ -1,7 +1,6 @@
-import { Card, CardContent } from "@/components/ui/card";
-import { cn } from "@/lib/utils";
-import { LucideIcon, Loader2 } from "lucide-react";
-
+import { Card, CardContent } from "@/components/ui/card"
+import { cn } from "@/lib/utils"
+import { LucideIcon, Loader2 } from "lucide-react"
 interface EnhancedMetricCardProps {
   title: string
   value: string
@@ -10,16 +9,14 @@ interface EnhancedMetricCardProps {
   isLoading?: boolean
   isRefreshing?: boolean
   error?: boolean
-};
-
-function getPercentageColor(percentageChange: string): string {;
-  if (percentageChange  ===  "0.0%" || percentageChange  ===  "—") return "text-gray-500";
-  if (percentageChange  ===  "New") return "text-green-600 dark:text-green-400";
-  if (percentageChange.startsWith("+")) return "text-green-600 dark:text-green-400";
-  if (percentageChange.startsWith("-")) return "text-red-600 dark:text-red-400";
+}
+function getPercentageColor(percentageChange: string): string {
+  if (percentageChange  ===  "0.0%" || percentageChange  ===  "—") return "text-gray-500"
+  if (percentageChange  ===  "New") return "text-green-600 dark:text-green-400"
+  if (percentageChange.startsWith("+")) return "text-green-600 dark:text-green-400"
+  if (percentageChange.startsWith("-")) return "text-red-600 dark:text-red-400"
   return "text-gray-500"
-};
-
+}
 export function EnhancedMetricCard({
   title,
   value,
@@ -28,7 +25,7 @@ export function EnhancedMetricCard({
   isLoading = false,
   isRefreshing = false,
   error = false
-}: EnhancedMetricCardProps) {;
+}: EnhancedMetricCardProps) {
   return (
     <Card className = "relative overflow-hidden hover:shadow-md transition-shadow">
       <CardContent className = "p-6">

@@ -1,32 +1,30 @@
-import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { useToast } from "@/hooks/use-toast";
-import { formatCurrency } from "@/lib/utils";
-import { Wallet, Smartphone, X } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
-import type { Customer } from "@shared/schema";
-
+import { useState } from "react"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { useToast } from "@/hooks/use-toast"
+import { formatCurrency } from "@/lib/utils"
+import { Wallet, Smartphone, X } from "lucide-react"
+import { motion, AnimatePresence } from "framer-motion"
+import type { Customer } from "@shared/schema"
 interface RecordRepaymentModalProps {
   isOpen: boolean
   onClose: () => void
   customer: Customer
   previousPayments?: Array<{ date: string; amount: string; method: string }>
-};
+}
+export function RecordRepaymentModal({ isOpen, onClose, customer, previousPayments = [] }: RecordRepaymentModalProps) {
+  const [amount, setAmount]  =  useState("")
+  const [method, setMethod]  =  useState<"cash" | "mobileMoney">("cash")
+  const [note, setNote]  =  useState("")
+  const { toast }  =  useToast()
+  const queryClient = useQueryClient()
 
-export function RecordRepaymentModal({ isOpen, onClose, customer, previousPayments = [] }: RecordRepaymentModalProps) {;
-  const [amount, setAmount]  =  useState("");
-  const [method, setMethod]  =  useState<"cash" | "mobileMoney">("cash");
-  const [note, setNote]  =  useState("");
-  const { toast }  =  useToast();
-  const queryClient = useQueryClient();
-;
   const recordPayment = useMutation({
-    mutationFn: async (data: { customerId: number; amount: string; method: string; note?: string }) => {;
+    mutationFn: async (data: { customerId: number; amount: string; method: string; note?: string }) => {
       const response = await fetch(`/api/customers/${data.customerId}/payments`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -35,11 +33,11 @@ export function RecordRepaymentModal({ isOpen, onClose, customer, previousPaymen
           method: data.method,
           note: data.note
         })
-      });
-      if (!response.ok) {;
-        const error = await response.json();
+      })
+      if (!response.ok) {
+        const error = await response.json()
         throw new Error(error.message || "Failed to record payment")
-      };
+      }
       return response.json()
     },
     onSuccess: (data) => {
@@ -48,8 +46,8 @@ export function RecordRepaymentModal({ isOpen, onClose, customer, previousPaymen
         title: "Payment Recorded",
         description: `Repayment of ${formatCurrency(parseFloat(amount))} recorded successfully`,
         className: "bg-green-600 text-white"
-      });
-      onClose();
+      })
+      onClose()
       resetForm()
     },
     onError: (error: any) => {
@@ -59,35 +57,34 @@ export function RecordRepaymentModal({ isOpen, onClose, customer, previousPaymen
         variant: "destructive"
       })
     }
-  });
-;
+  })
+
   const resetForm = () => {
-    setAmount("");
-    setMethod("cash");
+    setAmount("")
+    setMethod("cash")
     setNote("")
-  };
-;
+  }
+
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-;
-    const paymentAmount = parseFloat(amount);
-    const totalOwed = parseFloat(customer.balance || "0");
-;
+    e.preventDefault()
+
+    const paymentAmount = parseFloat(amount)
+    const totalOwed = parseFloat(customer.balance || "0")
+
     if (!amount || paymentAmount <= 0) {
       toast({
         title: "Invalid Amount",
         description: "Please enter a valid payment amount",
         variant: "destructive"
-      });
+      })
       return
-    };
-
+    }
     if (paymentAmount > totalOwed) {
       toast({
         title: "Amount Too High",
         description: "Payment amount cannot exceed total debt",
         variant: "destructive"
-      });
+      })
       return
     }
 
@@ -97,15 +94,15 @@ export function RecordRepaymentModal({ isOpen, onClose, customer, previousPaymen
       method: method,
       note: note.trim() || undefined
     })
-  };
-;
-  const handleClose = () => {;
+  }
+
+  const handleClose = () => {
     if (!recordPayment.isPending) {
-      onClose();
+      onClose()
       resetForm()
     }
-  };
-;
+  }
+
   return (
     <AnimatePresence>
       {isOpen && (

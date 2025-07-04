@@ -1,7 +1,5 @@
-import Database from 'better-sqlite3';
-
-const sqlite = new Database('./database.sqlite');
-
+import Database from 'better-sqlite3'
+const sqlite = new Database('./database.sqlite')
 try {
   // Create users table
   sqlite.exec(`
@@ -12,9 +10,8 @@ try {
       password_hash TEXT NOT NULL,
       phone TEXT,
       created_at INTEGER NOT NULL DEFAULT (unixepoch())
-    );
-  `);
-
+    )
+  `)
   // Create products table
   sqlite.exec(`
     CREATE TABLE IF NOT EXISTS products (
@@ -28,9 +25,8 @@ try {
       low_stock_threshold INTEGER NOT NULL DEFAULT 10,
       sales_count INTEGER NOT NULL DEFAULT 0,
       created_at INTEGER NOT NULL DEFAULT (unixepoch())
-    );
-  `);
-
+    )
+  `)
   // Create customers table
   sqlite.exec(`
     CREATE TABLE IF NOT EXISTS customers (
@@ -41,9 +37,8 @@ try {
       address TEXT,
       balance REAL NOT NULL DEFAULT 0.00,
       created_at INTEGER NOT NULL DEFAULT (unixepoch())
-    );
-  `);
-
+    )
+  `)
   // Create orders table
   sqlite.exec(`
     CREATE TABLE IF NOT EXISTS orders (
@@ -55,9 +50,8 @@ try {
       status TEXT NOT NULL DEFAULT 'pending',
       reference TEXT,
       created_at INTEGER NOT NULL DEFAULT (unixepoch())
-    );
-  `);
-
+    )
+  `)
   // Create order_items table
   sqlite.exec(`
     CREATE TABLE IF NOT EXISTS order_items (
@@ -67,9 +61,8 @@ try {
       product_name TEXT NOT NULL,
       quantity INTEGER NOT NULL,
       price REAL NOT NULL
-    );
-  `);
-
+    )
+  `)
   // Create business_profiles table
   sqlite.exec(`
     CREATE TABLE IF NOT EXISTS business_profiles (
@@ -80,9 +73,8 @@ try {
       location TEXT,
       description TEXT,
       created_at INTEGER NOT NULL DEFAULT (unixepoch())
-    );
-  `);
-
+    )
+  `)
   // Create payments table
   sqlite.exec(`
     CREATE TABLE IF NOT EXISTS payments (
@@ -93,9 +85,8 @@ try {
       reference TEXT,
       status TEXT NOT NULL DEFAULT 'pending',
       created_at INTEGER NOT NULL DEFAULT (unixepoch())
-    );
-  `);
-
+    )
+  `)
   // Create store_profiles table
   sqlite.exec(`
     CREATE TABLE IF NOT EXISTS store_profiles (
@@ -106,9 +97,8 @@ try {
       location TEXT,
       description TEXT,
       created_at INTEGER NOT NULL DEFAULT (unixepoch())
-    );
-  `);
-
+    )
+  `)
   // Create user_settings table
   sqlite.exec(`
     CREATE TABLE IF NOT EXISTS user_settings (
@@ -119,11 +109,11 @@ try {
       language TEXT NOT NULL DEFAULT 'en',
       notifications INTEGER NOT NULL DEFAULT 1,
       created_at INTEGER NOT NULL DEFAULT (unixepoch())
-    );
+    )
   `)
 
   } catch (error) {
-  console.error('Error creating tables:', error);
+  console.error('Error creating tables:', error)
   throw error
 } finally {
   sqlite.close()

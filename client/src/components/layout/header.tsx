@@ -1,13 +1,11 @@
-import { Bell, User, Menu } from "lucide-react";
-import { Button } from "@/components/ui/button";
-
+import { Bell, User, Menu } from "lucide-react"
+import { Button } from "@/components/ui/button"
 interface HeaderProps {
   title: string
   subtitle: string
   onMobileMenuToggle?: () => void
-};
-
-export function Header({ title, subtitle, onMobileMenuToggle }: HeaderProps) {;
+}
+export function Header({ title, subtitle, onMobileMenuToggle }: HeaderProps) {
   return (
     <header className = "bg-white border-b border-gray-200 p-4 lg:p-6">
       <div className = "flex items-center justify-between">

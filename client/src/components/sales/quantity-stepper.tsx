@@ -1,41 +1,39 @@
-import { Minus, Plus } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-
+import { Minus, Plus } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 interface QuantityStepperProps {
   value: number
   onChange: (value: number) => void
   min?: number
   max?: number
   disabled?: boolean
-};
-
+}
 export function QuantityStepper({
   value,
   onChange,
   min = 1,
   max = 999,
   disabled = false
-}: QuantityStepperProps) {;
-  const handleIncrement = () => {;
+}: QuantityStepperProps) {
+  const handleIncrement = () => {
     if (value < max) {
       onChange(value + 1)
     }
-  };
-;
-  const handleDecrement = () => {;
+  }
+
+  const handleDecrement = () => {
     if (value > min) {
       onChange(value - 1)
     }
-  };
-;
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {;
-    const newValue = parseInt(e.target.value) || min;
+  }
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newValue = parseInt(e.target.value) || min
     if (newValue >= min && newValue <= max) {
       onChange(newValue)
     }
-  };
-;
+  }
+
   return (
     <div className = "flex items-center gap-1 border border-gray-200 rounded-lg overflow-hidden bg-white">
       <Button

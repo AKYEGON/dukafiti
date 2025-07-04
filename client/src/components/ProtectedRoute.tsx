@@ -1,22 +1,19 @@
-import React from 'react';
-import { useAuth } from '@/contexts/SupabaseAuthClean';
-import { useLocation } from 'wouter';
-
+import React from 'react'
+import { useAuth } from '@/contexts/SupabaseAuthClean'
+import { useLocation } from 'wouter'
 interface ProtectedRouteProps {
   children: React.ReactNode
-};
-
-export const ProtectedRoute: React.FC<ProtectedRouteProps>  =  ({ children }) => {;
-  const { user, isLoading }  =  useAuth();
-  const [, navigate]  =  useLocation();
-
-  React.useEffect(() => {;
+}
+export const ProtectedRoute: React.FC<ProtectedRouteProps>  =  ({ children }) => {
+  const { user, isLoading }  =  useAuth()
+  const [, navigate]  =  useLocation()
+  React.useEffect(() => {
     if (!isLoading && !user) {
       navigate('/login')
     }
-  }, [user, isLoading, navigate]);
-;
-  if (isLoading) {;
+  }, [user, isLoading, navigate])
+
+  if (isLoading) {
     return (
       <div className = "min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900">
         <div className = "text-center">
@@ -25,13 +22,11 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps>  =  ({ children }) =>
         </div>
       </div>
     )
-  };
-
-  if (!user) {;
+  }
+  if (!user) {
     return null; // Will redirect to login via useEffect
-  };
-
+  }
   return <>{children}</>
-};
-;
+}
+
 export default ProtectedRoute;

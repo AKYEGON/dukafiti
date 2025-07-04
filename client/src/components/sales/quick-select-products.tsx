@@ -1,9 +1,8 @@
-import { useQuery } from "@tanstack/react-query";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Zap, Plus } from "lucide-react";
-import { formatPrice } from "@/lib/utils";
-
+import { useQuery } from "@tanstack/react-query"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Zap, Plus } from "lucide-react"
+import { formatPrice } from "@/lib/utils"
 interface FrequentProduct {
   id: number
   name: string
@@ -12,14 +11,13 @@ interface FrequentProduct {
 
 interface QuickSelectProductsProps {
   onProductSelect: (productId: number) => void
-};
-
-export function QuickSelectProducts({ onProductSelect }: QuickSelectProductsProps) {;
+}
+export function QuickSelectProducts({ onProductSelect }: QuickSelectProductsProps) {
   const { data: frequentProducts = [], isLoading }  =  useQuery<FrequentProduct[]>({
     queryKey: ["/api/products/frequent"]
-  });
-;
-  if (isLoading) {;
+  })
+
+  if (isLoading) {
     return (
       <Card className = "bg-card border">
         <CardHeader className = "pb-3">
@@ -37,9 +35,8 @@ export function QuickSelectProducts({ onProductSelect }: QuickSelectProductsProp
         </CardContent>
       </Card>
     )
-  };
-
-  if (frequentProducts.length  ===  0) {;
+  }
+  if (frequentProducts.length  ===  0) {
     return (
       <Card className = "bg-card border">
         <CardHeader className = "pb-3">
@@ -57,8 +54,7 @@ export function QuickSelectProducts({ onProductSelect }: QuickSelectProductsProp
         </CardContent>
       </Card>
     )
-  };
-
+  }
   return (
     <Card className = "bg-card border">
       <CardHeader className = "pb-3">

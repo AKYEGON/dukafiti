@@ -1,7 +1,7 @@
-import { useEnhancedOffline } from '@/hooks/useEnhancedOffline';
-import { Wifi, WifiOff, Clock, RefreshCw } from 'lucide-react';
-;
-export const OfflineBanner = () => {;
+import { useEnhancedOffline } from '@/hooks/useEnhancedOffline'
+import { Wifi, WifiOff, Clock, RefreshCw } from 'lucide-react'
+
+export const OfflineBanner = () => {
   const {
     isOffline,
     queuedActionsCount,
@@ -10,12 +10,11 @@ export const OfflineBanner = () => {;
     customersInQueue,
     isProcessing,
     forceSync
-  }  =  useEnhancedOffline();
-;
-  if (!isOffline && queuedActionsCount  ===  0) {;
-    return null
-  };
+  }  =  useEnhancedOffline()
 
+  if (!isOffline && queuedActionsCount  ===  0) {
+    return null
+  }
   return (
     <div className = "fixed top-16 left-0 right-0 z-50 px-2 sm:px-4">
       <div className = "mx-auto max-w-7xl">
@@ -78,6 +77,6 @@ export const OfflineBanner = () => {;
       </div>
     </div>
   )
-};
-;
+}
+
 export default OfflineBanner;

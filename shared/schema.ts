@@ -1,8 +1,7 @@
-import { pgTable, text, serial, integer, decimal, timestamp, boolean } from 'drizzle-orm/pg-core';
-import { relations } from 'drizzle-orm';
-import { createInsertSchema } from 'drizzle-zod';
-import { z } from 'zod';
-
+import { pgTable, text, serial, integer, decimal, timestamp, boolean } from 'drizzle-orm/pg-core'
+import { relations } from 'drizzle-orm'
+import { createInsertSchema } from 'drizzle-zod'
+import { z } from 'zod'
 export const products = pgTable('products', {
   id: serial('id').primaryKey(),
   name: text('name').notNull(),
@@ -14,8 +13,7 @@ export const products = pgTable('products', {
   lowStockThreshold: integer('low_stock_threshold').notNull().default(10),
   salesCount: integer('sales_count').notNull().default(0),
   createdAt: timestamp('created_at').defaultNow().notNull(),
-});
-
+})
 export const customers = pgTable('customers', {
   id: serial('id').primaryKey(),
   name: text('name').notNull(),
@@ -24,8 +22,7 @@ export const customers = pgTable('customers', {
   address: text('address'),
   balance: decimal('balance', { precision: 10, scale: 2 }).notNull().default('0.00'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
-});
-
+})
 export const orders = pgTable('orders', {
   id: serial('id').primaryKey(),
   customerId: integer('customer_id').references(() => customers.id),
@@ -35,8 +32,7 @@ export const orders = pgTable('orders', {
   status: text('status').notNull().default('pending'),
   reference: text('reference'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
-});
-
+})
 export const orderItems = pgTable('order_items', {
   id: serial('id').primaryKey(),
   orderId: integer('order_id').notNull().references(() => orders.id),
@@ -44,8 +40,7 @@ export const orderItems = pgTable('order_items', {
   productName: text('product_name').notNull(),
   quantity: integer('quantity').notNull(),
   price: decimal('price', { precision: 10, scale: 2 }).notNull(),
-});
-
+})
 export const users = pgTable('users', {
   id: serial('id').primaryKey(),
   username: text('username').notNull().unique(),
@@ -53,8 +48,7 @@ export const users = pgTable('users', {
   passwordHash: text('password_hash').notNull(),
   phone: text('phone'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
-});
-
+})
 export const businessProfiles = pgTable('business_profiles', {
   id: serial('id').primaryKey(),
   userId: integer('user_id').notNull().references(() => users.id),
@@ -63,8 +57,7 @@ export const businessProfiles = pgTable('business_profiles', {
   location: text('location'),
   description: text('description'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
-});
-
+})
 export const payments = pgTable('payments', {
   id: serial('id').primaryKey(),
   customerId: integer('customer_id').notNull().references(() => customers.id),
@@ -73,8 +66,7 @@ export const payments = pgTable('payments', {
   reference: text('reference'),
   status: text('status').notNull().default('pending'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
-});
-
+})
 export const storeProfiles = pgTable('store_profiles', {
   id: serial('id').primaryKey(),
   userId: integer('user_id').notNull().references(() => users.id),
@@ -87,8 +79,7 @@ export const storeProfiles = pgTable('store_profiles', {
   consumerKey: text('consumer_key'),
   consumerSecret: text('consumer_secret'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
-});
-
+})
 export const userSettings = pgTable('user_settings', {
   id: serial('id').primaryKey(),
   userId: integer('user_id').notNull().references(() => users.id),
@@ -99,8 +90,7 @@ export const userSettings = pgTable('user_settings', {
   mpesaEnabled: boolean('mpesa_enabled').notNull().default(false),
   createdAt: timestamp('created_at').defaultNow().notNull(),
   updatedAt: timestamp('updated_at').defaultNow().notNull(),
-});
-
+})
 export const notifications = pgTable('notifications', {
   id: serial('id').primaryKey(),
   userId: integer('user_id').notNull().references(() => users.id),
@@ -109,22 +99,19 @@ export const notifications = pgTable('notifications', {
   type: text('type').notNull().default('info'), // info, success, warning, error
   isRead: boolean('is_read').notNull().default(false),
   createdAt: timestamp('created_at').defaultNow().notNull(),
-});
-
+})
 // Relations
 export const customersRelations = relations(customers, ({ many }) => ({
   orders: many(orders),
   payments: many(payments),
-}));
-
+}))
 export const ordersRelations = relations(orders, ({ one, many }) => ({
   customer: one(customers, {
     fields: [orders.customerId],
     references: [customers.id],
   }),
   orderItems: many(orderItems),
-}));
-
+}))
 export const orderItemsRelations = relations(orderItems, ({ one }) => ({
   order: one(orders, {
     fields: [orderItems.orderId],
@@ -134,19 +121,16 @@ export const orderItemsRelations = relations(orderItems, ({ one }) => ({
     fields: [orderItems.productId],
     references: [products.id],
   }),
-}));
-
+}))
 export const productsRelations = relations(products, ({ many }) => ({
   orderItems: many(orderItems),
-}));
-
+}))
 export const paymentsRelations = relations(payments, ({ one }) => ({
   customer: one(customers, {
     fields: [payments.customerId],
     references: [customers.id],
   }),
-}));
-
+}))
 // Insert schemas
 export const insertProductSchema = createInsertSchema(products).omit({
   id: true,
@@ -155,83 +139,63 @@ export const insertProductSchema = createInsertSchema(products).omit({
 }).extend({
   // Allow for unknown quantity handling on frontend
   unknownQuantity: z.boolean().optional(),
-});
-
+})
 export const insertCustomerSchema = createInsertSchema(customers).omit({
   id: true,
   createdAt: true,
-});
-
+})
 export const insertOrderSchema = createInsertSchema(orders).omit({
   id: true,
   createdAt: true,
-});
-
+})
 export const insertOrderItemSchema = createInsertSchema(orderItems).omit({
   id: true,
-});
-
+})
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
   createdAt: true,
-});
-
+})
 export const insertBusinessProfileSchema = createInsertSchema(businessProfiles).omit({
   id: true,
   createdAt: true,
-});
-
+})
 export const insertPaymentSchema = createInsertSchema(payments).omit({
   id: true,
   createdAt: true,
-});
-
+})
 export const insertStoreProfileSchema = createInsertSchema(storeProfiles).omit({
   id: true,
   createdAt: true,
-});
-
+})
 export const insertUserSettingsSchema = createInsertSchema(userSettings).omit({
   id: true,
   createdAt: true,
-});
-
+})
 export const insertNotificationSchema = createInsertSchema(notifications).omit({
   id: true,
   createdAt: true,
-});
-
+})
 // Types
-export type Product = typeof products.$inferSelect;
-export type InsertProduct = z.infer<typeof insertProductSchema>;
-
-export type Customer = typeof customers.$inferSelect;
-export type InsertCustomer = z.infer<typeof insertCustomerSchema>;
-
-export type Order = typeof orders.$inferSelect;
-export type InsertOrder = z.infer<typeof insertOrderSchema>;
-
-export type OrderItem = typeof orderItems.$inferSelect;
-export type InsertOrderItem = z.infer<typeof insertOrderItemSchema>;
-
-export type User = typeof users.$inferSelect;
-export type InsertUser = z.infer<typeof insertUserSchema>;
-
-export type BusinessProfile = typeof businessProfiles.$inferSelect;
-export type InsertBusinessProfile = z.infer<typeof insertBusinessProfileSchema>;
-
-export type Payment = typeof payments.$inferSelect;
-export type InsertPayment = z.infer<typeof insertPaymentSchema>;
-
-export type StoreProfile = typeof storeProfiles.$inferSelect;
-export type InsertStoreProfile = z.infer<typeof insertStoreProfileSchema>;
-
-export type UserSettings = typeof userSettings.$inferSelect;
-export type InsertUserSettings = z.infer<typeof insertUserSettingsSchema>;
-
-export type Notification = typeof notifications.$inferSelect;
-export type InsertNotification = z.infer<typeof insertNotificationSchema>;
-
+export type Product = typeof products.$inferSelect
+export type InsertProduct = z.infer<typeof insertProductSchema>
+export type Customer = typeof customers.$inferSelect
+export type InsertCustomer = z.infer<typeof insertCustomerSchema>
+export type Order = typeof orders.$inferSelect
+export type InsertOrder = z.infer<typeof insertOrderSchema>
+export type OrderItem = typeof orderItems.$inferSelect
+export type InsertOrderItem = z.infer<typeof insertOrderItemSchema>
+export type User = typeof users.$inferSelect
+export type InsertUser = z.infer<typeof insertUserSchema>
+export type BusinessProfile = typeof businessProfiles.$inferSelect
+export type InsertBusinessProfile = z.infer<typeof insertBusinessProfileSchema>
+export type Payment = typeof payments.$inferSelect
+export type InsertPayment = z.infer<typeof insertPaymentSchema>
+export type StoreProfile = typeof storeProfiles.$inferSelect
+export type InsertStoreProfile = z.infer<typeof insertStoreProfileSchema>
+export type UserSettings = typeof userSettings.$inferSelect
+export type InsertUserSettings = z.infer<typeof insertUserSettingsSchema>
+export type Notification = typeof notifications.$inferSelect
+export type InsertNotification = z.infer<typeof insertNotificationSchema>
 export interface DashboardMetrics {
   totalRevenue: string
   totalOrders: number

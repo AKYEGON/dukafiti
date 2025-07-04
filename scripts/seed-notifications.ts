@@ -1,10 +1,8 @@
-import { storage } from '../server/storage';
-
+import { storage } from '../server/storage'
 async function seedNotifications() {
   try {
     // Create sample notifications for user ID 1 (admin user)
-    const userId = 1;
-
+    const userId = 1
     const sampleNotifications = [
       {
         userId,
@@ -27,8 +25,7 @@ async function seedNotifications() {
         type: 'info' as const,
         isRead: true
       }
-    ];
-
+    ]
     for (const notification of sampleNotifications) {
       await storage.createNotification(notification)
       }

@@ -1,10 +1,10 @@
-import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { useLocation } from "wouter";
-import { type DashboardMetrics, type Order } from "@shared/schema";
-import { formatCurrency as formatCurrencyUtil } from "@shared/utils";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
+import { useState } from "react"
+import { useQuery } from "@tanstack/react-query"
+import { useLocation } from "wouter"
+import { type DashboardMetrics, type Order } from "@shared/schema"
+import { formatCurrency as formatCurrencyUtil } from "@shared/utils"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import {
   Table,
   TableBody,
@@ -12,7 +12,7 @@ import {
   TableHead,
   TableHeader,
   TableRow
-} from "@/components/ui/table";
+} from "@/components/ui/table"
 import {
   DollarSign,
   ShoppingCart,
@@ -21,72 +21,68 @@ import {
   Plus,
   UserPlus,
   BarChart3
-} from "lucide-react";
-import { formatCurrency } from "@/lib/utils";
-import { Skeleton } from "@/components/ui/skeleton";
-import { ProductForm } from "@/components/inventory/product-form";
-import { CustomerForm } from "@/components/customers/customer-form";
-
+} from "lucide-react"
+import { formatCurrency } from "@/lib/utils"
+import { Skeleton } from "@/components/ui/skeleton"
+import { ProductForm } from "@/components/inventory/product-form"
+import { CustomerForm } from "@/components/customers/customer-form"
 interface DetailedMetrics {
   revenue: {
     today: number
     yesterday: number
     weekToDate: number
     priorWeekToDate: number
-  };
+  }
   orders: {
     today: number
     yesterday: number
-  };
+  }
   inventory: {
     totalItems: number
     priorSnapshot: number
-  };
+  }
   customers: {
     active: number
     priorActive: number
   }
-};
+}
+export default function Dashboard() {
+  const [, setLocation]  =  useLocation()
+  const [showProductForm, setShowProductForm]  =  useState(false)
+  const [showCustomerForm, setShowCustomerForm]  =  useState(false)
 
-export default function Dashboard() {;
-  const [, setLocation]  =  useLocation();
-  const [showProductForm, setShowProductForm]  =  useState(false);
-  const [showCustomerForm, setShowCustomerForm]  =  useState(false);
-;
   const { data: metrics, isLoading: metricsLoading }  =  useQuery<DashboardMetrics>({
     queryKey: ["/api/dashboard/metrics"]
-  });
-;
+  })
+
   const { data: detailedMetrics, isLoading: detailedMetricsLoading }  =  useQuery<DetailedMetrics>({
     queryKey: ["/api/metrics/dashboard"]
-  });
-;
+  })
+
   const { data: recentOrders, isLoading: ordersLoading }  =  useQuery<Order[]>({
     queryKey: ["/api/orders/recent"]
-  });
-
-  // Quick Actions handlers;
+  })
+  // Quick Actions handlers
   const handleAddProduct = () => {
     setShowProductForm(true)
-  };
-;
+  }
+
   const handleCreateOrder = () => {
     setLocation("/sales")
-  };
-;
+  }
+
   const handleAddCustomer = () => {
     setShowCustomerForm(true)
-  };
-;
+  }
+
   const handleGenerateReport = () => {
     setLocation("/reports")
-  };
-;
+  }
+
   const handleViewAllOrders = () => {
     setLocation("/reports")
-  };
-
-  // Summary Card Component with accessibility and skeleton loading;
+  }
+  // Summary Card Component with accessibility and skeleton loading
   const SummaryCard = ({
     title,
     value,
@@ -119,9 +115,8 @@ export default function Dashboard() {;
         </div>
       </div>
     </div>
-  );
-
-  // Quick Action Button Component;
+  )
+  // Quick Action Button Component
   const QuickActionButton = ({
     onClick,
     icon: Icon,
@@ -141,9 +136,8 @@ export default function Dashboard() {;
       <Icon className = "h-5 w-5 mr-3" />
       <span className = "font-medium">{label}</span>
     </button>
-  );
-
-  // Loading State Component;
+  )
+  // Loading State Component
   const DashboardSkeleton = () => (
     <div className = "container mx-auto p-6">
       <div className = "grid grid-cols-1 gap-8">
@@ -175,12 +169,11 @@ export default function Dashboard() {;
         </div>
       </div>
     </div>
-  );
-;
-  if (metricsLoading) {;
-    return <DashboardSkeleton />
-  };
+  )
 
+  if (metricsLoading) {
+    return <DashboardSkeleton />
+  }
   return (
     <div className = "min-h-screen bg-gray-50 dark:bg-gray-900">
       {/* Responsive Container */}

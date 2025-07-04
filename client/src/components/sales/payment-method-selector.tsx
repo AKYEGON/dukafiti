@@ -1,54 +1,52 @@
-import { useState } from "react";
-import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
-import { Banknote, CreditCard, Smartphone } from "lucide-react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { formatCurrency } from "@/lib/utils";
-
+import { useState } from "react"
+import { Button } from "@/components/ui/button"
+import { Card } from "@/components/ui/card"
+import { Banknote, CreditCard, Smartphone } from "lucide-react"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { formatCurrency } from "@/lib/utils"
 interface PaymentMethodSelectorProps {
   total: number
   onPaymentSelected: (method: 'cash' | 'credit' | 'mobileMoney', reference?: string) => void
   isProcessing?: boolean
-};
+}
+export function PaymentMethodSelector({ total, onPaymentSelected, isProcessing = false }: PaymentMethodSelectorProps) {
+  const [showCreditDialog, setShowCreditDialog]  =  useState(false)
+  const [customerName, setCustomerName]  =  useState("")
+  const [customerPhone, setCustomerPhone]  =  useState("")
+  const [showMobileMoneyDialog, setShowMobileMoneyDialog]  =  useState(false)
+  const [mobileMoneyReference, setMobileMoneyReference]  =  useState("")
 
-export function PaymentMethodSelector({ total, onPaymentSelected, isProcessing = false }: PaymentMethodSelectorProps) {;
-  const [showCreditDialog, setShowCreditDialog]  =  useState(false);
-  const [customerName, setCustomerName]  =  useState("");
-  const [customerPhone, setCustomerPhone]  =  useState("");
-  const [showMobileMoneyDialog, setShowMobileMoneyDialog]  =  useState(false);
-  const [mobileMoneyReference, setMobileMoneyReference]  =  useState("");
-;
   const handleCashPayment = () => {
     onPaymentSelected('cash')
-  };
-;
+  }
+
   const handleCreditPayment = () => {
     setShowCreditDialog(true)
-  };
-;
-  const handleCreditConfirm = () => {;
+  }
+
+  const handleCreditConfirm = () => {
     if (customerName.trim() && customerPhone.trim()) {
-      onPaymentSelected('credit', `${customerName.trim()},${customerPhone.trim()}`);
-      setShowCreditDialog(false);
-      setCustomerName("");
+      onPaymentSelected('credit', `${customerName.trim()},${customerPhone.trim()}`)
+      setShowCreditDialog(false)
+      setCustomerName("")
       setCustomerPhone("")
     }
-  };
-;
+  }
+
   const handleMobileMoneyPayment = () => {
     setShowMobileMoneyDialog(true)
-  };
-;
-  const handleMobileMoneyConfirm = () => {;
+  }
+
+  const handleMobileMoneyConfirm = () => {
     if (mobileMoneyReference.trim()) {
-      onPaymentSelected('mobileMoney', mobileMoneyReference.trim());
-      setShowMobileMoneyDialog(false);
+      onPaymentSelected('mobileMoney', mobileMoneyReference.trim())
+      setShowMobileMoneyDialog(false)
       setMobileMoneyReference("")
     }
-  };
-;
+  }
+
   return (
     <div className = "space-y-4">
       <div className = "text-center mb-6">

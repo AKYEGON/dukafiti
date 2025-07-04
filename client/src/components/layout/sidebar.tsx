@@ -1,9 +1,9 @@
-import { Link, useLocation } from "wouter";
-import { Store, BarChart3, Package, Users, FileText, Settings, Menu, X, PanelLeftClose, PanelLeftOpen } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-;
+import { Link, useLocation } from "wouter"
+import { Store, BarChart3, Package, Users, FileText, Settings, Menu, X, PanelLeftClose, PanelLeftOpen } from "lucide-react"
+import { cn } from "@/lib/utils"
+import { useState, useEffect } from "react"
+import { Button } from "@/components/ui/button"
+
 const navigation = [
   { name: "Dashboard", href: "/", icon: BarChart3 },
   { name: "Inventory", href: "/inventory", icon: Package },
@@ -11,51 +11,45 @@ const navigation = [
   { name: "Customers", href: "/customers", icon: Users },
   { name: "Reports", href: "/reports", icon: FileText },
   { name: "Settings", href: "/settings", icon: Settings },
-];
-;
-const getPageTitle = (location: string) => {;
-  const page = navigation.find(item => item.href  ===  location);
-  if (page) return page.name;
-  if (location  ===  "/" || location  ===  "/dashboard") return "Dashboard";
-  return "DukaFiti"
-};
+]
 
+const getPageTitle = (location: string) => {
+  const page = navigation.find(item => item.href  ===  location)
+  if (page) return page.name
+  if (location  ===  "/" || location  ===  "/dashboard") return "Dashboard"
+  return "DukaFiti"
+}
 interface SidebarProps {
   className?: string
   collapsed?: boolean
   toggleSidebar?: () => void
-};
-
-export function Sidebar({ className, collapsed = false, toggleSidebar }: SidebarProps) {;
-  const [location]  =  useLocation();
-  const [isMobileMenuOpen, setIsMobileMenuOpen]  =  useState(false);
-  const pageTitle = getPageTitle(location);
-
+}
+export function Sidebar({ className, collapsed = false, toggleSidebar }: SidebarProps) {
+  const [location]  =  useLocation()
+  const [isMobileMenuOpen, setIsMobileMenuOpen]  =  useState(false)
+  const pageTitle = getPageTitle(location)
   // Handle escape key to close mobile menu
-  useEffect(() => {;
-    const handleEscape = (e: KeyboardEvent) => {;
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
       if (e.key  ===  'Escape' && isMobileMenuOpen) {
         setIsMobileMenuOpen(false)
       }
-    };
-
-    document.addEventListener('keydown', handleEscape);
+    }
+    document.addEventListener('keydown', handleEscape)
     return () => document.removeEventListener('keydown', handleEscape)
-  }, [isMobileMenuOpen]);
-
+  }, [isMobileMenuOpen])
   // Prevent body scroll when mobile menu is open
-  useEffect(() => {;
+  useEffect(() => {
     if (isMobileMenuOpen) {
       document.body.style.overflow = 'hidden'
     } else {
       document.body.style.overflow = 'unset'
-    };
-
+    }
     return () => {
       document.body.style.overflow = 'unset'
     }
-  }, [isMobileMenuOpen]);
-;
+  }, [isMobileMenuOpen])
+
   const SidebarContent = ({ isCollapsed = false, isMobile = false }) => (
     <div className = "flex flex-col justify-between h-screen">
       {/* Top section with logo and navigation */}
@@ -102,10 +96,10 @@ export function Sidebar({ className, collapsed = false, toggleSidebar }: Sidebar
           "space-y-2 flex-1",
           isCollapsed && !isMobile ? "px-2" : "px-4"
         )}>
-          {navigation.map((item) => {;
-            const Icon = item.icon;
-            const isActive = location  ===  item.href;
-;
+          {navigation.map((item) => {
+            const Icon = item.icon
+            const isActive = location  ===  item.href
+
             return (
               <Link key = {item.name} href = {item.href}>
                 <div
@@ -154,8 +148,8 @@ export function Sidebar({ className, collapsed = false, toggleSidebar }: Sidebar
         </div>
       )}
     </div>
-  );
-;
+  )
+
   return (
     <>
       {/* Mobile sticky header - visible on mobile and tablet when sidebar is hidden */}

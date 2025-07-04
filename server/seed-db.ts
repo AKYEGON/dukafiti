@@ -1,5 +1,5 @@
-import { db } from './db';
-import bcrypt from 'bcryptjs';
+import { db } from './db'
+import bcrypt from 'bcryptjs'
 import {
   products,
   customers,
@@ -7,24 +7,23 @@ import {
   userSettings,
   notifications,
   storeProfiles
-} from '../shared/schema';
-;
+} from '../shared/schema'
+
 export async function seedDatabase() {
   try {
-    // Check if we need to create initial data;
-    const existingUsers = await db.select().from(users).limit(1);
-;
+    // Check if we need to create initial data
+    const existingUsers = await db.select().from(users).limit(1)
+
     if (existingUsers.length  ===  0) {
-      // Create default user;
-      const hashedPassword = await bcrypt.hash('password', 10);
+      // Create default user
+      const hashedPassword = await bcrypt.hash('password', 10)
       const [defaultUser]  =  await db.insert(users).values({
         username: 'test',
         email: 'test@example.com',
         passwordHash: hashedPassword,
         phone: '+254700000000'
-      }).returning();
-
-      // Create sample products;
+      }).returning()
+      // Create sample products
       const sampleProducts = [
         {
           name: 'Rice 2kg',
@@ -80,13 +79,13 @@ export async function seedDatabase() {
           category: 'Dairy',
           lowStockThreshold: 15
         }
-      ];
-;
+      ]
+
       for (const product of sampleProducts) {
         await db.insert(products).values(product)
       }
 
-      // Create sample customers;
+      // Create sample customers
       const sampleCustomers = [
         {
           name: 'Mary Wanjiku',
@@ -109,8 +108,8 @@ export async function seedDatabase() {
           address: '789 Pine Rd, Kisumu',
           balance: '75.00'
         }
-      ];
-;
+      ]
+
       for (const customer of sampleCustomers) {
         await db.insert(customers).values(customer)
       }
@@ -122,8 +121,7 @@ export async function seedDatabase() {
         currency: 'KES',
         language: 'en',
         notifications: true
-      });
-
+      })
       // Create sample store profile
       await db.insert(storeProfiles).values({
         userId: defaultUser.id,
@@ -132,8 +130,7 @@ export async function seedDatabase() {
         storeType: 'retail',
         location: 'Nairobi, Kenya',
         description: 'A demo store for testing DukaFiti features'
-      });
-
+      })
       // Create sample notifications
       await db.insert(notifications).values([
         {
@@ -155,7 +152,7 @@ export async function seedDatabase() {
       }
 
     } catch (error) {
-    console.error('Database seeding error:', error);
+    console.error('Database seeding error:', error)
     throw error
   }
 }

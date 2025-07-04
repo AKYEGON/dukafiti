@@ -1,35 +1,31 @@
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useEffect } from "react";
-import { useToast } from "@/hooks/use-toast";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { apiRequest } from "@/lib/queryClient";
-import type { Customer } from "@/lib/types";
-
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { z } from "zod"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { useEffect } from "react"
+import { useToast } from "@/hooks/use-toast"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
+import { apiRequest } from "@/lib/queryClient"
+import type { Customer } from "@/lib/types"
 const customerFormSchema = z.object({
   name: z.string().min(1, "Customer name is required"),
   phone: z.string().optional(),
   balance: z.string().optional()
-});
-
-type CustomerFormData = z.infer<typeof customerFormSchema>;
-
+})
+type CustomerFormData = z.infer<typeof customerFormSchema>
 interface CustomerFormProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
+  open: boolean
+  onOpenChange: (open: boolean) => void
   customer?: Customer
 }
 
 export function CustomerForm({ open, onOpenChange, customer }: CustomerFormProps) {
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
-
+  const { toast } = useToast()
+  const queryClient = useQueryClient()
   const form = useForm<CustomerFormData>({
     resolver: zodResolver(customerFormSchema),
     defaultValues: {
@@ -37,8 +33,7 @@ export function CustomerForm({ open, onOpenChange, customer }: CustomerFormProps
       phone: "",
       balance: ""
     }
-  });
-
+  })
   // Reset form when customer prop changes
   useEffect(() => {
     if (customer) {
@@ -54,8 +49,7 @@ export function CustomerForm({ open, onOpenChange, customer }: CustomerFormProps
         balance: ""
       })
     }
-  }, [customer, form]);
-
+  }, [customer, form])
   const createCustomer = useMutation({
     mutationFn: async (data: CustomerFormData) => {
       const response = await fetch("/api/customers", {
@@ -66,17 +60,17 @@ export function CustomerForm({ open, onOpenChange, customer }: CustomerFormProps
           phone: data.phone || null,
           balance: data.balance || "0.00"
         })
-      });
-      if (!response.ok) throw new Error("Failed to create customer");
+      })
+      if (!response.ok) throw new Error("Failed to create customer")
       return response.json()
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/customers"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/customers"] })
       toast({
         title: "Success",
         description: "Customer created successfully"
-      });
-      onOpenChange(false);
+      })
+      onOpenChange(false)
       form.reset()
     },
     onError: (error) => {
@@ -86,11 +80,10 @@ export function CustomerForm({ open, onOpenChange, customer }: CustomerFormProps
         variant: "destructive"
       })
     }
-  });
-
+  })
   const updateCustomer = useMutation({
     mutationFn: async (data: CustomerFormData) => {
-      if (!customer) throw new Error("No customer to update");
+      if (!customer) throw new Error("No customer to update")
       const response = await apiRequest(`/api/customers/${customer.id}`, {
         method: "PUT",
         body: JSON.stringify({
@@ -98,15 +91,15 @@ export function CustomerForm({ open, onOpenChange, customer }: CustomerFormProps
           phone: data.phone || null,
           balance: data.balance || "0.00"
         })
-      });
+      })
       return response
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/customers"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/customers"] })
       toast({
         title: "Success",
         description: "Customer updated successfully"
-      });
+      })
       onOpenChange(false)
     },
     onError: (error) => {
@@ -116,16 +109,14 @@ export function CustomerForm({ open, onOpenChange, customer }: CustomerFormProps
         variant: "destructive"
       })
     }
-  });
-
+  })
   const onSubmit = (data: CustomerFormData) => {
     if (customer) {
       updateCustomer.mutate(data)
     } else {
       createCustomer.mutate(data)
     }
-  };
-
+  }
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">

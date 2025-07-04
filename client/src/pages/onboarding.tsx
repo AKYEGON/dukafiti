@@ -1,11 +1,11 @@
-import { useLocation } from "wouter";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { CheckCircle, Store, BarChart3, Users } from "lucide-react";
-;
-export default function Onboarding() {;
-  const [, setLocation]  =  useLocation();
-;
+import { useLocation } from "wouter"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { CheckCircle, Store, BarChart3, Users } from "lucide-react"
+
+export default function Onboarding() {
+  const [, setLocation]  =  useLocation()
+
   const features = [
     {
       icon: Store,
@@ -22,8 +22,8 @@ export default function Onboarding() {;
       title: "Customer Management",
       description: "Keep track of your customers and their purchase history"
     }
-  ];
-;
+  ]
+
   return (
     <div className = "min-h-screen flex items-center justify-center bg-gray-50 px-4">
       <Card className = "w-full max-w-2xl">

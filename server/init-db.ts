@@ -1,18 +1,17 @@
-import Database from 'better-sqlite3';
-import bcrypt from 'bcryptjs';
-import { db } from './db';
+import Database from 'better-sqlite3'
+import bcrypt from 'bcryptjs'
+import { db } from './db'
 import {
   products,
   customers,
   users,
   userSettings
-} from '../shared/schema';
-;
+} from '../shared/schema'
+
 export async function initializeDatabase() {
   try {
-    // Create tables using raw SQL since Drizzle migrations aren't working;
-    const sqlite = new Database('./database.sqlite');
-
+    // Create tables using raw SQL since Drizzle migrations aren't working
+    const sqlite = new Database('./database.sqlite')
     // Create users table
     sqlite.exec(`
       CREATE TABLE IF NOT EXISTS users (
@@ -22,9 +21,8 @@ export async function initializeDatabase() {
         password_hash TEXT NOT NULL,
         phone TEXT,
         created_at INTEGER NOT NULL DEFAULT (unixepoch())
-      );
-    `);
-
+      )
+    `)
     // Create products table
     sqlite.exec(`
       CREATE TABLE IF NOT EXISTS products (
@@ -38,9 +36,8 @@ export async function initializeDatabase() {
         low_stock_threshold INTEGER NOT NULL DEFAULT 10,
         sales_count INTEGER NOT NULL DEFAULT 0,
         created_at INTEGER NOT NULL DEFAULT (unixepoch())
-      );
-    `);
-
+      )
+    `)
     // Create customers table
     sqlite.exec(`
       CREATE TABLE IF NOT EXISTS customers (
@@ -51,9 +48,8 @@ export async function initializeDatabase() {
         address TEXT,
         balance REAL NOT NULL DEFAULT 0.00,
         created_at INTEGER NOT NULL DEFAULT (unixepoch())
-      );
-    `);
-
+      )
+    `)
     // Create orders table
     sqlite.exec(`
       CREATE TABLE IF NOT EXISTS orders (
@@ -65,9 +61,8 @@ export async function initializeDatabase() {
         status TEXT NOT NULL DEFAULT 'pending',
         reference TEXT,
         created_at INTEGER NOT NULL DEFAULT (unixepoch())
-      );
-    `);
-
+      )
+    `)
     // Create order_items table
     sqlite.exec(`
       CREATE TABLE IF NOT EXISTS order_items (
@@ -77,9 +72,8 @@ export async function initializeDatabase() {
         product_name TEXT NOT NULL,
         quantity INTEGER NOT NULL,
         price REAL NOT NULL
-      );
-    `);
-
+      )
+    `)
     // Create business_profiles table
     sqlite.exec(`
       CREATE TABLE IF NOT EXISTS business_profiles (
@@ -90,9 +84,8 @@ export async function initializeDatabase() {
         location TEXT,
         description TEXT,
         created_at INTEGER NOT NULL DEFAULT (unixepoch())
-      );
-    `);
-
+      )
+    `)
     // Create payments table
     sqlite.exec(`
       CREATE TABLE IF NOT EXISTS payments (
@@ -103,9 +96,8 @@ export async function initializeDatabase() {
         reference TEXT,
         status TEXT NOT NULL DEFAULT 'pending',
         created_at INTEGER NOT NULL DEFAULT (unixepoch())
-      );
-    `);
-
+      )
+    `)
     // Create store_profiles table
     sqlite.exec(`
       CREATE TABLE IF NOT EXISTS store_profiles (
@@ -116,9 +108,8 @@ export async function initializeDatabase() {
         location TEXT,
         description TEXT,
         created_at INTEGER NOT NULL DEFAULT (unixepoch())
-      );
-    `);
-
+      )
+    `)
     // Create user_settings table
     sqlite.exec(`
       CREATE TABLE IF NOT EXISTS user_settings (
@@ -129,24 +120,22 @@ export async function initializeDatabase() {
         language TEXT NOT NULL DEFAULT 'en',
         notifications INTEGER NOT NULL DEFAULT 1,
         created_at INTEGER NOT NULL DEFAULT (unixepoch())
-      );
-    `);
+      )
+    `)
+    sqlite.close()
+    // Check if we need to create initial data
+    const existingUsers = await db.select().from(users).limit(1)
 
-    sqlite.close();
-    // Check if we need to create initial data;
-    const existingUsers = await db.select().from(users).limit(1);
-;
     if (existingUsers.length  ===  0) {
-      // Create default user;
-      const hashedPassword = await bcrypt.hash('admin123', 10);
+      // Create default user
+      const hashedPassword = await bcrypt.hash('admin123', 10)
       const defaultUser = await db.insert(users).values({
         username: 'admin',
         email: 'admin@dukasmart.com',
         passwordHash: hashedPassword,
         phone: '+254700000000'
-      }).returning().get();
-
-      // Create sample products;
+      }).returning().get()
+      // Create sample products
       const sampleProducts = [
         {
           name: 'Rice 2kg',
@@ -175,13 +164,13 @@ export async function initializeDatabase() {
           category: 'Baking',
           lowStockThreshold: 8
         }
-      ];
-;
+      ]
+
       for (const product of sampleProducts) {
         await db.insert(products).values(product)
       }
 
-      // Create sample customers;
+      // Create sample customers
       const sampleCustomers = [
         {
           name: 'John Doe',
@@ -197,8 +186,8 @@ export async function initializeDatabase() {
           address: '456 Oak Ave, Mombasa',
           balance: 50.00
         }
-      ];
-;
+      ]
+
       for (const customer of sampleCustomers) {
         await db.insert(customers).values(customer)
       }
@@ -215,7 +204,7 @@ export async function initializeDatabase() {
       }
 
     } catch (error) {
-    console.error('Database initialization error:', error);
+    console.error('Database initialization error:', error)
     throw error
   }
 }

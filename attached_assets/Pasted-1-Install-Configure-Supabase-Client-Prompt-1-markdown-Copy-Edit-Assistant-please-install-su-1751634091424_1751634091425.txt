@@ -1,0 +1,88 @@
+1. Install & Configure Supabase Client
+Prompt #1:
+
+markdown
+Copy
+Edit
+Assistant, please install `@supabase/supabase-js` in our project and create a shared client:
+
+1. In `package.json`, add `"@supabase/supabase-js": "^2.0.0"` under dependencies.  
+2. Create a file `supabaseClient.js` at the root with:
+   ```js
+   import { createClient } from '@supabase/supabase-js';
+
+   export const supabase = createClient(
+     process.env.SUPABASE_URL,
+     process.env.SUPABASE_ANON_KEY
+   );
+Ensure your code imports from ./supabaseClient wherever needed.
+
+yaml
+Copy
+Edit
+
+---
+
+## 2. Replace “Add Product” API Call
+
+**Prompt #2:**  
+```markdown
+Assistant, overwrite the Inventory page’s “Add Product” logic so it uses Supabase instead of fetch:
+
+1. In `AddProductModal.jsx`, locate the form submit handler that does `fetch('/api/products',…)`.  
+2. Replace it with:
+   ```js
+   const { data, error } = await supabase
+     .from('products')
+     .insert([{ name, price, quantity }]);
+   if (error) throw error;
+Remove the old fetch import and any error paths.
+
+Do the same replacement in EditProductModal.jsx for updates.
+
+sql
+Copy
+Edit
+
+---
+
+## 3. Swap All Other REST Calls
+
+**Prompt #3:**  
+```markdown
+Assistant, scan all React pages (Sales.jsx, Customers.jsx, Reports.jsx, Settings.jsx) and replace any `fetch(API_URL + '/api/...')` or axios calls with Supabase client calls. For each:
+
+- `.from('sales').select()` in Sales page  
+- `.from('customers').select()/update()` in Customers  
+- `.from('reports').select()` in Reports (or use `sales` & `customers` tables)  
+- And any deletes: `.delete()`  
+Generate the updated code snippets in each file so the UI talks directly to Supabase.
+4. Remove Express Server Boilerplate
+Prompt #4:
+
+markdown
+Copy
+Edit
+Assistant, remove all Express‑related code since we’re using Supabase only:
+
+1. Delete `server.js` (or `index.ts`) and the `api/` folder.  
+2. Remove Express, CORS, and any server deps from `package.json`.  
+3. Update `package.json` scripts to only:
+   ```json
+   "scripts": {
+     "start": "react-scripts start",
+     "build": "react-scripts build"
+   }
+Ensure npm install now only pulls React and Supabase dependencies.
+
+yaml
+Copy
+Edit
+
+---
+
+## 5. Set Your Supabase Keys in Replit
+
+**Prompt #5:**  
+```markdown
+Assistant, list exactly which environment variables to add in Replit Secrets—show me the Key names and examp

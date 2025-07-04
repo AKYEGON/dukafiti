@@ -1,67 +1,62 @@
-import React, { useState, useEffect } from 'react';
-import { supabase } from '../supabaseClient';
-import { useAuth } from '@/contexts/SupabaseAuthContext';
-import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-;
-export default function Debug() {;
-  const [sessionData, setSessionData]  =  useState<any>(null);
-  const [userInfo, setUserInfo]  =  useState<any>(null);
-  const [loading, setLoading]  =  useState(true);
-  const [error, setError]  =  useState<string | null>(null);
-  const { user, session, isAuthenticated }  =  useAuth();
+import React, { useState, useEffect } from 'react'
+import { supabase } from '../supabaseClient'
+import { useAuth } from '@/contexts/SupabaseAuthContext'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
-  useEffect(() => {;
+export default function Debug() {
+  const [sessionData, setSessionData]  =  useState<any>(null)
+  const [userInfo, setUserInfo]  =  useState<any>(null)
+  const [loading, setLoading]  =  useState(true)
+  const [error, setError]  =  useState<string | null>(null)
+  const { user, session, isAuthenticated }  =  useAuth()
+  useEffect(() => {
     const checkSession = async () => {
-      try {;
-        const { data: { session }, error }  =  await supabase.auth.getSession();
-;
+      try {
+        const { data: { session }, error }  =  await supabase.auth.getSession()
+
         if (error) {
-          console.error('Error getting session:', error);
+          console.error('Error getting session:', error)
           setError(error.message)
         } else {
           setSessionData(session)
-        };
-
-        const { data: { user }, error: userError }  =  await supabase.auth.getUser();
-
+        }
+        const { data: { user }, error: userError }  =  await supabase.auth.getUser()
         if (userError) {
-          console.error('Error getting user:', userError);
+          console.error('Error getting user:', userError)
           setError(userError.message)
         } else {
           setUserInfo(user)
         }
       } catch (err) {
-        console.error('Debug page error:', err);
+        console.error('Debug page error:', err)
         setError('Failed to check authentication')
       } finally {
         setLoading(false)
       }
-    };
-
+    }
     checkSession()
-  }, []);
-;
-  const testSignUp = async () => {;
+  }, [])
+
+  const testSignUp = async () => {
     const { data, error }  =  await supabase.auth.signUp({
       email: 'test@example.com',
       password: 'testpassword123'
     })
 
-    };
-;
-  const testSignIn = async () => {;
+    }
+
+  const testSignIn = async () => {
     const { data, error }  =  await supabase.auth.signInWithPassword({
       email: 'test@example.com',
       password: 'testpassword123'
     })
 
-    };
-;
-  if (loading) {;
-    return <div className = "p-8">Loading debug information...</div>
-  };
+    }
 
+  if (loading) {
+    return <div className = "p-8">Loading debug information...</div>
+  }
   return (
     <div className = "min-h-screen bg-gray-50 dark:bg-gray-900 p-4">
       <div className = "max-w-4xl mx-auto space-y-6">

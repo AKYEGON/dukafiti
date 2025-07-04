@@ -1,4 +1,4 @@
-// Application configuration with environment-based settings;
+// Application configuration with environment-based settings
 export const config = {
   // Supabase configuration
   supabase: {
@@ -26,20 +26,16 @@ export const config = {
     fallbackEnabled: import.meta.env.DEV, // Only enable fallback in development
     loadingTimeout: 3000 // 3 seconds before fallback
   }
-};
-
-// Validate required configuration;
-export function validateConfig(): { isValid: boolean; errors: string[] } {;
-  const errors: string[]  =  [];
-
+}
+// Validate required configuration
+export function validateConfig(): { isValid: boolean; errors: string[] } {
+  const errors: string[]  =  []
   if (!config.supabase.url || !config.supabase.url.startsWith('https://')) {
     errors.push('Invalid Supabase URL')
-  };
-
+  }
   if (!config.supabase.anonKey || config.supabase.anonKey.length < 50) {
     errors.push('Invalid Supabase anonymous key')
-  };
-
+  }
   return {
     isValid: errors.length  ===  0,
     errors

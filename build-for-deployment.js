@@ -1,8 +1,7 @@
 #!/usr/bin/env node
 
-import { execSync } from 'child_process';
-import { mkdirSync, existsSync } from 'fs';
-
+import { execSync } from 'child_process'
+import { mkdirSync, existsSync } from 'fs'
 try {
   // Create necessary directories
   if (!existsSync('dist')) {
@@ -13,8 +12,7 @@ try {
   execSync('npx vite build --mode production', {
     stdio: 'inherit',
     cwd: process.cwd()
-  });
-
+  })
   // Build the server
   execSync('npx esbuild server/index.ts --platform = node --packages = external --bundle --format = esm --outdir = dist --target = node18', {
     stdio: 'inherit',
@@ -22,6 +20,6 @@ try {
   })
 
   } catch (error) {
-  console.error('Build failed:', error.message);
+  console.error('Build failed:', error.message)
   process.exit(1)
 }

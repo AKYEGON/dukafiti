@@ -1,17 +1,15 @@
-import { useLocation } from 'wouter';
+import { useLocation } from 'wouter'
 import {
   LayoutDashboard,
   Package,
   ShoppingCart,
   Users
-} from 'lucide-react';
-
+} from 'lucide-react'
 interface NavItem {
   icon: React.ComponentType<{ className?: string }>
   label: string
   path: string
-};
-
+}
 const navItems: NavItem[]  =  [
   {
     icon: LayoutDashboard,
@@ -33,31 +31,31 @@ const navItems: NavItem[]  =  [
     label: 'Customers',
     path: '/customers'
   }
-];
-;
-export function MobileBottomNav() {;
-  const [location, setLocation]  =  useLocation();
-;
-  const isActive = (path: string) => {;
-    if (path  ===  '/') {;
+]
+
+export function MobileBottomNav() {
+  const [location, setLocation]  =  useLocation()
+
+  const isActive = (path: string) => {
+    if (path  ===  '/') {
       return location  ===  '/' || location  ===  '/dashboard'
-    };
+    }
     return location  ===  path
-  };
-;
+  }
+
   const handleNavigation = (path: string) => {
     setLocation(path)
-  };
-;
+  }
+
   return (
     <nav
       className = "fixed bottom-0 left-0 right-0 z-50 h-16 bg-white dark:bg-[#1F1F1F] border-t border-gray-200 dark:border-gray-700 px-4 flex md:hidden"
       style = {{ paddingBottom: 'env(safe-area-inset-bottom)' }}
     >
-      {navItems.map((item) => {;
-        const Icon = item.icon;
-        const active = isActive(item.path);
-;
+      {navItems.map((item) => {
+        const Icon = item.icon
+        const active = isActive(item.path)
+
         return (
           <button
             key = {item.path}

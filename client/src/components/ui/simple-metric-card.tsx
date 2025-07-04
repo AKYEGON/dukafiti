@@ -1,6 +1,5 @@
-import { Card, CardContent } from "@/components/ui/card";
-import { LucideIcon, Loader2 } from "lucide-react";
-
+import { Card, CardContent } from "@/components/ui/card"
+import { LucideIcon, Loader2 } from "lucide-react"
 interface SimpleMetricCardProps {
   title: string
   value: string
@@ -8,8 +7,7 @@ interface SimpleMetricCardProps {
   isLoading?: boolean
   isRefreshing?: boolean
   error?: boolean
-};
-
+}
 export function SimpleMetricCard({
   title,
   value,
@@ -17,7 +15,7 @@ export function SimpleMetricCard({
   isLoading = false,
   isRefreshing = false,
   error = false
-}: SimpleMetricCardProps) {;
+}: SimpleMetricCardProps) {
   return (
     <Card className = "relative overflow-hidden hover:shadow-md transition-shadow">
       <CardContent className = "p-6">

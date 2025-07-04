@@ -1,53 +1,46 @@
-import { useState, useEffect } from "react";
-import { WifiOff, Wifi, Clock } from "lucide-react";
-import { isOnline, setupNetworkListeners, offlineQueue } from "@/lib/offline-queue";
-;
-export function OfflineIndicator() {;
-  const [online, setOnline]  =  useState(isOnline());
-  const [pendingCount, setPendingCount]  =  useState(0);
+import { useState, useEffect } from "react"
+import { WifiOff, Wifi, Clock } from "lucide-react"
+import { isOnline, setupNetworkListeners, offlineQueue } from "@/lib/offline-queue"
 
+export function OfflineIndicator() {
+  const [online, setOnline]  =  useState(isOnline())
+  const [pendingCount, setPendingCount]  =  useState(0)
   useEffect(() => {
     // Set initial state
-    setOnline(isOnline());
-
-    // Update pending count;
+    setOnline(isOnline())
+    // Update pending count
     const updatePendingCount = async () => {
-      try {;
-        const count = await offlineQueue.getQueueCount();
+      try {
+        const count = await offlineQueue.getQueueCount()
         setPendingCount(count)
       } catch (error) {
         console.error('Failed to get pending count:', error)
       }
-    };
-
-    updatePendingCount();
-
-    // Set up network listeners;
+    }
+    updatePendingCount()
+    // Set up network listeners
     const cleanup = setupNetworkListeners(
       () => {
-        setOnline(true);
+        setOnline(true)
         updatePendingCount(); // Refresh count when back online
       },
       () => {
-        setOnline(false);
+        setOnline(false)
         updatePendingCount(); // Refresh count when going offline
       }
-    );
+    )
+    // Update pending count periodically
+    const interval = setInterval(updatePendingCount, 5000)
 
-    // Update pending count periodically;
-    const interval = setInterval(updatePendingCount, 5000);
-;
     return () => {
-      cleanup();
+      cleanup()
       clearInterval(interval)
     }
-  }, []);
-
-  // Don't show anything if online and no pending sales;
-  if (online && pendingCount  ===  0) {;
+  }, [])
+  // Don't show anything if online and no pending sales
+  if (online && pendingCount  ===  0) {
     return null
-  };
-
+  }
   return (
     <div className = "fixed top-4 right-4 z-50 flex items-center gap-2">
       {/* Offline indicator */}
@@ -79,43 +72,41 @@ export function OfflineIndicator() {;
   )
 }
 
-// Hook to use offline status in components;
-export function useOfflineStatus() {;
-  const [online, setOnline]  =  useState(isOnline());
-  const [pendingCount, setPendingCount]  =  useState(0);
-
+// Hook to use offline status in components
+export function useOfflineStatus() {
+  const [online, setOnline]  =  useState(isOnline())
+  const [pendingCount, setPendingCount]  =  useState(0)
   useEffect(() => {
-    setOnline(isOnline());
-;
+    setOnline(isOnline())
+
     const updatePendingCount = async () => {
-      try {;
-        const count = await offlineQueue.getQueueCount();
+      try {
+        const count = await offlineQueue.getQueueCount()
         setPendingCount(count)
       } catch (error) {
         console.error('Failed to get pending count:', error)
       }
-    };
+    }
+    updatePendingCount()
 
-    updatePendingCount();
-;
     const cleanup = setupNetworkListeners(
       () => {
-        setOnline(true);
+        setOnline(true)
         updatePendingCount()
       },
       () => {
-        setOnline(false);
+        setOnline(false)
         updatePendingCount()
       }
-    );
-;
-    const interval = setInterval(updatePendingCount, 5000);
-;
+    )
+
+    const interval = setInterval(updatePendingCount, 5000)
+
     return () => {
-      cleanup();
+      cleanup()
       clearInterval(interval)
     }
-  }, []);
-;
+  }, [])
+
   return { online, pendingCount }
 }

@@ -1,15 +1,15 @@
-import { useState, useEffect } from 'react';
-import { Search, Bell, User, LogOut, Settings, Menu } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Badge } from '@/components/ui/badge';
+import { useState, useEffect } from 'react'
+import { Search, Bell, User, LogOut, Settings, Menu } from 'lucide-react'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Badge } from '@/components/ui/badge'
 import { 
   DropdownMenu, 
   DropdownMenuContent, 
   DropdownMenuItem, 
   DropdownMenuSeparator, 
   DropdownMenuTrigger 
-} from '@/components/ui/dropdown-menu';
+} from '@/components/ui/dropdown-menu'
 import {
   Dialog,
   DialogContent,
@@ -17,57 +17,51 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { useLocation } from 'wouter';
-import { useAuth } from '@/contexts/SupabaseAuthClean';
-
+} from '@/components/ui/dialog'
+import { useLocation } from 'wouter'
+import { useAuth } from '@/contexts/SupabaseAuthClean'
 interface TopBarProps {
-  onToggleSidebar?: () => void;
+  onToggleSidebar?: () => void
   isSidebarCollapsed?: boolean
 }
 
 export function TopBar({ onToggleSidebar }: TopBarProps) {
-  const [, setLocation] = useLocation();
-  const { user, logout } = useAuth();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
-  const [unreadCount, setUnreadCount] = useState(0);
-
+  const [, setLocation] = useLocation()
+  const { user, logout } = useAuth()
+  const [searchQuery, setSearchQuery] = useState('')
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false)
+  const [unreadCount, setUnreadCount] = useState(0)
   useEffect(() => {
     const fetchUnreadCount = async () => {
       try {
-        const response = await fetch('/api/notifications/unread-count');
+        const response = await fetch('/api/notifications/unread-count')
         if (response.ok) {
-          const data = await response.json();
+          const data = await response.json()
           setUnreadCount(data.count || 0)
         }
       } catch (error) {
         // Notification fetch failed - not critical
       }
-    };
-
-    fetchUnreadCount();
-    const interval = setInterval(fetchUnreadCount, 30000);
+    }
+    fetchUnreadCount()
+    const interval = setInterval(fetchUnreadCount, 30000)
     return () => clearInterval(interval)
-  }, []);
-
+  }, [])
   const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault()
     if (searchQuery.trim()) {
       setLocation(`/search?q=${encodeURIComponent(searchQuery)}`)
     }
-  };
-
+  }
   const handleLogoutConfirm = async () => {
     try {
-      await logout();
-      setIsLogoutModalOpen(false);
+      await logout()
+      setIsLogoutModalOpen(false)
       setLocation('/')
     } catch (error) {
       console.error('Logout failed:', error)
     }
-  };
-
+  }
   return (
     <>
       <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">

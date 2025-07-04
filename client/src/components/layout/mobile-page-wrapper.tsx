@@ -1,20 +1,17 @@
-import { ReactNode } from "react";
-import { cn } from "@/lib/utils";
-
+import { ReactNode } from "react"
+import { cn } from "@/lib/utils"
 interface MobilePageWrapperProps {
   children: ReactNode
   className?: string
   title?: string
   showTitle?: boolean
-};
-
+}
 export function MobilePageWrapper({
   children,
   className,
   title,
   showTitle = true
-}: MobilePageWrapperProps) {;
-
+}: MobilePageWrapperProps) {
   return (
     <div className = {cn("w-full h-full bg-background text-foreground", className)}>
       {/* Desktop title - shown on desktop only */}

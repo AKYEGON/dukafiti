@@ -1,44 +1,43 @@
-import React, { useState } from 'react';
-import { useLocation } from 'wouter';
-import { useAuth } from '@/contexts/SupabaseAuthClean';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Link } from 'wouter';
-import { Mail, ArrowLeft, Store, Eye, EyeOff } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-;
+import React, { useState } from 'react'
+import { useLocation } from 'wouter'
+import { useAuth } from '@/contexts/SupabaseAuthClean'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Link } from 'wouter'
+import { Mail, ArrowLeft, Store, Eye, EyeOff } from 'lucide-react'
+import { useToast } from '@/hooks/use-toast'
+
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email'),
   password: z.string().min(6, 'Password must be at least 6 characters')
-});
+})
+type LoginFormData = z.infer<typeof loginSchema>
 
-type LoginFormData = z.infer<typeof loginSchema>;
-;
-export default function Login() {;
-  const [, navigate]  =  useLocation();
-  const { toast }  =  useToast();
-  const { login }  =  useAuth();
-  const [isLoading, setIsLoading]  =  useState(false);
-  const [showPassword, setShowPassword]  =  useState(false);
-;
+export default function Login() {
+  const [, navigate]  =  useLocation()
+  const { toast }  =  useToast()
+  const { login }  =  useAuth()
+  const [isLoading, setIsLoading]  =  useState(false)
+  const [showPassword, setShowPassword]  =  useState(false)
+
   const {
     register,
     handleSubmit,
     formState: { errors }
   }  =  useForm<LoginFormData>({
     resolver: zodResolver(loginSchema)
-  });
-;
+  })
+
   const onSubmit = async (data: LoginFormData) => {
-    setIsLoading(true);
-    try {;
-      const { error }  =  await login(data.email, data.password);
-;
+    setIsLoading(true)
+    try {
+      const { error }  =  await login(data.email, data.password)
+
       if (error) {
         toast({
           title: "Login failed",
@@ -49,7 +48,7 @@ export default function Login() {;
         toast({
           title: "Welcome back!",
           description: "You have been logged in successfully"
-        });
+        })
         navigate('/dashboard')
       }
     } catch (error) {
@@ -61,8 +60,8 @@ export default function Login() {;
     } finally {
       setIsLoading(false)
     }
-  };
-;
+  }
+
   return (
     <div className = "min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4 sm:px-6 lg:px-8">
       <div className = "bg-white dark:bg-[#1F1F1F] border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg p-6 sm:p-8 w-full max-w-md mx-auto my-12">

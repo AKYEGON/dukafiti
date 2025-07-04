@@ -1,40 +1,37 @@
-import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { Search, Package } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { type Product } from "@shared/schema";
-import { formatCurrency } from "@/lib/utils";
-
+import { useState, useEffect } from "react"
+import { useQuery } from "@tanstack/react-query"
+import { Search, Package } from "lucide-react"
+import { Input } from "@/components/ui/input"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
+import { type Product } from "@shared/schema"
+import { formatCurrency } from "@/lib/utils"
 interface ProductSearchProps {
   onProductSelect: (product: Product) => void
-};
+}
+export function ProductSearch({ onProductSelect }: ProductSearchProps) {
+  const [searchTerm, setSearchTerm]  =  useState("")
+  const [showResults, setShowResults]  =  useState(false)
 
-export function ProductSearch({ onProductSelect }: ProductSearchProps) {;
-  const [searchTerm, setSearchTerm]  =  useState("");
-  const [showResults, setShowResults]  =  useState(false);
-;
   const { data: products = [], isLoading }  =  useQuery<Product[]>({
     queryKey: ["/api/products"]
-  });
-;
+  })
+
   const filteredProducts = products.filter(product =>
     product.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     product.sku.toLowerCase().includes(searchTerm.toLowerCase()) ||
     product.category.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
+  )
   useEffect(() => {
     setShowResults(searchTerm.length > 0)
-  }, [searchTerm]);
-;
+  }, [searchTerm])
+
   const handleProductSelect = (product: Product) => {
-    onProductSelect(product);
-    setSearchTerm("");
+    onProductSelect(product)
+    setSearchTerm("")
     setShowResults(false)
-  };
-;
+  }
+
   return (
     <div className = "relative w-full">
       <div className = "relative">

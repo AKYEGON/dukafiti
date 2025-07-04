@@ -1,5 +1,4 @@
-import { supabase } from '../server/supabase';
-
+import { supabase } from '../server/supabase'
 async function seedDatabase() {
   try {
     // Create a default user in Supabase Auth
@@ -7,10 +6,9 @@ async function seedDatabase() {
       email: 'test@example.com',
       password: 'password',
       user_metadata: { name: 'Test User' }
-    });
-
+    })
     if (authError) {
-      console.error('Error creating auth user:', authError);
+      console.error('Error creating auth user:', authError)
       return
     }
 
@@ -24,10 +22,9 @@ async function seedDatabase() {
         phone: '+254700000000'
       }])
       .select()
-      .single();
-
+      .single()
     if (userError) {
-      console.error('Error creating user profile:', userError);
+      console.error('Error creating user profile:', userError)
       return
     }
 
@@ -41,8 +38,7 @@ async function seedDatabase() {
         storeType: 'retail',
         location: 'Nairobi, Kenya',
         description: 'A sample retail store'
-      }]);
-
+      }])
     if (storeError) {
       console.error('Error creating store profile:', storeError)
     }
@@ -56,8 +52,7 @@ async function seedDatabase() {
         currency: 'KES',
         language: 'en',
         notifications: true
-      }]);
-
+      }])
     if (settingsError) {
       console.error('Error creating user settings:', settingsError)
     }
@@ -94,12 +89,10 @@ async function seedDatabase() {
         lowStockThreshold: 5,
         salesCount: 0
       }
-    ];
-
+    ]
     const { error: productsError } = await supabase
       .from('products')
-      .insert(sampleProducts);
-
+      .insert(sampleProducts)
     if (productsError) {
       console.error('Error creating products:', productsError)
     } else {
@@ -121,19 +114,17 @@ async function seedDatabase() {
         address: '456 Oak Ave, Nairobi',
         balance: '100.00'
       }
-    ];
-
+    ]
     const { error: customersError } = await supabase
       .from('customers')
-      .insert(sampleCustomers);
-
+      .insert(sampleCustomers)
     if (customersError) {
       console.error('Error creating customers:', customersError)
     } else {
       }
 
     } catch (error) {
-    console.error('Error seeding database:', error);
+    console.error('Error seeding database:', error)
     process.exit(1)
   }
 }

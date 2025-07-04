@@ -1,15 +1,12 @@
 #!/usr/bin/env node
 
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
-
-const __dirname = path.dirname(fileURLToPath(import.meta.url));
-
+import fs from 'fs'
+import path from 'path'
+import { fileURLToPath } from 'url'
+const __dirname = path.dirname(fileURLToPath(import.meta.url))
 // Create build directory if it doesn't exist
-const buildDir = path.join(__dirname, 'build');
-const distPublicDir = path.join(__dirname, 'dist', 'public');
-
+const buildDir = path.join(__dirname, 'build')
+const distPublicDir = path.join(__dirname, 'dist', 'public')
 try {
   // Check if dist/public exists (from vite build output)
   if (fs.existsSync(distPublicDir)) {
@@ -36,11 +33,10 @@ try {
   <h1>DukaFiti is building...</h1>
   <p>Please wait while the application is being prepared.</p>
 </body>
-</html>`;
-
+</html>`
     fs.writeFileSync(path.join(buildDir, 'index.html'), fallbackHtml)
     }
 } catch (error) {
-  console.error('Error setting up build directory:', error);
+  console.error('Error setting up build directory:', error)
   process.exit(1)
 }

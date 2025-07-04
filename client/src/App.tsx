@@ -1,55 +1,52 @@
-import { useState, useEffect } from "react";
-import { Switch, Route, useLocation } from "wouter";
-import { QueryClientProvider } from "@tanstack/react-query";
-import { queryClient } from "./lib/queryClient";
-import { Toaster } from "@/components/ui/toaster";
-import { TooltipProvider } from "@/components/ui/tooltip";
-import { Sidebar } from "@/components/layout/sidebar";
-import { MobileBottomNav } from "@/components/layout/mobile-bottom-nav";
-import { TopBar } from "@/components/TopBar";
-import { config } from "./lib/config";
-;
-import { AuthProvider, useAuth } from "@/contexts/SupabaseAuthClean";
-import { ProtectedRoute } from "@/components/ProtectedRoute";
-import { useWebSocket } from "@/hooks/use-websocket";
-import { useSupabaseRealtime } from "@/hooks/useSupabaseRealtime";
-import { ThemeProvider } from "@/contexts/theme-context";
-import { OfflineBanner } from "@/components/OfflineBanner";
-import { ErrorBoundary } from "@/components/error-boundary";
-;
-import Dashboard from "@/pages/dashboard";
-import Inventory from "@/pages/inventory";
-import Sales from "@/pages/sales";
-import Customers from "@/pages/customers";
-import Reports from "@/pages/reports";
-import NotificationsPage from "@/pages/notifications";
-import Home from "@/pages/home";
-import Login from "@/pages/login";
-import Register from "@/pages/register";
-import AuthCallback from "@/pages/auth-callback";
-import Onboarding from "@/pages/onboarding";
-import NotFound from "@/pages/not-found";
-import SettingsPage from "@/pages/settings";
-import Debug from "@/pages/debug";
-;
+import { useState, useEffect } from "react"
+import { Switch, Route, useLocation } from "wouter"
+import { QueryClientProvider } from "@tanstack/react-query"
+import { queryClient } from "./lib/queryClient"
+import { Toaster } from "@/components/ui/toaster"
+import { TooltipProvider } from "@/components/ui/tooltip"
+import { Sidebar } from "@/components/layout/sidebar"
+import { MobileBottomNav } from "@/components/layout/mobile-bottom-nav"
+import { TopBar } from "@/components/TopBar"
+import { config } from "./lib/config"
+
+import { AuthProvider, useAuth } from "@/contexts/SupabaseAuthClean"
+import { ProtectedRoute } from "@/components/ProtectedRoute"
+import { useWebSocket } from "@/hooks/use-websocket"
+import { useSupabaseRealtime } from "@/hooks/useSupabaseRealtime"
+import { ThemeProvider } from "@/contexts/theme-context"
+import { OfflineBanner } from "@/components/OfflineBanner"
+import { ErrorBoundary } from "@/components/error-boundary"
+
+import Dashboard from "@/pages/dashboard"
+import Inventory from "@/pages/inventory"
+import Sales from "@/pages/sales"
+import Customers from "@/pages/customers"
+import Reports from "@/pages/reports"
+import NotificationsPage from "@/pages/notifications"
+import Home from "@/pages/home"
+import Login from "@/pages/login"
+import Register from "@/pages/register"
+import AuthCallback from "@/pages/auth-callback"
+import Onboarding from "@/pages/onboarding"
+import NotFound from "@/pages/not-found"
+import SettingsPage from "@/pages/settings"
+import Debug from "@/pages/debug"
+
 function AuthenticatedApp() {
   // Initialize WebSocket connection for real-time notifications
-  useWebSocket();
-
+  useWebSocket()
   // Initialize Supabase real-time subscriptions
-  useSupabaseRealtime();
-
+  useSupabaseRealtime()
   // Console log environment variables for debugging
   useEffect(() => {
-    }, []);
+    }, [])
+  // Sidebar collapse state
+  const [sidebarCollapsed, setSidebarCollapsed]  =  useState(false)
 
-  // Sidebar collapse state;
-  const [sidebarCollapsed, setSidebarCollapsed]  =  useState(false);
-;
   const toggleSidebar = () => {
     setSidebarCollapsed(prev => !prev)
-  };
-;
+  }
+
   return (
     <div className = "flex h-screen bg-background text-foreground overflow-hidden">
       {/* Sidebar - hidden on mobile, visible on tablet and desktop */}
@@ -78,9 +75,8 @@ function AuthenticatedApp() {
       <MobileBottomNav />
     </div>
   )
-};
-
-function UnauthenticatedApp() {;
+}
+function UnauthenticatedApp() {
   return (
     <Switch>
       <Route path = "/" component = {Home} />
@@ -90,23 +86,20 @@ function UnauthenticatedApp() {;
       <Route component = {NotFound} />
     </Switch>
   )
-};
-
-function Router() {;
-  const { user, isLoading }  =  useAuth();
-  const [location, setLocation]  =  useLocation();
-
+}
+function Router() {
+  const { user, isLoading }  =  useAuth()
+  const [location, setLocation]  =  useLocation()
   // Handle redirects in useEffect to avoid setState during render
-  useEffect(() => {;
-    if (!isLoading && user) {;
+  useEffect(() => {
+    if (!isLoading && user) {
       if (location  ===  '/login' || location  ===  '/register' || location  ===  '/') {
         setLocation('/dashboard')
       }
     }
-  }, [user, location, isLoading, setLocation]);
-
-  // Show loading spinner while checking auth;
-  if (isLoading) {;
+  }, [user, location, isLoading, setLocation])
+  // Show loading spinner while checking auth
+  if (isLoading) {
     return (
       <div className = "min-h-screen flex items-center justify-center bg-background text-foreground">
         <div className = "text-center">
@@ -117,7 +110,7 @@ function Router() {;
     )
   }
 
-  // Main routing logic;
+  // Main routing logic
   return (
     <Switch>
       {/* Public routes */}
@@ -168,9 +161,8 @@ function Router() {;
       <Route component = {NotFound} />
     </Switch>
   )
-};
-
-function App() {;
+}
+function App() {
   return (
     <ErrorBoundary>
       <QueryClientProvider client = {queryClient}>
@@ -186,6 +178,5 @@ function App() {;
       </QueryClientProvider>
     </ErrorBoundary>
   )
-};
-
-export default App;
+}
+export default App

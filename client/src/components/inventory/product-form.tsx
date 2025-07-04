@@ -1,16 +1,16 @@
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
-import { insertProductSchema, type InsertProduct, type Product } from "@shared/schema";
-import { apiRequest } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { useEffect, useState } from "react"
+import { insertProductSchema, type InsertProduct, type Product } from "@shared/schema"
+import { apiRequest } from "@/lib/queryClient"
+import { useToast } from "@/hooks/use-toast"
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle
-} from "@/components/ui/dialog";
+} from "@/components/ui/dialog"
 import {
   Form,
   FormControl,
@@ -18,23 +18,21 @@ import {
   FormItem,
   FormLabel,
   FormMessage
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-
+} from "@/components/ui/form"
+import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
+import { Button } from "@/components/ui/button"
+import { Checkbox } from "@/components/ui/checkbox"
 interface ProductFormProps {
   open: boolean
   onOpenChange: (open: boolean) => void
   product?: Product
-};
+}
+export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
+  const { toast }  =  useToast()
+  const queryClient = useQueryClient()
+  const [unknownQuantity, setUnknownQuantity]  =  useState(false)
 
-export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {;
-  const { toast }  =  useToast();
-  const queryClient = useQueryClient();
-  const [unknownQuantity, setUnknownQuantity]  =  useState(false);
-;
   const form = useForm<InsertProduct>({
     resolver: zodResolver(insertProductSchema),
     defaultValues: {
@@ -47,13 +45,12 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
       lowStockThreshold: 10,
       unknownQuantity: false
     }
-  });
-
+  })
   // Reset form with product data when editing
-  useEffect(() => {;
-    if (product) {;
-      const hasUnknownQuantity = product.stock  ===  null;
-      setUnknownQuantity(hasUnknownQuantity);
+  useEffect(() => {
+    if (product) {
+      const hasUnknownQuantity = product.stock  ===  null
+      setUnknownQuantity(hasUnknownQuantity)
       form.reset({
         name: product.name || "",
         sku: product.sku || "",
@@ -66,7 +63,7 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
       })
     } else {
       // Reset to empty form when creating new product
-      setUnknownQuantity(false);
+      setUnknownQuantity(false)
       form.reset({
         name: "",
         sku: "",
@@ -78,29 +75,29 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
         unknownQuantity: false
       })
     }
-  }, [product, form]);
-;
+  }, [product, form])
+
   const createMutation = useMutation({
-    mutationFn: async (data: InsertProduct) => {;
-      const response = await apiRequest("POST", "/api/products", data);
+    mutationFn: async (data: InsertProduct) => {
+      const response = await apiRequest("POST", "/api/products", data)
       return response.json()
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/products"] })
       queryClient.invalidateQueries({ queryKey: ["/api/dashboard/metrics"] })
       toast({ title: "Product created successfully" })
-      onOpenChange(false);
+      onOpenChange(false)
       form.reset()
     },
-    onError: (error: any) => {;
-      const errorMessage = error?.response?.data?.message || "Failed to create product";
+    onError: (error: any) => {
+      const errorMessage = error?.response?.data?.message || "Failed to create product"
       toast({ title: errorMessage, variant: "destructive" })
     }
-  });
-;
+  })
+
   const updateMutation = useMutation({
-    mutationFn: async (data: InsertProduct) => {;
-      const response = await apiRequest("PUT", `/api/products/${product!.id}`, data);
+    mutationFn: async (data: InsertProduct) => {
+      const response = await apiRequest("PUT", `/api/products/${product!.id}`, data)
       return response.json()
     },
     onSuccess: () => {
@@ -109,27 +106,27 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
       toast({ title: "Product updated successfully" })
       onOpenChange(false)
     },
-    onError: (error: any) => {;
-      const errorMessage = error?.response?.data?.message || "Failed to update product";
+    onError: (error: any) => {
+      const errorMessage = error?.response?.data?.message || "Failed to update product"
       toast({ title: errorMessage, variant: "destructive" })
     }
-  });
-;
+  })
+
   const onSubmit = (data: InsertProduct) => {
-    // Handle unknown quantity logic;
+    // Handle unknown quantity logic
     const processedData = {
       ...data,
       stock: unknownQuantity ? null : data.stock,
       unknownQuantity: unknownQuantity
-    };
-;
+    }
+
     if (product) {
       updateMutation.mutate(processedData)
     } else {
       createMutation.mutate(processedData)
     }
-  };
-;
+  }
+
   return (
     <Dialog open = {open} onOpenChange = {onOpenChange}>
       <DialogContent className = "sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
@@ -242,7 +239,7 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
                           value = {unknownQuantity ? "" : (field.value || "")}
                           placeholder = {unknownQuantity ? "Unknown quantity" : "Enter stock quantity"}
                           disabled = {unknownQuantity}
-                          onChange = {(e) => {;
+                          onChange = {(e) => {
                             if (!unknownQuantity) {
                               field.onChange(parseInt(e.target.value) || 0)
                             }
@@ -264,8 +261,8 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
                       id = "unknown-quantity"
                       checked = {unknownQuantity}
                       onCheckedChange = {(checked) => {
-                        setUnknownQuantity(checked  ===  true);
-                        form.setValue("unknownQuantity", checked  ===  true);
+                        setUnknownQuantity(checked  ===  true)
+                        form.setValue("unknownQuantity", checked  ===  true)
                         if (checked) {
                           form.setValue("stock", 0)
                         }

@@ -1,72 +1,70 @@
-import { useState, useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { Plus, User, Phone, Search, Filter, CreditCard, Eye, AlertCircle } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { formatCurrency } from "@/lib/utils";
-import { CustomerForm } from "@/components/customers/customer-form";
-import { RecordRepaymentModal } from "@/components/customers/record-repayment-modal";
-import { MobilePageWrapper } from "@/components/layout/mobile-page-wrapper";
-import { motion, AnimatePresence } from "framer-motion";
-import type { Customer } from "@shared/schema";
-;
-export default function Customers() {;
+import { useState, useMemo } from "react"
+import { useQuery } from "@tanstack/react-query"
+import { Plus, User, Phone, Search, Filter, CreditCard, Eye, AlertCircle } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { formatCurrency } from "@/lib/utils"
+import { CustomerForm } from "@/components/customers/customer-form"
+import { RecordRepaymentModal } from "@/components/customers/record-repayment-modal"
+import { MobilePageWrapper } from "@/components/layout/mobile-page-wrapper"
+import { motion, AnimatePresence } from "framer-motion"
+import type { Customer } from "@shared/schema"
+
+export default function Customers() {
   const { data: customers, isLoading }  =  useQuery<Customer[]>({
     queryKey: ["/api/customers"]
-  });
-;
-  const [showNewCustomerForm, setShowNewCustomerForm]  =  useState(false);
-  const [showEditCustomerForm, setShowEditCustomerForm]  =  useState(false);
-  const [showRepaymentModal, setShowRepaymentModal]  =  useState(false);
-  const [selectedCustomer, setSelectedCustomer]  =  useState<Customer | null>(null);
-  const [searchQuery, setSearchQuery]  =  useState("");
-  const [filterType, setFilterType]  =  useState<"all" | "withDebt" | "noDebt">("all");
+  })
 
-  // Filter and search customers;
-  const filteredCustomers = useMemo(() => {;
-    if (!customers) return [];
-;
-    let filtered = customers.filter(customer => {;
+  const [showNewCustomerForm, setShowNewCustomerForm]  =  useState(false)
+  const [showEditCustomerForm, setShowEditCustomerForm]  =  useState(false)
+  const [showRepaymentModal, setShowRepaymentModal]  =  useState(false)
+  const [selectedCustomer, setSelectedCustomer]  =  useState<Customer | null>(null)
+  const [searchQuery, setSearchQuery]  =  useState("")
+  const [filterType, setFilterType]  =  useState<"all" | "withDebt" | "noDebt">("all")
+  // Filter and search customers
+  const filteredCustomers = useMemo(() => {
+    if (!customers) return []
+
+    let filtered = customers.filter(customer => {
       const matchesSearch =        customer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (customer.phone && customer.phone.includes(searchQuery));
-;
-      const balance = parseFloat(customer.balance || "0");
+        (customer.phone && customer.phone.includes(searchQuery))
+
+      const balance = parseFloat(customer.balance || "0")
       const matchesFilter =        filterType  ===  "all" ||
         (filterType  ===  "withDebt" && balance > 0) ||
-        (filterType  ===  "noDebt" && balance <= 0);
-;
-      return matchesSearch && matchesFilter
-    });
+        (filterType  ===  "noDebt" && balance <= 0)
 
-    // Sort by debt status (with debt first), then by name;
-    return filtered.sort((a, b) => {;
-      const aBalance = parseFloat(a.balance || "0");
-      const bBalance = parseFloat(b.balance || "0");
-;
-      if (aBalance > 0 && bBalance <= 0) return -1;
-      if (aBalance <= 0 && bBalance > 0) return 1;
+      return matchesSearch && matchesFilter
+    })
+    // Sort by debt status (with debt first), then by name
+    return filtered.sort((a, b) => {
+      const aBalance = parseFloat(a.balance || "0")
+      const bBalance = parseFloat(b.balance || "0")
+
+      if (aBalance > 0 && bBalance <= 0) return -1
+      if (aBalance <= 0 && bBalance > 0) return 1
       return a.name.localeCompare(b.name)
     })
-  }, [customers, searchQuery, filterType]);
-;
+  }, [customers, searchQuery, filterType])
+
   const handleEditCustomer = (customer: Customer) => {
-    setSelectedCustomer(customer);
+    setSelectedCustomer(customer)
     setShowEditCustomerForm(true)
-  };
-;
+  }
+
   const handleRecordRepayment = (customer: Customer) => {
-    setSelectedCustomer(customer);
+    setSelectedCustomer(customer)
     setShowRepaymentModal(true)
-  };
-;
+  }
+
   const handleCloseRepaymentModal = () => {
-    setShowRepaymentModal(false);
+    setShowRepaymentModal(false)
     setSelectedCustomer(null)
-  };
-;
-  if (isLoading) {;
+  }
+
+  if (isLoading) {
     return (
       <MobilePageWrapper title = "Customers">
         <div className = "space-y-6">
@@ -91,8 +89,7 @@ export default function Customers() {;
         </div>
       </MobilePageWrapper>
     )
-  };
-
+  }
   return (
     <MobilePageWrapper title = "Customers">
       <div className = "space-y-6">
@@ -167,10 +164,10 @@ export default function Customers() {;
           /* Customer Cards Grid */
           <AnimatePresence>
             <div className = "grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-              {filteredCustomers.map((customer, index) => {;
-                const balance = parseFloat(customer.balance || "0");
-                const hasDebt = balance > 0;
-;
+              {filteredCustomers.map((customer, index) => {
+                const balance = parseFloat(customer.balance || "0")
+                const hasDebt = balance > 0
+
                 return (
                   <motion.div
                     key = {customer.id}

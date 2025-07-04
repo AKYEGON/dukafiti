@@ -1,4 +1,4 @@
-import { db } from '../server/db.js';
+import { db } from '../server/db.js'
 import {
   products,
   customers,
@@ -9,23 +9,21 @@ import {
   payments,
   storeProfiles,
   userSettings
-} from '../shared/schema.js';
-import bcrypt from 'bcryptjs';
-
+} from '../shared/schema.js'
+import bcrypt from 'bcryptjs'
 async function initializeDatabase() {
   try {
     // Create tables - SQLite will automatically create them if they don't exist
     // We'll insert some sample data to verify everything works
 
     // Create a default user
-    const hashedPassword = await bcrypt.hash('admin123', 10);
+    const hashedPassword = await bcrypt.hash('admin123', 10)
     const [defaultUser] = await db.insert(users).values({
       username: 'admin',
       email: 'admin@dukasmart.com',
       passwordHash: hashedPassword,
       phone: '+254700000000'
-    }).returning();
-
+    }).returning()
     // Create some sample products
     const sampleProducts = [
       {
@@ -55,8 +53,7 @@ async function initializeDatabase() {
         category: 'Baking',
         lowStockThreshold: 8
       }
-    ];
-
+    ]
     for (const product of sampleProducts) {
       await db.insert(products).values(product)
     }
@@ -77,8 +74,7 @@ async function initializeDatabase() {
         address: '456 Oak Ave, Mombasa',
         balance: 50.00
       }
-    ];
-
+    ]
     for (const customer of sampleCustomers) {
       await db.insert(customers).values(customer)
     }
@@ -93,7 +89,7 @@ async function initializeDatabase() {
     })
 
     } catch (error) {
-    console.error('Error initializing database:', error);
+    console.error('Error initializing database:', error)
     throw error
   }
 }

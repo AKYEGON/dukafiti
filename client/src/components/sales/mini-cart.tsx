@@ -1,10 +1,9 @@
-import { ShoppingCart, Receipt, CreditCard } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import { SaleLineItemComponent, type SaleLineItem } from "./sale-line-item";
-import { formatCurrency } from "@/lib/utils";
-
+import { ShoppingCart, Receipt, CreditCard } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Separator } from "@/components/ui/separator"
+import { SaleLineItemComponent, type SaleLineItem } from "./sale-line-item"
+import { formatCurrency } from "@/lib/utils"
 interface MiniCartProps {
   items: SaleLineItem[]
   onQuantityChange: (id: string, quantity: number) => void
@@ -12,8 +11,7 @@ interface MiniCartProps {
   onClearCart: () => void
   onCheckout: () => void
   isProcessing?: boolean
-};
-
+}
 export function MiniCart({
   items,
   onQuantityChange,
@@ -21,14 +19,14 @@ export function MiniCart({
   onClearCart,
   onCheckout,
   isProcessing = false
-}: MiniCartProps) {;
-  const totalAmount = items.reduce((sum, item) => {;
+}: MiniCartProps) {
+  const totalAmount = items.reduce((sum, item) => {
     return sum + parseFloat(item.total)
-  }, 0);
-;
-  const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
-;
-  if (items.length  ===  0) {;
+  }, 0)
+
+  const totalItems = items.reduce((sum, item) => sum + item.quantity, 0)
+
+  if (items.length  ===  0) {
     return (
       <Card className = "border-2 border-dashed border-gray-200">
         <CardContent className = "p-8 text-center">
@@ -42,8 +40,7 @@ export function MiniCart({
         </CardContent>
       </Card>
     )
-  };
-
+  }
   return (
     <Card className = "border-2 border-[#00AA00]/20">
       <CardHeader className = "pb-3">

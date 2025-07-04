@@ -1,5 +1,5 @@
 export function DebugComponent() {
-  // Debug component rendering;
+  // Debug component rendering
   return (
     <div style = {{
       position: 'fixed',

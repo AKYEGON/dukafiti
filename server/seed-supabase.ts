@@ -1,25 +1,23 @@
-#!/usr/bin/env node;
-import { supabaseDb } from './supabase-db.js';
-
+#!/usr/bin/env node
+import { supabaseDb } from './supabase-db.js'
 async function seedSupabaseDatabase() {
   try {
-    // Create test user first;
+    // Create test user first
     const testUser = {
       email: 'admin@dukafiti.com',
       password: 'password123',
       username: 'admin',
       phone: '+254700000000'
-    };
-;
-    let userId = 1;
+    }
 
-    try {;
-      const user = await supabaseDb.createUser(testUser);
+    let userId = 1
+    try {
+      const user = await supabaseDb.createUser(testUser)
       userId = user.id
       } catch (error) {
       }
 
-    // Create sample products;
+    // Create sample products
     const sampleProducts = [
       {
         name: 'Coca Cola 500ml',
@@ -71,8 +69,8 @@ async function seedSupabaseDatabase() {
         lowStockThreshold: 5,
         salesCount: 8
       }
-    ];
-;
+    ]
+
     for (const product of sampleProducts) {
       try {
         await supabaseDb.createProduct(product)
@@ -80,7 +78,7 @@ async function seedSupabaseDatabase() {
         }
     }
 
-    // Create sample customers;
+    // Create sample customers
     const sampleCustomers = [
       {
         name: 'Mary Wanjiku',
@@ -100,8 +98,8 @@ async function seedSupabaseDatabase() {
         email: 'grace.akinyi@example.com',
         balance: 75.00
       }
-    ];
-;
+    ]
+
     for (const customer of sampleCustomers) {
       try {
         await supabaseDb.createCustomer(customer)
@@ -109,11 +107,11 @@ async function seedSupabaseDatabase() {
         }
     }
 
-    // Create sample orders;
-    const products = await supabaseDb.getProducts();
-    const customers = await supabaseDb.getCustomers();
-;
-    if (products.length > 0 && customers.length > 0) {;
+    // Create sample orders
+    const products = await supabaseDb.getProducts()
+    const customers = await supabaseDb.getCustomers()
+
+    if (products.length > 0 && customers.length > 0) {
       const sampleOrders = [
         {
           items: [
@@ -147,8 +145,8 @@ async function seedSupabaseDatabase() {
           total: products[3].price + products[4].price,
           status: 'completed'
         }
-      ];
-;
+      ]
+
       for (const order of sampleOrders) {
         try {
           await supabaseDb.createOrder(order)
@@ -157,7 +155,7 @@ async function seedSupabaseDatabase() {
       }
     }
 
-    // Create sample notifications;
+    // Create sample notifications
     const sampleNotifications = [
       {
         userId: userId,
@@ -180,8 +178,8 @@ async function seedSupabaseDatabase() {
         type: 'info',
         isRead: true
       }
-    ];
-;
+    ]
+
     for (const notification of sampleNotifications) {
       try {
         await supabaseDb.createNotification(notification)
@@ -190,7 +188,7 @@ async function seedSupabaseDatabase() {
     }
 
     // Create store profile
-    try {;
+    try {
       const storeProfile = {
         userId: userId,
         storeName: 'Mama Grace Duka',
@@ -198,14 +196,13 @@ async function seedSupabaseDatabase() {
         storeType: 'retail',
         location: 'Nairobi, Kenya',
         description: 'Your friendly neighborhood duka'
-      };
-
+      }
       await supabaseDb.createStoreProfile(storeProfile)
       } catch (error) {
       }
 
     // Create user settings
-    try {;
+    try {
       const userSettings = {
         userId: userId,
         theme: 'light',
@@ -213,28 +210,26 @@ async function seedSupabaseDatabase() {
         language: 'en',
         notifications: true,
         mpesaEnabled: true
-      };
-
+      }
       await supabaseDb.createUserSettings(userSettings)
       } catch (error) {
       }
 
     } catch (error) {
-    console.error('❌ Error seeding database:', error);
+    console.error('❌ Error seeding database:', error)
     throw error
   }
 }
 
-// Run the seeding if this file is executed directly;
+// Run the seeding if this file is executed directly
 if (import.meta.url  ===  `file://${process.argv[1]}`) {
   seedSupabaseDatabase()
     .then(() => {
       process.exit(0)
     })
     .catch((error) => {
-      console.error('❌ Seeding failed:', error);
+      console.error('❌ Seeding failed:', error)
       process.exit(1)
     })
-};
-
+}
 export { seedSupabaseDatabase };

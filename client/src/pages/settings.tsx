@@ -1,26 +1,23 @@
-import { useState, useEffect } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { Store, RotateCcw, Moon, Sun, Edit2, Check, X } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import { Switch } from "@/components/ui/switch";
-import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
-import { useTheme } from "@/contexts/theme-context";
-
-// Form validation schemas;
+import { useState, useEffect } from "react"
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { z } from "zod"
+import { Store, RotateCcw, Moon, Sun, Edit2, Check, X } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
+import { Switch } from "@/components/ui/switch"
+import { useToast } from "@/hooks/use-toast"
+import { apiRequest } from "@/lib/queryClient"
+import { useTheme } from "@/contexts/theme-context"
+// Form validation schemas
 const storeProfileSchema = z.object({
   storeName: z.string().min(1, "Store name is required"),
   ownerName: z.string().min(1, "Owner name is required"),
   address: z.string().min(1, "Address is required")
-});
-
-type StoreProfileData = z.infer<typeof storeProfileSchema>;
-
+})
+type StoreProfileData = z.infer<typeof storeProfileSchema>
 interface StoreData {
   storeName?: string
   ownerName?: string
@@ -38,7 +35,7 @@ interface EditableSectionProps {
   isLoading?: boolean
 }
 
-// Editable Section Component;
+// Editable Section Component
 const EditableSection = ({
   title,
   icon: Icon,
@@ -94,24 +91,21 @@ const EditableSection = ({
       </div>
     )}
   </div>
-);
-;
-export default function SettingsPage() {;
-  const { toast }  =  useToast();
-  const queryClient = useQueryClient();
-  const { theme, setTheme }  =  useTheme();
+)
 
-  // Editing states;
-  const [editingStore, setEditingStore]  =  useState(false);
-  const [lastSyncTime, setLastSyncTime]  =  useState<string | null>(null);
-
-  // Fetch store data;
+export default function SettingsPage() {
+  const { toast }  =  useToast()
+  const queryClient = useQueryClient()
+  const { theme, setTheme }  =  useTheme()
+  // Editing states
+  const [editingStore, setEditingStore]  =  useState(false)
+  const [lastSyncTime, setLastSyncTime]  =  useState<string | null>(null)
+  // Fetch store data
   const { data: storeData, isLoading: storeLoading }  =  useQuery<StoreData>({
     queryKey: ['/api/store'],
     retry: false
-  });
-
-  // Store profile form;
+  })
+  // Store profile form
   const storeForm = useForm<StoreProfileData>({
     resolver: zodResolver(storeProfileSchema),
     defaultValues: {
@@ -119,10 +113,9 @@ export default function SettingsPage() {;
       ownerName: "",
       address: ""
     }
-  });
-
+  })
   // Update form when store data loads
-  useEffect(() => {;
+  useEffect(() => {
     if (storeData) {
       storeForm.reset({
         storeName: storeData.storeName || "",
@@ -130,12 +123,11 @@ export default function SettingsPage() {;
         address: storeData.address || ""
       })
     }
-  }, [storeData, storeForm]);
-
-  // Store profile mutation;
+  }, [storeData, storeForm])
+  // Store profile mutation
   const storeMutation = useMutation({
-    mutationFn: async (data: StoreProfileData) => {;
-      const response = await apiRequest("PUT", "/api/store", data);
+    mutationFn: async (data: StoreProfileData) => {
+      const response = await apiRequest("PUT", "/api/store", data)
       return response.json()
     },
     onSuccess: () => {
@@ -150,12 +142,11 @@ export default function SettingsPage() {;
         variant: "destructive"
       })
     }
-  });
-
-  // Manual sync mutation;
+  })
+  // Manual sync mutation
   const syncMutation = useMutation({
-    mutationFn: async () => {;
-      const response = await apiRequest("GET", "/api/sync");
+    mutationFn: async () => {
+      const response = await apiRequest("GET", "/api/sync")
       return response.json()
     },
     onSuccess: () => {
@@ -169,25 +160,24 @@ export default function SettingsPage() {;
         variant: "destructive"
       })
     }
-  });
-
-  // Event handlers;
+  })
+  // Event handlers
   const handleStoreSave = () => {
     storeForm.handleSubmit((data) => {
       storeMutation.mutate(data)
     })()
-  };
-;
+  }
+
   const handleStoreCancel = () => {
     storeForm.reset({
       storeName: storeData?.storeName || "",
       ownerName: storeData?.ownerName || "",
       address: storeData?.address || ""
-    });
+    })
     setEditingStore(false)
-  };
-;
-  if (storeLoading) {;
+  }
+
+  if (storeLoading) {
     return (
       <div className = "min-h-screen bg-background p-6 lg:p-12">
         <div className = "flex items-center justify-center min-h-[400px]">
@@ -198,8 +188,7 @@ export default function SettingsPage() {;
         </div>
       </div>
     )
-  };
-
+  }
   return (
     <div className = "min-h-screen bg-background">
       <div className = "container mx-auto px-4 sm:px-6 md:px-8 py-6 lg:py-12">

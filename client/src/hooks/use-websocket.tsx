@@ -1,31 +1,28 @@
-import { useEffect, useRef } from "react";
-import { useQueryClient } from "@tanstack/react-query";
-import { useToast } from "@/hooks/use-toast";
-import { formatCurrency } from "@/lib/utils";
-;
-export function useWebSocket() {;
-  const { toast }  =  useToast();
-  const queryClient = useQueryClient();
-  const wsRef = useRef<WebSocket | null>(null);
+import { useEffect, useRef } from "react"
+import { useQueryClient } from "@tanstack/react-query"
+import { useToast } from "@/hooks/use-toast"
+import { formatCurrency } from "@/lib/utils"
 
+export function useWebSocket() {
+  const { toast }  =  useToast()
+  const queryClient = useQueryClient()
+  const wsRef = useRef<WebSocket | null>(null)
   useEffect(() => {
-    // Create WebSocket connection;
-    const protocol = window.location.protocol  ===  "https:" ? "wss:" : "ws:";
-    const wsUrl = `${protocol}//${window.location.host}/ws`;
-;
-    const ws = new WebSocket(wsUrl);
-    wsRef.current = ws;
+    // Create WebSocket connection
+    const protocol = window.location.protocol  ===  "https:" ? "wss:" : "ws:"
+    const wsUrl = `${protocol}//${window.location.host}/ws`
 
+    const ws = new WebSocket(wsUrl)
+    wsRef.current = ws
     ws.onopen = () => {
       // WebSocket connection established
-    };
-
+    }
     ws.onmessage = (event) => {
-      try {;
-        const data = JSON.parse(event.data);
-;
+      try {
+        const data = JSON.parse(event.data)
+
         if (data.type  ===  'dataUpdate') {
-          // Handle real-time data updates;
+          // Handle real-time data updates
           if (data.updateType  ===  'sale') {
             // Invalidate dashboard and reports data
             queryClient.invalidateQueries({ queryKey: ["/api/dashboard/metrics"] })
@@ -40,7 +37,7 @@ export function useWebSocket() {;
           queryClient.invalidateQueries({ queryKey: ["/api/products"] })
           queryClient.invalidateQueries({ queryKey: ["/api/products/frequent"] })
         } else if (data.type  ===  'saleUpdate') {
-          // Handle sale completion notifications based on status;
+          // Handle sale completion notifications based on status
           if (data.status  ===  'paid') {
             toast({
               title: "Sale recorded – paid",
@@ -84,30 +81,26 @@ export function useWebSocket() {;
             description: `Payment of ${formatCurrency(data.data.amount)} for ${data.data.customerName} recorded`,
             className: "bg-green-600 text-white border-green-500",
             duration: 4000
-          });
-
+          })
           // Refresh customer data to show updated balances
           queryClient.invalidateQueries({ queryKey: ["/api/customers"] })
         }
       } catch (error) {
         console.error("Error parsing WebSocket message:", error)
       }
-    };
-
+    }
     ws.onclose = () => {
-      };
-
+      }
     ws.onerror = (error) => {
       console.error("WebSocket error:", error)
-    };
-
-    // Cleanup on unmount;
-    return () => {;
+    }
+    // Cleanup on unmount
+    return () => {
       if (wsRef.current) {
         wsRef.current.close()
       }
     }
-  }, [toast, queryClient]);
-;
+  }, [toast, queryClient])
+
   return wsRef.current
 }

@@ -1,11 +1,11 @@
-import { useState } from "react";
-import { Trash2, Package, AlertTriangle } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { QuantityStepper } from "./quantity-stepper";
-import { type Product } from "@shared/schema";
-import { formatCurrency } from "@/lib/utils";
-;
+import { useState } from "react"
+import { Trash2, Package, AlertTriangle } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
+import { QuantityStepper } from "./quantity-stepper"
+import { type Product } from "@shared/schema"
+import { formatCurrency } from "@/lib/utils"
+
 export interface SaleLineItem {
   id: string
   product: Product
@@ -18,21 +18,20 @@ interface SaleLineItemProps {
   item: SaleLineItem
   onQuantityChange: (id: string, quantity: number) => void
   onRemove: (id: string) => void
-};
+}
+export function SaleLineItemComponent({ item, onQuantityChange, onRemove }: SaleLineItemProps) {
+  const [isRemoving, setIsRemoving]  =  useState(false)
 
-export function SaleLineItemComponent({ item, onQuantityChange, onRemove }: SaleLineItemProps) {;
-  const [isRemoving, setIsRemoving]  =  useState(false);
-;
   const handleRemove = () => {
-    setIsRemoving(true);
+    setIsRemoving(true)
     setTimeout(() => {
       onRemove(item.id)
     }, 150)
-  };
-;
-  const isLowStock = item.product.stock <= item.product.lowStockThreshold;
-  const isOutOfStock = item.quantity > item.product.stock;
-;
+  }
+
+  const isLowStock = item.product.stock <= item.product.lowStockThreshold
+  const isOutOfStock = item.quantity > item.product.stock
+
   return (
     <Card className = {`transition-all duration-150 ${isRemoving ? 'opacity-0 scale-95' : 'opacity-100 scale-100'} ${isOutOfStock ? 'border-red-200 bg-red-50/50' : 'border-gray-200'}`}>
       <CardContent className = "p-4">

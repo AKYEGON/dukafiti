@@ -1,77 +1,71 @@
-import React, { useEffect, useState } from 'react';
-import { useLocation } from 'wouter';
-import { supabase } from '@/lib/supabase';
-import { Button } from '@/components/ui/button';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { CheckCircle, XCircle, Loader, Store } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-;
-export default function AuthCallback() {;
-  const [, navigate]  =  useLocation();
-  const { toast }  =  useToast();
-  const [status, setStatus]  =  useState<'loading' | 'success' | 'error'>('loading');
-  const [error, setError]  =  useState<string | null>(null);
+import React, { useEffect, useState } from 'react'
+import { useLocation } from 'wouter'
+import { supabase } from '@/lib/supabase'
+import { Button } from '@/components/ui/button'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { CheckCircle, XCircle, Loader, Store } from 'lucide-react'
+import { useToast } from '@/hooks/use-toast'
 
-  useEffect(() => {;
+export default function AuthCallback() {
+  const [, navigate]  =  useLocation()
+  const { toast }  =  useToast()
+  const [status, setStatus]  =  useState<'loading' | 'success' | 'error'>('loading')
+  const [error, setError]  =  useState<string | null>(null)
+  useEffect(() => {
     const handleAuthCallback = async () => {
       try {
-        // Get the URL hash fragment which contains the auth tokens;
-        const hashFragment = window.location.hash;
-        if (!hashFragment) {;
+        // Get the URL hash fragment which contains the auth tokens
+        const hashFragment = window.location.hash
+        if (!hashFragment) {
           throw new Error('No authentication data found in URL')
         }
 
-        // Parse the hash fragment to extract auth data;
-        const params = new URLSearchParams(hashFragment.substring(1));
-        const accessToken = params.get('access_token');
-        const refreshToken = params.get('refresh_token');
-;
-        if (!accessToken) {;
+        // Parse the hash fragment to extract auth data
+        const params = new URLSearchParams(hashFragment.substring(1))
+        const accessToken = params.get('access_token')
+        const refreshToken = params.get('refresh_token')
+
+        if (!accessToken) {
           throw new Error('Invalid authentication link')
         }
 
-        // Get the session using the access token;
-        const { data: { session }, error: sessionError }  =  await supabase.auth.getSession();
-
-        if (sessionError) {;
+        // Get the session using the access token
+        const { data: { session }, error: sessionError }  =  await supabase.auth.getSession()
+        if (sessionError) {
           throw sessionError
-        };
-
+        }
         if (session?.user) {
-          setStatus('success');
+          setStatus('success')
           toast({
             title: "Email verified successfully!",
             description: "Please log in with your email and password"
-          });
-
+          })
           // Redirect to login page after a short delay
           setTimeout(() => {
             navigate('/login')
           }, 2000)
-        } else {;
+        } else {
           throw new Error('Failed to establish session')
         }
       } catch (err: any) {
-        console.error('Auth callback error:', err);
-        setStatus('error');
-        setError(err.message || 'Authentication failed');
-
+        console.error('Auth callback error:', err)
+        setStatus('error')
+        setError(err.message || 'Authentication failed')
         toast({
           title: "Authentication failed",
           description: err.message || "Please try logging in again",
           variant: "destructive"
         })
       }
-    };
-
+    }
     handleAuthCallback()
-  }, [navigate, toast]);
-;
+  }, [navigate, toast])
+
   const handleRetry = () => {
     navigate('/login')
-  };
-;
-  if (status  ===  'loading') {;
+  }
+
+  if (status  ===  'loading') {
     return (
       <div className = "min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4 sm:px-6 lg:px-8">
         <div className = "bg-white dark:bg-[#1F1F1F] border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg p-6 sm:p-8 w-full max-w-md mx-auto my-12">
@@ -89,9 +83,8 @@ export default function AuthCallback() {;
         </div>
       </div>
     )
-  };
-
-  if (status  ===  'success') {;
+  }
+  if (status  ===  'success') {
     return (
       <div className = "min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4 sm:px-6 lg:px-8">
         <div className = "bg-white dark:bg-[#1F1F1F] border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg p-6 sm:p-8 w-full max-w-md mx-auto my-12">
@@ -118,8 +111,7 @@ export default function AuthCallback() {;
         </div>
       </div>
     )
-  };
-
+  }
   return (
     <div className = "min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4 sm:px-6 lg:px-8">
       <div className = "bg-white dark:bg-[#1F1F1F] border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg p-6 sm:p-8 w-full max-w-md mx-auto my-12">

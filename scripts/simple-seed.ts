@@ -1,6 +1,5 @@
-import { db } from '../server/db';
-import { users, products, customers, storeProfiles, userSettings, notifications } from '../shared/schema';
-
+import { db } from '../server/db'
+import { users, products, customers, storeProfiles, userSettings, notifications } from '../shared/schema'
 async function seedDatabase() {
   try {
     // Insert test user
@@ -9,8 +8,7 @@ async function seedDatabase() {
       username: 'test',
       passwordHash: '$2a$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', // password
       phone: '+254700000000'
-    }).returning();
-
+    }).returning()
     // Insert store profile
     await db.insert(storeProfiles).values({
       userId: user.id,
@@ -19,8 +17,7 @@ async function seedDatabase() {
       storeType: 'retail',
       location: 'Nairobi, Kenya',
       description: 'A sample retail store'
-    });
-
+    })
     // Insert user settings
     await db.insert(userSettings).values({
       userId: user.id,
@@ -29,8 +26,7 @@ async function seedDatabase() {
       language: 'en',
       notifications: true,
       mpesaEnabled: false
-    });
-
+    })
     // Insert sample products
     const sampleProducts = [
       {
@@ -83,9 +79,8 @@ async function seedDatabase() {
         lowStockThreshold: 5,
         salesCount: 25
       }
-    ];
-
-    await db.insert(products).values(sampleProducts);
+    ]
+    await db.insert(products).values(sampleProducts)
     // Insert sample customers
     const sampleCustomers = [
       {
@@ -109,9 +104,8 @@ async function seedDatabase() {
         address: 'Kisumu, Kenya',
         balance: '75.50'
       }
-    ];
-
-    await db.insert(customers).values(sampleCustomers);
+    ]
+    await db.insert(customers).values(sampleCustomers)
     // Insert sample notifications
     const sampleNotifications = [
       {
@@ -128,8 +122,7 @@ async function seedDatabase() {
         type: 'warning',
         isRead: false
       }
-    ];
-
+    ]
     await db.insert(notifications).values(sampleNotifications)
     } catch (error) {
     console.error('Error seeding database:', error)

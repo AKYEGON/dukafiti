@@ -1,15 +1,14 @@
-import { useState, useEffect } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { CreditCard, Banknote, Smartphone, User, Check, ChevronDown } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { formatCurrency } from "@/lib/utils";
-import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
-import { type SaleLineItem } from "@/components/sales/sale-line-item";
-import { type Customer } from "@shared/schema";
-
+import { useState, useEffect } from "react"
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
+import { CreditCard, Banknote, Smartphone, User, Check, ChevronDown } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { formatCurrency } from "@/lib/utils"
+import { useToast } from "@/hooks/use-toast"
+import { apiRequest } from "@/lib/queryClient"
+import { type SaleLineItem } from "@/components/sales/sale-line-item"
+import { type Customer } from "@shared/schema"
 interface SaleConfirmationModalProps {
   open: boolean
   onOpenChange: (open: boolean) => void
@@ -17,8 +16,7 @@ interface SaleConfirmationModalProps {
   paymentMethod: 'cash' | 'credit' | 'mobileMoney' | ''
   onConfirm: (customer?: { name: string; phone?: string; isNew?: boolean }) => void
   isProcessing?: boolean
-};
-
+}
 export function SaleConfirmationModal({
   open,
   onOpenChange,
@@ -26,53 +24,49 @@ export function SaleConfirmationModal({
   paymentMethod,
   onConfirm,
   isProcessing
-}: SaleConfirmationModalProps) {;
-  const [selectedCustomerId, setSelectedCustomerId]  =  useState<string>('');
-  const [customerName, setCustomerName]  =  useState('');
-  const [customerPhone, setCustomerPhone]  =  useState('');
-  const [isNewCustomer, setIsNewCustomer]  =  useState(false);
-;
-  const { toast }  =  useToast();
-  const queryClient = useQueryClient();
+}: SaleConfirmationModalProps) {
+  const [selectedCustomerId, setSelectedCustomerId]  =  useState<string>('')
+  const [customerName, setCustomerName]  =  useState('')
+  const [customerPhone, setCustomerPhone]  =  useState('')
+  const [isNewCustomer, setIsNewCustomer]  =  useState(false)
 
-  // Fetch existing customers;
+  const { toast }  =  useToast()
+  const queryClient = useQueryClient()
+  // Fetch existing customers
   const { data: customers = [] }  =  useQuery<Customer[]>({
     queryKey: ["/api/customers"],
     enabled: paymentMethod  ===  'credit' && open
-  });
-;
-  const total = items.reduce((sum, item) => sum + parseFloat(item.total), 0);
+  })
 
-  // Handle customer selection;
-  const handleCustomerSelect = (mode: string) => {;
+  const total = items.reduce((sum, item) => sum + parseFloat(item.total), 0)
+  // Handle customer selection
+  const handleCustomerSelect = (mode: string) => {
     if (mode  ===  'new') {
-      setIsNewCustomer(true);
-      setSelectedCustomerId('');
-      setCustomerName('');
+      setIsNewCustomer(true)
+      setSelectedCustomerId('')
+      setCustomerName('')
       setCustomerPhone('')
     } else if (mode  ===  'existing') {
-      setIsNewCustomer(false);
-      setSelectedCustomerId('');
-      setCustomerName('');
+      setIsNewCustomer(false)
+      setSelectedCustomerId('')
+      setCustomerName('')
       setCustomerPhone('')
     }
-  };
-
+  }
   // Reset form when modal opens/closes
-  useEffect(() => {;
+  useEffect(() => {
     if (!open) {
-      setSelectedCustomerId('');
-      setCustomerName('');
-      setCustomerPhone('');
+      setSelectedCustomerId('')
+      setCustomerName('')
+      setCustomerPhone('')
       setIsNewCustomer(false)
     }
-  }, [open]);
-;
-  const handleConfirm = () => {;
+  }, [open])
+
+  const handleConfirm = () => {
     if (paymentMethod  ===  'credit' && !customerName.trim()) {
       return; // Validation handled by button disabled state
-    };
-
+    }
     if (paymentMethod  ===  'credit') {
       onConfirm({
         name: customerName.trim(),
@@ -84,12 +78,12 @@ export function SaleConfirmationModal({
     }
 
     onOpenChange(false)
-  };
-;
+  }
+
   const handleCancel = () => {
     onOpenChange(false)
-  };
-;
+  }
+
   const getPaymentMethodIcon = (method: string) => {
     switch (method) {
       case 'cash': return <Banknote className = "w-4 h-4" />
@@ -98,8 +92,8 @@ export function SaleConfirmationModal({
       case 'credit': return <User className = "w-4 h-4" />
       default: return <CreditCard className = "w-4 h-4" />
     }
-  };
-;
+  }
+
   return (
     <Dialog open = {open} onOpenChange = {onOpenChange}>
       <DialogContent className = "sm:max-w-md max-h-[90vh] overflow-hidden flex flex-col">
@@ -191,11 +185,11 @@ export function SaleConfirmationModal({
                     </label>
                     <Select
                       value = {selectedCustomerId}
-                      onValueChange = {(value) => {;
-                        const customer = customers.find(c => c.id.toString()  ===  value);
+                      onValueChange = {(value) => {
+                        const customer = customers.find(c => c.id.toString()  ===  value)
                         if (customer) {
-                          setSelectedCustomerId(value);
-                          setCustomerName(customer.name);
+                          setSelectedCustomerId(value)
+                          setCustomerName(customer.name)
                           setCustomerPhone(customer.phone || '')
                         }
                       }}

@@ -1,42 +1,40 @@
-import { useState } from "react";
-import { CreditCard, Banknote, User, Smartphone } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { formatCurrency } from "@/lib/utils";
-
+import { useState } from "react"
+import { CreditCard, Banknote, User, Smartphone } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { formatCurrency } from "@/lib/utils"
 interface PaymentMethodSelectorProps {
   total: number
   onPaymentSelected: (method: 'cash' | 'credit' | 'mobileMoney', reference?: string) => void
   isProcessing?: boolean
-};
+}
+export function PaymentMethodSelector({ total, onPaymentSelected, isProcessing, mpesaEnabled = false }: PaymentMethodSelectorProps) {
+  const [showMpesaDialog, setShowMpesaDialog]  =  useState(false)
+  const [mpesaReference, setMpesaReference]  =  useState("")
 
-export function PaymentMethodSelector({ total, onPaymentSelected, isProcessing, mpesaEnabled = false }: PaymentMethodSelectorProps) {;
-  const [showMpesaDialog, setShowMpesaDialog]  =  useState(false);
-  const [mpesaReference, setMpesaReference]  =  useState("");
-;
   const handleCashPayment = () => {
     onPaymentSelected('cash')
-  };
-;
+  }
+
   const handleMpesaPayment = () => {
     setShowMpesaDialog(true)
-  };
-;
-  const handleMpesaConfirm = () => {;
+  }
+
+  const handleMpesaConfirm = () => {
     if (mpesaReference.trim()) {
-      onPaymentSelected('mpesa', mpesaReference.trim());
-      setShowMpesaDialog(false);
+      onPaymentSelected('mpesa', mpesaReference.trim())
+      setShowMpesaDialog(false)
       setMpesaReference("")
     }
-  };
-;
+  }
+
   const handleCreditPayment = () => {
     onPaymentSelected('credit')
-  };
-;
+  }
+
   return (
     <>
       <Card className = "border-2 border-[#00AA00]/20">

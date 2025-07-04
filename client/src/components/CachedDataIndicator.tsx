@@ -1,31 +1,29 @@
-import { Database, Wifi } from 'lucide-react';
-import { cn } from '@/lib/utils';
-
+import { Database, Wifi } from 'lucide-react'
+import { cn } from '@/lib/utils'
 interface CachedDataIndicatorProps {
   isFromCache?: boolean
   className?: string
   size?: 'sm' | 'md' | 'lg'
-};
-
+}
 export const CachedDataIndicator = ({
   isFromCache,
   className,
   size = 'sm'
-}: CachedDataIndicatorProps) => {;
-  if (!isFromCache) return null;
-;
+}: CachedDataIndicatorProps) => {
+  if (!isFromCache) return null
+
   const iconSize = {
     sm: 'h-3 w-3',
     md: 'h-4 w-4',
     lg: 'h-5 w-5'
-  }[size];
-;
+  }[size]
+
   const textSize = {
     sm: 'text-xs',
     md: 'text-sm',
     lg: 'text-base'
-  }[size];
-;
+  }[size]
+
   return (
     <div className = {cn(
       "inline-flex items-center gap-1 px-2 py-1 rounded-md",
@@ -39,8 +37,8 @@ export const CachedDataIndicator = ({
       </span>
     </div>
   )
-};
-;
+}
+
 export const OfflineDataBanner = ({
   isFromCache,
   title = "Showing cached data",
@@ -49,9 +47,9 @@ export const OfflineDataBanner = ({
   isFromCache?: boolean
   title?: string
   description?: string
-}) => {;
-  if (!isFromCache) return null;
-;
+}) => {
+  if (!isFromCache) return null
+
   return (
     <div className = "mb-4 p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800">
       <div className = "flex items-start gap-2">
@@ -67,6 +65,6 @@ export const OfflineDataBanner = ({
       </div>
     </div>
   )
-};
-;
+}
+
 export default CachedDataIndicator;

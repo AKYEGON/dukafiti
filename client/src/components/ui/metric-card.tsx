@@ -1,7 +1,6 @@
-import { Card, CardContent } from "@/components/ui/card";
-import { TrendingUp, TrendingDown } from "lucide-react";
-import { LucideIcon } from "lucide-react";
-
+import { Card, CardContent } from "@/components/ui/card"
+import { TrendingUp, TrendingDown } from "lucide-react"
+import { LucideIcon } from "lucide-react"
 interface MetricCardProps {
   title: string
   value: string | number
@@ -9,8 +8,7 @@ interface MetricCardProps {
   changeType?: "positive" | "negative" | "neutral"
   icon: LucideIcon
   iconColor?: string
-};
-
+}
 export function MetricCard({
   title,
   value,
@@ -18,26 +16,26 @@ export function MetricCard({
   changeType = "neutral",
   icon: Icon,
   iconColor = "text-primary"
-}: MetricCardProps) {;
+}: MetricCardProps) {
   const getChangeColor = () => {
     switch (changeType) {
-      case "positive":;
-        return "text-green-600 dark:text-green-400";
-      case "negative":;
-        return "text-red-600 dark:text-red-400";
-      default:;
+      case "positive":
+        return "text-green-600 dark:text-green-400"
+      case "negative":
+        return "text-red-600 dark:text-red-400"
+      default:
         return "text-muted-foreground"
     }
-  };
-;
-  const getTrendIcon = () => {;
-    if (changeType  ===  "positive") return TrendingUp;
-    if (changeType  ===  "negative") return TrendingDown;
+  }
+
+  const getTrendIcon = () => {
+    if (changeType  ===  "positive") return TrendingUp
+    if (changeType  ===  "negative") return TrendingDown
     return null
-  };
-;
-  const TrendIcon = getTrendIcon();
-;
+  }
+
+  const TrendIcon = getTrendIcon()
+
   return (
     <Card>
       <CardContent className = "p-6">

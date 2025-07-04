@@ -1,18 +1,17 @@
-import { useState, Suspense, lazy } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Download, FileSpreadsheet } from 'lucide-react';
-import download from 'downloadjs';
-
-// Lazy load recharts to reduce bundle size;
-const LineChart = lazy(() => import('recharts').then(module => ({ default: module.LineChart })));
-const Line = lazy(() => import('recharts').then(module => ({ default: module.Line })));
-const XAxis = lazy(() => import('recharts').then(module => ({ default: module.XAxis })));
-const YAxis = lazy(() => import('recharts').then(module => ({ default: module.YAxis })));
-const CartesianGrid = lazy(() => import('recharts').then(module => ({ default: module.CartesianGrid })));
-const Tooltip = lazy(() => import('recharts').then(module => ({ default: module.Tooltip })));
+import { useState, Suspense, lazy } from 'react'
+import { useQuery } from '@tanstack/react-query'
+import { Button } from '@/components/ui/button'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Skeleton } from '@/components/ui/skeleton'
+import { Download, FileSpreadsheet } from 'lucide-react'
+import download from 'downloadjs'
+// Lazy load recharts to reduce bundle size
+const LineChart = lazy(() => import('recharts').then(module => ({ default: module.LineChart })))
+const Line = lazy(() => import('recharts').then(module => ({ default: module.Line })))
+const XAxis = lazy(() => import('recharts').then(module => ({ default: module.XAxis })))
+const YAxis = lazy(() => import('recharts').then(module => ({ default: module.YAxis })))
+const CartesianGrid = lazy(() => import('recharts').then(module => ({ default: module.CartesianGrid })))
+const Tooltip = lazy(() => import('recharts').then(module => ({ default: module.Tooltip })))
 const ResponsiveContainer = lazy(() => import('recharts').then(module => ({ default: module.ResponsiveContainer })))
 
 // Types
@@ -63,65 +62,62 @@ interface OrdersResponse {
       name: string
       quantity: number
     }>
-  }>;
+  }>
   total: number
   page: number
   totalPages: number
 }
 
-// Utility functions;
-const formatCurrency = (amount: string | number): string => {;
-  const num = typeof amount  ===  'string' ? parseFloat(amount) : amount;
+// Utility functions
+const formatCurrency = (amount: string | number): string => {
+  const num = typeof amount  ===  'string' ? parseFloat(amount) : amount
   return new Intl.NumberFormat('en-KE', {
     style: 'currency',
     currency: 'KES',
     minimumFractionDigits: 0,
     maximumFractionDigits: 2
   }).format(num)
-};
-;
-const convertToCSV = (data: any[], headers: string[]): string => {;
-  const csvHeaders = headers.join(',');
+}
+
+const convertToCSV = (data: any[], headers: string[]): string => {
+  const csvHeaders = headers.join(',')
   const csvRows = data.map(row =>
     headers.map(header => `"${row[header] || ''}"`).join(',')
-  );
+  )
   return [csvHeaders, ...csvRows].join('\n')
-};
-;
-const downloadCSV = (csvContent: string, filename: string): void => {;
-  const blob = new Blob([csvContent], { type: 'text/csv;charset = utf-8;' });
-  const link = document.createElement('a');
-  const url = URL.createObjectURL(blob);
-  link.setAttribute('href', url);
-  link.setAttribute('download', filename);
-  link.style.visibility = 'hidden';
-  document.body.appendChild(link);
-  link.click();
+}
+
+const downloadCSV = (csvContent: string, filename: string): void => {
+  const blob = new Blob([csvContent], { type: 'text/csv;charset = utf-8;' })
+  const link = document.createElement('a')
+  const url = URL.createObjectURL(blob)
+  link.setAttribute('href', url)
+  link.setAttribute('download', filename)
+  link.style.visibility = 'hidden'
+  document.body.appendChild(link)
+  link.click()
   document.body.removeChild(link)
-};
-;
+}
+
 export default function Reports() {
-  // State for timeframe selectors;
-  const [summaryPeriod, setSummaryPeriod]  =  useState<'today' | 'weekly' | 'monthly'>('today');
-  const [trendPeriod, setTrendPeriod]  =  useState<'daily' | 'weekly' | 'monthly'>('daily');
+  // State for timeframe selectors
+  const [summaryPeriod, setSummaryPeriod]  =  useState<'today' | 'weekly' | 'monthly'>('today')
+  const [trendPeriod, setTrendPeriod]  =  useState<'daily' | 'weekly' | 'monthly'>('daily')
+  // Orders Record state
+  const [ordersPeriod, setOrdersPeriod]  =  useState<'daily' | 'weekly' | 'monthly'>('daily')
+  const [ordersPage, setOrdersPage]  =  useState(1)
 
-  // Orders Record state;
-  const [ordersPeriod, setOrdersPeriod]  =  useState<'daily' | 'weekly' | 'monthly'>('daily');
-  const [ordersPage, setOrdersPage]  =  useState(1);
-;
-  const [exportingCSV, setExportingCSV]  =  useState<string | null>(null);
-
-  // Fetch summary data;
+  const [exportingCSV, setExportingCSV]  =  useState<string | null>(null)
+  // Fetch summary data
   const { data: rawSummaryData, isLoading: summaryLoading, error: summaryError }  =  useQuery({
     queryKey: ['/api/reports/summary', summaryPeriod],
-    queryFn: async () => {;
-      const response = await fetch(`/api/reports/summary?period = ${summaryPeriod}`);
-      if (!response.ok) throw new Error('Failed to fetch summary');
+    queryFn: async () => {
+      const response = await fetch(`/api/reports/summary?period = ${summaryPeriod}`)
+      if (!response.ok) throw new Error('Failed to fetch summary')
       return response.json()
     }
-  });
-
-  // Transform backend data format to frontend format;
+  })
+  // Transform backend data format to frontend format
   const summaryData: SummaryData | undefined = rawSummaryData ? {
     totalSales: rawSummaryData.totalRevenue || '0',
     cashSales: rawSummaryData.paymentBreakdown?.cash || '0',
@@ -129,72 +125,65 @@ export default function Reports() {
     creditSales: rawSummaryData.paymentBreakdown?.credit || '0'
   } : undefined
 
-  // Fetch trend data;
+  // Fetch trend data
   const { data: rawTrendData, isLoading: trendLoading, error: trendError }  =  useQuery({
     queryKey: ['/api/reports/trend', trendPeriod],
-    queryFn: async () => {;
-      const response = await fetch(`/api/reports/trend?period = ${trendPeriod}`);
-      if (!response.ok) throw new Error('Failed to fetch trend');
+    queryFn: async () => {
+      const response = await fetch(`/api/reports/trend?period = ${trendPeriod}`)
+      if (!response.ok) throw new Error('Failed to fetch trend')
       return response.json()
     }
-  });
-
-  // Transform trend data format;
+  })
+  // Transform trend data format
   const trendData: TrendData[] | undefined = rawTrendData?.map((item: any) => ({
     label: item.date || item.label,
     value: item.value || 0
-  }));
-
-  // Fetch top products data (was top-items);
+  }))
+  // Fetch top products data (was top-items)
   const { data: topProductsData, isLoading: topItemsLoading }  =  useQuery<TopProduct[]>({
     queryKey: ['/api/reports/top-products'],
-    queryFn: async () => {;
-      const response = await fetch('/api/reports/top-products');
-      if (!response.ok) throw new Error('Failed to fetch top products');
+    queryFn: async () => {
+      const response = await fetch('/api/reports/top-products')
+      if (!response.ok) throw new Error('Failed to fetch top products')
       return response.json()
     }
-  });
-
-  // Transform top products to top items format;
+  })
+  // Transform top products to top items format
   const topItemsData: TopItem[] | undefined = topProductsData?.map(product => ({
     name: product.productName,
     unitsSold: product.unitsSold,
     revenue: product.totalRevenue
-  }));
-
-  // Fetch customer credits data (using top-customers endpoint);
+  }))
+  // Fetch customer credits data (using top-customers endpoint)
   const { data: topCustomersData, isLoading: customerCreditsLoading }  =  useQuery<TopCustomer[]>({
     queryKey: ['/api/reports/top-customers'],
-    queryFn: async () => {;
-      const response = await fetch('/api/reports/top-customers');
-      if (!response.ok) throw new Error('Failed to fetch top customers');
+    queryFn: async () => {
+      const response = await fetch('/api/reports/top-customers')
+      if (!response.ok) throw new Error('Failed to fetch top customers')
       return response.json()
     }
-  });
-
-  // Transform top customers to customer credits format;
+  })
+  // Transform top customers to customer credits format
   const customerCreditsData: CustomerCredit[] | undefined = topCustomersData?.map(customer => ({
     name: customer.customerName,
     phone: '', // Not available in current data
     balance: customer.totalOwed
-  }));
-
-  // Fetch orders data;
+  }))
+  // Fetch orders data
   const { data: rawOrdersData, isLoading: ordersLoading, error: ordersError }  =  useQuery({
     queryKey: ['/api/reports/orders', ordersPeriod, ordersPage],
-    queryFn: async () => {;
+    queryFn: async () => {
       const params = new URLSearchParams({
         period: ordersPeriod,
         page: ordersPage.toString(),
         limit: '10'
-      });
-      const response = await fetch(`/api/reports/orders?${params}`);
-      if (!response.ok) throw new Error('Failed to fetch orders');
+      })
+      const response = await fetch(`/api/reports/orders?${params}`)
+      if (!response.ok) throw new Error('Failed to fetch orders')
       return response.json()
     }
-  });
-
-  // Transform orders data to handle date formatting;
+  })
+  // Transform orders data to handle date formatting
   const ordersData: OrdersResponse | undefined = rawOrdersData ? {
     orders: rawOrdersData.orders?.map((order: any) => ({
       orderId: order.id,
@@ -213,56 +202,53 @@ export default function Reports() {
     totalPages: rawOrdersData.totalPages || 1
   } : undefined
 
-  // CSV Export Functions;
-  const exportSummaryCSV = async () => {;
-    if (!summaryData) return;
-
-    setExportingCSV('summary');
-    try {;
+  // CSV Export Functions
+  const exportSummaryCSV = async () => {
+    if (!summaryData) return
+    setExportingCSV('summary')
+    try {
       const csvData = [
         { type: 'Total Sales', amount: summaryData.totalSales },
         { type: 'Cash Sales', amount: summaryData.cashSales },
         { type: 'Mobile Money Sales', amount: summaryData.mobileMoneySales },
         { type: 'Credit Sales', amount: summaryData.creditSales }
-      ];
-;
-      const csv = convertToCSV(csvData, ['type', 'amount']);
+      ]
+
+      const csv = convertToCSV(csvData, ['type', 'amount'])
       downloadCSV(csv, `sales-summary-${summaryPeriod}-${new Date().toISOString().split('T')[0]}.csv`)
     } finally {
       setExportingCSV(null)
     }
-  };
-
-  // Detailed CSV Export with full order and line item data;
+  }
+  // Detailed CSV Export with full order and line item data
   const exportDetailedCSV = async () => {
-    setExportingCSV('detailed');
-    try {;
+    setExportingCSV('detailed')
+    try {
       const response = await fetch(`/api/reports/export-orders?period = ${summaryPeriod}`, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/csv'
         }
-      });
-;
-      if (!response.ok) {;
+      })
+
+      if (!response.ok) {
         throw new Error('Failed to export detailed CSV')
       }
 
-      // Get the blob data;
-      const blob = await response.blob();
-      const filename = `orders_detailed_${summaryPeriod}_${new Date().toISOString().split('T')[0]}.csv`;
-
+      // Get the blob data
+      const blob = await response.blob()
+      const filename = `orders_detailed_${summaryPeriod}_${new Date().toISOString().split('T')[0]}.csv`
       // Use downloadjs to prompt download
       download(blob, filename, 'text/csv')
 
     } catch (error) {
-      console.error('Failed to export detailed CSV:', error);
+      console.error('Failed to export detailed CSV:', error)
       // Could add toast notification here
     } finally {
       setExportingCSV(null)
     }
-  };
-;
+  }
+
   return (
     <div className = "min-h-screen bg-background">
       <div className = "container mx-auto px-4 sm:px-6 md:px-8 py-6 lg:py-12">

@@ -1,8 +1,6 @@
-#!/usr/bin/env node;
-
-import { readFileSync, writeFileSync } from 'fs';
-
-// Fix specific syntax errors introduced by cleanup;
+#!/usr/bin/env node
+import { readFileSync, writeFileSync } from 'fs'
+// Fix specific syntax errors introduced by cleanup
 const fixes = [
   // Fix server/index.ts errors
   {
@@ -27,21 +25,20 @@ const fixes = [
       { from: /(\w+);(\s*\})/g, to: '$1$2' }
     ]
   }
-];
-;
+]
+
 for (const filefix of fixes) {
-  try {;
-    let content = readFileSync(filefix.file, 'utf8');
-    let changed = false;
-    ;
-    for (const fix of filefix.fixes) {;
-      const newContent = content.replace(fix.from, fix.to);
+  try {
+    let content = readFileSync(filefix.file, 'utf8')
+    let changed = false
+    
+    for (const fix of filefix.fixes) {
+      const newContent = content.replace(fix.from, fix.to)
       if (newContent !== content) {
-        content = newContent;
+        content = newContent
         changed = true
       }
-    };
-
+    }
     if (changed) {
       writeFileSync(filefix.file, content)
 

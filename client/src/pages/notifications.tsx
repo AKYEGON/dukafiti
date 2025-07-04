@@ -1,108 +1,103 @@
-import { useState } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { formatDistanceToNow } from 'date-fns';
-import { Bell, AlertTriangle, CheckCircle, Info, Trash2 } from 'lucide-react';
-import { MobilePageWrapper } from '@/components/layout/mobile-page-wrapper';
-import type { Notification } from '@shared/schema';
-;
-export function NotificationsPage() {;
-  const [filter, setFilter]  =  useState<'all' | 'unread' | 'read'>('all');
-  const queryClient = useQueryClient();
+import { useState } from 'react'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { formatDistanceToNow } from 'date-fns'
+import { Bell, AlertTriangle, CheckCircle, Info, Trash2 } from 'lucide-react'
+import { MobilePageWrapper } from '@/components/layout/mobile-page-wrapper'
+import type { Notification } from '@shared/schema'
 
-  // Fetch notifications;
+export function NotificationsPage() {
+  const [filter, setFilter]  =  useState<'all' | 'unread' | 'read'>('all')
+  const queryClient = useQueryClient()
+  // Fetch notifications
   const { data: notifications = [], isLoading }  =  useQuery<Notification[]>({
     queryKey: ['/api/notifications'],
     enabled: true
-  });
-
-  // Mark all as read mutation;
+  })
+  // Mark all as read mutation
   const markAllReadMutation = useMutation({
-    mutationFn: async () => {;
+    mutationFn: async () => {
       const response = await fetch('/api/notifications/mark-all-read', {
         method: 'POST',
         credentials: 'include'
-      });
-      if (!response.ok) throw new Error('Failed to mark all as read');
+      })
+      if (!response.ok) throw new Error('Failed to mark all as read')
       return response.json()
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/notifications'] })
       queryClient.invalidateQueries({ queryKey: ['/api/notifications/unread-count'] })
     }
-  });
-
-  // Mark single as read mutation;
+  })
+  // Mark single as read mutation
   const markReadMutation = useMutation({
-    mutationFn: async (id: number) => {;
+    mutationFn: async (id: number) => {
       const response = await fetch(`/api/notifications/${id}/read`, {
         method: 'POST',
         credentials: 'include'
-      });
-      if (!response.ok) throw new Error('Failed to mark as read');
+      })
+      if (!response.ok) throw new Error('Failed to mark as read')
       return response.json()
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/notifications'] })
       queryClient.invalidateQueries({ queryKey: ['/api/notifications/unread-count'] })
     }
-  });
-
-  // Delete notification mutation;
+  })
+  // Delete notification mutation
   const deleteMutation = useMutation({
-    mutationFn: async (id: number) => {;
+    mutationFn: async (id: number) => {
       const response = await fetch(`/api/notifications/${id}`, {
         method: 'DELETE',
         credentials: 'include'
-      });
-      if (!response.ok) throw new Error('Failed to delete notification');
+      })
+      if (!response.ok) throw new Error('Failed to delete notification')
       return response.json()
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/notifications'] })
       queryClient.invalidateQueries({ queryKey: ['/api/notifications/unread-count'] })
     }
-  });
-
-  // Filter notifications;
-  const filteredNotifications = notifications.filter(notification => {;
-    if (filter  ===  'unread') return !notification.isRead;
-    if (filter  ===  'read') return notification.isRead;
+  })
+  // Filter notifications
+  const filteredNotifications = notifications.filter(notification => {
+    if (filter  ===  'unread') return !notification.isRead
+    if (filter  ===  'read') return notification.isRead
     return true
-  });
-;
-  const unreadCount = notifications.filter(n => !n.isRead).length;
-;
+  })
+
+  const unreadCount = notifications.filter(n => !n.isRead).length
+
   const getNotificationIcon = (type: string) => {
     switch (type) {
       case 'warning':
-      case 'low_stock':;
-        return <AlertTriangle className = "w-5 h-5 text-yellow-500" />;
+      case 'low_stock':
+        return <AlertTriangle className = "w-5 h-5 text-yellow-500" />
       case 'success':
-      case 'payment':;
-        return <CheckCircle className = "w-5 h-5 text-green-500" />;
-      case 'error':;
-        return <AlertTriangle className = "w-5 h-5 text-red-500" />;
-      default:;
+      case 'payment':
+        return <CheckCircle className = "w-5 h-5 text-green-500" />
+      case 'error':
+        return <AlertTriangle className = "w-5 h-5 text-red-500" />
+      default:
         return <Info className = "w-5 h-5 text-blue-500" />
     }
-  };
-;
-  const handleMarkAsRead = (id: number, isRead: boolean) => {;
+  }
+
+  const handleMarkAsRead = (id: number, isRead: boolean) => {
     if (!isRead) {
       markReadMutation.mutate(id)
     }
-  };
-;
+  }
+
   const handleDelete = (id: number) => {
     deleteMutation.mutate(id)
-  };
-;
-  const handleMarkAllRead = () => {;
+  }
+
+  const handleMarkAllRead = () => {
     if (unreadCount > 0) {
       markAllReadMutation.mutate()
     }
-  };
-;
+  }
+
   return (
     <MobilePageWrapper title = "Notifications">
       <div className = "max-w-4xl mx-auto">
@@ -190,9 +185,9 @@ export function NotificationsPage() {;
                   tabIndex = {0}
                   aria-label = {`Notification: ${notification.title}, ${notification.createdAt ? formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true }) : 'Just now'}`}
                   onClick = {() => handleMarkAsRead(notification.id, notification.isRead)}
-                  onKeyDown = {(e) => {;
+                  onKeyDown = {(e) => {
                     if (e.key  ===  'Enter' || e.key  ===  ' ') {
-                      e.preventDefault();
+                      e.preventDefault()
                       handleMarkAsRead(notification.id, notification.isRead)
                     }
                   }}
@@ -231,7 +226,7 @@ export function NotificationsPage() {;
                           )}
                           <button
                             onClick = {(e) => {
-                              e.stopPropagation();
+                              e.stopPropagation()
                               handleDelete(notification.id)
                             }}
                             disabled = {deleteMutation.isPending}
@@ -252,6 +247,5 @@ export function NotificationsPage() {;
       </div>
     </MobilePageWrapper>
   )
-};
-
+}
 export default NotificationsPage;

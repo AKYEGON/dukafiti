@@ -1,13 +1,13 @@
-import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Store, BarChart3, Users, Shield, Zap, Globe, ArrowRight, CheckCircle, Star, Menu, X } from "lucide-react";
-import { useLocation } from "wouter";
-import { useState } from "react";
-;
-export default function Home() {;
-  const [, setLocation]  =  useLocation();
-  const [mobileMenuOpen, setMobileMenuOpen]  =  useState(false);
-;
+import { Button } from "@/components/ui/button"
+import { Card, CardContent } from "@/components/ui/card"
+import { Store, BarChart3, Users, Shield, Zap, Globe, ArrowRight, CheckCircle, Star, Menu, X } from "lucide-react"
+import { useLocation } from "wouter"
+import { useState } from "react"
+
+export default function Home() {
+  const [, setLocation]  =  useLocation()
+  const [mobileMenuOpen, setMobileMenuOpen]  =  useState(false)
+
   const features = [
     {
       icon: Store,
@@ -27,8 +27,8 @@ export default function Home() {;
       description: "Build stronger relationships with customer profiles and purchase history",
       accentColor: "border-l-green-500"
     }
-  ];
-;
+  ]
+
   const testimonials = [
     {
       quote: "DukaFiti helped me increase my profits by 40% in just 3 months. The inventory alerts saved me from stockouts during peak season.",
@@ -40,8 +40,8 @@ export default function Home() {;
       author: "John Kamau",
       business: "Kamau Electronics, Nakuru"
     }
-  ];
-;
+  ]
+
   return (
     <div className = "min-h-screen bg-white dark:bg-gray-900">
       {/* Navigation */}

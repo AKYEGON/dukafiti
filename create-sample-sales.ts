@@ -1,18 +1,18 @@
-import { db } from './server/db';
-import { orders, orderItems, products, customers } from './shared/schema';
-import { eq } from 'drizzle-orm';
-;
+import { db } from './server/db'
+import { orders, orderItems, products, customers } from './shared/schema'
+import { eq } from 'drizzle-orm'
+
 export async function createSampleSales() {
   try {
-    // Get existing products and customers;
-    const existingProducts = await db.select().from(products);
-    const existingCustomers = await db.select().from(customers);
-;
+    // Get existing products and customers
+    const existingProducts = await db.select().from(products)
+    const existingCustomers = await db.select().from(customers)
+
     if (existingProducts.length  ===  0 || existingCustomers.length  ===  0) {
       return
     }
 
-    // Create sample orders;
+    // Create sample orders
     const sampleOrders = [
       {
         customerId: existingCustomers[0].id,
@@ -70,10 +70,10 @@ export async function createSampleSales() {
           { productId: existingProducts[5].id, quantity: 1 }, // Eggs
         ]
       }
-    ];
-;
+    ]
+
     for (const orderData of sampleOrders) {
-      // Create order;
+      // Create order
       const [order]  =  await db
         .insert(orders)
         .values({
@@ -83,11 +83,10 @@ export async function createSampleSales() {
           paymentMethod: orderData.paymentMethod,
           status: orderData.status,
         })
-        .returning();
-
-      // Create order items and update product stats;
-      for (const item of orderData.items) {;
-        const product = existingProducts.find(p => p.id  ===  item.productId);
+        .returning()
+      // Create order items and update product stats
+      for (const item of orderData.items) {
+        const product = existingProducts.find(p => p.id  ===  item.productId)
         if (product) {
           // Create order item
           await db.insert(orderItems).values({
@@ -96,9 +95,8 @@ export async function createSampleSales() {
             productName: product.name,
             quantity: item.quantity,
             price: product.price,
-          });
-
-          // Update product stock and sales count;
+          })
+          // Update product stock and sales count
           if (product.stock !== null) {
             await db
               .update(products)
@@ -120,7 +118,7 @@ export async function createSampleSales() {
     }
 
     } catch (error) {
-    console.error('Error creating sample sales:', error);
+    console.error('Error creating sample sales:', error)
     throw error
   }
 }

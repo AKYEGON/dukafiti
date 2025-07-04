@@ -1,163 +1,154 @@
-import { useState, useRef, useEffect, useCallback } from "react";
-import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
-import { ShoppingCart, CreditCard, Smartphone, Banknote, Search, ChevronDown, ChevronUp } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { useToast } from "@/hooks/use-toast";
-import { type Product } from "@shared/schema";
-import { apiRequest } from "@/lib/queryClient";
-import { type SaleLineItem } from "@/components/sales/sale-line-item";
-import { formatCurrency } from "@/lib/utils";
-import { offlineQueue, isOnline } from "@/lib/offline-queue";
-import { Skeleton } from "@/components/ui/skeleton";
-import { SaleConfirmationModal } from "@/components/sales/sale-confirmation-modal";
-;
-export default function Sales() {;
-  const [cartItems, setCartItems]  =  useState<SaleLineItem[]>([]);
-  const [showConfirmationModal, setShowConfirmationModal]  =  useState(false);
-  const [paymentMethod, setPaymentMethod]  =  useState<'cash' | 'credit' | 'mobileMoney' | ''>('');
+import { useState, useRef, useEffect, useCallback } from "react"
+import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query"
+import { ShoppingCart, CreditCard, Smartphone, Banknote, Search, ChevronDown, ChevronUp } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { useToast } from "@/hooks/use-toast"
+import { type Product } from "@shared/schema"
+import { apiRequest } from "@/lib/queryClient"
+import { type SaleLineItem } from "@/components/sales/sale-line-item"
+import { formatCurrency } from "@/lib/utils"
+import { offlineQueue, isOnline } from "@/lib/offline-queue"
+import { Skeleton } from "@/components/ui/skeleton"
+import { SaleConfirmationModal } from "@/components/sales/sale-confirmation-modal"
 
-  // Smart search state;
-  const [searchQuery, setSearchQuery]  =  useState('');
-  const [searchResults, setSearchResults]  =  useState<Product[]>([]);
-  const [showSearchDropdown, setShowSearchDropdown]  =  useState(false);
-  const [selectedSearchIndex, setSelectedSearchIndex]  =  useState(-1);
-  const [searchLoading, setSearchLoading]  =  useState(false);
-;
-  const { toast }  =  useToast();
-  const queryClient = useQueryClient();
-  const buttonRef = useRef<HTMLButtonElement>(null);
-  const searchInputRef = useRef<HTMLInputElement>(null);
+export default function Sales() {
+  const [cartItems, setCartItems]  =  useState<SaleLineItem[]>([])
+  const [showConfirmationModal, setShowConfirmationModal]  =  useState(false)
+  const [paymentMethod, setPaymentMethod]  =  useState<'cash' | 'credit' | 'mobileMoney' | ''>('')
+  // Smart search state
+  const [searchQuery, setSearchQuery]  =  useState('')
+  const [searchResults, setSearchResults]  =  useState<Product[]>([])
+  const [showSearchDropdown, setShowSearchDropdown]  =  useState(false)
+  const [selectedSearchIndex, setSelectedSearchIndex]  =  useState(-1)
+  const [searchLoading, setSearchLoading]  =  useState(false)
 
-  // Fetch all products for quick select functionality;
+  const { toast }  =  useToast()
+  const queryClient = useQueryClient()
+  const buttonRef = useRef<HTMLButtonElement>(null)
+  const searchInputRef = useRef<HTMLInputElement>(null)
+  // Fetch all products for quick select functionality
   const { data: products = [], isLoading: productsLoading }  =  useQuery<Product[]>({
     queryKey: ["/api/products"]
-  });
-
-  // Get frequent products (first 6 for quick select);
+  })
+  // Get frequent products (first 6 for quick select)
   const { data: frequentProducts = [] }  =  useQuery<Product[]>({
     queryKey: ["/api/products/frequent"]
-  });
-;
+  })
+
   const quickSelectProducts = frequentProducts.length > 0
     ? frequentProducts.slice(0, 6)
-    : products.slice(0, 6);
-
-  // Debounced search function;
+    : products.slice(0, 6)
+  // Debounced search function
   const debouncedSearch = useCallback(
-    debounce(async (query: string) => {;
+    debounce(async (query: string) => {
       if (query.length < 1) {
-        setSearchResults([]);
-        setShowSearchDropdown(false);
-        setSearchLoading(false);
+        setSearchResults([])
+        setShowSearchDropdown(false)
+        setSearchLoading(false)
         return
       }
 
-      setSearchLoading(true);
-      try {;
-        const response = await apiRequest("GET", `/api/products/search?q = ${encodeURIComponent(query)}`);
-        const data = await response.json();
-        setSearchResults(data || []);
-        setShowSearchDropdown(true);
+      setSearchLoading(true)
+      try {
+        const response = await apiRequest("GET", `/api/products/search?q = ${encodeURIComponent(query)}`)
+        const data = await response.json()
+        setSearchResults(data || [])
+        setShowSearchDropdown(true)
         setSelectedSearchIndex(-1)
       } catch (error) {
-        console.error('Search error:', error);
-        setSearchResults([]);
+        console.error('Search error:', error)
+        setSearchResults([])
         setShowSearchDropdown(false)
       } finally {
         setSearchLoading(false)
       }
     }, 300),
     []
-  );
-
+  )
   // Trigger search when query changes
   useEffect(() => {
     debouncedSearch(searchQuery)
-  }, [searchQuery, debouncedSearch]);
-
+  }, [searchQuery, debouncedSearch])
   // Handle keyboard navigation for search
-  useEffect(() => {;
-    const handleKeyDown = (e: KeyboardEvent) => {;
-      if (!showSearchDropdown || searchResults.length  ===  0) return;
-
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!showSearchDropdown || searchResults.length  ===  0) return
       switch (e.key) {
         case 'ArrowDown':
-          e.preventDefault();
+          e.preventDefault()
           setSelectedSearchIndex(prev =>
             prev < searchResults.length - 1 ? prev + 1 : prev
-          );
-          break;
+          )
+          break
         case 'ArrowUp':
-          e.preventDefault();
+          e.preventDefault()
           setSelectedSearchIndex(prev => prev > 0 ? prev - 1 : prev)
-          break;
+          break
         case 'Enter':
-          e.preventDefault();
+          e.preventDefault()
           if (selectedSearchIndex >= 0 && selectedSearchIndex < searchResults.length) {
             handleSearchResultSelect(searchResults[selectedSearchIndex])
           }
-          break;
+          break
         case 'Escape':
-          setShowSearchDropdown(false);
-          setSelectedSearchIndex(-1);
+          setShowSearchDropdown(false)
+          setSelectedSearchIndex(-1)
           if (searchInputRef.current) {
             searchInputRef.current.blur()
           }
           break
       }
-    };
-;
+    }
+
     if (showSearchDropdown) {
-      document.addEventListener('keydown', handleKeyDown);
+      document.addEventListener('keydown', handleKeyDown)
       return () => document.removeEventListener('keydown', handleKeyDown)
     }
-  }, [showSearchDropdown, searchResults, selectedSearchIndex]);
-
+  }, [showSearchDropdown, searchResults, selectedSearchIndex])
   // Close search dropdown when clicking outside
-  useEffect(() => {;
-    const handleClickOutside = (event: MouseEvent) => {;
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
       if (searchInputRef.current && !searchInputRef.current.contains(event.target as Node)) {
         // Small delay to allow for item selection
         setTimeout(() => {
-          setShowSearchDropdown(false);
+          setShowSearchDropdown(false)
           setSelectedSearchIndex(-1)
         }, 150)
       }
-    };
-
-    document.addEventListener('mousedown', handleClickOutside);
+    }
+    document.addEventListener('mousedown', handleClickOutside)
     return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, []);
-;
+  }, [])
+
   const handleProductSelect = (product: Product) => {
     // Product selected for cart
 
-    // Check if product already exists in cart;
-    const existingItem = cartItems.find(item => item.product.id  ===  product.id);
-;
+    // Check if product already exists in cart
+    const existingItem = cartItems.find(item => item.product.id  ===  product.id)
+
     if (existingItem) {
       // Increment quantity of existing item
       handleQuantityChange(existingItem.id, existingItem.quantity + 1)
     } else {
-      // Add new item to cart;
+      // Add new item to cart
       const newItem: SaleLineItem = {
         id: `${product.id}-${Date.now()}`,
         product,
         quantity: 1,
         unitPrice: product.price,
         total: product.price
-      };
-      setCartItems(prev => {;
-        const updated = [...prev, newItem];
+      }
+      setCartItems(prev => {
+        const updated = [...prev, newItem]
         return updated
       })
     }
-  };
-;
-  const handleQuickSelectProduct = (productId: number) => {;
-    const product = products.find(p => p.id  ===  productId);
+  }
+
+  const handleQuickSelectProduct = (productId: number) => {
+    const product = products.find(p => p.id  ===  productId)
     if (product) {
-      handleProductSelect(product);
+      handleProductSelect(product)
       toast({
         title: "Product added",
         description: `${product.name} added to cart`,
@@ -165,88 +156,84 @@ export default function Sales() {;
         duration: 2000
       })
     }
-  };
-;
+  }
+
   const handleQuantityChange = (itemId: string, newQuantity: number) => {
-    setCartItems(prev => prev.map(item => {;
-      if (item.id  ===  itemId) {;
-        const total = (parseFloat(item.unitPrice) * newQuantity).toFixed(2);
+    setCartItems(prev => prev.map(item => {
+      if (item.id  ===  itemId) {
+        const total = (parseFloat(item.unitPrice) * newQuantity).toFixed(2)
         return { ...item, quantity: newQuantity, total }
-      };
+      }
       return item
     }))
-  };
-;
+  }
+
   const handleRemoveItem = (itemId: string) => {
     setCartItems(prev => prev.filter(item => item.id !== itemId))
-  };
-;
+  }
+
   const handleClearCart = () => {
     setCartItems([])
-  };
-;
-  const handleSellClick = () => {;
+  }
+
+  const handleSellClick = () => {
     if (cartItems.length  ===  0) {
       toast({ title: "Cart is empty", variant: "destructive" })
       return
-    };
-
+    }
     if (!paymentMethod) {
       toast({ title: "Please select a payment method", variant: "destructive" })
       return
     }
 
-    // Check for stock issues using fresh product data (skip products with unknown quantities);
-    const stockIssues = cartItems.filter(item => {;
-      const freshProduct = products.find(p => p.id  ===  item.product.id);
+    // Check for stock issues using fresh product data (skip products with unknown quantities)
+    const stockIssues = cartItems.filter(item => {
+      const freshProduct = products.find(p => p.id  ===  item.product.id)
       if (!freshProduct) return false; // Product not found, skip validation
 
-      // Skip validation for unknown quantity items (null stock);
-      if (freshProduct.stock  ===  null) return false;
-
-      // Check if requested quantity exceeds available stock;
+      // Skip validation for unknown quantity items (null stock)
+      if (freshProduct.stock  ===  null) return false
+      // Check if requested quantity exceeds available stock
       return item.quantity > (freshProduct.stock || 0)
-    });
-;
+    })
+
     if (stockIssues.length > 0) {
       toast({
         title: "Stock issue",
         description: "Please adjust quantities for items that exceed available stock.",
         variant: "destructive"
-      });
+      })
       return
     }
 
     setShowConfirmationModal(true)
-  };
-;
-  const handleConfirmSale = async (customer?: { name: string; phone?: string; isNew?: boolean }) => {;
+  }
+
+  const handleConfirmSale = async (customer?: { name: string; phone?: string; isNew?: boolean }) => {
     if (!paymentMethod) return; // Safety check
 
-    // For credit sales, customer information is required;
+    // For credit sales, customer information is required
     if (paymentMethod  ===  'credit' && !customer?.name?.trim()) {
       toast({
         title: "Customer required",
         description: "Please select or add a customer for credit sales",
         variant: "destructive"
-      });
+      })
       return
-    };
-
-    let customerName = customer?.name;
-
-    // If this is a new customer, save them to the database first;
+    }
+    let customerName = customer?.name
+    // If this is a new customer, save them to the database first
     if (customer?.isNew && customer.name) {
-      try {;
+      try {
         const newCustomer = await apiRequest("POST", "/api/customers", {
           name: customer.name,
           phone: customer.phone || null,
           email: null,
           address: null,
           balance: "0.00"
-        });
-;
-        const savedCustomer = await newCustomer.json();
+        })
+
+        const savedCustomer = await newCustomer.json()
         // Invalidate customers cache
         queryClient.invalidateQueries({ queryKey: ["/api/customers"] })
 
@@ -257,7 +244,7 @@ export default function Sales() {;
           duration: 3000
         })
       } catch (error) {
-        console.error('Error saving new customer:', error);
+        console.error('Error saving new customer:', error)
         toast({
           title: "Warning",
           description: "Customer couldn't be saved, but sale will proceed",
@@ -267,7 +254,7 @@ export default function Sales() {;
       }
     }
 
-    // Prepare sale data with correct field names that match backend;
+    // Prepare sale data with correct field names that match backend
     const saleData = {
       items: cartItems.map(item => ({
         id: item.product.id,
@@ -276,19 +263,16 @@ export default function Sales() {;
       paymentType: paymentMethod as 'cash' | 'credit' | 'mobileMoney',
       customerName: customer?.name || '',
       customerPhone: customer?.phone || ''
-    };
-
+    }
     createSaleMutation.mutate(saleData)
-  };
-
-  // Handle search result selection;
+  }
+  // Handle search result selection
   const handleSearchResultSelect = (product: Product) => {
-    handleProductSelect(product);
-    setSearchQuery('');
-    setShowSearchDropdown(false);
-    setSelectedSearchIndex(-1);
-
-    // Blur the search input;
+    handleProductSelect(product)
+    setSearchQuery('')
+    setShowSearchDropdown(false)
+    setSelectedSearchIndex(-1)
+    // Blur the search input
     if (searchInputRef.current) {
       searchInputRef.current.blur()
     }
@@ -300,8 +284,8 @@ export default function Sales() {;
       className: "bg-green-50 border-green-200 text-green-800",
       duration: 2000
     })
-  };
-;
+  }
+
   const createSaleMutation = useMutation({
     mutationFn: async (saleData: {
       items: Array<{ id: number; quantity: number }>
@@ -309,9 +293,9 @@ export default function Sales() {;
       customerName?: string
       customerPhone?: string
     }) => {
-      // Check if online;
+      // Check if online
       if (!isOnline()) {
-        // Queue sale for offline processing;
+        // Queue sale for offline processing
         const queuedSaleId = await offlineQueue.queueSale({
           items: saleData.items.map(item => ({
             productId: item.id,
@@ -321,14 +305,13 @@ export default function Sales() {;
           paymentType: saleData.paymentType as 'cash' | 'credit' | 'mobileMoney',
           customerName: saleData.customerName,
           customerPhone: saleData.customerPhone
-        });
-
-        // Register background sync if supported;
+        })
+        // Register background sync if supported
         if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
           navigator.serviceWorker.ready.then(registration => {
             try {
-              // Use any to bypass TypeScript limitations with experimental API;
-              const syncManager = (registration as any).sync;
+              // Use any to bypass TypeScript limitations with experimental API
+              const syncManager = (registration as any).sync
               if (syncManager) {
                 syncManager.register('sync-sales')
               }
@@ -336,22 +319,20 @@ export default function Sales() {;
               console.error('Background sync registration failed:', error)
             }
           })
-        };
-
+        }
         return { success: true, status: 'queued', saleId: queuedSaleId }
       }
 
-      // Online - proceed with normal API call;
-      const response = await apiRequest("POST", "/api/sales", saleData);
+      // Online - proceed with normal API call
+      const response = await apiRequest("POST", "/api/sales", saleData)
       return response.json()
     },
     onSuccess: (result: any) => {
       // Close modal and clear cart
-      setShowConfirmationModal(false);
-      setCartItems([]);
-      setPaymentMethod('');
-
-      // Immediately refresh all relevant data if online;
+      setShowConfirmationModal(false)
+      setCartItems([])
+      setPaymentMethod('')
+      // Immediately refresh all relevant data if online
       if (isOnline()) {
         // Dashboard metrics
         queryClient.invalidateQueries({ queryKey: ["/api/dashboard/metrics"] })
@@ -367,14 +348,14 @@ export default function Sales() {;
         queryClient.invalidateQueries({ queryKey: ["/api/products"] })
         queryClient.invalidateQueries({ queryKey: ["/api/products/frequent"] })
 
-        // Customer data for credit sales;
+        // Customer data for credit sales
         if (paymentMethod  ===  'credit') {
           queryClient.invalidateQueries({ queryKey: ["/api/customers"] })
         }
       }
 
-      // Show appropriate toast based on status;
-      const status = result.status;
+      // Show appropriate toast based on status
+      const status = result.status
       if (status  ===  'queued') {
         toast({
           title: "Sale queued – offline mode",
@@ -399,22 +380,21 @@ export default function Sales() {;
       }
     },
     onError: (error: any) => {
-      console.error('Sale error:', error);
+      console.error('Sale error:', error)
       toast({
         title: "Sale failed",
         description: "Please try again or contact support",
         variant: "destructive"
       })
     }
-  });
-;
-  const cartTotal = cartItems.reduce((sum, item) => sum + parseFloat(item.total), 0);
-  const isCartEmpty = cartItems.length  ===  0;
-  const canProceed = !isCartEmpty && paymentMethod !== '';
+  })
 
-  // Button click handler with ripple effect;
-  const handleSellButtonClick = () => {;
-    if (!canProceed) {;
+  const cartTotal = cartItems.reduce((sum, item) => sum + parseFloat(item.total), 0)
+  const isCartEmpty = cartItems.length  ===  0
+  const canProceed = !isCartEmpty && paymentMethod !== ''
+  // Button click handler with ripple effect
+  const handleSellButtonClick = () => {
+    if (!canProceed) {
       if (isCartEmpty) {
         toast({ title: "Cart is empty", description: "Scan or select items to start a sale", variant: "destructive" })
       } else {
@@ -423,10 +403,10 @@ export default function Sales() {;
       return
     }
 
-    // Add button animation;
+    // Add button animation
     if (buttonRef.current) {
-      buttonRef.current.style.transform = 'scale(0.95)';
-      setTimeout(() => {;
+      buttonRef.current.style.transform = 'scale(0.95)'
+      setTimeout(() => {
         if (buttonRef.current) {
           buttonRef.current.style.transform = 'scale(1)'
         }
@@ -434,9 +414,9 @@ export default function Sales() {;
     }
 
     setShowConfirmationModal(true)
-  };
-;
-  if (productsLoading) {;
+  }
+
+  if (productsLoading) {
     return (
       <div className = "space-y-6 p-4">
         <div className = "flex gap-3">
@@ -452,8 +432,7 @@ export default function Sales() {;
         <Skeleton className = "h-32" />
       </div>
     )
-  };
-
+  }
   return (
     <div className = "space-y-6 p-4 pb-20">
       {/* 1. Smart Product Search Bar */}
@@ -469,7 +448,7 @@ export default function Sales() {;
               placeholder = "Search products to add to cart..."
               value = {searchQuery}
               onChange = {(e) => setSearchQuery(e.target.value)}
-              onFocus = {() => {;
+              onFocus = {() => {
                 if (searchQuery.length > 0 && searchResults.length > 0) {
                   setShowSearchDropdown(true)
                 }
@@ -723,14 +702,14 @@ export default function Sales() {;
   )
 }
 
-// Debounce utility function;
+// Debounce utility function
 function debounce<T extends (...args: any[]) => any>(
   func: T,
   wait: number
-): (...args: Parameters<T>) => void {;
-  let timeout: NodeJS.Timeout;
+): (...args: Parameters<T>) => void {
+  let timeout: NodeJS.Timeout
   return (...args: Parameters<T>) => {
-    clearTimeout(timeout);
+    clearTimeout(timeout)
     timeout = setTimeout(() => func(...args), wait)
   }
 }

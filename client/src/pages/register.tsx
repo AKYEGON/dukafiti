@@ -1,57 +1,56 @@
-import React, { useState } from 'react';
-import { useLocation } from 'wouter';
-import { useAuth } from '@/contexts/SupabaseAuthClean';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { z } from 'zod';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Link } from 'wouter';
-import { Mail, ArrowLeft, Store, Eye, EyeOff } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-;
+import React, { useState } from 'react'
+import { useLocation } from 'wouter'
+import { useAuth } from '@/contexts/SupabaseAuthClean'
+import { useForm } from 'react-hook-form'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { z } from 'zod'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Link } from 'wouter'
+import { Mail, ArrowLeft, Store, Eye, EyeOff } from 'lucide-react'
+import { useToast } from '@/hooks/use-toast'
+
 const registerSchema = z.object({
   email: z.string().email('Please enter a valid email'),
   password: z.string().min(6, 'Password must be at least 6 characters')
-});
+})
+type RegisterFormData = z.infer<typeof registerSchema>
 
-type RegisterFormData = z.infer<typeof registerSchema>;
-;
-export default function Register() {;
-  const [, navigate]  =  useLocation();
-  const { toast }  =  useToast();
-  const { signup }  =  useAuth();
-  const [isSubmitted, setIsSubmitted]  =  useState(false);
-  const [submittedEmail, setSubmittedEmail]  =  useState('');
-  const [isLoading, setIsLoading]  =  useState(false);
-  const [showPassword, setShowPassword]  =  useState(false);
-;
+export default function Register() {
+  const [, navigate]  =  useLocation()
+  const { toast }  =  useToast()
+  const { signup }  =  useAuth()
+  const [isSubmitted, setIsSubmitted]  =  useState(false)
+  const [submittedEmail, setSubmittedEmail]  =  useState('')
+  const [isLoading, setIsLoading]  =  useState(false)
+  const [showPassword, setShowPassword]  =  useState(false)
+
   const {
     register,
     handleSubmit,
     formState: { errors }
   }  =  useForm<RegisterFormData>({
     resolver: zodResolver(registerSchema)
-  });
-;
+  })
+
   const onSubmit = async (data: RegisterFormData) => {
-    setIsLoading(true);
-    try {;
-      const { error }  =  await signup(data.email, data.password, data.email.split('@')[0]);
-;
+    setIsLoading(true)
+    try {
+      const { error }  =  await signup(data.email, data.password, data.email.split('@')[0])
+
       if (error) {
-        console.error('Registration error from Supabase:', error);
+        console.error('Registration error from Supabase:', error)
         toast({
           title: "Registration failed",
           description: error.message || "Failed to create account",
           variant: "destructive"
         })
       } else {
-        setSubmittedEmail(data.email);
-        setIsSubmitted(true);
+        setSubmittedEmail(data.email)
+        setIsSubmitted(true)
         toast({
           title: "Account created successfully!",
           description: "Please check your email to verify your account"
@@ -66,9 +65,9 @@ export default function Register() {;
     } finally {
       setIsLoading(false)
     }
-  };
-;
-  if (isSubmitted) {;
+  }
+
+  if (isSubmitted) {
     return (
       <div className = "min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4 sm:px-6 lg:px-8">
         <div className = "bg-white dark:bg-[#1F1F1F] border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg p-6 sm:p-8 w-full max-w-md mx-auto my-12">
@@ -115,8 +114,7 @@ export default function Register() {;
         </div>
       </div>
     )
-  };
-
+  }
   return (
     <div className = "min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4 sm:px-6 lg:px-8">
       <div className = "bg-white dark:bg-[#1F1F1F] border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg p-6 sm:p-8 w-full max-w-md mx-auto my-12">

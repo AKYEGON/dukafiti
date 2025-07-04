@@ -1,16 +1,16 @@
-import { useState, useMemo } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { type Product } from "@shared/schema";
-import { ProductForm } from "@/components/inventory/product-form";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { useState, useMemo } from "react"
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
+import { type Product } from "@shared/schema"
+import { ProductForm } from "@/components/inventory/product-form"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue
-} from "@/components/ui/select";
+} from "@/components/ui/select"
 import {
   AlertDialog,
   AlertDialogAction,
@@ -20,27 +20,26 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle
-} from "@/components/ui/alert-dialog";
-import { Search, Package, Edit, Trash2, Plus } from "lucide-react";
-import { apiRequest } from "@/lib/queryClient";
-import { useToast } from "@/hooks/use-toast";
-import { Skeleton } from "@/components/ui/skeleton";
+} from "@/components/ui/alert-dialog"
+import { Search, Package, Edit, Trash2, Plus } from "lucide-react"
+import { apiRequest } from "@/lib/queryClient"
+import { useToast } from "@/hooks/use-toast"
+import { Skeleton } from "@/components/ui/skeleton"
+type SortOption = "name-asc" | "name-desc" | "price-asc" | "price-desc"
 
-type SortOption = "name-asc" | "name-desc" | "price-asc" | "price-desc";
-;
-export default function Inventory() {;
-  const [search, setSearch]  =  useState("");
-  const [sortBy, setSortBy]  =  useState<SortOption>("name-asc");
-  const [showProductForm, setShowProductForm]  =  useState(false);
-  const [editingProduct, setEditingProduct]  =  useState<Product | undefined>();
-  const [deleteProduct, setDeleteProduct]  =  useState<Product | undefined>();
-  const { toast }  =  useToast();
-  const queryClient = useQueryClient();
-;
+export default function Inventory() {
+  const [search, setSearch]  =  useState("")
+  const [sortBy, setSortBy]  =  useState<SortOption>("name-asc")
+  const [showProductForm, setShowProductForm]  =  useState(false)
+  const [editingProduct, setEditingProduct]  =  useState<Product | undefined>()
+  const [deleteProduct, setDeleteProduct]  =  useState<Product | undefined>()
+  const { toast }  =  useToast()
+  const queryClient = useQueryClient()
+
   const { data: products, isLoading }  =  useQuery<Product[]>({
     queryKey: ["/api/products"]
-  });
-;
+  })
+
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
       await apiRequest("DELETE", `/api/products/${id}`)
@@ -54,48 +53,47 @@ export default function Inventory() {;
     onError: () => {
       toast({ title: "Failed to delete product", variant: "destructive" })
     }
-  });
-;
-  const filteredAndSortedProducts = useMemo(() => {;
+  })
+
+  const filteredAndSortedProducts = useMemo(() => {
     let result = products?.filter(product =>
       product.name.toLowerCase().includes(search.toLowerCase()) ||
       product.sku.toLowerCase().includes(search.toLowerCase()) ||
       product.category.toLowerCase().includes(search.toLowerCase())
-    ) || [];
-
+    ) || []
     // Sort products
     result.sort((a, b) => {
       switch (sortBy) {
-        case "name-asc":;
-          return a.name.localeCompare(b.name);
-        case "name-desc":;
-          return b.name.localeCompare(a.name);
-        case "price-asc":;
-          return parseFloat(a.price) - parseFloat(b.price);
-        case "price-desc":;
-          return parseFloat(b.price) - parseFloat(a.price);
-        default:;
+        case "name-asc":
+          return a.name.localeCompare(b.name)
+        case "name-desc":
+          return b.name.localeCompare(a.name)
+        case "price-asc":
+          return parseFloat(a.price) - parseFloat(b.price)
+        case "price-desc":
+          return parseFloat(b.price) - parseFloat(a.price)
+        default:
           return 0
       }
-    });
-;
+    })
+
     return result
-  }, [products, search, sortBy]);
-;
+  }, [products, search, sortBy])
+
   const handleEdit = (product: Product) => {
-    setEditingProduct(product);
+    setEditingProduct(product)
     setShowProductForm(true)
-  };
-;
+  }
+
   const handleDelete = (product: Product) => {
     setDeleteProduct(product)
-  };
-;
+  }
+
   const handleFormClose = () => {
-    setShowProductForm(false);
+    setShowProductForm(false)
     setEditingProduct(undefined)
-  };
-;
+  }
+
   return (
     <div className = "min-h-screen bg-background">
       {/* Responsive Sticky Top Toolbar */}
