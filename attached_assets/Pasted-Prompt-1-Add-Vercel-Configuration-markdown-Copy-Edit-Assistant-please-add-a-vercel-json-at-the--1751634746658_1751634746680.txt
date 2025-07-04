@@ -1,0 +1,76 @@
+Prompt #1: Add Vercel Configuration
+markdown
+Copy
+Edit
+Assistant, please add a `vercel.json` at the project root to tell Vercel how to build and serve our React PWA:
+
+```json
+{
+  "version": 2,
+  "builds": [
+    { "src": "package.json", "use": "@vercel/static-build", "config": { "distDir": "build" } }
+  ],
+  "routes": [
+    { "src": "/(.*)", "dest": "/index.html" }
+  ]
+}
+– This ensures Vercel runs npm run build, then serves the contents of build/ as a single‐page app.
+
+Generate that vercel.json file for me.
+
+yaml
+Copy
+Edit
+
+---
+
+### Prompt #2: Update `package.json` Scripts for Vercel  
+```markdown
+Assistant, overwrite our `package.json` scripts so Vercel can build and start our React app:
+
+```json
+"scripts": {
+  "start": "react-scripts start",
+  "build": "react-scripts build",
+  "vercel-build": "npm run build"
+}
+– Add "vercel-build": "npm run build" as Vercel’s default build command.
+Generate the updated package.json with only those changes in the scripts section.
+
+yaml
+Copy
+Edit
+
+---
+
+### Prompt #3: Document Vercel Environment Variables & Setup  
+```markdown
+Assistant, create a step‑by‑step guide (for README or a dev doc) on how to add our env vars in the Vercel Dashboard:
+
+1. Go to Vercel → Projects → *Your Project* → Settings → Environment Variables.  
+2. Click “Add” and enter:
+   - `REACT_APP_SUPABASE_URL` = `https://<your‑supabase>.supabase.co`
+   - `REACT_APP_SUPABASE_ANON_KEY` = `<your‑anon‑key>`
+   - `REACT_APP_API_URL` = `https://dukasmart‑api.onrender.app`
+3. Set each to “Production” (and “Preview” if desired), then Save.  
+4. Trigger a new deployment by pushing any commit or clicking “Redeploy.”
+
+Output this as Markdown for inclusion in our README.
+Prompt #4: Outline Publishing & Distribution Steps
+markdown
+Copy
+Edit
+Assistant, write a simple “Deploy & Distribute” section for our README that covers:
+
+- **Deploy to Vercel**:  
+  1. Connect GitHub repo to Vercel.  
+  2. Add env vars as above.  
+  3. Vercel auto‑deploys on push to `main`.  
+- **PWA Install**:  
+  - Users can “Add to Home Screen” on mobile browsers.  
+- **Mobile App Packaging (Optional)**:  
+  - Use Capacitor to wrap in Android/iOS as covered earlier.  
+- **Custom Domain**:  
+  - How to add `app.dukasmart.co.ke` in Vercel Domains and update DNS.
+
+Generate that as a concise markdown section.
