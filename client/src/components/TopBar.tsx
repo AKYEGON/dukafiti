@@ -21,8 +21,8 @@ import { SidebarToggleIcon } from '@/components/icons/sidebar-toggle-icon';
 import type { SearchResult, Notification } from '@shared/schema';
 
 interface TopBarProps {
-  onToggleSidebar?: () => void;
-  isSidebarCollapsed?: boolean;
+  onToggleSidebar?: () => void
+  isSidebarCollapsed?: boolean
 }
 
 export function TopBar({ onToggleSidebar, isSidebarCollapsed }: TopBarProps) {
@@ -68,13 +68,13 @@ export function TopBar({ onToggleSidebar, isSidebarCollapsed }: TopBarProps) {
   // Fetch notifications
   const { data: notifications = [] } = useQuery<Notification[]>({
     queryKey: ['/api/notifications'],
-    enabled: true;
+    enabled: true
   });
 
   // Fetch unread count
   const { data: unreadData } = useQuery<{ count: number }>({
     queryKey: ['/api/notifications/unread-count'],
-    enabled: true;
+    enabled: true
   });
 
   const unreadCount = unreadData?.count || 0;
@@ -159,7 +159,7 @@ export function TopBar({ onToggleSidebar, isSidebarCollapsed }: TopBarProps) {
   const typeIcons: { [key: string]: any } = {
     product: Package,
     customer: Users,
-    order: ShoppingCart;
+    order: ShoppingCart
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -170,7 +170,7 @@ export function TopBar({ onToggleSidebar, isSidebarCollapsed }: TopBarProps) {
       setSelectedIndex(prev => (prev + 1) % searchResults.length);
     } else if (e.key === 'ArrowUp') {
       e.preventDefault();
-      setSelectedIndex(prev => prev <= 0 ? searchResults.length - 1 : prev - 1);
+      setSelectedIndex(prev => prev <= 0 ? searchResults.length - 1 : prev - 1)
     } else if (e.key === 'Enter' && selectedIndex >= 0) {
       e.preventDefault();
       handleSearchSelect(searchResults[selectedIndex]);

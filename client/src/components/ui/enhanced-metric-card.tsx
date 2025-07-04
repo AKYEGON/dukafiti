@@ -3,13 +3,13 @@ import { cn } from "@/lib/utils";
 import { LucideIcon, Loader2 } from "lucide-react";
 
 interface EnhancedMetricCardProps {
-  title: string;
-  value: string;
-  percentageChange: string;
-  icon: LucideIcon;
-  isLoading?: boolean;
-  isRefreshing?: boolean;
-  error?: boolean;
+  title: string
+  value: string
+  percentageChange: string
+  icon: LucideIcon
+  isLoading?: boolean
+  isRefreshing?: boolean
+  error?: boolean
 }
 
 function getPercentageColor(percentageChange: string): string {

@@ -22,20 +22,20 @@ const storeProfileSchema = z.object({
 type StoreProfileData = z.infer<typeof storeProfileSchema>;
 
 interface StoreData {
-  storeName?: string;
-  ownerName?: string;
-  address?: string;
+  storeName?: string
+  ownerName?: string
+  address?: string
 }
 
 interface EditableSectionProps {
-  title: string;
-  icon: React.ElementType;
-  children: React.ReactNode;
-  isEditing: boolean;
-  onEditToggle: () => void;
-  onSave?: () => void;
-  onCancel?: () => void;
-  isLoading?: boolean;
+  title: string
+  icon: React.ElementType
+  children: React.ReactNode
+  isEditing: boolean
+  onEditToggle: () => void
+  onSave?: () => void
+  onCancel?: () => void
+  isLoading?: boolean
 }
 
 // Editable Section Component
@@ -108,7 +108,7 @@ export default function SettingsPage() {
   // Fetch store data
   const { data: storeData, isLoading: storeLoading } = useQuery<StoreData>({
     queryKey: ['/api/store'],
-    retry: false;
+    retry: false
   });
 
   // Store profile form
@@ -139,8 +139,8 @@ export default function SettingsPage() {
       return response.json();
     },
     onSuccess: () => {
-      toast({ title: "Store profile updated successfully" });
-      queryClient.invalidateQueries({ queryKey: ['/api/store'] });
+      toast({ title: "Store profile updated successfully" })
+      queryClient.invalidateQueries({ queryKey: ['/api/store'] })
       setEditingStore(false);
     },
     onError: (error: any) => {
@@ -159,7 +159,7 @@ export default function SettingsPage() {
       return response.json();
     },
     onSuccess: () => {
-      toast({ title: "Data synced successfully" });
+      toast({ title: "Data synced successfully" })
       setLastSyncTime(new Date().toLocaleString());
     },
     onError: (error: any) => {

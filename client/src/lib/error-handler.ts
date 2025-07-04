@@ -1,10 +1,10 @@
 // Global error handler for the application
 export class ErrorHandler {
-  private static instance: ErrorHandler;
+  private static instance: ErrorHandler
   private errorQueue: Array<{
-    error: Error;
-    timestamp: number;
-    context?: string;
+    error: Error
+    timestamp: number
+    context?: string
   }> = [];
 
   static getInstance(): ErrorHandler {
@@ -44,7 +44,7 @@ export class ErrorHandler {
     const errorEntry = {
       error,
       timestamp: Date.now(),
-      context;
+      context
     };
 
     this.errorQueue.push(errorEntry);

@@ -7,9 +7,9 @@ import {
 } from 'lucide-react';
 
 interface NavItem {
-  icon: React.ComponentType<{ className?: string }>;
-  label: string;
-  path: string;
+  icon: React.ComponentType<{ className?: string }>
+  label: string
+  path: string
 }
 
 const navItems: NavItem[] = [

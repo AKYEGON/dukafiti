@@ -3,11 +3,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 interface QuantityStepperProps {
-  value: number;
-  onChange: (value: number) => void;
-  min?: number;
-  max?: number;
-  disabled?: boolean;
+  value: number
+  onChange: (value: number) => void
+  min?: number
+  max?: number
+  disabled?: boolean
 }
 
 export function QuantityStepper({

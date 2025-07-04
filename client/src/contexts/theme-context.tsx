@@ -5,9 +5,9 @@ import { apiRequest } from "@/lib/queryClient";
 type Theme = 'light' | 'dark';
 
 interface ThemeContextType {
-  theme: Theme;
-  setTheme: (theme: Theme) => void;
-  isLoading: boolean;
+  theme: Theme
+  setTheme: (theme: Theme) => void
+  isLoading: boolean
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
@@ -27,11 +27,11 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   // Update theme mutation
   const updateThemeMutation = useMutation({
     mutationFn: async (newTheme: Theme) => {
-      const response = await apiRequest("PUT", "/api/settings/theme", { theme: newTheme });
+      const response = await apiRequest("PUT", "/api/settings/theme", { theme: newTheme })
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/settings/theme'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/settings/theme'] })
     }
   });
 

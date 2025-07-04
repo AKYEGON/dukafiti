@@ -4,20 +4,20 @@ import { Button } from "@/components/ui/button";
 import { AlertTriangle, RefreshCw } from "lucide-react";
 
 interface ErrorBoundaryState {
-  hasError: boolean;
-  error?: Error;
-  errorInfo?: React.ErrorInfo;
+  hasError: boolean
+  error?: Error
+  errorInfo?: React.ErrorInfo
 }
 
 interface ErrorBoundaryProps {
-  children: React.ReactNode;
-  fallback?: React.ComponentType<{ error: Error; resetError: () => void }>;
+  children: React.ReactNode
+  fallback?: React.ComponentType<{ error: Error; resetError: () => void }>
 }
 
 export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
   constructor(props: ErrorBoundaryProps) {
     super(props);
-    this.state = { hasError: false };
+    this.state = { hasError: false }
   }
 
   static getDerivedStateFromError(error: Error): ErrorBoundaryState {
@@ -30,7 +30,7 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
   }
 
   resetError = () => {
-    this.setState({ hasError: false, error: undefined, errorInfo: undefined });
+    this.setState({ hasError: false, error: undefined, errorInfo: undefined })
   };
 
   render() {

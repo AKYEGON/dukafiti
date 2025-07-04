@@ -15,7 +15,7 @@ export function calcPctChange(current: number, prior: number): string {
 
   // Round to one decimal place and add proper sign
   const rounded = Math.round(change * 10) / 10;
-  const sign = rounded > 0 ? '+' : '';
+  const sign = rounded > 0 ? '+' : ''
 
   return `${sign}${rounded.toFixed(1)}%`;
 }
@@ -24,7 +24,7 @@ export function calcPctChange(current: number, prior: number): string {
  * Format currency value for display
  */
 export function formatCurrency(value: number): string {
-  return `KES ${value.toLocaleString('en-KE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  return `KES ${value.toLocaleString('en-KE', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
 }
 
 /**

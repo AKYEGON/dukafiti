@@ -233,20 +233,20 @@ export type Notification = typeof notifications.$inferSelect;
 export type InsertNotification = z.infer<typeof insertNotificationSchema>;
 
 export interface DashboardMetrics {
-  totalRevenue: string;
-  totalOrders: number;
-  totalProducts: number;
-  totalCustomers: number;
-  revenueGrowth: string;
-  ordersGrowth: string;
-  lowStockCount: number;
-  activeCustomersCount: number;
+  totalRevenue: string
+  totalOrders: number
+  totalProducts: number
+  totalCustomers: number
+  revenueGrowth: string
+  ordersGrowth: string
+  lowStockCount: number
+  activeCustomersCount: number
 }
 
 export interface SearchResult {
-  id: number;
-  type: 'product' | 'customer' | 'order';
-  name: string;
-  subtitle?: string;
-  url: string;
+  id: number
+  type: 'product' | 'customer' | 'order'
+  name: string
+  subtitle?: string
+  url: string
 }

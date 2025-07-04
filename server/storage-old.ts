@@ -37,96 +37,96 @@ import { eq, desc, like, sql, or, ilike } from 'drizzle-orm';
 
 export interface IStorage {
   // Users
-  getUser(id: number): Promise<User | undefined>;
-  getUserByUsername(username: string): Promise<User | undefined>;
-  getUserByPhone(phone: string): Promise<User | undefined>;
-  getUserByEmail(email: string): Promise<User | undefined>;
-  createUser(user: InsertUser): Promise<User>;
+  getUser(id: number): Promise<User | undefined>
+  getUserByUsername(username: string): Promise<User | undefined>
+  getUserByPhone(phone: string): Promise<User | undefined>
+  getUserByEmail(email: string): Promise<User | undefined>
+  createUser(user: InsertUser): Promise<User>
 
   // Products
-  getProducts(): Promise<Product[]>;
-  getProduct(id: number): Promise<Product | undefined>;
-  createProduct(product: InsertProduct): Promise<Product>;
-  updateProduct(id: number, product: Partial<InsertProduct>): Promise<Product | undefined>;
-  updateProductStock(id: number, stockChange: number): Promise<Product | undefined>;
-  deleteProduct(id: number): Promise<boolean>;
-  searchProducts(query: string): Promise<Product[]>;
-  getFrequentProducts(): Promise<Array<{ id: number; name: string; price: string }>>;
-  incrementProductSalesCount(id: number, quantity: number): Promise<Product | undefined>;
+  getProducts(): Promise<Product[]>
+  getProduct(id: number): Promise<Product | undefined>
+  createProduct(product: InsertProduct): Promise<Product>
+  updateProduct(id: number, product: Partial<InsertProduct>): Promise<Product | undefined>
+  updateProductStock(id: number, stockChange: number): Promise<Product | undefined>
+  deleteProduct(id: number): Promise<boolean>
+  searchProducts(query: string): Promise<Product[]>
+  getFrequentProducts(): Promise<Array<{ id: number; name: string; price: string }>>
+  incrementProductSalesCount(id: number, quantity: number): Promise<Product | undefined>
 
   // Customers
-  getCustomers(): Promise<Customer[]>;
-  getCustomer(id: number): Promise<Customer | undefined>;
-  getCustomerByNameOrPhone(name: string, phone?: string): Promise<Customer | undefined>;
-  createCustomer(customer: InsertCustomer): Promise<Customer>;
-  updateCustomer(id: number, customer: Partial<InsertCustomer>): Promise<Customer | undefined>;
-  updateCustomerBalance(id: number, amount: number): Promise<Customer | undefined>;
-  deleteCustomer(id: number): Promise<boolean>;
+  getCustomers(): Promise<Customer[]>
+  getCustomer(id: number): Promise<Customer | undefined>
+  getCustomerByNameOrPhone(name: string, phone?: string): Promise<Customer | undefined>
+  createCustomer(customer: InsertCustomer): Promise<Customer>
+  updateCustomer(id: number, customer: Partial<InsertCustomer>): Promise<Customer | undefined>
+  updateCustomerBalance(id: number, amount: number): Promise<Customer | undefined>
+  deleteCustomer(id: number): Promise<boolean>
 
   // Orders
-  getOrders(): Promise<Order[]>;
-  getOrder(id: number): Promise<Order | undefined>;
-  getOrderByReference(reference: string): Promise<Order | undefined>;
-  createOrder(order: InsertOrder): Promise<Order>;
-  updateOrder(id: number, order: Partial<InsertOrder>): Promise<Order | undefined>;
-  deleteOrder(id: number): Promise<boolean>;
-  getRecentOrders(limit?: number): Promise<Order[]>;
+  getOrders(): Promise<Order[]>
+  getOrder(id: number): Promise<Order | undefined>
+  getOrderByReference(reference: string): Promise<Order | undefined>
+  createOrder(order: InsertOrder): Promise<Order>
+  updateOrder(id: number, order: Partial<InsertOrder>): Promise<Order | undefined>
+  deleteOrder(id: number): Promise<boolean>
+  getRecentOrders(limit?: number): Promise<Order[]>
 
   // Order Items
-  getOrderItems(orderId: number): Promise<OrderItem[]>;
-  createOrderItem(orderItem: InsertOrderItem): Promise<OrderItem>;
+  getOrderItems(orderId: number): Promise<OrderItem[]>
+  createOrderItem(orderItem: InsertOrderItem): Promise<OrderItem>
 
   // Payments
-  getPayments(): Promise<Payment[]>;
-  getPayment(id: number): Promise<Payment | undefined>;
-  getPaymentsByCustomer(customerId: number): Promise<Payment[]>;
-  createPayment(payment: InsertPayment): Promise<Payment>;
+  getPayments(): Promise<Payment[]>
+  getPayment(id: number): Promise<Payment | undefined>
+  getPaymentsByCustomer(customerId: number): Promise<Payment[]>
+  createPayment(payment: InsertPayment): Promise<Payment>
 
   // Dashboard
-  getDashboardMetrics(): Promise<DashboardMetrics>;
+  getDashboardMetrics(): Promise<DashboardMetrics>
   getDetailedDashboardMetrics(): Promise<{
     revenue: {
-      today: number;
-      yesterday: number;
-      weekToDate: number;
-      priorWeekToDate: number;
+      today: number
+      yesterday: number
+      weekToDate: number
+      priorWeekToDate: number
     };
     orders: {
-      today: number;
-      yesterday: number;
+      today: number
+      yesterday: number
     };
     inventory: {
-      totalItems: number;
-      priorSnapshot: number;
+      totalItems: number
+      priorSnapshot: number
     };
     customers: {
-      active: number;
-      priorActive: number;
+      active: number
+      priorActive: number
     };
   }>;
 
   // Business Profile
-  saveBusinessProfile(userId: number, profile: Omit<InsertBusinessProfile, 'userId'>): Promise<void>;
-  getBusinessProfile(userId: number): Promise<BusinessProfile | undefined>;
+  saveBusinessProfile(userId: number, profile: Omit<InsertBusinessProfile, 'userId'>): Promise<void>
+  getBusinessProfile(userId: number): Promise<BusinessProfile | undefined>
 
   // Store Profile
-  getStoreProfile(userId: number): Promise<StoreProfile | undefined>;
-  saveStoreProfile(userId: number, profile: Omit<InsertStoreProfile, 'userId'>): Promise<StoreProfile>;
-  updateStoreProfile(userId: number, profile: Partial<Omit<InsertStoreProfile, 'userId'>>): Promise<StoreProfile | undefined>;
+  getStoreProfile(userId: number): Promise<StoreProfile | undefined>
+  saveStoreProfile(userId: number, profile: Omit<InsertStoreProfile, 'userId'>): Promise<StoreProfile>
+  updateStoreProfile(userId: number, profile: Partial<Omit<InsertStoreProfile, 'userId'>>): Promise<StoreProfile | undefined>
 
   // User Settings
-  getUserSettings(userId: number): Promise<UserSettings | undefined>;
-  saveUserSettings(userId: number, settings: Omit<InsertUserSettings, 'userId'>): Promise<UserSettings>;
-  updateUserSettings(userId: number, settings: Partial<Omit<InsertUserSettings, 'userId'>>): Promise<UserSettings | undefined>;
+  getUserSettings(userId: number): Promise<UserSettings | undefined>
+  saveUserSettings(userId: number, settings: Omit<InsertUserSettings, 'userId'>): Promise<UserSettings>
+  updateUserSettings(userId: number, settings: Partial<Omit<InsertUserSettings, 'userId'>>): Promise<UserSettings | undefined>
 
   // Notifications
-  getNotifications(userId: number, limit?: number): Promise<Notification[]>;
-  getUnreadNotificationCount(userId: number): Promise<number>;
-  createNotification(notification: InsertNotification): Promise<Notification>;
-  markNotificationAsRead(id: number): Promise<boolean>;
+  getNotifications(userId: number, limit?: number): Promise<Notification[]>
+  getUnreadNotificationCount(userId: number): Promise<number>
+  createNotification(notification: InsertNotification): Promise<Notification>
+  markNotificationAsRead(id: number): Promise<boolean>
 
   // Search
-  globalSearch(query: string): Promise<SearchResult[]>;
+  globalSearch(query: string): Promise<SearchResult[]>
 }
 
 export class DatabaseStorage implements IStorage {
@@ -190,7 +190,7 @@ export class DatabaseStorage implements IStorage {
         description: product.description || null,
         stock: product.stock || 0,
         lowStockThreshold: product.lowStockThreshold || 10,
-        salesCount: product.salesCount || 0;
+        salesCount: product.salesCount || 0
       };
       this.products.set(newProduct.id, newProduct);
     });
@@ -224,7 +224,7 @@ export class DatabaseStorage implements IStorage {
     ];
 
     sampleCustomers.forEach(customer => {
-      const newCustomer: Customer = { ...customer, id: this.customerId++ };
+      const newCustomer: Customer = { ...customer, id: this.customerId++ }
       this.customers.set(newCustomer.id, newCustomer);
     });
 
@@ -251,7 +251,7 @@ export class DatabaseStorage implements IStorage {
     ];
 
     sampleOrders.forEach(order => {
-      const newOrder: Order = { ...order, id: this.orderId++ };
+      const newOrder: Order = { ...order, id: this.orderId++ }
       this.orders.set(newOrder.id, newOrder);
     });
   }
@@ -338,7 +338,7 @@ export class DatabaseStorage implements IStorage {
       .map(product => ({
         id: product.id,
         name: product.name,
-        price: product.price;
+        price: product.price
       }));
   }
 
@@ -476,7 +476,7 @@ export class DatabaseStorage implements IStorage {
       revenueGrowth,
       ordersGrowth,
       lowStockCount: lowStockProducts.length,
-      activeCustomersCount: customers.length;
+      activeCustomersCount: customers.length
     };
   }
 
@@ -500,7 +500,7 @@ export class DatabaseStorage implements IStorage {
     const product = this.products.get(id);
     if (!product) return undefined;
 
-    const updatedProduct = { ...product, stock: product.stock + stockChange };
+    const updatedProduct = { ...product, stock: product.stock + stockChange }
     this.products.set(id, updatedProduct);
     return updatedProduct;
   }
@@ -519,7 +519,7 @@ export class DatabaseStorage implements IStorage {
     if (!customer) return undefined;
 
     const currentBalance = parseFloat(customer.balance) || 0;
-    const updatedCustomer = { ...customer, balance: (currentBalance + amount).toFixed(2) };
+    const updatedCustomer = { ...customer, balance: (currentBalance + amount).toFixed(2) }
     this.customers.set(id, updatedCustomer);
     return updatedCustomer;
   }
@@ -684,7 +684,7 @@ export class DatabaseStorage implements IStorage {
       .select({
         id: products.id,
         name: products.name,
-        price: products.price;
+        price: products.price
       })
       .from(products)
       .where(sql`${products.salesCount} > 0`)
@@ -829,7 +829,7 @@ export class DatabaseStorage implements IStorage {
       revenueGrowth: '+12.5%', // This would be calculated from historical data
       ordersGrowth: '+8.2%', // This would be calculated from historical data
       lowStockCount: lowStockProducts.length,
-      activeCustomersCount: allCustomers.length;
+      activeCustomersCount: allCustomers.length
     };
   }
 
@@ -952,22 +952,22 @@ export class DatabaseStorage implements IStorage {
 
   async getDetailedDashboardMetrics(): Promise<{
     revenue: {
-      today: number;
-      yesterday: number;
-      weekToDate: number;
-      priorWeekToDate: number;
+      today: number
+      yesterday: number
+      weekToDate: number
+      priorWeekToDate: number
     };
     orders: {
-      today: number;
-      yesterday: number;
+      today: number
+      yesterday: number
     };
     inventory: {
-      totalItems: number;
-      priorSnapshot: number;
+      totalItems: number
+      priorSnapshot: number
     };
     customers: {
-      active: number;
-      priorActive: number;
+      active: number
+      priorActive: number
     };
   }> {
     const now = new Date();
@@ -987,7 +987,7 @@ export class DatabaseStorage implements IStorage {
     // Week to date (Monday to today)
     const weekStart = new Date(now);
     const dayOfWeek = weekStart.getDay();
-    const daysFromMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1;
+    const daysFromMonday = dayOfWeek === 0 ? 6 : dayOfWeek - 1
     weekStart.setDate(weekStart.getDate() - daysFromMonday);
     weekStart.setHours(0, 0, 0, 0);
 
@@ -1053,11 +1053,11 @@ export class DatabaseStorage implements IStorage {
         today: todayRevenue,
         yesterday: yesterdayRevenue,
         weekToDate: weekRevenue,
-        priorWeekToDate: priorWeekRevenue;
+        priorWeekToDate: priorWeekRevenue
       },
       orders: {
         today: todayOrderCount,
-        yesterday: yesterdayOrderCount;
+        yesterday: yesterdayOrderCount
       },
       inventory: {
         totalItems,
@@ -1065,7 +1065,7 @@ export class DatabaseStorage implements IStorage {
       },
       customers: {
         active: activeCustomers,
-        priorActive: priorActiveCustomers;
+        priorActive: priorActiveCustomers
       }
     };
   }
@@ -1107,7 +1107,7 @@ export class DatabaseStorage implements IStorage {
   // Search
   async globalSearch(query: string): Promise<SearchResult[]> {
     const searchTerm = `%${query.toLowerCase()}%`;
-    const results: SearchResult[] = [];
+    const results: SearchResult[] = []
 
     // Search products
     const productResults = await db

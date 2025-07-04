@@ -11,21 +11,21 @@ async function seedNotifications() {
         title: 'Low Stock Alert',
         message: 'Milk 1L is running low. Only 3 units remaining.',
         type: 'warning' as const,
-        isRead: false;
+        isRead: false
       },
       {
         userId,
         title: 'New Sale',
         message: 'A new sale of KES 250.00 has been completed.',
         type: 'success' as const,
-        isRead: false;
+        isRead: false
       },
       {
         userId,
         title: 'Welcome!',
         message: 'Welcome to DukaSmart! Your business management platform is ready.',
         type: 'info' as const,
-        isRead: true;
+        isRead: true
       }
     ];
 

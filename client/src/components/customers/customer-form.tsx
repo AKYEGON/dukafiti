@@ -20,9 +20,9 @@ const customerFormSchema = z.object({
 type CustomerFormData = z.infer<typeof customerFormSchema>;
 
 interface CustomerFormProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  customer?: Customer;
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  customer?: Customer
 }
 
 export function CustomerForm({ open, onOpenChange, customer }: CustomerFormProps) {
@@ -71,7 +71,7 @@ export function CustomerForm({ open, onOpenChange, customer }: CustomerFormProps
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/customers"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/customers"] })
       toast({
         title: "Success",
         description: "Customer created successfully"
@@ -101,7 +101,7 @@ export function CustomerForm({ open, onOpenChange, customer }: CustomerFormProps
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/customers"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/customers"] })
       toast({
         title: "Success",
         description: "Customer updated successfully"
@@ -133,7 +133,7 @@ export function CustomerForm({ open, onOpenChange, customer }: CustomerFormProps
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/customers"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/customers"] })
       toast({
         title: "Success",
         description: "Customer deleted successfully"

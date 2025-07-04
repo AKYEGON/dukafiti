@@ -11,7 +11,7 @@ const THEMES = { light: "", dark: ".dark" } as const
 export type ChartConfig = {
   [k in string]: {
     label?: React.ReactNode
-    icon?: React.ComponentType;
+    icon?: React.ComponentType
   } & (
     | { color?: string; theme?: never }
     | { color?: never; theme: Record<keyof typeof THEMES, string> }
@@ -19,7 +19,7 @@ export type ChartConfig = {
 }
 
 type ChartContextProps = {
-  config: ChartConfig;
+  config: ChartConfig
 }
 
 const ChartContext = React.createContext<ChartContextProps | null>(null)
@@ -88,7 +88,7 @@ ${colorConfig
     const color =
       itemConfig.theme?.[theme as keyof typeof itemConfig.theme] ||
       itemConfig.color
-    return color ? `  --color-${key}: ${color};` : null;
+    return color ? `  --color-${key}: ${color};` : null
   })
   .join("\n")}
 }
@@ -110,7 +110,7 @@ const ChartTooltipContent = React.forwardRef<
       hideIndicator?: boolean
       indicator?: "line" | "dot" | "dashed"
       nameKey?: string
-      labelKey?: string;
+      labelKey?: string
     }
 >(
   (
@@ -220,7 +220,7 @@ const ChartTooltipContent = React.forwardRef<
                           style={
                             {
                               "--color-bg": indicatorColor,
-                              "--color-border": indicatorColor;
+                              "--color-border": indicatorColor
                             } as React.CSSProperties;
                           }
                         />
@@ -263,7 +263,7 @@ const ChartLegendContent = React.forwardRef<
   React.ComponentProps<"div"> &
     Pick<RechartsPrimitive.LegendProps, "payload" | "verticalAlign"> & {
       hideIcon?: boolean
-      nameKey?: string;
+      nameKey?: string
     }
 >(
   (
@@ -302,7 +302,7 @@ const ChartLegendContent = React.forwardRef<
                 <div
                   className="h-2 w-2 shrink-0 rounded-[2px]"
                   style={{
-                    backgroundColor: item.color;
+                    backgroundColor: item.color
                   }}
                 />
               )}

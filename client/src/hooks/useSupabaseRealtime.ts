@@ -17,8 +17,8 @@ export function useSupabaseRealtime() {
         { event: '*', schema: 'public', table: 'products' },
         () => {
           // Invalidate products queries when data changes
-          queryClient.invalidateQueries({ queryKey: ['/api/products'] });
-          queryClient.invalidateQueries({ queryKey: ['/api/dashboard/metrics'] });
+          queryClient.invalidateQueries({ queryKey: ['/api/products'] })
+          queryClient.invalidateQueries({ queryKey: ['/api/dashboard/metrics'] })
         }
       )
       .subscribe();
@@ -30,10 +30,10 @@ export function useSupabaseRealtime() {
         { event: '*', schema: 'public', table: 'orders' },
         () => {
           // Invalidate orders queries when data changes
-          queryClient.invalidateQueries({ queryKey: ['/api/orders'] });
-          queryClient.invalidateQueries({ queryKey: ['/api/orders/recent'] });
-          queryClient.invalidateQueries({ queryKey: ['/api/dashboard/metrics'] });
-          queryClient.invalidateQueries({ queryKey: ['/api/reports'] });
+          queryClient.invalidateQueries({ queryKey: ['/api/orders'] })
+          queryClient.invalidateQueries({ queryKey: ['/api/orders/recent'] })
+          queryClient.invalidateQueries({ queryKey: ['/api/dashboard/metrics'] })
+          queryClient.invalidateQueries({ queryKey: ['/api/reports'] })
         }
       )
       .subscribe();
@@ -45,8 +45,8 @@ export function useSupabaseRealtime() {
         { event: '*', schema: 'public', table: 'customers' },
         () => {
           // Invalidate customers queries when data changes
-          queryClient.invalidateQueries({ queryKey: ['/api/customers'] });
-          queryClient.invalidateQueries({ queryKey: ['/api/dashboard/metrics'] });
+          queryClient.invalidateQueries({ queryKey: ['/api/customers'] })
+          queryClient.invalidateQueries({ queryKey: ['/api/dashboard/metrics'] })
         }
       )
       .subscribe();
@@ -58,8 +58,8 @@ export function useSupabaseRealtime() {
         { event: '*', schema: 'public', table: 'notifications' },
         () => {
           // Invalidate notifications queries when data changes
-          queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
-          queryClient.invalidateQueries({ queryKey: ['/api/notifications/unread-count'] });
+          queryClient.invalidateQueries({ queryKey: ['/api/notifications'] })
+          queryClient.invalidateQueries({ queryKey: ['/api/notifications/unread-count'] })
         }
       )
       .subscribe();

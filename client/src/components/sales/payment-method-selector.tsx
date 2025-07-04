@@ -8,9 +8,9 @@ import { Label } from "@/components/ui/label";
 import { formatCurrency } from "@/lib/utils";
 
 interface PaymentMethodSelectorProps {
-  total: number;
-  onPaymentSelected: (method: 'cash' | 'credit' | 'mobileMoney', reference?: string) => void;
-  isProcessing?: boolean;
+  total: number
+  onPaymentSelected: (method: 'cash' | 'credit' | 'mobileMoney', reference?: string) => void
+  isProcessing?: boolean
 }
 
 export function PaymentMethodSelector({ total, onPaymentSelected, isProcessing = false }: PaymentMethodSelectorProps) {

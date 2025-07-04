@@ -9,7 +9,7 @@ export const config = {
   // API configuration
   api: {
     baseUrl: import.meta.env.VITE_API_BASE_URL || '/api',
-    timeout: 10000 // 10 seconds;
+    timeout: 10000 // 10 seconds
   },
 
   // App configuration
@@ -17,20 +17,20 @@ export const config = {
     name: 'DukaFiti',
     version: '1.0.0',
     isDevelopment: import.meta.env.DEV,
-    isProduction: import.meta.env.PROD;
+    isProduction: import.meta.env.PROD
   },
 
   // Authentication configuration
   auth: {
     sessionTimeout: 30 * 24 * 60 * 60 * 1000, // 30 days
     fallbackEnabled: import.meta.env.DEV, // Only enable fallback in development
-    loadingTimeout: 3000 // 3 seconds before fallback;
+    loadingTimeout: 3000 // 3 seconds before fallback
   }
 };
 
 // Validate required configuration
 export function validateConfig(): { isValid: boolean; errors: string[] } {
-  const errors: string[] = [];
+  const errors: string[] = []
 
   if (!config.supabase.url || !config.supabase.url.startsWith('https://')) {
     errors.push('Invalid Supabase URL');

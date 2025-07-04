@@ -37,7 +37,7 @@ type SidebarContextProps = {
   openMobile: boolean
   setOpenMobile: (open: boolean) => void
   isMobile: boolean
-  toggleSidebar: () => void;
+  toggleSidebar: () => void
 }
 
 const SidebarContext = React.createContext<SidebarContextProps | null>(null)
@@ -56,7 +56,7 @@ const SidebarProvider = React.forwardRef<
   React.ComponentProps<"div"> & {
     defaultOpen?: boolean
     open?: boolean
-    onOpenChange?: (open: boolean) => void;
+    onOpenChange?: (open: boolean) => void
   }
 >(
   (
@@ -205,7 +205,7 @@ const Sidebar = React.forwardRef<
             className="w-[--sidebar-width] bg-sidebar p-0 text-sidebar-foreground [&>button]:hidden"
             style={
               {
-                "--sidebar-width": SIDEBAR_WIDTH_MOBILE;
+                "--sidebar-width": SIDEBAR_WIDTH_MOBILE
               } as React.CSSProperties;
             }
             side={side}
@@ -581,7 +581,7 @@ const SidebarMenuButton = React.forwardRef<
 
     if (typeof tooltip === "string") {
       tooltip = {
-        children: tooltip;
+        children: tooltip
       }
     }
 
@@ -604,7 +604,7 @@ const SidebarMenuAction = React.forwardRef<
   HTMLButtonElement,
   React.ComponentProps<"button"> & {
     asChild?: boolean
-    showOnHover?: boolean;
+    showOnHover?: boolean
   }
 >(({ className, asChild = false, showOnHover = false, ...props }, ref) => {
   const Comp = asChild ? Slot : "button"
@@ -655,7 +655,7 @@ SidebarMenuBadge.displayName = "SidebarMenuBadge"
 const SidebarMenuSkeleton = React.forwardRef<
   HTMLDivElement,
   React.ComponentProps<"div"> & {
-    showIcon?: boolean;
+    showIcon?: boolean
   }
 >(({ className, showIcon = false, ...props }, ref) => {
   // Random width between 50 to 90%.
@@ -681,7 +681,7 @@ const SidebarMenuSkeleton = React.forwardRef<
         data-sidebar="menu-skeleton-text"
         style={
           {
-            "--skeleton-width": width;
+            "--skeleton-width": width
           } as React.CSSProperties;
         }
       />
@@ -718,7 +718,7 @@ const SidebarMenuSubButton = React.forwardRef<
   React.ComponentProps<"a"> & {
     asChild?: boolean
     size?: "sm" | "md"
-    isActive?: boolean;
+    isActive?: boolean
   }
 >(({ asChild = false, size = "md", isActive, className, ...props }, ref) => {
   const Comp = asChild ? Slot : "a"

@@ -26,10 +26,10 @@ if ('serviceWorker' in navigator) {
       );
 
       // Register fresh service worker
-      const registration = await navigator.serviceWorker.register('/service-worker.js', { updateViaCache: 'none' });
+      const registration = await navigator.serviceWorker.register('/service-worker.js', { updateViaCache: 'none' })
       // Force immediate activation
       if (registration.waiting) {
-        registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+        registration.waiting.postMessage({ type: 'SKIP_WAITING' })
       }
 
       // Check for updates
@@ -54,7 +54,7 @@ if ('serviceWorker' in navigator) {
 }
 
 // Handle PWA install prompt
-let deferredPrompt: any;
+let deferredPrompt: any
 window.addEventListener('beforeinstallprompt', (e) => {
   // Prevent Chrome 67 and earlier from automatically showing the prompt
   e.preventDefault();

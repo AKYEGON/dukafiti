@@ -37,99 +37,99 @@ import { eq, desc, like, sql, or, ilike, and, gte, isNotNull } from 'drizzle-orm
 
 export interface IStorage {
   // Users
-  getUser(id: number): Promise<User | undefined>;
-  getUserByUsername(username: string): Promise<User | undefined>;
-  getUserByPhone(phone: string): Promise<User | undefined>;
-  getUserByEmail(email: string): Promise<User | undefined>;
-  createUser(user: InsertUser): Promise<User>;
+  getUser(id: number): Promise<User | undefined>
+  getUserByUsername(username: string): Promise<User | undefined>
+  getUserByPhone(phone: string): Promise<User | undefined>
+  getUserByEmail(email: string): Promise<User | undefined>
+  createUser(user: InsertUser): Promise<User>
 
   // Products
-  getProducts(): Promise<Product[]>;
-  getProduct(id: number): Promise<Product | undefined>;
-  createProduct(product: InsertProduct): Promise<Product>;
-  updateProduct(id: number, product: Partial<InsertProduct>): Promise<Product | undefined>;
-  updateProductStock(id: number, stockChange: number): Promise<Product | undefined>;
-  deleteProduct(id: number): Promise<boolean>;
-  searchProducts(query: string): Promise<Product[]>;
-  getFrequentProducts(): Promise<Array<{ id: number; name: string; price: string }>>;
-  incrementProductSalesCount(id: number, quantity: number): Promise<Product | undefined>;
+  getProducts(): Promise<Product[]>
+  getProduct(id: number): Promise<Product | undefined>
+  createProduct(product: InsertProduct): Promise<Product>
+  updateProduct(id: number, product: Partial<InsertProduct>): Promise<Product | undefined>
+  updateProductStock(id: number, stockChange: number): Promise<Product | undefined>
+  deleteProduct(id: number): Promise<boolean>
+  searchProducts(query: string): Promise<Product[]>
+  getFrequentProducts(): Promise<Array<{ id: number; name: string; price: string }>>
+  incrementProductSalesCount(id: number, quantity: number): Promise<Product | undefined>
 
   // Customers
-  getCustomers(): Promise<Customer[]>;
-  getCustomer(id: number): Promise<Customer | undefined>;
-  getCustomerByNameOrPhone(name: string, phone?: string): Promise<Customer | undefined>;
-  createCustomer(customer: InsertCustomer): Promise<Customer>;
-  updateCustomer(id: number, customer: Partial<InsertCustomer>): Promise<Customer | undefined>;
-  updateCustomerBalance(id: number, amount: number): Promise<Customer | undefined>;
-  deleteCustomer(id: number): Promise<boolean>;
+  getCustomers(): Promise<Customer[]>
+  getCustomer(id: number): Promise<Customer | undefined>
+  getCustomerByNameOrPhone(name: string, phone?: string): Promise<Customer | undefined>
+  createCustomer(customer: InsertCustomer): Promise<Customer>
+  updateCustomer(id: number, customer: Partial<InsertCustomer>): Promise<Customer | undefined>
+  updateCustomerBalance(id: number, amount: number): Promise<Customer | undefined>
+  deleteCustomer(id: number): Promise<boolean>
 
   // Orders
-  getOrders(): Promise<Order[]>;
-  getOrder(id: number): Promise<Order | undefined>;
-  getOrderByReference(reference: string): Promise<Order | undefined>;
-  createOrder(order: InsertOrder): Promise<Order>;
-  updateOrder(id: number, order: Partial<InsertOrder>): Promise<Order | undefined>;
-  deleteOrder(id: number): Promise<boolean>;
-  getRecentOrders(limit?: number): Promise<Order[]>;
+  getOrders(): Promise<Order[]>
+  getOrder(id: number): Promise<Order | undefined>
+  getOrderByReference(reference: string): Promise<Order | undefined>
+  createOrder(order: InsertOrder): Promise<Order>
+  updateOrder(id: number, order: Partial<InsertOrder>): Promise<Order | undefined>
+  deleteOrder(id: number): Promise<boolean>
+  getRecentOrders(limit?: number): Promise<Order[]>
 
   // Order Items
-  getOrderItems(orderId: number): Promise<OrderItem[]>;
-  getAllOrderItems(): Promise<OrderItem[]>;
-  createOrderItem(orderItem: InsertOrderItem): Promise<OrderItem>;
+  getOrderItems(orderId: number): Promise<OrderItem[]>
+  getAllOrderItems(): Promise<OrderItem[]>
+  createOrderItem(orderItem: InsertOrderItem): Promise<OrderItem>
 
   // Payments
-  getPayments(): Promise<Payment[]>;
-  getPayment(id: number): Promise<Payment | undefined>;
-  getPaymentsByCustomer(customerId: number): Promise<Payment[]>;
-  createPayment(payment: InsertPayment): Promise<Payment>;
+  getPayments(): Promise<Payment[]>
+  getPayment(id: number): Promise<Payment | undefined>
+  getPaymentsByCustomer(customerId: number): Promise<Payment[]>
+  createPayment(payment: InsertPayment): Promise<Payment>
 
   // Dashboard
-  getDashboardMetrics(): Promise<DashboardMetrics>;
+  getDashboardMetrics(): Promise<DashboardMetrics>
   getDetailedDashboardMetrics(): Promise<{
     revenue: {
-      today: number;
-      yesterday: number;
-      weekToDate: number;
-      priorWeekToDate: number;
+      today: number
+      yesterday: number
+      weekToDate: number
+      priorWeekToDate: number
     };
     orders: {
-      today: number;
-      yesterday: number;
+      today: number
+      yesterday: number
     };
     inventory: {
-      totalItems: number;
-      priorSnapshot: number;
+      totalItems: number
+      priorSnapshot: number
     };
     customers: {
-      active: number;
-      priorActive: number;
+      active: number
+      priorActive: number
     };
   }>;
 
   // Business Profile
-  saveBusinessProfile(userId: number, profile: Omit<InsertBusinessProfile, 'userId'>): Promise<void>;
-  getBusinessProfile(userId: number): Promise<BusinessProfile | undefined>;
+  saveBusinessProfile(userId: number, profile: Omit<InsertBusinessProfile, 'userId'>): Promise<void>
+  getBusinessProfile(userId: number): Promise<BusinessProfile | undefined>
 
   // Store Profile
-  getStoreProfile(userId: number): Promise<StoreProfile | undefined>;
-  saveStoreProfile(userId: number, profile: Omit<InsertStoreProfile, 'userId'>): Promise<StoreProfile>;
-  updateStoreProfile(userId: number, profile: Partial<Omit<InsertStoreProfile, 'userId'>>): Promise<StoreProfile | undefined>;
+  getStoreProfile(userId: number): Promise<StoreProfile | undefined>
+  saveStoreProfile(userId: number, profile: Omit<InsertStoreProfile, 'userId'>): Promise<StoreProfile>
+  updateStoreProfile(userId: number, profile: Partial<Omit<InsertStoreProfile, 'userId'>>): Promise<StoreProfile | undefined>
 
   // User Settings
-  getUserSettings(userId: number): Promise<UserSettings | undefined>;
-  saveUserSettings(userId: number, settings: Omit<InsertUserSettings, 'userId'>): Promise<UserSettings>;
-  updateUserSettings(userId: number, settings: Partial<Omit<InsertUserSettings, 'userId'>>): Promise<UserSettings | undefined>;
+  getUserSettings(userId: number): Promise<UserSettings | undefined>
+  saveUserSettings(userId: number, settings: Omit<InsertUserSettings, 'userId'>): Promise<UserSettings>
+  updateUserSettings(userId: number, settings: Partial<Omit<InsertUserSettings, 'userId'>>): Promise<UserSettings | undefined>
 
   // Notifications
-  getNotifications(userId: number, limit?: number): Promise<Notification[]>;
-  getUnreadNotificationCount(userId: number): Promise<number>;
-  createNotification(notification: InsertNotification): Promise<Notification>;
-  markNotificationAsRead(id: number): Promise<boolean>;
-  markAllNotificationsAsRead(userId: number): Promise<boolean>;
-  deleteNotification(id: number): Promise<boolean>;
+  getNotifications(userId: number, limit?: number): Promise<Notification[]>
+  getUnreadNotificationCount(userId: number): Promise<number>
+  createNotification(notification: InsertNotification): Promise<Notification>
+  markNotificationAsRead(id: number): Promise<boolean>
+  markAllNotificationsAsRead(userId: number): Promise<boolean>
+  deleteNotification(id: number): Promise<boolean>
 
   // Search
-  globalSearch(query: string): Promise<SearchResult[]>;
+  globalSearch(query: string): Promise<SearchResult[]>
 }
 
 export class DatabaseStorage implements IStorage {
@@ -220,7 +220,7 @@ export class DatabaseStorage implements IStorage {
     const result = await db.select({
       id: products.id,
       name: products.name,
-      price: products.price;
+      price: products.price
     })
     .from(products)
     .where(sql`${products.salesCount} > 0`)
@@ -401,7 +401,7 @@ export class DatabaseStorage implements IStorage {
       revenueGrowth: '0.0%', // Will be calculated accurately by detailed metrics
       ordersGrowth: '0.0%', // Will be calculated accurately by detailed metrics
       lowStockCount: lowStockResult?.lowStockCount || 0,
-      activeCustomersCount: customersResult?.totalCustomers || 0;
+      activeCustomersCount: customersResult?.totalCustomers || 0
     };
   }
 
@@ -555,7 +555,7 @@ export class DatabaseStorage implements IStorage {
       userId;
     }).onConflictDoUpdate({
       target: businessProfiles.userId,
-      set: profile;
+      set: profile
     });
   }
 
@@ -659,14 +659,14 @@ export class DatabaseStorage implements IStorage {
 
   // Search methods
   async globalSearch(query: string): Promise<SearchResult[]> {
-    const results: SearchResult[] = [];
+    const results: SearchResult[] = []
 
     // Search products
     const productResults = await db.select({
       id: products.id,
       name: products.name,
       sku: products.sku,
-      price: products.price;
+      price: products.price
     }).from(products).where(
       or(
         ilike(products.name, `%${query}%`),
@@ -687,7 +687,7 @@ export class DatabaseStorage implements IStorage {
       id: customers.id,
       name: customers.name,
       phone: customers.phone,
-      email: customers.email;
+      email: customers.email
     }).from(customers).where(
       or(
         ilike(customers.name, `%${query}%`),
@@ -709,7 +709,7 @@ export class DatabaseStorage implements IStorage {
       id: orders.id,
       customerName: orders.customerName,
       total: orders.total,
-      status: orders.status;
+      status: orders.status
     }).from(orders).where(
       or(
         ilike(orders.customerName, `%${query}%`),

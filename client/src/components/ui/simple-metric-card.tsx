@@ -2,12 +2,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { LucideIcon, Loader2 } from "lucide-react";
 
 interface SimpleMetricCardProps {
-  title: string;
-  value: string;
-  icon: LucideIcon;
-  isLoading?: boolean;
-  isRefreshing?: boolean;
-  error?: boolean;
+  title: string
+  value: string
+  icon: LucideIcon
+  isLoading?: boolean
+  isRefreshing?: boolean
+  error?: boolean
 }
 
 export function SimpleMetricCard({

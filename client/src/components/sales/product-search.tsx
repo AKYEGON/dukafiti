@@ -8,7 +8,7 @@ import { type Product } from "@shared/schema";
 import { formatCurrency } from "@/lib/utils";
 
 interface ProductSearchProps {
-  onProductSelect: (product: Product) => void;
+  onProductSelect: (product: Product) => void
 }
 
 export function ProductSearch({ onProductSelect }: ProductSearchProps) {

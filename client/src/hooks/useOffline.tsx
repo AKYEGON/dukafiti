@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
 
 export interface QueuedAction {
-  id: string;
-  url: string;
-  method: string;
+  id: string
+  url: string
+  method: string
   headers: Record<string, string>;
-  body: string;
-  timestamp: string;
-  type?: string;
+  body: string
+  timestamp: string
+  type?: string
 }
 
 export const useOffline = () => {
@@ -22,7 +22,7 @@ export const useOffline = () => {
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.ready.then(registration => {
           // Use postMessage to trigger sync instead of sync API
-          registration.active?.postMessage({ type: 'TRIGGER_SYNC' });
+          registration.active?.postMessage({ type: 'TRIGGER_SYNC' })
         });
       }
     };
@@ -67,7 +67,7 @@ export const useOffline = () => {
     // Initial sync attempt if online
     if (isOnline && 'serviceWorker' in navigator) {
       navigator.serviceWorker.ready.then(registration => {
-        registration.active?.postMessage({ type: 'TRIGGER_SYNC' });
+        registration.active?.postMessage({ type: 'TRIGGER_SYNC' })
       });
     }
 
@@ -87,7 +87,7 @@ export const useOffline = () => {
 
     try {
       const registration = await navigator.serviceWorker.ready;
-      registration.active?.postMessage({ type: 'TRIGGER_SYNC' });
+      registration.active?.postMessage({ type: 'TRIGGER_SYNC' })
       return true;
     } catch (error) {
       console.error('Failed to trigger sync:', error);

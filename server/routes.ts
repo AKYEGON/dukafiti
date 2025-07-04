@@ -57,13 +57,13 @@ function requireAuth(req: any, res: any, next: any) {
 
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     // For development purposes, let's create a mock user
-    req.user = { email: 'test@example.com' };
+    req.user = { email: 'test@example.com' }
     return next();
   }
 
   // If there's a token, verify it (for future implementation)
   const token = authHeader.substring(7);
-  req.user = { email: 'test@example.com' };
+  req.user = { email: 'test@example.com' }
   next();
 }
 
@@ -71,7 +71,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
 
   // Set up WebSocket server
-  const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
+  const wss = new WebSocketServer({ server: httpServer, path: '/ws' })
 
   wss.on('connection', (ws) => {
     wsClients.add(ws);
@@ -99,10 +99,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         })
         .returning();
 
-      res.json({ user: { id: user.id, email: user.email, username: user.username } });
+      res.json({ user: { id: user.id, email: user.email, username: user.username } })
     } catch (error) {
       console.error('Signup error:', error);
-      res.status(500).json({ error: 'Failed to create user' });
+      res.status(500).json({ error: 'Failed to create user' })
     }
   });
 
@@ -118,13 +118,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .limit(1);
 
       if (user.length === 0) {
-        return res.status(400).json({ error: 'Invalid credentials' });
+        return res.status(400).json({ error: 'Invalid credentials' })
       }
 
       // Check password
       const isValid = await bcrypt.compare(password, user[0].passwordHash);
       if (!isValid) {
-        return res.status(400).json({ error: 'Invalid credentials' });
+        return res.status(400).json({ error: 'Invalid credentials' })
       }
 
       res.json({
@@ -133,16 +133,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       console.error('Signin error:', error);
-      res.status(500).json({ error: 'Internal server error' });
+      res.status(500).json({ error: 'Internal server error' })
     }
   });
 
   app.post('/api/auth/signout', async (req, res) => {
     try {
-      res.json({ message: 'Signed out successfully' });
+      res.json({ message: 'Signed out successfully' })
     } catch (error) {
       console.error('Signout error:', error);
-      res.status(500).json({ error: 'Internal server error' });
+      res.status(500).json({ error: 'Internal server error' })
     }
   });
 
@@ -157,7 +157,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(productList);
     } catch (error) {
       console.error('Error fetching products:', error);
-      res.status(500).json({ error: 'Failed to fetch products' });
+      res.status(500).json({ error: 'Failed to fetch products' })
     }
   });
 
@@ -178,7 +178,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(product);
     } catch (error) {
       console.error('Error creating product:', error);
-      res.status(500).json({ error: 'Failed to create product' });
+      res.status(500).json({ error: 'Failed to create product' })
     }
   });
 
@@ -199,13 +199,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .returning();
 
       if (!product) {
-        return res.status(404).json({ error: 'Product not found' });
+        return res.status(404).json({ error: 'Product not found' })
       }
 
       res.json(product);
     } catch (error) {
       console.error('Error updating product:', error);
-      res.status(500).json({ error: 'Failed to update product' });
+      res.status(500).json({ error: 'Failed to update product' })
     }
   });
 
@@ -217,10 +217,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .delete(products)
         .where(eq(products.id, productId));
 
-      res.json({ message: 'Product deleted successfully' });
+      res.json({ message: 'Product deleted successfully' })
     } catch (error) {
       console.error('Error deleting product:', error);
-      res.status(500).json({ error: 'Failed to delete product' });
+      res.status(500).json({ error: 'Failed to delete product' })
     }
   });
 
@@ -235,7 +235,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(customerList);
     } catch (error) {
       console.error('Error fetching customers:', error);
-      res.status(500).json({ error: 'Failed to fetch customers' });
+      res.status(500).json({ error: 'Failed to fetch customers' })
     }
   });
 
@@ -251,7 +251,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(customer);
     } catch (error) {
       console.error('Error creating customer:', error);
-      res.status(500).json({ error: 'Failed to create customer' });
+      res.status(500).json({ error: 'Failed to create customer' })
     }
   });
 
@@ -267,13 +267,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .returning();
 
       if (!customer) {
-        return res.status(404).json({ error: 'Customer not found' });
+        return res.status(404).json({ error: 'Customer not found' })
       }
 
       res.json(customer);
     } catch (error) {
       console.error('Error updating customer:', error);
-      res.status(500).json({ error: 'Failed to update customer' });
+      res.status(500).json({ error: 'Failed to update customer' })
     }
   });
 
@@ -283,16 +283,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { items, paymentType, customer, customerName, customerPhone } = req.body;
 
       if (!items || !Array.isArray(items) || items.length === 0) {
-        return res.status(400).json({ message: 'Items are required' });
+        return res.status(400).json({ message: 'Items are required' })
       }
 
       if (!paymentType || !['cash', 'credit', 'mpesa', 'mobileMoney'].includes(paymentType)) {
-        return res.status(400).json({ message: 'Valid payment type is required' });
+        return res.status(400).json({ message: 'Valid payment type is required' })
       }
 
       // For credit sales, require customer information
       if (paymentType === 'credit' && (!customer && !customerName)) {
-        return res.status(400).json({ message: 'Customer required for credit sales' });
+        return res.status(400).json({ message: 'Customer required for credit sales' })
       }
 
       // Calculate total
@@ -308,7 +308,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           .limit(1);
 
         if (product.length === 0) {
-          return res.status(400).json({ message: `Product not found: ${item.productId || item.id}` });
+          return res.status(400).json({ message: `Product not found: ${item.productId || item.id}` })
         }
 
         const productData = product[0];
@@ -327,7 +327,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           productId: productData.id,
           productName: productData.name,
           quantity,
-          price: productData.price;
+          price: productData.price
         });
       }
 
@@ -352,7 +352,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             productId: item.productId,
             productName: item.productName,
             quantity: item.quantity,
-            price: item.price;
+            price: item.price
           });
 
         // Update product stock and sales count
@@ -369,7 +369,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
               .update(products)
               .set({
                 stock: product[0].stock - item.quantity,
-                salesCount: product[0].salesCount + item.quantity;
+                salesCount: product[0].salesCount + item.quantity
               })
               .where(eq(products.id, item.productId));
           } else {
@@ -377,7 +377,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             await db
               .update(products)
               .set({
-                salesCount: product[0].salesCount + item.quantity;
+                salesCount: product[0].salesCount + item.quantity
               })
               .where(eq(products.id, item.productId));
           }
@@ -410,7 +410,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           orderId: order.id,
           total,
           customerName: finalCustomerName,
-          paymentMethod: paymentType;
+          paymentMethod: paymentType
         }
       });
 
@@ -421,7 +421,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       console.error('Error processing sale:', error);
-      res.status(500).json({ error: 'Failed to process sale', message: error instanceof Error ? error.message : 'Unknown error' });
+      res.status(500).json({ error: 'Failed to process sale', message: error instanceof Error ? error.message : 'Unknown error' })
     }
   });
 
@@ -435,7 +435,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           total: orders.total,
           paymentMethod: orders.paymentMethod,
           status: orders.status,
-          createdAt: orders.createdAt;
+          createdAt: orders.createdAt
         })
         .from(orders)
         .orderBy(desc(orders.createdAt));
@@ -443,7 +443,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(orderList);
     } catch (error) {
       console.error('Error fetching orders:', error);
-      res.status(500).json({ error: 'Failed to fetch orders' });
+      res.status(500).json({ error: 'Failed to fetch orders' })
     }
   });
 
@@ -456,7 +456,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           total: orders.total,
           paymentMethod: orders.paymentMethod,
           status: orders.status,
-          createdAt: orders.createdAt;
+          createdAt: orders.createdAt
         })
         .from(orders)
         .orderBy(desc(orders.createdAt))
@@ -465,7 +465,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(recentOrders);
     } catch (error) {
       console.error('Error fetching recent orders:', error);
-      res.status(500).json({ error: 'Failed to fetch recent orders' });
+      res.status(500).json({ error: 'Failed to fetch recent orders' })
     }
   });
 
@@ -493,7 +493,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             productId: item.id,
             productName: item.name,
             quantity: item.quantity,
-            price: item.price;
+            price: item.price
           });
 
         // Update product stock and sales count if stock is not null
@@ -508,7 +508,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             .update(products)
             .set({
               stock: product[0].stock - item.quantity,
-              salesCount: product[0].salesCount + item.quantity;
+              salesCount: product[0].salesCount + item.quantity
             })
             .where(eq(products.id, item.id));
         } else {
@@ -516,7 +516,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           await db
             .update(products)
             .set({
-              salesCount: product[0].salesCount + item.quantity;
+              salesCount: product[0].salesCount + item.quantity
             })
             .where(eq(products.id, item.id));
         }
@@ -531,7 +531,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(order);
     } catch (error) {
       console.error('Error creating order:', error);
-      res.status(500).json({ error: 'Failed to create order' });
+      res.status(500).json({ error: 'Failed to create order' })
     }
   });
 
@@ -589,11 +589,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         revenueGrowth: '0',
         ordersGrowth: '0',
         lowStockCount,
-        activeCustomersCount: totalCustomers;
+        activeCustomersCount: totalCustomers
       });
     } catch (error) {
       console.error('Error fetching dashboard metrics:', error);
-      res.status(500).json({ error: 'Failed to fetch dashboard metrics' });
+      res.status(500).json({ error: 'Failed to fetch dashboard metrics' })
     }
   });
 
@@ -602,7 +602,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const user = await getCurrentUser(req);
       if (!user) {
-        return res.status(401).json({ error: 'User not found' });
+        return res.status(401).json({ error: 'User not found' })
       }
 
       const notificationList = await db
@@ -614,7 +614,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(notificationList);
     } catch (error) {
       console.error('Error fetching notifications:', error);
-      res.status(500).json({ error: 'Failed to fetch notifications' });
+      res.status(500).json({ error: 'Failed to fetch notifications' })
     }
   });
 
@@ -622,7 +622,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const user = await getCurrentUser(req);
       if (!user) {
-        return res.status(401).json({ error: 'User not found' });
+        return res.status(401).json({ error: 'User not found' })
       }
 
       const result = await db
@@ -635,10 +635,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
           )
         );
 
-      res.json({ count: result[0]?.count || 0 });
+      res.json({ count: result[0]?.count || 0 })
     } catch (error) {
       console.error('Error fetching unread count:', error);
-      res.status(500).json({ error: 'Failed to fetch unread count' });
+      res.status(500).json({ error: 'Failed to fetch unread count' })
     }
   });
 
@@ -647,7 +647,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const user = await getCurrentUser(req);
       if (!user) {
-        return res.status(404).json({ error: 'User not found' });
+        return res.status(404).json({ error: 'User not found' })
       }
 
       const profile = await db
@@ -667,13 +667,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         address: profile[0].location || '',
         storeType: profile[0].storeType,
         location: profile[0].location,
-        description: profile[0].description;
+        description: profile[0].description
       };
 
       res.json(transformedProfile);
     } catch (error) {
       console.error('Store profile fetch error:', error);
-      res.status(500).json({ error: 'Failed to fetch store profile' });
+      res.status(500).json({ error: 'Failed to fetch store profile' })
     }
   });
 
@@ -681,7 +681,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const user = await getCurrentUser(req);
       if (!user) {
-        return res.status(404).json({ error: 'User not found' });
+        return res.status(404).json({ error: 'User not found' })
       }
 
       const existingProfile = await db
@@ -719,7 +719,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(profile);
     } catch (error) {
       console.error('Store profile save error:', error);
-      res.status(500).json({ error: 'Failed to save store profile' });
+      res.status(500).json({ error: 'Failed to save store profile' })
     }
   });
 
@@ -728,7 +728,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const user = await getCurrentUser(req);
       if (!user) {
-        return res.status(401).json({ error: 'User not found' });
+        return res.status(401).json({ error: 'User not found' })
       }
 
       const settings = await db
@@ -740,7 +740,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(settings[0] || {});
     } catch (error) {
       console.error('Error fetching settings:', error);
-      res.status(500).json({ error: 'Failed to fetch settings' });
+      res.status(500).json({ error: 'Failed to fetch settings' })
     }
   });
 
@@ -749,13 +749,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const user = await getCurrentUser(req);
       if (!user) {
-        return res.status(404).json({ error: 'User not found' });
+        return res.status(404).json({ error: 'User not found' })
       }
 
       const { theme } = req.body;
 
       if (!['light', 'dark'].includes(theme)) {
-        return res.status(400).json({ error: 'Theme must be either 'light' or 'dark'' });
+        return res.status(400).json({ error: 'Theme must be either 'light' or 'dark'' })
       }
 
       const existingSettings = await db
@@ -778,14 +778,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
             currency: 'KES',
             language: 'en',
             notifications: true,
-            mpesaEnabled: false;
+            mpesaEnabled: false
           });
       }
 
       res.json({ theme });
     } catch (error) {
       console.error('Theme setting save error:', error);
-      res.status(500).json({ error: 'Failed to save theme setting' });
+      res.status(500).json({ error: 'Failed to save theme setting' })
     }
   });
 
@@ -820,7 +820,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(productResults);
     } catch (error) {
       console.error('Error searching:', error);
-      res.status(500).json({ error: 'Failed to search' });
+      res.status(500).json({ error: 'Failed to search' })
     }
   });
 
@@ -832,7 +832,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           id: products.id,
           name: products.name,
           price: products.price,
-          salesCount: products.salesCount;
+          salesCount: products.salesCount
         })
         .from(products)
         .orderBy(desc(products.salesCount))
@@ -841,7 +841,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(frequentProducts);
     } catch (error) {
       console.error('Error fetching frequent products:', error);
-      res.status(500).json({ error: 'Failed to fetch frequent products' });
+      res.status(500).json({ error: 'Failed to fetch frequent products' })
     }
   });
 
@@ -871,7 +871,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(productResults);
     } catch (error) {
       console.error('Error searching products:', error);
-      res.status(500).json({ error: 'Failed to search products' });
+      res.status(500).json({ error: 'Failed to search products' })
     }
   });
 
@@ -938,7 +938,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       console.error('Summary reports error:', error);
-      res.status(500).json({ message: 'Failed to fetch summary data' });
+      res.status(500).json({ message: 'Failed to fetch summary data' })
     }
   });
 
@@ -946,14 +946,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const period = req.query.period || 'daily';
 
-      let trendData: Array<{ label: string; value: number }> = [];
+      let trendData: Array<{ label: string; value: number }> = []
 
       switch (period) {
         case 'daily':
           // 24 hours
           trendData = Array.from({ length: 24 }, (_, i) => ({
             label: `${i.toString().padStart(2, '0')}:00`,
-            value: 0;
+            value: 0
           }));
 
           const today = new Date();
@@ -973,7 +973,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         case 'weekly':
           // 7 days
           const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
-          trendData = dayNames.map(day => ({ label: day, value: 0 }));
+          trendData = dayNames.map(day => ({ label: day, value: 0 }))
 
           const weekStart = new Date();
           weekStart.setDate(weekStart.getDate() - 7);
@@ -993,7 +993,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // 30 days
           trendData = Array.from({ length: 30 }, (_, i) => ({
             label: (i + 1).toString(),
-            value: 0;
+            value: 0
           }));
 
           const monthStart = new Date();
@@ -1016,7 +1016,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(trendData);
     } catch (error) {
       console.error('Trend reports error:', error);
-      res.status(500).json({ message: 'Failed to fetch trend data' });
+      res.status(500).json({ message: 'Failed to fetch trend data' })
     }
   });
 
@@ -1039,7 +1039,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       })));
     } catch (error) {
       console.error('Top items reports error:', error);
-      res.status(500).json({ message: 'Failed to fetch top items' });
+      res.status(500).json({ message: 'Failed to fetch top items' })
     }
   });
 
@@ -1048,7 +1048,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const topCustomers = await db
         .select({
           customerName: customers.name,
-          totalOwed: customers.balance;
+          totalOwed: customers.balance
         })
         .from(customers)
         .where(sql`CAST(${customers.balance} AS DECIMAL) > 0`)
@@ -1058,11 +1058,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(topCustomers.map(customer => ({
         customerName: customer.customerName,
         totalOwed: parseFloat(customer.totalOwed).toFixed(2),
-        outstandingOrders: 1;
+        outstandingOrders: 1
       })));
     } catch (error) {
       console.error('Top customers reports error:', error);
-      res.status(500).json({ message: 'Failed to fetch top customers' });
+      res.status(500).json({ message: 'Failed to fetch top customers' })
     }
   });
 
@@ -1085,7 +1085,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       })));
     } catch (error) {
       console.error('Top products reports error:', error);
-      res.status(500).json({ message: 'Failed to fetch top products' });
+      res.status(500).json({ message: 'Failed to fetch top products' })
     }
   });
 
@@ -1095,7 +1095,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .select({
           name: customers.name,
           phone: customers.phone,
-          balance: customers.balance;
+          balance: customers.balance
         })
         .from(customers)
         .where(sql`CAST(${customers.balance} AS DECIMAL) > 0`)
@@ -1104,11 +1104,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(customerCredits.map(customer => ({
         name: customer.name,
         phone: customer.phone || 'N/A',
-        balance: customer.balance;
+        balance: customer.balance
       })));
     } catch (error) {
       console.error('Customer credits reports error:', error);
-      res.status(500).json({ message: 'Failed to fetch customer credits' });
+      res.status(500).json({ message: 'Failed to fetch customer credits' })
     }
   });
 
@@ -1143,7 +1143,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           paymentMethod: orders.paymentMethod,
           status: orders.status,
           reference: orders.reference,
-          createdAt: orders.createdAt;
+          createdAt: orders.createdAt
         })
         .from(orders)
         .where(gte(orders.createdAt, startDate))
@@ -1157,7 +1157,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const items = await db
             .select({
               productName: orderItems.productName,
-              quantity: orderItems.quantity;
+              quantity: orderItems.quantity
             })
             .from(orderItems)
             .where(eq(orderItems.orderId, order.id));
@@ -1172,7 +1172,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             reference: order.reference,
             products: items.map(item => ({
               name: item.productName,
-              quantity: item.quantity;
+              quantity: item.quantity
             }))
           };
         })
@@ -1191,7 +1191,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
     } catch (error) {
       console.error('Orders reports error:', error);
-      res.status(500).json({ message: 'Failed to fetch orders' });
+      res.status(500).json({ message: 'Failed to fetch orders' })
     }
   });
 

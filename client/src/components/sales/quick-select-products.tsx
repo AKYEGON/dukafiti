@@ -5,13 +5,13 @@ import { Zap, Plus } from "lucide-react";
 import { formatPrice } from "@/lib/utils";
 
 interface FrequentProduct {
-  id: number;
-  name: string;
-  price: string;
+  id: number
+  name: string
+  price: string
 }
 
 interface QuickSelectProductsProps {
-  onProductSelect: (productId: number) => void;
+  onProductSelect: (productId: number) => void
 }
 
 export function QuickSelectProducts({ onProductSelect }: QuickSelectProductsProps) {

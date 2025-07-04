@@ -7,17 +7,17 @@ import { type Product } from "@shared/schema";
 import { formatCurrency } from "@/lib/utils";
 
 export interface SaleLineItem {
-  id: string;
-  product: Product;
-  quantity: number;
-  unitPrice: string;
-  total: string;
+  id: string
+  product: Product
+  quantity: number
+  unitPrice: string
+  total: string
 }
 
 interface SaleLineItemProps {
-  item: SaleLineItem;
-  onQuantityChange: (id: string, quantity: number) => void;
-  onRemove: (id: string) => void;
+  item: SaleLineItem
+  onQuantityChange: (id: string, quantity: number) => void
+  onRemove: (id: string) => void
 }
 
 export function SaleLineItemComponent({ item, onQuantityChange, onRemove }: SaleLineItemProps) {

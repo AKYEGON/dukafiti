@@ -6,7 +6,7 @@ const sqlite = new Database('./database.sqlite');
 const db = drizzle(sqlite);
 
 try {
-  migrate(db, { migrationsFolder: './drizzle' });
+  migrate(db, { migrationsFolder: './drizzle' })
   } catch (error) {
   console.error('Migration failed:', error);
   process.exit(1);

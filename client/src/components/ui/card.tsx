@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils"
 const Card = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement> & {
-    interactive?: boolean;
+    interactive?: boolean
   }
 >(({ className, interactive = false, ...props }, ref) => (
   <div

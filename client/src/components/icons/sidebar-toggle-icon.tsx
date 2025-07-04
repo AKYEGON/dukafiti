@@ -1,6 +1,6 @@
 interface SidebarToggleIconProps {
-  className?: string;
-  size?: number;
+  className?: string
+  size?: number
 }
 
 export function SidebarToggleIcon({ className = "", size = 20 }: SidebarToggleIconProps) {

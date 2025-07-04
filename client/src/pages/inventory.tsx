@@ -46,13 +46,13 @@ export default function Inventory() {
       await apiRequest("DELETE", `/api/products/${id}`);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/products"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/dashboard/metrics"] });
-      toast({ title: "Product deleted successfully" });
+      queryClient.invalidateQueries({ queryKey: ["/api/products"] })
+      queryClient.invalidateQueries({ queryKey: ["/api/dashboard/metrics"] })
+      toast({ title: "Product deleted successfully" })
       setDeleteProduct(undefined);
     },
     onError: () => {
-      toast({ title: "Failed to delete product", variant: "destructive" });
+      toast({ title: "Failed to delete product", variant: "destructive" })
     }
   });
 

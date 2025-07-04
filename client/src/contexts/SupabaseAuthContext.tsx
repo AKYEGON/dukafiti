@@ -4,13 +4,13 @@ import { supabase } from '../supabaseClient';
 import { User, Session } from '@supabase/supabase-js';
 
 interface AuthContextType {
-  user: User | null;
-  session: Session | null;
-  isAuthenticated: boolean;
-  isLoading: boolean;
-  login: (email: string, password: string) => Promise<{ error?: any }>;
-  signup: (email: string, password: string) => Promise<{ error?: any }>;
-  logout: () => Promise<void>;
+  user: User | null
+  session: Session | null
+  isAuthenticated: boolean
+  isLoading: boolean
+  login: (email: string, password: string) => Promise<{ error?: any }>
+  signup: (email: string, password: string) => Promise<{ error?: any }>
+  logout: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -24,7 +24,7 @@ export const useAuth = () => {
 };
 
 interface AuthProviderProps {
-  children: ReactNode;
+  children: ReactNode
 }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
@@ -95,10 +95,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         return { error };
       }
 
-      return { error: null };
+      return { error: null }
     } catch (error) {
       console.error('Login catch error:', error);
-      return { error: { message: 'An unexpected error occurred during login' } };
+      return { error: { message: 'An unexpected error occurred during login' } }
     }
   };
 
@@ -114,10 +114,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         return { error };
       }
 
-      return { error: null };
+      return { error: null }
     } catch (error) {
       console.error('Signup catch error:', error);
-      return { error: { message: 'An unexpected error occurred during signup' } };
+      return { error: { message: 'An unexpected error occurred during signup' } }
     }
   };
 

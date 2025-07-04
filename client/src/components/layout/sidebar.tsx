@@ -21,9 +21,9 @@ const getPageTitle = (location: string) => {
 };
 
 interface SidebarProps {
-  className?: string;
-  collapsed?: boolean;
-  toggleSidebar?: () => void;
+  className?: string
+  collapsed?: boolean
+  toggleSidebar?: () => void
 }
 
 export function Sidebar({ className, collapsed = false, toggleSidebar }: SidebarProps) {

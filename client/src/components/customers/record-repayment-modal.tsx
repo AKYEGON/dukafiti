@@ -12,10 +12,10 @@ import { motion, AnimatePresence } from "framer-motion";
 import type { Customer } from "@shared/schema";
 
 interface RecordRepaymentModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  customer: Customer;
-  previousPayments?: Array<{ date: string; amount: string; method: string }>;
+  isOpen: boolean
+  onClose: () => void
+  customer: Customer
+  previousPayments?: Array<{ date: string; amount: string; method: string }>
 }
 
 export function RecordRepaymentModal({ isOpen, onClose, customer, previousPayments = [] }: RecordRepaymentModalProps) {
@@ -33,7 +33,7 @@ export function RecordRepaymentModal({ isOpen, onClose, customer, previousPaymen
         body: JSON.stringify({
           amount: data.amount,
           method: data.method,
-          note: data.note;
+          note: data.note
         })
       });
       if (!response.ok) {
@@ -43,7 +43,7 @@ export function RecordRepaymentModal({ isOpen, onClose, customer, previousPaymen
       return response.json();
     },
     onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/customers"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/customers"] })
       toast({
         title: "Payment Recorded",
         description: `Repayment of ${formatCurrency(parseFloat(amount))} recorded successfully`,
@@ -95,7 +95,7 @@ export function RecordRepaymentModal({ isOpen, onClose, customer, previousPaymen
       customerId: customer.id,
       amount: amount,
       method: method,
-      note: note.trim() || undefined;
+      note: note.trim() || undefined
     });
   };
 

@@ -1,23 +1,23 @@
 // Offline sales queue management using IndexedDB
 export interface PendingSale {
-  id: string;
-  timestamp: number;
+  id: string
+  timestamp: number
   items: Array<{
-    productId: number;
-    quantity: number;
-    price: string;
+    productId: number
+    quantity: number
+    price: string
   }>;
-  paymentType: 'cash' | 'credit' | 'mobileMoney';
-  reference?: string;
-  customerName?: string;
-  customerPhone?: string;
+  paymentType: 'cash' | 'credit' | 'mobileMoney'
+  reference?: string
+  customerName?: string
+  customerPhone?: string
 }
 
 class OfflineQueue {
   private dbName = 'DukaFitiOffline';
   private dbVersion = 1;
   private storeName = 'pendingSales';
-  private db: IDBDatabase | null = null;
+  private db: IDBDatabase | null = null
 
   async init(): Promise<void> {
     return new Promise((resolve, reject) => {
@@ -39,8 +39,8 @@ class OfflineQueue {
 
         // Create object store for pending sales
         if (!db.objectStoreNames.contains(this.storeName)) {
-          const store = db.createObjectStore(this.storeName, { keyPath: 'id' });
-          store.createIndex('timestamp', 'timestamp', { unique: false });
+          const store = db.createObjectStore(this.storeName, { keyPath: 'id' })
+          store.createIndex('timestamp', 'timestamp', { unique: false })
           // IndexedDB object store created;
         }
       };
@@ -210,7 +210,7 @@ export async function processPendingSales(): Promise<void> {
           paymentType: sale.paymentType,
           reference: sale.reference,
           customerName: sale.customerName,
-          customerPhone: sale.customerPhone;
+          customerPhone: sale.customerPhone
         };
 
         const response = await fetch('/api/sales', {

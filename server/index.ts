@@ -1,8 +1,8 @@
 import express, { type Request, Response, NextFunction } from 'express';
 import session from 'express-session';
 import path from 'path';
-import { supabaseDb } from './supabase-db.js';
-import { setupVite, serveStatic, log } from './vite.js';
+import { supabaseDb } from './supabase-db.ts';
+import { setupVite, serveStatic, log } from './vite-helper.ts';
 import { createServer } from 'http';
 import { WebSocketServer, WebSocket } from 'ws';
 import bcrypt from 'bcryptjs';
@@ -12,7 +12,7 @@ import { Parser as Json2csvParser } from 'json2csv';
 // Extend session type to include user
 declare module 'express-session' {
   interface SessionData {
-    user?: { id: number; phone: string; email?: string; username?: string };
+    user?: { id: number; phone: string; email?: string; username?: string }
   }
 }
 
@@ -32,13 +32,13 @@ function broadcastToClients(message: any) {
 // Authentication middleware
 function requireAuth(req: any, res: any, next: any) {
   // For API endpoints, set a default user for now
-  req.user = { email: 'admin@dukafiti.com', id: 1 };
+  req.user = { email: 'admin@dukafiti.com', id: 1 }
   next();
 }
 
 const app = express();
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: false }));
+app.use(express.json({ limit: '10mb' }))
+app.use(express.urlencoded({ extended: false }))
 
 // Configure express-session with persistent login
 app.use(session({
@@ -93,7 +93,7 @@ app.use((req, res, next) => {
 const httpServer = createServer(app);
 
 // Set up WebSocket server
-const wss = new WebSocketServer({ server: httpServer, path: '/ws' });
+const wss = new WebSocketServer({ server: httpServer, path: '/ws' })
 
 wss.on('connection', (ws) => {
   wsClients.add(ws);
@@ -110,7 +110,7 @@ wss.on('connection', (ws) => {
 
 // Health check endpoint for deployment platforms
 app.get('/health', (req, res) => {
-  res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
+  res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() })
 });
 
 // API Routes
@@ -120,24 +120,24 @@ app.post('/api/auth/login', async (req, res) => {
     const { email, password } = req.body;
 
     if (!email || !password) {
-      return res.status(400).json({ error: 'Email and password are required' });
+      return res.status(400).json({ error: 'Email and password are required' })
     }
 
     const user = await supabaseDb.getUserByEmail(email);
     if (!user) {
-      return res.status(401).json({ error: 'Invalid email or password' });
+      return res.status(401).json({ error: 'Invalid email or password' })
     }
 
     const isValidPassword = await bcrypt.compare(password, user.password_hash);
     if (!isValidPassword) {
-      return res.status(401).json({ error: 'Invalid email or password' });
+      return res.status(401).json({ error: 'Invalid email or password' })
     }
 
     req.session.user = user;
-    res.json({ message: 'Login successful', user: { id: user.id, email: user.email } });
+    res.json({ message: 'Login successful', user: { id: user.id, email: user.email } })
   } catch (error) {
     console.error('Login error:', error);
-    res.status(500).json({ error: 'Login failed' });
+    res.status(500).json({ error: 'Login failed' })
   }
 });
 
@@ -146,13 +146,13 @@ app.post('/api/auth/register', async (req, res) => {
     const { email, password, phone, username } = req.body;
 
     if (!email || !password) {
-      return res.status(400).json({ error: 'Email and password are required' });
+      return res.status(400).json({ error: 'Email and password are required' })
     }
 
     // Check if user already exists
     const existingUser = await supabaseDb.getUserByEmail(email);
     if (existingUser) {
-      return res.status(400).json({ error: 'User already exists' });
+      return res.status(400).json({ error: 'User already exists' })
     }
 
     // Hash password
@@ -167,24 +167,24 @@ app.post('/api/auth/register', async (req, res) => {
     });
 
     req.session.user = user;
-    res.json({ message: 'Registration successful', user: { id: user.id, email: user.email } });
+    res.json({ message: 'Registration successful', user: { id: user.id, email: user.email } })
   } catch (error) {
     console.error('Registration error:', error);
-    res.status(500).json({ error: 'Registration failed' });
+    res.status(500).json({ error: 'Registration failed' })
   }
 });
 
 app.post('/api/auth/logout', (req, res) => {
   req.session.destroy(() => {
-    res.json({ message: 'Logged out successfully' });
+    res.json({ message: 'Logged out successfully' })
   });
 });
 
 app.get('/api/auth/user', (req, res) => {
   if (req.session.user) {
-    res.json({ user: req.session.user });
+    res.json({ user: req.session.user })
   } else {
-    res.status(401).json({ error: 'Not authenticated' });
+    res.status(401).json({ error: 'Not authenticated' })
   }
 });
 
@@ -195,7 +195,7 @@ app.get('/api/products', requireAuth, async (req, res) => {
     res.json(products);
   } catch (error) {
     console.error('Error fetching products:', error);
-    res.status(500).json({ error: 'Failed to fetch products' });
+    res.status(500).json({ error: 'Failed to fetch products' })
   }
 });
 
@@ -206,7 +206,7 @@ app.get('/api/products/search', requireAuth, async (req, res) => {
     res.json(products);
   } catch (error) {
     console.error('Error searching products:', error);
-    res.status(500).json({ error: 'Failed to search products' });
+    res.status(500).json({ error: 'Failed to search products' })
   }
 });
 
@@ -216,7 +216,7 @@ app.post('/api/products', requireAuth, async (req, res) => {
     res.json(product);
   } catch (error) {
     console.error('Error creating product:', error);
-    res.status(500).json({ error: 'Failed to create product' });
+    res.status(500).json({ error: 'Failed to create product' })
   }
 });
 
@@ -226,17 +226,17 @@ app.put('/api/products/:id', requireAuth, async (req, res) => {
     res.json(product);
   } catch (error) {
     console.error('Error updating product:', error);
-    res.status(500).json({ error: 'Failed to update product' });
+    res.status(500).json({ error: 'Failed to update product' })
   }
 });
 
 app.delete('/api/products/:id', requireAuth, async (req, res) => {
   try {
     await supabaseDb.deleteProduct(parseInt(req.params.id));
-    res.json({ message: 'Product deleted successfully' });
+    res.json({ message: 'Product deleted successfully' })
   } catch (error) {
     console.error('Error deleting product:', error);
-    res.status(500).json({ error: 'Failed to delete product' });
+    res.status(500).json({ error: 'Failed to delete product' })
   }
 });
 
@@ -247,7 +247,7 @@ app.get('/api/customers', requireAuth, async (req, res) => {
     res.json(customers);
   } catch (error) {
     console.error('Error fetching customers:', error);
-    res.status(500).json({ error: 'Failed to fetch customers' });
+    res.status(500).json({ error: 'Failed to fetch customers' })
   }
 });
 
@@ -257,7 +257,7 @@ app.post('/api/customers', requireAuth, async (req, res) => {
     res.json(customer);
   } catch (error) {
     console.error('Error creating customer:', error);
-    res.status(500).json({ error: 'Failed to create customer' });
+    res.status(500).json({ error: 'Failed to create customer' })
   }
 });
 
@@ -267,7 +267,7 @@ app.put('/api/customers/:id', requireAuth, async (req, res) => {
     res.json(customer);
   } catch (error) {
     console.error('Error updating customer:', error);
-    res.status(500).json({ error: 'Failed to update customer' });
+    res.status(500).json({ error: 'Failed to update customer' })
   }
 });
 
@@ -278,7 +278,7 @@ app.get('/api/orders', requireAuth, async (req, res) => {
     res.json(orders);
   } catch (error) {
     console.error('Error fetching orders:', error);
-    res.status(500).json({ error: 'Failed to fetch orders' });
+    res.status(500).json({ error: 'Failed to fetch orders' })
   }
 });
 
@@ -288,7 +288,7 @@ app.get('/api/orders/recent', requireAuth, async (req, res) => {
     res.json(orders);
   } catch (error) {
     console.error('Error fetching recent orders:', error);
-    res.status(500).json({ error: 'Failed to fetch recent orders' });
+    res.status(500).json({ error: 'Failed to fetch recent orders' })
   }
 });
 
@@ -336,7 +336,7 @@ app.post('/api/orders', requireAuth, async (req, res) => {
     res.json(order);
   } catch (error) {
     console.error('Error creating order:', error);
-    res.status(500).json({ error: 'Failed to create order' });
+    res.status(500).json({ error: 'Failed to create order' })
   }
 });
 
@@ -347,7 +347,7 @@ app.get('/api/dashboard/metrics', requireAuth, async (req, res) => {
     res.json(metrics);
   } catch (error) {
     console.error('Error fetching dashboard metrics:', error);
-    res.status(500).json({ error: 'Failed to fetch dashboard metrics' });
+    res.status(500).json({ error: 'Failed to fetch dashboard metrics' })
   }
 });
 
@@ -359,7 +359,7 @@ app.get('/api/reports/summary', requireAuth, async (req, res) => {
     res.json(summary);
   } catch (error) {
     console.error('Error fetching reports summary:', error);
-    res.status(500).json({ error: 'Failed to fetch reports summary' });
+    res.status(500).json({ error: 'Failed to fetch reports summary' })
   }
 });
 
@@ -370,7 +370,7 @@ app.get('/api/reports/trend', requireAuth, async (req, res) => {
     res.json(trend);
   } catch (error) {
     console.error('Error fetching reports trend:', error);
-    res.status(500).json({ error: 'Failed to fetch reports trend' });
+    res.status(500).json({ error: 'Failed to fetch reports trend' })
   }
 });
 
@@ -380,7 +380,7 @@ app.get('/api/reports/top-products', requireAuth, async (req, res) => {
     res.json(topProducts);
   } catch (error) {
     console.error('Error fetching top products:', error);
-    res.status(500).json({ error: 'Failed to fetch top products' });
+    res.status(500).json({ error: 'Failed to fetch top products' })
   }
 });
 
@@ -390,7 +390,7 @@ app.get('/api/reports/top-customers', requireAuth, async (req, res) => {
     res.json(topCustomers);
   } catch (error) {
     console.error('Error fetching top customers:', error);
-    res.status(500).json({ error: 'Failed to fetch top customers' });
+    res.status(500).json({ error: 'Failed to fetch top customers' })
   }
 });
 
@@ -413,7 +413,7 @@ app.get('/api/reports/orders', requireAuth, async (req, res) => {
     });
   } catch (error) {
     console.error('Error fetching orders:', error);
-    res.status(500).json({ error: 'Failed to fetch orders' });
+    res.status(500).json({ error: 'Failed to fetch orders' })
   }
 });
 
@@ -429,7 +429,7 @@ app.get('/api/reports/export', requireAuth, async (req, res) => {
     res.send(csv);
   } catch (error) {
     console.error('Error exporting reports:', error);
-    res.status(500).json({ error: 'Failed to export reports' });
+    res.status(500).json({ error: 'Failed to export reports' })
   }
 });
 
@@ -440,7 +440,7 @@ app.get('/api/notifications', requireAuth, async (req, res) => {
     res.json(notifications);
   } catch (error) {
     console.error('Error fetching notifications:', error);
-    res.status(500).json({ error: 'Failed to fetch notifications' });
+    res.status(500).json({ error: 'Failed to fetch notifications' })
   }
 });
 
@@ -450,7 +450,7 @@ app.get('/api/notifications/unread-count', requireAuth, async (req, res) => {
     res.json({ count });
   } catch (error) {
     console.error('Error fetching unread notifications count:', error);
-    res.status(500).json({ error: 'Failed to fetch unread notifications count' });
+    res.status(500).json({ error: 'Failed to fetch unread notifications count' })
   }
 });
 
@@ -461,7 +461,7 @@ app.get('/api/settings', requireAuth, async (req, res) => {
     res.json(settings);
   } catch (error) {
     console.error('Error fetching settings:', error);
-    res.status(500).json({ error: 'Failed to fetch settings' });
+    res.status(500).json({ error: 'Failed to fetch settings' })
   }
 });
 
@@ -471,7 +471,7 @@ app.put('/api/settings', requireAuth, async (req, res) => {
     res.json(settings);
   } catch (error) {
     console.error('Error updating settings:', error);
-    res.status(500).json({ error: 'Failed to update settings' });
+    res.status(500).json({ error: 'Failed to update settings' })
   }
 });
 

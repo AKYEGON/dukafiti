@@ -31,7 +31,7 @@ export default function AuthCallback() {
         }
 
         // Get the session using the access token
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession()
 
         if (sessionError) {
           throw sessionError;

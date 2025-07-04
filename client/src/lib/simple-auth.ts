@@ -1,9 +1,9 @@
 // Simple authentication system that works reliably in all environments
 export interface SimpleUser {
-  id: string;
-  email: string;
-  username?: string;
-  phone?: string;
+  id: string
+  email: string
+  username?: string
+  phone?: string
 }
 
 export class SimpleAuth {

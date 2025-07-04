@@ -5,12 +5,12 @@ import { config } from '../lib/config';
 import { errorHandler } from '../lib/error-handler';
 
 interface AuthContextType {
-  user: SimpleUser | null;
-  isAuthenticated: boolean;
-  isLoading: boolean;
-  login: (email: string, password: string) => Promise<{ error?: any }>;
-  signup: (email: string, password: string, name: string) => Promise<{ error?: any }>;
-  logout: () => Promise<void>;
+  user: SimpleUser | null
+  isAuthenticated: boolean
+  isLoading: boolean
+  login: (email: string, password: string) => Promise<{ error?: any }>
+  signup: (email: string, password: string, name: string) => Promise<{ error?: any }>
+  logout: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -24,7 +24,7 @@ export const useAuth = () => {
 };
 
 interface AuthProviderProps {
-  children: ReactNode;
+  children: ReactNode
 }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
@@ -100,13 +100,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
         // Clear React Query cache to force refetch
         queryClient.clear();
-        return { error: null };
+        return { error: null }
       }
 
-      return { error: { message: 'Invalid credentials' } };
+      return { error: { message: 'Invalid credentials' } }
     } catch (error) {
       console.error('Login error:', error);
-      return { error: { message: 'Login failed' } };
+      return { error: { message: 'Login failed' } }
     }
   };
 
@@ -125,13 +125,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         setUser(user);
         setIsAuthenticated(true);
 
-        return { error: null };
+        return { error: null }
       }
 
-      return { error: { message: 'Registration failed' } };
+      return { error: { message: 'Registration failed' } }
     } catch (error) {
       console.error('Signup error:', error);
-      return { error: { message: 'Registration failed' } };
+      return { error: { message: 'Registration failed' } }
     }
   };
 

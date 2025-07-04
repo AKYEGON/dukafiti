@@ -13,7 +13,7 @@ async function getSupabaseConfig() {
 }
 
 // Create Supabase client with config from server
-let supabaseClient: ReturnType<typeof createClient> | null = null;
+let supabaseClient: ReturnType<typeof createClient> | null = null
 
 export async function getSupabaseClient() {
   if (!supabaseClient) {
@@ -22,7 +22,7 @@ export async function getSupabaseClient() {
       auth: {
         autoRefreshToken: true,
         persistSession: true,
-        detectSessionInUrl: true;
+        detectSessionInUrl: true
       }
     });
   }

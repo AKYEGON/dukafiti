@@ -13,7 +13,7 @@ import { registerSupabaseRoutes } from './routes-supabase.js';
 // Type extensions
 declare module 'express-session' {
   interface SessionData {
-    user?: { id: number; phone: string; email?: string; username?: string };
+    user?: { id: number; phone: string; email?: string; username?: string }
   }
 }
 
@@ -21,8 +21,8 @@ const app = express();
 const PORT = parseInt(process.env.PORT || '5000', 10);
 
 // Middleware
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: false }));
+app.use(express.json({ limit: '10mb' }))
+app.use(express.urlencoded({ extended: false }))
 
 // Session configuration
 app.use(session({

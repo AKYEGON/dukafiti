@@ -28,7 +28,7 @@ async function seedDatabase() {
       currency: 'KES',
       language: 'en',
       notifications: true,
-      mpesaEnabled: false;
+      mpesaEnabled: false
     });
 
     // Insert sample products
@@ -41,7 +41,7 @@ async function seedDatabase() {
         stock: 100,
         category: 'Beverages',
         lowStockThreshold: 10,
-        salesCount: 45;
+        salesCount: 45
       },
       {
         name: 'Bread Loaf',
@@ -51,7 +51,7 @@ async function seedDatabase() {
         stock: 50,
         category: 'Bakery',
         lowStockThreshold: 5,
-        salesCount: 30;
+        salesCount: 30
       },
       {
         name: 'Milk 1L',
@@ -61,7 +61,7 @@ async function seedDatabase() {
         stock: 25,
         category: 'Dairy',
         lowStockThreshold: 10,
-        salesCount: 20;
+        salesCount: 20
       },
       {
         name: 'Sugar 2kg',
@@ -71,7 +71,7 @@ async function seedDatabase() {
         stock: null, // Unknown quantity
         category: 'Groceries',
         lowStockThreshold: 5,
-        salesCount: 15;
+        salesCount: 15
       },
       {
         name: 'Rice 5kg',
@@ -81,7 +81,7 @@ async function seedDatabase() {
         stock: 30,
         category: 'Groceries',
         lowStockThreshold: 5,
-        salesCount: 25;
+        salesCount: 25
       }
     ];
 
@@ -119,14 +119,14 @@ async function seedDatabase() {
         title: 'Welcome to DukaFiti!',
         message: 'Your business management system is ready to use.',
         type: 'success',
-        isRead: false;
+        isRead: false
       },
       {
         userId: user.id,
         title: 'Low Stock Alert',
         message: 'Some products are running low on stock.',
         type: 'warning',
-        isRead: false;
+        isRead: false
       }
     ];
 

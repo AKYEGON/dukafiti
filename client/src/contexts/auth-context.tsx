@@ -3,11 +3,11 @@ import { supabase } from '@/lib/supabase';
 import type { User } from '@supabase/supabase-js';
 
 interface AuthContextType {
-  user: User | null;
-  loading: boolean;
-  signUp: (email: string, password: string) => Promise<{ error?: any }>;
-  signIn: (email: string, password: string) => Promise<{ error?: any }>;
-  signOut: () => Promise<void>;
+  user: User | null
+  loading: boolean
+  signUp: (email: string, password: string) => Promise<{ error?: any }>
+  signIn: (email: string, password: string) => Promise<{ error?: any }>
+  signOut: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -28,7 +28,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     // Get initial session
     const getSession = async () => {
       try {
-        const { data: { session } } = await supabase.auth.getSession();
+        const { data: { session } } = await supabase.auth.getSession()
         setUser(session?.user ?? null);
       } catch (error) {
         console.error('Error getting session:', error);

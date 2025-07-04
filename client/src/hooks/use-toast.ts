@@ -12,7 +12,7 @@ type ToasterToast = ToastProps & {
   id: string
   title?: React.ReactNode
   description?: React.ReactNode
-  action?: ToastActionElement;
+  action?: ToastActionElement
 }
 
 const actionTypes = {
@@ -34,7 +34,7 @@ type ActionType = typeof actionTypes
 type Action =
   | {
       type: ActionType['ADD_TOAST']
-      toast: ToasterToast;
+      toast: ToasterToast
     }
   | {
       type: ActionType['UPDATE_TOAST']
@@ -64,7 +64,7 @@ const addToRemoveQueue = (toastId: string) => {
     toastTimeouts.delete(toastId)
     dispatch({
       type: 'REMOVE_TOAST',
-      toastId: toastId;
+      toastId: toastId
     })
   }, TOAST_REMOVE_DELAY)
 
@@ -106,7 +106,7 @@ export const reducer = (state: State, action: Action): State => {
           t.id === toastId || toastId === undefined
             ? {
                 ...t,
-                open: false;
+                open: false
               }
             : t
         )

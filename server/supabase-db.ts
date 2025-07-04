@@ -9,7 +9,7 @@ export const supabase = createClient(supabaseUrl, supabaseServiceKey);
 export const supabaseDb = {
   // Products
   async getProducts() {
-    const { data, error } = await supabase.from('products').select('*').order('created_at', { ascending: false });
+    const { data, error } = await supabase.from('products').select('*').order('created_at', { ascending: false })
     if (error) throw error;
     return data
   },
@@ -40,7 +40,7 @@ export const supabaseDb = {
 
   async updateProduct(id: number, updates: any) {
     // Map camelCase to snake_case for database
-    const dbUpdates: any = {};
+    const dbUpdates: any = {}
     if (updates.name !== undefined) dbUpdates.name = updates.name;
     if (updates.sku !== undefined) dbUpdates.sku = updates.sku;
     if (updates.description !== undefined) dbUpdates.description = updates.description;
@@ -80,7 +80,7 @@ export const supabaseDb = {
 
   // Customers
   async getCustomers() {
-    const { data, error } = await supabase.from('customers').select('*').order('created_at', { ascending: false });
+    const { data, error } = await supabase.from('customers').select('*').order('created_at', { ascending: false })
     if (error) throw error;
     return data
   },
@@ -108,7 +108,7 @@ export const supabaseDb = {
 
   async updateCustomer(id: number, updates: any) {
     // Map camelCase to snake_case for database
-    const dbUpdates: any = {};
+    const dbUpdates: any = {}
     if (updates.name !== undefined) dbUpdates.name = updates.name;
     if (updates.email !== undefined) dbUpdates.email = updates.email;
     if (updates.phone !== undefined) dbUpdates.phone = updates.phone;
@@ -133,7 +133,7 @@ export const supabaseDb = {
 
   // Orders
   async getOrders(limit?: number) {
-    let query = supabase.from('orders').select('*').order('created_at', { ascending: false });
+    let query = supabase.from('orders').select('*').order('created_at', { ascending: false })
     if (limit) query = query.limit(limit);
 
     const { data, error } = await query;
@@ -221,7 +221,7 @@ export const supabaseDb = {
 
   async updateUserSettings(userId: number, updates: any) {
     // Map camelCase to snake_case for database
-    const dbUpdates: any = {};
+    const dbUpdates: any = {}
     if (updates.theme !== undefined) dbUpdates.theme = updates.theme;
     if (updates.currency !== undefined) dbUpdates.currency = updates.currency;
     if (updates.language !== undefined) dbUpdates.language = updates.language;
@@ -242,7 +242,7 @@ export const supabaseDb = {
 
   async updateStoreProfile(userId: number, updates: any) {
     // Map camelCase to snake_case for database
-    const dbUpdates: any = {};
+    const dbUpdates: any = {}
     if (updates.storeName !== undefined) dbUpdates.store_name = updates.storeName;
     if (updates.store_name !== undefined) dbUpdates.store_name = updates.store_name;
     if (updates.ownerName !== undefined) dbUpdates.owner_name = updates.ownerName;
@@ -284,7 +284,7 @@ export const supabaseDb = {
 
   // Notifications
   async getNotifications(userId: number) {
-    const { data, error } = await supabase.from('notifications').select('*').eq('user_id', userId).order('created_at', { ascending: false });
+    const { data, error } = await supabase.from('notifications').select('*').eq('user_id', userId).order('created_at', { ascending: false })
     if (error) throw error;
     return data
   },
@@ -357,14 +357,14 @@ export const supabaseDb = {
     // Get total products count
     const { count: totalProducts, error: productsError } = await supabase
       .from('products')
-      .select('*', { count: 'exact', head: true });
+      .select('*', { count: 'exact', head: true })
 
     if (productsError) throw productsError;
 
     // Get total customers count
     const { count: totalCustomers, error: customersError } = await supabase
       .from('customers')
-      .select('*', { count: 'exact', head: true });
+      .select('*', { count: 'exact', head: true })
 
     if (customersError) throw customersError;
 
@@ -423,7 +423,7 @@ export const supabaseDb = {
   // Reports functions
   async getReportsSummary(period: string = 'week') {
     const now = new Date();
-    let startDate: Date;
+    let startDate: Date
 
     switch (period) {
       case 'day':
@@ -477,8 +477,8 @@ export const supabaseDb = {
 
   async getReportsTrend(period: string = 'day', view: string = 'sales') {
     const now = new Date();
-    let groupBy: string;
-    let startDate: Date;
+    let groupBy: string
+    let startDate: Date
 
     switch (period) {
       case 'hour':
@@ -509,16 +509,16 @@ export const supabaseDb = {
       .select('total, created_at')
       .eq('status', 'completed')
       .gte('created_at', startDate.toISOString())
-      .order('created_at', { ascending: true });
+      .order('created_at', { ascending: true })
 
     if (error) throw error;
 
     // Group data by period
-    const groupedData: { [key: string]: number } = {};
+    const groupedData: { [key: string]: number } = {}
 
     ordersData.forEach(order => {
       const date = new Date(order.created_at);
-      let key: string;
+      let key: string
 
       if (groupBy === 'hour') {
         key = `${date.getFullYear()}-${date.getMonth() + 1}-${date.getDate()} ${date.getHours()}:00`;

@@ -89,7 +89,7 @@ export default function Sales() {
           break;
         case 'ArrowUp':
           e.preventDefault();
-          setSelectedSearchIndex(prev => prev > 0 ? prev - 1 : prev);
+          setSelectedSearchIndex(prev => prev > 0 ? prev - 1 : prev)
           break;
         case 'Enter':
           e.preventDefault();
@@ -145,7 +145,7 @@ export default function Sales() {
         product,
         quantity: 1,
         unitPrice: product.price,
-        total: product.price;
+        total: product.price
       };
       setCartItems(prev => {
         const updated = [...prev, newItem];
@@ -162,7 +162,7 @@ export default function Sales() {
         title: "Product added",
         description: `${product.name} added to cart`,
         className: "bg-green-50 border-green-200 text-green-800",
-        duration: 2000;
+        duration: 2000
       });
     }
   };
@@ -187,12 +187,12 @@ export default function Sales() {
 
   const handleSellClick = () => {
     if (cartItems.length === 0) {
-      toast({ title: "Cart is empty", variant: "destructive" });
+      toast({ title: "Cart is empty", variant: "destructive" })
       return;
     }
 
     if (!paymentMethod) {
-      toast({ title: "Please select a payment method", variant: "destructive" });
+      toast({ title: "Please select a payment method", variant: "destructive" })
       return;
     }
 
@@ -248,13 +248,13 @@ export default function Sales() {
 
         const savedCustomer = await newCustomer.json();
         // Invalidate customers cache
-        queryClient.invalidateQueries({ queryKey: ["/api/customers"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/customers"] })
 
         toast({
           title: "Customer added",
           description: `${customer.name} has been added to your customers list`,
           className: "bg-green-50 border-green-200 text-green-800",
-          duration: 3000;
+          duration: 3000
         });
       } catch (error) {
         console.error('Error saving new customer:', error);
@@ -262,7 +262,7 @@ export default function Sales() {
           title: "Warning",
           description: "Customer couldn't be saved, but sale will proceed",
           variant: "destructive",
-          duration: 3000;
+          duration: 3000
         });
       }
     }
@@ -271,7 +271,7 @@ export default function Sales() {
     const saleData = {
       items: cartItems.map(item => ({
         id: item.product.id,
-        quantity: item.quantity;
+        quantity: item.quantity
       })),
       paymentType: paymentMethod as 'cash' | 'credit' | 'mobileMoney',
       customerName: customer?.name || '',
@@ -298,16 +298,16 @@ export default function Sales() {
       title: "Product added",
       description: `${product.name} added to cart`,
       className: "bg-green-50 border-green-200 text-green-800",
-      duration: 2000;
+      duration: 2000
     });
   };
 
   const createSaleMutation = useMutation({
     mutationFn: async (saleData: {
-      items: Array<{ id: number; quantity: number }>;
-      paymentType: 'cash' | 'credit' | 'mobileMoney';
-      customerName?: string;
-      customerPhone?: string;
+      items: Array<{ id: number; quantity: number }>
+      paymentType: 'cash' | 'credit' | 'mobileMoney'
+      customerName?: string
+      customerPhone?: string
     }) => {
       // Check if online
       if (!isOnline()) {
@@ -320,7 +320,7 @@ export default function Sales() {
           })),
           paymentType: saleData.paymentType as 'cash' | 'credit' | 'mobileMoney',
           customerName: saleData.customerName,
-          customerPhone: saleData.customerPhone;
+          customerPhone: saleData.customerPhone
         });
 
         // Register background sync if supported
@@ -338,7 +338,7 @@ export default function Sales() {
           });
         }
 
-        return { success: true, status: 'queued', saleId: queuedSaleId };
+        return { success: true, status: 'queued', saleId: queuedSaleId }
       }
 
       // Online - proceed with normal API call
@@ -354,22 +354,22 @@ export default function Sales() {
       // Immediately refresh all relevant data if online
       if (isOnline()) {
         // Dashboard metrics
-        queryClient.invalidateQueries({ queryKey: ["/api/dashboard/metrics"] });
-        queryClient.invalidateQueries({ queryKey: ["/api/metrics/dashboard"] });
-        queryClient.invalidateQueries({ queryKey: ["/api/orders/recent"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/dashboard/metrics"] })
+        queryClient.invalidateQueries({ queryKey: ["/api/metrics/dashboard"] })
+        queryClient.invalidateQueries({ queryKey: ["/api/orders/recent"] })
 
         // Reports data
-        queryClient.invalidateQueries({ queryKey: ["/api/reports/summary"] });
-        queryClient.invalidateQueries({ queryKey: ["/api/reports/trend"] });
-        queryClient.invalidateQueries({ queryKey: ["/api/orders"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/reports/summary"] })
+        queryClient.invalidateQueries({ queryKey: ["/api/reports/trend"] })
+        queryClient.invalidateQueries({ queryKey: ["/api/orders"] })
 
         // Inventory data
-        queryClient.invalidateQueries({ queryKey: ["/api/products"] });
-        queryClient.invalidateQueries({ queryKey: ["/api/products/frequent"] });
+        queryClient.invalidateQueries({ queryKey: ["/api/products"] })
+        queryClient.invalidateQueries({ queryKey: ["/api/products/frequent"] })
 
         // Customer data for credit sales
         if (paymentMethod === 'credit') {
-          queryClient.invalidateQueries({ queryKey: ["/api/customers"] });
+          queryClient.invalidateQueries({ queryKey: ["/api/customers"] })
         }
       }
 
@@ -380,21 +380,21 @@ export default function Sales() {
           title: "Sale queued – offline mode",
           description: "Sale will be processed when connection is restored",
           className: "bg-blue-50 border-blue-200 text-blue-800",
-          duration: 5000;
+          duration: 5000
         });
       } else if (status === 'paid') {
         toast({
           title: "Sale completed successfully!",
           description: `Payment received via ${paymentMethod}`,
           className: "bg-green-50 border-green-200 text-green-800",
-          duration: 3000;
+          duration: 3000
         });
       } else if (status === 'pending') {
         toast({
           title: "Credit sale recorded",
           description: "Customer payment is pending",
           className: "bg-yellow-50 border-yellow-200 text-yellow-800",
-          duration: 3000;
+          duration: 3000
         });
       }
     },
@@ -416,9 +416,9 @@ export default function Sales() {
   const handleSellButtonClick = () => {
     if (!canProceed) {
       if (isCartEmpty) {
-        toast({ title: "Cart is empty", description: "Scan or select items to start a sale", variant: "destructive" });
+        toast({ title: "Cart is empty", description: "Scan or select items to start a sale", variant: "destructive" })
       } else {
-        toast({ title: "Select payment method", variant: "destructive" });
+        toast({ title: "Select payment method", variant: "destructive" })
       }
       return;
     }
@@ -728,7 +728,7 @@ function debounce<T extends (...args: any[]) => any>(
   func: T,
   wait: number
 ): (...args: Parameters<T>) => void {
-  let timeout: NodeJS.Timeout;
+  let timeout: NodeJS.Timeout
   return (...args: Parameters<T>) => {
     clearTimeout(timeout);
     timeout = setTimeout(() => func(...args), wait);

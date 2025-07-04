@@ -155,7 +155,7 @@ export async function initializeDatabase() {
           price: 150.00,
           stock: 50,
           category: 'Grains',
-          lowStockThreshold: 10;
+          lowStockThreshold: 10
         },
         {
           name: 'Cooking Oil 1L',
@@ -164,7 +164,7 @@ export async function initializeDatabase() {
           price: 120.00,
           stock: 30,
           category: 'Cooking',
-          lowStockThreshold: 5;
+          lowStockThreshold: 5
         },
         {
           name: 'Sugar 1kg',
@@ -173,7 +173,7 @@ export async function initializeDatabase() {
           price: 80.00,
           stock: 25,
           category: 'Baking',
-          lowStockThreshold: 8;
+          lowStockThreshold: 8
         }
       ];
 
@@ -188,14 +188,14 @@ export async function initializeDatabase() {
           email: 'john@example.com',
           phone: '+254700123456',
           address: '123 Main St, Nairobi',
-          balance: 0.00;
+          balance: 0.00
         },
         {
           name: 'Jane Smith',
           email: 'jane@example.com',
           phone: '+254700654321',
           address: '456 Oak Ave, Mombasa',
-          balance: 50.00;
+          balance: 50.00
         }
       ];
 
@@ -209,7 +209,7 @@ export async function initializeDatabase() {
         theme: 'light',
         currency: 'KES',
         language: 'en',
-        notifications: true;
+        notifications: true
       });
 
       }

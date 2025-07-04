@@ -2,10 +2,10 @@ import { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
 interface MobilePageWrapperProps {
-  children: ReactNode;
-  className?: string;
-  title?: string;
-  showTitle?: boolean;
+  children: ReactNode
+  className?: string
+  title?: string
+  showTitle?: boolean
 }
 
 export function MobilePageWrapper({

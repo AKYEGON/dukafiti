@@ -9,7 +9,7 @@ import {
   Dialog,
   DialogContent,
   DialogHeader,
-  DialogTitle;
+  DialogTitle
 } from "@/components/ui/dialog";
 import {
   Form,
@@ -17,7 +17,7 @@ import {
   FormField,
   FormItem,
   FormLabel,
-  FormMessage;
+  FormMessage
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -25,9 +25,9 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 
 interface ProductFormProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  product?: Product;
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  product?: Product
 }
 
 export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
@@ -45,7 +45,7 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
       stock: 0,
       category: "",
       lowStockThreshold: 10,
-      unknownQuantity: false;
+      unknownQuantity: false
     }
   });
 
@@ -62,7 +62,7 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
         stock: hasUnknownQuantity ? 0 : (product.stock || 0),
         category: product.category || "",
         lowStockThreshold: product.lowStockThreshold || 10,
-        unknownQuantity: hasUnknownQuantity;
+        unknownQuantity: hasUnknownQuantity
       });
     } else {
       // Reset to empty form when creating new product
@@ -75,7 +75,7 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
         stock: 0,
         category: "",
         lowStockThreshold: 10,
-        unknownQuantity: false;
+        unknownQuantity: false
       });
     }
   }, [product, form]);
@@ -86,15 +86,15 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/products"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/dashboard/metrics"] });
-      toast({ title: "Product created successfully" });
+      queryClient.invalidateQueries({ queryKey: ["/api/products"] })
+      queryClient.invalidateQueries({ queryKey: ["/api/dashboard/metrics"] })
+      toast({ title: "Product created successfully" })
       onOpenChange(false);
       form.reset();
     },
     onError: (error: any) => {
       const errorMessage = error?.response?.data?.message || "Failed to create product";
-      toast({ title: errorMessage, variant: "destructive" });
+      toast({ title: errorMessage, variant: "destructive" })
     }
   });
 
@@ -104,14 +104,14 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/products"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/dashboard/metrics"] });
-      toast({ title: "Product updated successfully" });
+      queryClient.invalidateQueries({ queryKey: ["/api/products"] })
+      queryClient.invalidateQueries({ queryKey: ["/api/dashboard/metrics"] })
+      toast({ title: "Product updated successfully" })
       onOpenChange(false);
     },
     onError: (error: any) => {
       const errorMessage = error?.response?.data?.message || "Failed to update product";
-      toast({ title: errorMessage, variant: "destructive" });
+      toast({ title: errorMessage, variant: "destructive" })
     }
   });
 
@@ -120,7 +120,7 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
     const processedData = {
       ...data,
       stock: unknownQuantity ? null : data.stock,
-      unknownQuantity: unknownQuantity;
+      unknownQuantity: unknownQuantity
     };
 
     if (product) {

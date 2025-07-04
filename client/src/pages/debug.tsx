@@ -23,7 +23,7 @@ export default function Debug() {
           setSessionData(session);
         }
 
-        const { data: { user }, error: userError } = await supabase.auth.getUser();
+        const { data: { user }, error: userError } = await supabase.auth.getUser()
 
         if (userError) {
           console.error('Error getting user:', userError);

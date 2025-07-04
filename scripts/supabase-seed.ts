@@ -24,7 +24,7 @@ async function seedSupabaseDatabase() {
         stock: 100,
         category: 'Beverages',
         low_stock_threshold: 10,
-        sales_count: 0;
+        sales_count: 0
       },
       {
         name: 'Bread Loaf',
@@ -34,7 +34,7 @@ async function seedSupabaseDatabase() {
         stock: 50,
         category: 'Bakery',
         low_stock_threshold: 5,
-        sales_count: 0;
+        sales_count: 0
       },
       {
         name: 'Milk 1L',
@@ -44,13 +44,13 @@ async function seedSupabaseDatabase() {
         stock: 30,
         category: 'Dairy',
         low_stock_threshold: 5,
-        sales_count: 0;
+        sales_count: 0
       }
     ];
 
     const { error: productsError } = await supabase
       .from('products')
-      .upsert(sampleProducts, { onConflict: 'sku' });
+      .upsert(sampleProducts, { onConflict: 'sku' })
 
     if (productsError) {
       console.error('Error creating products:', productsError);
@@ -77,7 +77,7 @@ async function seedSupabaseDatabase() {
 
     const { error: customersError } = await supabase
       .from('customers')
-      .upsert(sampleCustomers, { onConflict: 'email' });
+      .upsert(sampleCustomers, { onConflict: 'email' })
 
     if (customersError) {
       console.error('Error creating customers:', customersError);

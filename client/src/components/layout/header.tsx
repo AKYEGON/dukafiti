@@ -2,9 +2,9 @@ import { Bell, User, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface HeaderProps {
-  title: string;
-  subtitle: string;
-  onMobileMenuToggle?: () => void;
+  title: string
+  subtitle: string
+  onMobileMenuToggle?: () => void
 }
 
 export function Header({ title, subtitle, onMobileMenuToggle }: HeaderProps) {

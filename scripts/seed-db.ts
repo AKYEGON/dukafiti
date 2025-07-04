@@ -55,7 +55,7 @@ async function seedDatabase() {
         theme: 'light',
         currency: 'KES',
         language: 'en',
-        notifications: true;
+        notifications: true
       }]);
 
     if (settingsError) {
@@ -72,7 +72,7 @@ async function seedDatabase() {
         stock: 100,
         category: 'Beverages',
         lowStockThreshold: 10,
-        salesCount: 0;
+        salesCount: 0
       },
       {
         name: 'Bread Loaf',
@@ -82,7 +82,7 @@ async function seedDatabase() {
         stock: 50,
         category: 'Bakery',
         lowStockThreshold: 5,
-        salesCount: 0;
+        salesCount: 0
       },
       {
         name: 'Milk 1L',
@@ -92,7 +92,7 @@ async function seedDatabase() {
         stock: 30,
         category: 'Dairy',
         lowStockThreshold: 5,
-        salesCount: 0;
+        salesCount: 0
       }
     ];
 

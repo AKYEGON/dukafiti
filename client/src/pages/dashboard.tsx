@@ -29,22 +29,22 @@ import { CustomerForm } from "@/components/customers/customer-form";
 
 interface DetailedMetrics {
   revenue: {
-    today: number;
-    yesterday: number;
-    weekToDate: number;
-    priorWeekToDate: number;
+    today: number
+    yesterday: number
+    weekToDate: number
+    priorWeekToDate: number
   };
   orders: {
-    today: number;
-    yesterday: number;
+    today: number
+    yesterday: number
   };
   inventory: {
-    totalItems: number;
-    priorSnapshot: number;
+    totalItems: number
+    priorSnapshot: number
   };
   customers: {
-    active: number;
-    priorActive: number;
+    active: number
+    priorActive: number
   };
 }
 
@@ -94,11 +94,11 @@ export default function Dashboard() {
     isLoading,
     iconColor = "bg-green-600"
   }: {
-    title: string;
-    value: string;
-    icon: any;
-    isLoading: boolean;
-    iconColor?: string;
+    title: string
+    value: string
+    icon: any
+    isLoading: boolean
+    iconColor?: string
   }) => (
     <div className="bg-white dark:bg-[#1F1F1F] border border-gray-200 dark:border-gray-700 rounded-lg p-4 shadow-md hover:shadow-lg transition-shadow duration-200">
       <div className="flex items-start justify-between">
@@ -128,10 +128,10 @@ export default function Dashboard() {
     label,
     ariaLabel;
   }: {
-    onClick: () => void;
-    icon: any;
-    label: string;
-    ariaLabel: string;
+    onClick: () => void
+    icon: any
+    label: string
+    ariaLabel: string
   }) => (
     <button
       onClick={onClick}

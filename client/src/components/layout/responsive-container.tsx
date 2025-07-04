@@ -2,10 +2,10 @@ import { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
 interface ResponsiveContainerProps {
-  children: ReactNode;
-  className?: string;
-  maxWidth?: "sm" | "md" | "lg" | "xl" | "2xl" | "full";
-  padding?: "none" | "sm" | "md" | "lg";
+  children: ReactNode
+  className?: string
+  maxWidth?: "sm" | "md" | "lg" | "xl" | "2xl" | "full"
+  padding?: "none" | "sm" | "md" | "lg"
 }
 
 export function ResponsiveContainer({

@@ -2,9 +2,9 @@ import { Database, Wifi } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface CachedDataIndicatorProps {
-  isFromCache?: boolean;
-  className?: string;
-  size?: 'sm' | 'md' | 'lg';
+  isFromCache?: boolean
+  className?: string
+  size?: 'sm' | 'md' | 'lg'
 }
 
 export const CachedDataIndicator = ({
@@ -46,9 +46,9 @@ export const OfflineDataBanner = ({
   title = "Showing cached data",
   description = "This data was saved offline and may not be current"
 }: {
-  isFromCache?: boolean;
-  title?: string;
-  description?: string;
+  isFromCache?: boolean
+  title?: string
+  description?: string
 }) => {
   if (!isFromCache) return null;
 

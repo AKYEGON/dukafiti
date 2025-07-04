@@ -6,12 +6,12 @@ import { SaleLineItemComponent, type SaleLineItem } from "./sale-line-item";
 import { formatCurrency } from "@/lib/utils";
 
 interface MiniCartProps {
-  items: SaleLineItem[];
-  onQuantityChange: (id: string, quantity: number) => void;
-  onRemoveItem: (id: string) => void;
-  onClearCart: () => void;
-  onCheckout: () => void;
-  isProcessing?: boolean;
+  items: SaleLineItem[]
+  onQuantityChange: (id: string, quantity: number) => void
+  onRemoveItem: (id: string) => void
+  onClearCart: () => void
+  onCheckout: () => void
+  isProcessing?: boolean
 }
 
 export function MiniCart({

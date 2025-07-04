@@ -11,12 +11,12 @@ import { type SaleLineItem } from "@/components/sales/sale-line-item";
 import { type Customer } from "@shared/schema";
 
 interface SaleConfirmationModalProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  items: SaleLineItem[];
-  paymentMethod: 'cash' | 'credit' | 'mobileMoney' | '';
-  onConfirm: (customer?: { name: string; phone?: string; isNew?: boolean }) => void;
-  isProcessing?: boolean;
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  items: SaleLineItem[]
+  paymentMethod: 'cash' | 'credit' | 'mobileMoney' | ''
+  onConfirm: (customer?: { name: string; phone?: string; isNew?: boolean }) => void
+  isProcessing?: boolean
 }
 
 export function SaleConfirmationModal({
@@ -38,7 +38,7 @@ export function SaleConfirmationModal({
   // Fetch existing customers
   const { data: customers = [] } = useQuery<Customer[]>({
     queryKey: ["/api/customers"],
-    enabled: paymentMethod === 'credit' && open;
+    enabled: paymentMethod === 'credit' && open
   });
 
   const total = items.reduce((sum, item) => sum + parseFloat(item.total), 0);
@@ -77,7 +77,7 @@ export function SaleConfirmationModal({
       onConfirm({
         name: customerName.trim(),
         phone: customerPhone.trim() || undefined,
-        isNew: isNewCustomer;
+        isNew: isNewCustomer
       });
     } else {
       onConfirm();
@@ -92,11 +92,11 @@ export function SaleConfirmationModal({
 
   const getPaymentMethodIcon = (method: string) => {
     switch (method) {
-      case 'cash': return <Banknote className="w-4 h-4" />;
+      case 'cash': return <Banknote className="w-4 h-4" />
 
-      case 'mobileMoney': return <Smartphone className="w-4 h-4" />;
-      case 'credit': return <User className="w-4 h-4" />;
-      default: return <CreditCard className="w-4 h-4" />;
+      case 'mobileMoney': return <Smartphone className="w-4 h-4" />
+      case 'credit': return <User className="w-4 h-4" />
+      default: return <CreditCard className="w-4 h-4" />
     }
   };
 

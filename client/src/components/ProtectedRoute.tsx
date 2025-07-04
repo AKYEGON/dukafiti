@@ -3,7 +3,7 @@ import { useAuth } from '@/contexts/SupabaseAuthClean';
 import { useLocation } from 'wouter';
 
 interface ProtectedRouteProps {
-  children: React.ReactNode;
+  children: React.ReactNode
 }
 
 export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {

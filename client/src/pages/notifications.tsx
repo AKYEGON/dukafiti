@@ -12,7 +12,7 @@ export function NotificationsPage() {
   // Fetch notifications
   const { data: notifications = [], isLoading } = useQuery<Notification[]>({
     queryKey: ['/api/notifications'],
-    enabled: true;
+    enabled: true
   });
 
   // Mark all as read mutation
@@ -26,8 +26,8 @@ export function NotificationsPage() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/notifications/unread-count'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/notifications'] })
+      queryClient.invalidateQueries({ queryKey: ['/api/notifications/unread-count'] })
     }
   });
 
@@ -42,8 +42,8 @@ export function NotificationsPage() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/notifications/unread-count'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/notifications'] })
+      queryClient.invalidateQueries({ queryKey: ['/api/notifications/unread-count'] })
     }
   });
 
@@ -58,8 +58,8 @@ export function NotificationsPage() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/notifications'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/notifications/unread-count'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/notifications'] })
+      queryClient.invalidateQueries({ queryKey: ['/api/notifications/unread-count'] })
     }
   });
 

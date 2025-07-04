@@ -1,22 +1,22 @@
 // Enhanced offline queue management supporting all CRUD operations
 export interface QueuedAction {
-  id: string;
-  timestamp: number;
-  url: string;
-  method: 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+  id: string
+  timestamp: number
+  url: string
+  method: 'POST' | 'PUT' | 'PATCH' | 'DELETE'
   headers: Record<string, string>;
-  body: string;
-  type: 'sale' | 'inventory' | 'customer' | 'other';
-  description: string;
-  retryCount: number;
-  maxRetries: number;
+  body: string
+  type: 'sale' | 'inventory' | 'customer' | 'other'
+  description: string
+  retryCount: number
+  maxRetries: number
 }
 
 export interface CachedData {
-  key: string;
-  data: any;
-  timestamp: number;
-  expires?: number;
+  key: string
+  data: any
+  timestamp: number
+  expires?: number
 }
 
 class EnhancedOfflineQueue {
@@ -24,7 +24,7 @@ class EnhancedOfflineQueue {
   private dbVersion = 3;
   private actionStoreName = 'queuedActions';
   private cacheStoreName = 'dataCache';
-  private db: IDBDatabase | null = null;
+  private db: IDBDatabase | null = null
 
   async init(): Promise<void> {
     return new Promise((resolve, reject) => {
@@ -45,15 +45,15 @@ class EnhancedOfflineQueue {
 
         // Create object store for queued actions
         if (!db.objectStoreNames.contains(this.actionStoreName)) {
-          const store = db.createObjectStore(this.actionStoreName, { keyPath: 'id' });
-          store.createIndex('timestamp', 'timestamp', { unique: false });
-          store.createIndex('type', 'type', { unique: false });
+          const store = db.createObjectStore(this.actionStoreName, { keyPath: 'id' })
+          store.createIndex('timestamp', 'timestamp', { unique: false })
+          store.createIndex('type', 'type', { unique: false })
           }
 
         // Create object store for cached data
         if (!db.objectStoreNames.contains(this.cacheStoreName)) {
-          const store = db.createObjectStore(this.cacheStoreName, { keyPath: 'key' });
-          store.createIndex('timestamp', 'timestamp', { unique: false });
+          const store = db.createObjectStore(this.cacheStoreName, { keyPath: 'key' })
+          store.createIndex('timestamp', 'timestamp', { unique: false })
           }
       };
     });
@@ -81,7 +81,7 @@ class EnhancedOfflineQueue {
       type,
       description,
       retryCount: 0,
-      maxRetries: 3;
+      maxRetries: 3
     };
 
     return new Promise((resolve, reject) => {
@@ -204,7 +204,7 @@ class EnhancedOfflineQueue {
       key,
       data,
       timestamp: Date.now(),
-      expires: expiresInMinutes ? Date.now() + (expiresInMinutes * 60 * 1000) : undefined;
+      expires: expiresInMinutes ? Date.now() + (expiresInMinutes * 60 * 1000) : undefined
     };
 
     return new Promise((resolve, reject) => {
@@ -349,7 +349,7 @@ export async function processQueuedActions(): Promise<void> {
         const response = await fetch(action.url, {
           method: action.method,
           headers: action.headers,
-          body: action.body;
+          body: action.body
         });
 
         if (response.ok) {
@@ -377,7 +377,7 @@ export async function processQueuedActions(): Promise<void> {
 
         // Show error toast
         if (window.dispatchEvent) {
-          const errorMessage = error instanceof Error ? error.message : String(error);
+          const errorMessage = error instanceof Error ? error.message : String(error)
           window.dispatchEvent(new CustomEvent('offline-sync-error', {
             detail: { action, error: errorMessage }
           }));
@@ -399,8 +399,8 @@ export async function offlineCapableFetch(
   url: string,
   options: RequestInit = {},
   queueOptions?: {
-    type?: 'sale' | 'inventory' | 'customer' | 'other';
-    description?: string;
+    type?: 'sale' | 'inventory' | 'customer' | 'other'
+    description?: string
   }
 ): Promise<Response> {
   const method = (options.method || 'GET').toUpperCase();
@@ -431,7 +431,7 @@ export async function offlineCapableFetch(
     }
 
     const body = options.body || '';
-    const bodyData = typeof body === 'string' ? JSON.parse(body || '{}') : body;
+    const bodyData = typeof body === 'string' ? JSON.parse(body || '{}') : body
 
     await enhancedOfflineQueue.queueAction(
       url,

@@ -2,15 +2,15 @@ import { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 
 interface ResponsiveGridProps {
-  children: ReactNode;
-  className?: string;
+  children: ReactNode
+  className?: string
   columns?: {
-    mobile?: number;
-    tablet?: number;
-    desktop?: number;
+    mobile?: number
+    tablet?: number
+    desktop?: number
   };
-  gap?: "sm" | "md" | "lg";
-  minItemWidth?: string;
+  gap?: "sm" | "md" | "lg"
+  minItemWidth?: string
 }
 
 export function ResponsiveGrid({
@@ -42,7 +42,7 @@ export function ResponsiveGrid({
         className
       )}
       style={{
-        gridTemplateColumns: minItemWidth ? `repeat(auto-fit, minmax(${minItemWidth}, 1fr))` : undefined;
+        gridTemplateColumns: minItemWidth ? `repeat(auto-fit, minmax(${minItemWidth}, 1fr))` : undefined
       }}
     >
       {children}
@@ -52,10 +52,10 @@ export function ResponsiveGrid({
 
 // Responsive card component optimized for mobile and tablet
 interface ResponsiveCardProps {
-  children: ReactNode;
-  className?: string;
-  hover?: boolean;
-  padding?: "sm" | "md" | "lg";
+  children: ReactNode
+  className?: string
+  hover?: boolean
+  padding?: "sm" | "md" | "lg"
 }
 
 export function ResponsiveCard({

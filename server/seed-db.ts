@@ -33,7 +33,7 @@ export async function seedDatabase() {
           price: '150.00',
           stock: 50,
           category: 'Grains',
-          lowStockThreshold: 10;
+          lowStockThreshold: 10
         },
         {
           name: 'Cooking Oil 1L',
@@ -42,7 +42,7 @@ export async function seedDatabase() {
           price: '120.00',
           stock: 30,
           category: 'Cooking',
-          lowStockThreshold: 5;
+          lowStockThreshold: 5
         },
         {
           name: 'Sugar 1kg',
@@ -51,7 +51,7 @@ export async function seedDatabase() {
           price: '80.00',
           stock: 25,
           category: 'Baking',
-          lowStockThreshold: 8;
+          lowStockThreshold: 8
         },
         {
           name: 'Bread Loaf',
@@ -60,7 +60,7 @@ export async function seedDatabase() {
           price: '45.00',
           stock: 20,
           category: 'Bakery',
-          lowStockThreshold: 5;
+          lowStockThreshold: 5
         },
         {
           name: 'Milk 1L',
@@ -69,7 +69,7 @@ export async function seedDatabase() {
           price: '60.00',
           stock: 15,
           category: 'Dairy',
-          lowStockThreshold: 10;
+          lowStockThreshold: 10
         },
         {
           name: 'Eggs (12 pcs)',
@@ -78,7 +78,7 @@ export async function seedDatabase() {
           price: '180.00',
           stock: 40,
           category: 'Dairy',
-          lowStockThreshold: 15;
+          lowStockThreshold: 15
         }
       ];
 
@@ -121,7 +121,7 @@ export async function seedDatabase() {
         theme: 'light',
         currency: 'KES',
         language: 'en',
-        notifications: true;
+        notifications: true
       });
 
       // Create sample store profile
@@ -141,14 +141,14 @@ export async function seedDatabase() {
           title: 'Welcome to DukaFiti!',
           message: 'Your business management system is ready to use.',
           type: 'success',
-          isRead: false;
+          isRead: false
         },
         {
           userId: defaultUser.id,
           title: 'Low Stock Alert',
           message: 'Some products are running low on stock.',
           type: 'warning',
-          isRead: false;
+          isRead: false
         }
       ]);
 

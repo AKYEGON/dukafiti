@@ -11,68 +11,68 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 
 // Types
 interface SummaryData {
-  totalSales: string;
-  cashSales: string;
-  mobileMoneySales: string;
-  creditSales: string;
+  totalSales: string
+  cashSales: string
+  mobileMoneySales: string
+  creditSales: string
 }
 
 interface TrendData {
-  label: string;
-  value: number;
+  label: string
+  value: number
 }
 
 interface TopCustomer {
-  customerName: string;
-  totalOwed: string;
-  outstandingOrders: number;
+  customerName: string
+  totalOwed: string
+  outstandingOrders: number
 }
 
 interface TopProduct {
-  productName: string;
-  unitsSold: number;
-  totalRevenue: string;
+  productName: string
+  unitsSold: number
+  totalRevenue: string
 }
 
 interface TopItem {
-  name: string;
-  unitsSold: number;
-  revenue: string;
+  name: string
+  unitsSold: number
+  revenue: string
 }
 
 interface CustomerCredit {
-  name: string;
-  phone: string;
-  balance: string;
+  name: string
+  phone: string
+  balance: string
 }
 
 interface OrderRecord {
-  orderId: number;
-  customerName: string;
-  total: string;
-  paymentMethod: string;
-  date: string;
+  orderId: number
+  customerName: string
+  total: string
+  paymentMethod: string
+  date: string
   products?: Array<{
-    name: string;
-    quantity: number;
+    name: string
+    quantity: number
   }>;
 }
 
 interface OrdersResponse {
-  orders: OrderRecord[];
-  total: number;
-  page: number;
-  totalPages: number;
+  orders: OrderRecord[]
+  total: number
+  page: number
+  totalPages: number
 }
 
 // Utility functions
 const formatCurrency = (amount: string | number): string => {
-  const num = typeof amount === 'string' ? parseFloat(amount) : amount;
+  const num = typeof amount === 'string' ? parseFloat(amount) : amount
   return new Intl.NumberFormat('en-KE', {
     style: 'currency',
     currency: 'KES',
     minimumFractionDigits: 0,
-    maximumFractionDigits: 2;
+    maximumFractionDigits: 2
   }).format(num);
 };
 
@@ -120,7 +120,7 @@ export default function Reports() {
     cashSales: rawSummaryData.paymentBreakdown?.cash || '0',
     mobileMoneySales: rawSummaryData.paymentBreakdown?.mobileMoney || '0',
     creditSales: rawSummaryData.paymentBreakdown?.credit || '0'
-  } : undefined;
+  } : undefined
 
   // Fetch trend data
   const { data: rawTrendData, isLoading: trendLoading, error: trendError } = useQuery({
@@ -135,7 +135,7 @@ export default function Reports() {
   // Transform trend data format
   const trendData: TrendData[] | undefined = rawTrendData?.map((item: any) => ({
     label: item.date || item.label,
-    value: item.value || 0;
+    value: item.value || 0
   }));
 
   // Fetch top products data
@@ -152,7 +152,7 @@ export default function Reports() {
   const topItemsData: TopItem[] | undefined = topProductsData?.map(product => ({
     name: product.productName,
     unitsSold: product.unitsSold,
-    revenue: product.totalRevenue;
+    revenue: product.totalRevenue
   }));
 
   // Fetch customer credits data
@@ -169,7 +169,7 @@ export default function Reports() {
   const customerCreditsData: CustomerCredit[] | undefined = topCustomersData?.map(customer => ({
     name: customer.customerName,
     phone: '', // Not available in current data
-    balance: customer.totalOwed;
+    balance: customer.totalOwed
   }));
 
   // Fetch orders data
@@ -203,8 +203,8 @@ export default function Reports() {
     })) || [],
     total: rawOrdersData.total || 0,
     page: rawOrdersData.page || 1,
-    totalPages: rawOrdersData.totalPages || 1;
-  } : undefined;
+    totalPages: rawOrdersData.totalPages || 1
+  } : undefined
 
   // CSV Export Functions
   const exportSummaryCSV = async () => {

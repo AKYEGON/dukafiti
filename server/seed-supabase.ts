@@ -29,7 +29,7 @@ async function seedSupabaseDatabase() {
         stock: 100,
         category: 'Beverages',
         lowStockThreshold: 10,
-        salesCount: 25;
+        salesCount: 25
       },
       {
         name: 'Bread White',
@@ -39,7 +39,7 @@ async function seedSupabaseDatabase() {
         stock: 20,
         category: 'Bakery',
         lowStockThreshold: 5,
-        salesCount: 18;
+        salesCount: 18
       },
       {
         name: 'Milk 1L',
@@ -49,7 +49,7 @@ async function seedSupabaseDatabase() {
         stock: 50,
         category: 'Dairy',
         lowStockThreshold: 10,
-        salesCount: 30;
+        salesCount: 30
       },
       {
         name: 'Rice 2kg',
@@ -59,7 +59,7 @@ async function seedSupabaseDatabase() {
         stock: 25,
         category: 'Grains',
         lowStockThreshold: 5,
-        salesCount: 12;
+        salesCount: 12
       },
       {
         name: 'Cooking Oil 1L',
@@ -69,7 +69,7 @@ async function seedSupabaseDatabase() {
         stock: 15,
         category: 'Cooking',
         lowStockThreshold: 5,
-        salesCount: 8;
+        salesCount: 8
       }
     ];
 
@@ -86,19 +86,19 @@ async function seedSupabaseDatabase() {
         name: 'Mary Wanjiku',
         phone: '+254712345678',
         email: 'mary.wanjiku@example.com',
-        balance: 150.00;
+        balance: 150.00
       },
       {
         name: 'John Kamau',
         phone: '+254723456789',
         email: 'john.kamau@example.com',
-        balance: 0.00;
+        balance: 0.00
       },
       {
         name: 'Grace Akinyi',
         phone: '+254734567890',
         email: 'grace.akinyi@example.com',
-        balance: 75.00;
+        balance: 75.00
       }
     ];
 
@@ -164,21 +164,21 @@ async function seedSupabaseDatabase() {
         title: 'Low Stock Alert',
         message: 'Rice 2kg is running low (5 items remaining)',
         type: 'warning',
-        isRead: false;
+        isRead: false
       },
       {
         userId: userId,
         title: 'Sale Completed',
         message: 'New sale of KES 145.00 completed',
         type: 'success',
-        isRead: false;
+        isRead: false
       },
       {
         userId: userId,
         title: 'Customer Payment',
         message: 'Mary Wanjiku made a payment of KES 100.00',
         type: 'info',
-        isRead: true;
+        isRead: true
       }
     ];
 
@@ -212,7 +212,7 @@ async function seedSupabaseDatabase() {
         currency: 'KES',
         language: 'en',
         notifications: true,
-        mpesaEnabled: true;
+        mpesaEnabled: true
       };
 
       await supabaseDb.createUserSettings(userSettings);

@@ -27,14 +27,14 @@ export async function apiRequest(
   url: string,
   data?: unknown | undefined,
   offlineOptions?: {
-    type?: 'sale' | 'inventory' | 'customer' | 'other';
-    description?: string;
+    type?: 'sale' | 'inventory' | 'customer' | 'other'
+    description?: string
   }
 ): Promise<Response> {
   // Get Supabase session token
-  const { data: { session } } = await supabase.auth.getSession();
+  const { data: { session } } = await supabase.auth.getSession()
 
-  const headers: Record<string, string> = data ? { 'Content-Type': 'application/json' } : {};
+  const headers: Record<string, string> = data ? { 'Content-Type': 'application/json' } : {}
 
   // Add authorization header if we have a session
   if (session?.access_token) {
@@ -55,12 +55,12 @@ export async function apiRequest(
 
 type UnauthorizedBehavior = 'returnNull' | 'throw';
 export const getQueryFn: <T>(options: {
-  on401: UnauthorizedBehavior;
+  on401: UnauthorizedBehavior
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
     // Get Supabase session token
-    const { data: { session } } = await supabase.auth.getSession();
+    const { data: { session } } = await supabase.auth.getSession()
 
     const headers: Record<string, string> = {};
 
@@ -86,7 +86,7 @@ export const getQueryFn: <T>(options: {
 
     // Add cache indicator to the data if served from cache
     if (isFromCache && typeof data === 'object' && data !== null) {
-      return { ...data, _servedFromCache: true };
+      return { ...data, _servedFromCache: true }
     }
 
     return data;
@@ -108,7 +108,7 @@ export const queryClient = new QueryClient({
       }
     },
     mutations: {
-      retry: false;
+      retry: false
     }
   }
 });
