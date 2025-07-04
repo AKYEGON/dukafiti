@@ -7,7 +7,7 @@ cmds = [
 ]
 
 [phases.start]
-cmd = "node server.js"
+cmd = "node dist/index.js"
 
 [variables]
 NODE_ENV = "production"
