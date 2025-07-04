@@ -98,7 +98,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         username: email,
         email: email,
         phone: null,
-        passwordHash: hash;
+        passwordHash: hash
       };
 
       await storage.createUser(userData);
@@ -137,7 +137,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           email: user.email,
           username: user.username,
           phone: user.phone,
-          storeProfile: storeProfile;
+          storeProfile: storeProfile
         } 
       });
     } catch (error) {
@@ -172,7 +172,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         id: user.id,
         phone: user.phone || email, 
         email: user.email,
-        username: user.username;
+        username: user.username
       };
 
       res.status(200).json({ message: "Login successful", user: { email: user.email, username: user.username } });
@@ -388,7 +388,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         customerId: customerId,
         amount: paymentAmount.toFixed(2),
         method: method,
-        reference: note || null;
+        reference: note || null
       };
 
       const payment = await storage.createPayment(paymentData);
@@ -456,7 +456,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         customerId: parseInt(customerId),
         amount: parseFloat(amount).toFixed(2),
         method: method,
-        reference: reference || null;
+        reference: reference || null
       };
 
       const payment = await storage.createPayment(paymentData);
@@ -597,7 +597,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           productId: product.id,
           productName: product.name,
           quantity: item.qty,
-          price: product.price;
+          price: product.price
         });
       }
       
@@ -645,7 +645,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         total: total.toFixed(2),
         paymentMethod: paymentType,
         status,
-        reference: null;
+        reference: null
       };
       
       const order = await storage.createOrder(orderData);
@@ -659,7 +659,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           productId: item.productId,
           productName: item.productName,
           quantity: item.quantity,
-          price: item.price;
+          price: item.price
         });
         
         // Get the product to check if it has unknown quantity
@@ -674,14 +674,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
           if (updatedProduct) {
             updatedProducts.push({
               productId: item.productId,
-              newQuantity: updatedProduct.stock;
+              newQuantity: updatedProduct.stock
             });
           }
         } else {
           // For unknown quantity items, don't update stock but still broadcast the event
           updatedProducts.push({
             productId: item.productId,
-            newQuantity: null // Keep as unknown quantity;
+            newQuantity: null // Keep as unknown quantity
           });
         }
         
@@ -698,7 +698,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           total: total.toFixed(2),
           paymentType,
           status,
-          items: enrichedItems;
+          items: enrichedItems
         }
       });
       
@@ -707,7 +707,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         broadcastToClients({
           type: 'inventoryUpdate',
           productId: product.productId,
-          newQuantity: product.newQuantity;
+          newQuantity: product.newQuantity
         });
       });
       
@@ -884,7 +884,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Initialize 24 hours with zero sales
       const hourlyData = Array.from({ length: 24 }, (_, i) => ({
         hour: `${i.toString().padStart(2, '0')}:00`,
-        sales: 0;
+        sales: 0
       }));
 
       // Aggregate sales by hour
@@ -904,7 +904,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const period = req.query.period || 'today';
       const today = new Date();
-      let startDate: Date;
+      let startDate: Date
 
       switch (period) {
         case 'week':
@@ -924,7 +924,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       );
 
       // Get all order items for the period
-      const itemSales: { [key: number]: { name: string; unitsSold: number; revenue: number } } = {};
+      const itemSales: { [key: number]: { name: string; unitsSold: number revenue: number } } = {};
       
       for (const order of periodOrders) {
         const orderItems = await storage.getOrderItems(order.id);
@@ -934,7 +934,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             itemSales[item.productId] = {
               name: product?.name || 'Unknown Product',
               unitsSold: 0,
-              revenue: 0;
+              revenue: 0
             };
           }
           itemSales[item.productId].unitsSold += item.quantity;
@@ -964,7 +964,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { period = 'daily', q = '', page = '1', limit = '20' } = req.query;
       const today = new Date();
-      let startDate: Date;
+      let startDate: Date
 
       // Calculate date range based on period
       switch (period) {
@@ -1024,7 +1024,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         // Convert items to products format for frontend
         const products = items.map(item => ({
           name: item.productName,
-          quantity: item.qty;
+          quantity: item.qty
         }));
 
         return {
@@ -1035,7 +1035,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           paymentMethod: order.paymentMethod,
           status: order.status,
           reference: order.reference,
-          products: products;
+          products: products
         };
       }));
 
@@ -1062,7 +1062,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         .map(customer => ({
           name: customer.name,
           phone: customer.phone || 'N/A',
-          balance: customer.balance;
+          balance: customer.balance
         }));
 
       res.json(customerCredits);
@@ -1078,7 +1078,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const period = req.query.period || 'today';
       const orders = await storage.getOrders();
       
-      let startDate: Date;
+      let startDate: Date
       let endDate = new Date();
       
       switch (period) {
@@ -1177,7 +1177,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           
           data.push({
             label: hour.toString().padStart(2, '0') + ':00',
-            value: hourSales;
+            value: hourSales
           });
         }
       } else if (period === 'weekly') {
@@ -1202,7 +1202,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           
           data.push({
             label: dayNames[day.getDay()],
-            value: daySales;
+            value: daySales
           });
         }
       } else if (period === 'monthly') {
@@ -1225,7 +1225,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           
           data.push({
             label: day.getDate().toString(),
-            value: daySales;
+            value: daySales
           });
         }
       }
@@ -1269,7 +1269,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const orderItems = await storage.getAllOrderItems();
 
       // Filter orders by period
-      let startDate: Date;
+      let startDate: Date
       const now = new Date();
       
       switch (period) {
@@ -1285,8 +1285,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           startDate = new Date(now);
           startDate.setMonth(now.getMonth() - 1);
           break;
-        default:
-          startDate = new Date(now);
+        default: startDate = new Date(now)
           startDate.setHours(0, 0, 0, 0);
       }
 
@@ -1314,7 +1313,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         return acc;
-      }, [] as Array<{ productName: string; unitsSold: number; totalRevenue: string }>)
+      }, [] as Array<{ productName: string unitsSold: number totalRevenue: string }>)
       .sort((a, b) => b.unitsSold - a.unitsSold)
       .slice(0, 5);
 
@@ -1372,7 +1371,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const orders = await storage.getOrders();
       
       // Filter orders by period
-      let startDate: Date;
+      let startDate: Date
       let endDate = new Date();
       
       switch (period) {
@@ -1396,7 +1395,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       
       // Get all order items for filtered orders
-      const flattenedRows: any[] = [];
+      const flattenedRows: any[] = []
       
       for (const order of filteredOrders) {
         const orderItems = await storage.getOrderItems(order.id);
@@ -1750,7 +1749,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const query = q.toLowerCase();
-      const results: any[] = [];
+      const results: any[] = []
       
       // Search products
       const products = await storage.searchProducts(query);

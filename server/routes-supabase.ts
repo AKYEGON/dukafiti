@@ -428,7 +428,7 @@ export async function registerSupabaseRoutes(app: Express): Promise<Server> {
   app.get('/api/reports/summary', requireAuth, async (req, res) => {
     try {
       const { period = 'today' } = req.query;
-      let startDate: Date;
+      let startDate: Date
       const now = new Date();
 
       switch (period) {
@@ -490,14 +490,14 @@ export async function registerSupabaseRoutes(app: Express): Promise<Server> {
   app.get('/api/reports/trend', requireAuth, async (req, res) => {
     try {
       const { period = 'daily' } = req.query;
-      let trendData: any[] = [];
+      let trendData: any[] = []
 
       switch (period) {
         case 'daily':
           // 24 hourly points
           trendData = Array.from({ length: 24 }, (_, i) => ({
             label: `${i.toString().padStart(2, '0')}:00`,
-            value: 0;
+            value: 0
           }));
           
           const todayStart = new Date();
@@ -543,7 +543,7 @@ export async function registerSupabaseRoutes(app: Express): Promise<Server> {
           // 30 daily points
           trendData = Array.from({ length: 30 }, (_, i) => ({
             label: (i + 1).toString(),
-            value: 0;
+            value: 0
           }));
           
           const monthStart = new Date();
@@ -580,7 +580,7 @@ export async function registerSupabaseRoutes(app: Express): Promise<Server> {
       res.json(topItems.map(item => ({
         name: item.productName,
         unitsSold: item.unitsSold,
-        revenue: item.totalRevenue;
+        revenue: item.totalRevenue
       })));
     } catch (error) {
       console.error('Top items reports error:', error);
@@ -595,7 +595,7 @@ export async function registerSupabaseRoutes(app: Express): Promise<Server> {
       res.json(topProducts.map(product => ({
         productName: product.productName,
         unitsSold: product.unitsSold,
-        totalRevenue: product.totalRevenue;
+        totalRevenue: product.totalRevenue
       })));
     } catch (error) {
       console.error('Top products reports error:', error);
@@ -617,7 +617,7 @@ export async function registerSupabaseRoutes(app: Express): Promise<Server> {
       res.json(customerCredits.map(customer => ({
         name: customer.name,
         phone: customer.phone || 'N/A',
-        balance: customer.balance;
+        balance: customer.balance
       })));
     } catch (error) {
       console.error('Customer credits reports error:', error);
@@ -629,7 +629,7 @@ export async function registerSupabaseRoutes(app: Express): Promise<Server> {
   app.get('/api/reports/orders', requireAuth, async (req, res) => {
     try {
       const { period = 'daily', page = '1', limit = '20' } = req.query;
-      let startDate: Date;
+      let startDate: Date
       const now = new Date();
 
       switch (period) {
@@ -678,7 +678,7 @@ export async function registerSupabaseRoutes(app: Express): Promise<Server> {
             reference: order.reference,
             products: items.map(item => ({
               name: item.product_name,
-              quantity: item.quantity;
+              quantity: item.quantity
             }))
           };
         })
@@ -870,11 +870,11 @@ export async function registerSupabaseRoutes(app: Express): Promise<Server> {
       }
       
       const results: Array<{
-        id: number;
-        type: string;
-        name: string;
-        subtitle: string;
-        url: string;
+        id: number
+        type: string
+        name: string
+        subtitle: string
+        url: string
       }> = [];
       
       // Search products

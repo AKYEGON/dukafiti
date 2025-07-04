@@ -410,7 +410,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           orderId: order.id, 
           total, 
           customerName: finalCustomerName,
-          paymentMethod: paymentType;
+          paymentMethod: paymentType
         }
       });
       
@@ -880,7 +880,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const period = req.query.period || 'today';
       
-      let startDate: Date;
+      let startDate: Date
       let endDate = new Date();
       
       switch (period) {
@@ -953,7 +953,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // 24 hours
           trendData = Array.from({ length: 24 }, (_, i) => ({
             label: `${i.toString().padStart(2, '0')}:00`,
-            value: 0;
+            value: 0
           }));
           
           const today = new Date();
@@ -993,7 +993,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           // 30 days
           trendData = Array.from({ length: 30 }, (_, i) => ({
             label: (i + 1).toString(),
-            value: 0;
+            value: 0
           }));
           
           const monthStart = new Date();
@@ -1058,7 +1058,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(topCustomers.map(customer => ({
         customerName: customer.customerName,
         totalOwed: parseFloat(customer.totalOwed).toFixed(2),
-        outstandingOrders: 1;
+        outstandingOrders: 1
       })));
     } catch (error) {
       console.error('Top customers reports error:', error);
@@ -1104,7 +1104,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(customerCredits.map(customer => ({
         name: customer.name,
         phone: customer.phone || 'N/A',
-        balance: customer.balance;
+        balance: customer.balance
       })));
     } catch (error) {
       console.error('Customer credits reports error:', error);
@@ -1116,7 +1116,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { period = 'daily', page = '1', limit = '20' } = req.query;
       const today = new Date();
-      let startDate: Date;
+      let startDate: Date
 
       switch (period) {
         case 'weekly':
@@ -1172,7 +1172,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             reference: order.reference,
             products: items.map(item => ({
               name: item.productName,
-              quantity: item.quantity;
+              quantity: item.quantity
             }))
           };
         })
