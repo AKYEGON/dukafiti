@@ -9,7 +9,7 @@ import { MobileBottomNav } from "@/components/layout/mobile-bottom-nav";
 import { TopBar } from "@/components/TopBar";
 import { config } from "./lib/config";
 
-import { AuthProvider, useAuth } from "@/contexts/SimpleAuthContext";
+import { AuthProvider, useAuth } from "@/contexts/SupabaseAuthContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { useWebSocket } from "@/hooks/use-websocket";
 import { useSupabaseRealtime } from "@/hooks/useSupabaseRealtime";
@@ -30,6 +30,7 @@ import AuthCallback from "@/pages/auth-callback";
 import Onboarding from "@/pages/onboarding";
 import NotFound from "@/pages/not-found";
 import SettingsPage from "@/pages/settings";
+import Debug from "@/pages/debug";
 
 function AuthenticatedApp() {
   // Initialize WebSocket connection for real-time notifications
@@ -125,6 +126,7 @@ function Router() {
       <Route path="/register" component={Register} />
       <Route path="/auth/callback" component={AuthCallback} />
       <Route path="/onboarding" component={Onboarding} />
+      <Route path="/debug" component={Debug} />
       
       {/* Protected routes */}
       <Route path="/dashboard">

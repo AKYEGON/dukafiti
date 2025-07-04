@@ -40,9 +40,11 @@ export default function Register() {
   const onSubmit = async (data: RegisterFormData) => {
     setIsLoading(true);
     try {
-      const { error } = await signup(data.email, data.password, data.name);
+      console.log('Attempting registration with:', data.email);
+      const { error } = await signup(data.email, data.password);
       
       if (error) {
+        console.error('Registration error from Supabase:', error);
         toast({
           title: "Registration failed",
           description: error.message || "Failed to create account",
