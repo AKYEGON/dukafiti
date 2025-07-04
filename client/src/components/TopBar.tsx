@@ -13,7 +13,7 @@ import {
   X,
   Package,
   Users,
-  ShoppingCart;
+  ShoppingCart
 } from 'lucide-react';
 import { useDebounce } from '@/hooks/useDebounce';
 import { useOutsideClick } from '@/hooks/useOutsideClick';

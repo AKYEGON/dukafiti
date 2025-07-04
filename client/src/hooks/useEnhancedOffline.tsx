@@ -166,7 +166,7 @@ export const useEnhancedOffline = () => {
     isProcessing,
     forceSync,
     clearQueue,
-    getActionsByType;
+    getActionsByType
   };
 };
 

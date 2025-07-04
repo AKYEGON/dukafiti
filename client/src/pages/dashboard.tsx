@@ -11,7 +11,7 @@ import {
   TableCell,
   TableHead,
   TableHeader,
-  TableRow;
+  TableRow
 } from "@/components/ui/table";
 import {
   DollarSign,
@@ -20,7 +20,7 @@ import {
   Users,
   Plus,
   UserPlus,
-  BarChart3;
+  BarChart3
 } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -126,7 +126,7 @@ export default function Dashboard() {
     onClick,
     icon: Icon,
     label,
-    ariaLabel;
+    ariaLabel
   }: {
     onClick: () => void
     icon: any
