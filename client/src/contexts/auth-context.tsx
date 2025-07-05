@@ -7,9 +7,9 @@ interface AuthContextType {
   session: Session | null
   isLoading: boolean
   isAuthenticated: boolean
-  signIn: (email: string, password: string) => Promise<{ error?: any }>
-  signUp: (email: string, password: string) => Promise<{ error?: any }>
-  signOut: () => Promise<void>
+  login: (email: string, password: string) => Promise<{ error?: any }>
+  register: (email: string, password: string) => Promise<{ error?: any }>
+  logout: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -39,7 +39,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => subscription.unsubscribe()
   }, [])
 
-  const signIn = async (email: string, password: string) => {
+  const login = async (email: string, password: string) => {
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password
@@ -47,7 +47,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { error }
   }
 
-  const signUp = async (email: string, password: string) => {
+  const register = async (email: string, password: string) => {
     const { error } = await supabase.auth.signUp({
       email,
       password
@@ -55,7 +55,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return { error }
   }
 
-  const signOut = async () => {
+  const logout = async () => {
     await supabase.auth.signOut()
   }
 
@@ -64,9 +64,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     session,
     isLoading,
     isAuthenticated: !!user,
-    signIn,
-    signUp,
-    signOut
+    login,
+    register,
+    logout
   }
 
   return (
