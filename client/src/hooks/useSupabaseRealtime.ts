@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '../supabaseClient';
-import { useAuth } from '../contexts/SupabaseAuthClean';
+import { useAuth } from '../contexts/AuthContext';
 
 export function useSupabaseRealtime() {
   const queryClient = useQueryClient();
