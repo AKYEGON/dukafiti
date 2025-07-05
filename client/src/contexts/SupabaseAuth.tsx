@@ -32,10 +32,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    console.log('AuthProvider initializing...');
+    
     // Get initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(({ data: { session }, error }) => {
+      console.log('Initial session check:', { session, error });
       setSession(session);
       setUser(session?.user ?? null);
+      setIsLoading(false);
+    }).catch((error) => {
+      console.error('Error getting initial session:', error);
       setIsLoading(false);
     });
 

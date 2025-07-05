@@ -31,6 +31,7 @@ import Onboarding from "@/pages/onboarding";
 import NotFound from "@/pages/not-found";
 import SettingsPage from "@/pages/settings";
 import Debug from "@/pages/debug";
+import DebugAuth from "@/pages/debug-auth";
 
 function AuthenticatedApp() {
   // Initialize WebSocket connection for real-time notifications
@@ -127,6 +128,7 @@ function Router() {
       <Route path="/auth/callback" component={AuthCallback} />
       <Route path="/onboarding" component={Onboarding} />
       <Route path="/debug" component={Debug} />
+      <Route path="/debug-auth" component={DebugAuth} />
       
       {/* Protected routes */}
       <Route path="/dashboard">
@@ -171,6 +173,8 @@ function Router() {
 }
 
 function App() {
+  console.log('App component rendering...');
+  
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>

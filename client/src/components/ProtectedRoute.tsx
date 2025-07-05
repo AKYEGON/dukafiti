@@ -1,5 +1,5 @@
 import React from 'react';
-import { useAuth } from '@/contexts/SimpleAuth';
+import { useAuth } from '@/contexts/SupabaseAuth';
 import { useLocation } from 'wouter';
 
 interface ProtectedRouteProps {
