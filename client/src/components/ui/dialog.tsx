@@ -5,7 +5,13 @@ import { X } from "lucide-react"
 import { cn } from "@/lib/utils"
 const Dialog = DialogPrimitive.Root
 const DialogTrigger = DialogPrimitive.Trigger
-const DialogPortal = DialogPrimitive.Portal
+const DialogPortal = ({ children }: { children: React.ReactNode }) => {
+  const portalRoot = document.getElementById('portal-root')
+  if (portalRoot) {
+    return <DialogPrimitive.Portal container={portalRoot}>{children}</DialogPrimitive.Portal>
+  }
+  return <DialogPrimitive.Portal>{children}</DialogPrimitive.Portal>
+}
 const DialogClose = DialogPrimitive.Close
 const DialogOverlay = React.forwardRef<
   React.ElementRef<typeof DialogPrimitive.Overlay>,

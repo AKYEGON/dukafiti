@@ -4,7 +4,13 @@ import { cn } from "@/lib/utils"
 import { buttonVariants } from "@/components/ui/button"
 const AlertDialog = AlertDialogPrimitive.Root
 const AlertDialogTrigger = AlertDialogPrimitive.Trigger
-const AlertDialogPortal = AlertDialogPrimitive.Portal
+const AlertDialogPortal = ({ children }: { children: React.ReactNode }) => {
+  const portalRoot = document.getElementById('portal-root')
+  if (portalRoot) {
+    return <AlertDialogPrimitive.Portal container={portalRoot}>{children}</AlertDialogPrimitive.Portal>
+  }
+  return <AlertDialogPrimitive.Portal>{children}</AlertDialogPrimitive.Portal>
+}
 const AlertDialogOverlay = React.forwardRef<
   React.ElementRef<typeof AlertDialogPrimitive.Overlay>,
   React.ComponentPropsWithoutRef<typeof AlertDialogPrimitive.Overlay>

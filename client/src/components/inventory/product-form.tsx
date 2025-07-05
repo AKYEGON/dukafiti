@@ -40,7 +40,7 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
       name: "",
       sku: "",
       description: "",
-      price: "0",
+      price: 0,
       stock: 0,
       category: "",
       lowStockThreshold: 10,
@@ -56,7 +56,7 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
         name: product.name || "",
         sku: product.sku || "",
         description: product.description || "",
-        price: product.price || "0",
+        price: typeof product.price === 'number' ? product.price : 0,
         stock: hasUnknownQuantity ? 0 : (product.stock || 0),
         category: product.category || "",
         lowStockThreshold: product.lowStockThreshold || 10,
@@ -69,7 +69,7 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
         name: "",
         sku: "",
         description: "",
-        price: "0",
+        price: 0,
         stock: 0,
         category: "",
         lowStockThreshold: 10,
@@ -141,11 +141,11 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
         </DialogHeader>
 
         <Form {...form}>
-          <form onSubmit = {form.handleSubmit(onSubmit)} className = "space-y-6 pt-6">
+          <form onSubmit={form.handleSubmit((data) => onSubmit(data as InsertProduct))} className="space-y-6 pt-6">
             <div className = "space-y-4">
               <FormField
-                control = {form.control}
-                name = "name"
+                control={form.control as any}
+                name="name"
                 render = {({ field }) => (
                   <FormItem>
                     <FormLabel className = "text-sm font-medium text-gray-700 dark:text-gray-300">Product Name *</FormLabel>
@@ -162,8 +162,8 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
               />
 
               <FormField
-                control = {form.control}
-                name = "sku"
+                control={form.control as any}
+                name="sku"
                 render = {({ field }) => (
                   <FormItem>
                     <FormLabel className = "text-sm font-medium text-gray-700 dark:text-gray-300">SKU (Product Code) *</FormLabel>
@@ -181,8 +181,8 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
               />
 
               <FormField
-                control = {form.control}
-                name = "description"
+                control={form.control as any}
+                name="description"
                 render = {({ field }) => (
                   <FormItem>
                     <FormLabel className = "text-sm font-medium text-gray-700 dark:text-gray-300">Description</FormLabel>
@@ -206,8 +206,8 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
 
               <div className = "grid grid-cols-2 gap-4 mb-4">
                 <FormField
-                  control = {form.control}
-                  name = "price"
+                  control={form.control as any}
+                  name="price"
                   render = {({ field }) => (
                     <FormItem>
                       <FormLabel className = "text-sm font-medium text-gray-700 dark:text-gray-300">Price (KES) *</FormLabel>
@@ -226,8 +226,8 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
                 />
 
                 <FormField
-                  control = {form.control}
-                  name = "stock"
+                  control={form.control as any}
+                  name="stock"
                   render = {({ field }) => (
                     <FormItem>
                       <FormLabel className = "text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -293,8 +293,8 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
 
               <div className = "grid grid-cols-2 gap-4">
                 <FormField
-                  control = {form.control}
-                  name = "category"
+                  control={form.control as any}
+                  name="category"
                   render = {({ field }) => (
                     <FormItem>
                       <FormLabel className = "text-sm font-medium text-gray-700 dark:text-gray-300">Category</FormLabel>
@@ -311,8 +311,8 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
                 />
 
                 <FormField
-                  control = {form.control}
-                  name = "lowStockThreshold"
+                  control={form.control as any}
+                  name="lowStockThreshold"
                   render = {({ field }) => (
                     <FormItem>
                       <FormLabel className = "text-sm font-medium text-gray-700 dark:text-gray-300">Low Stock Alert</FormLabel>

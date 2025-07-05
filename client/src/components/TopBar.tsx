@@ -126,7 +126,7 @@ export function TopBar({ onToggleSidebar }: TopBarProps) {
           </Button>
 
           {/* Enhanced Search Bar */}
-          <div className="flex-1 max-w-lg relative">
+          <div className="flex-1 max-w-lg dropdown-trigger relative">
             <form onSubmit={handleSearchSubmit}>
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -156,7 +156,7 @@ export function TopBar({ onToggleSidebar }: TopBarProps) {
 
             {/* Enhanced Search Results Dropdown */}
             {showSearchResults && (
-              <div className="absolute top-full left-0 right-0 mt-1 bg-background border rounded-md shadow-lg max-h-80 overflow-y-auto z-50 min-w-0">
+              <div className="dropdown-content absolute top-full left-0 right-0 mt-1 bg-background border rounded-md shadow-lg max-h-80 overflow-y-auto z-[1002] min-w-0">
                 {searchLoading ? (
                   <div className="p-4 text-center text-sm text-muted-foreground">
                     <div className="flex items-center justify-center gap-2">
@@ -235,7 +235,7 @@ export function TopBar({ onToggleSidebar }: TopBarProps) {
             </Button>
 
             {/* Profile Dropdown */}
-            <div className="relative">
+            <div className="dropdown-trigger relative">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
@@ -249,7 +249,7 @@ export function TopBar({ onToggleSidebar }: TopBarProps) {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent 
                   align="end" 
-                  className="w-56 z-50" 
+                  className="dropdown-content w-56 z-[1002]" 
                   sideOffset={8}
                   avoidCollisions={true}
                   collisionPadding={8}

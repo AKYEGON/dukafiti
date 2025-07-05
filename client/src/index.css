@@ -61,6 +61,51 @@
     transform: none !important;
   }
   
+  /* Portal Root Styling */
+  #portal-root {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+    z-index: 9999;
+  }
+  
+  /* Overlay Components */
+  .overlay-backdrop {
+    position: fixed !important;
+    inset: 0 !important;
+    background: rgba(0, 0, 0, 0.8) !important;
+    z-index: 1000 !important;
+    pointer-events: auto !important;
+  }
+  
+  .overlay-content {
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    z-index: 1001 !important;
+    pointer-events: auto !important;
+    max-height: 90vh !important;
+    max-width: calc(100vw - 2rem) !important;
+    overflow-y: auto !important;
+  }
+  
+  /* Dropdown Components */
+  .dropdown-content {
+    position: absolute !important;
+    z-index: 1002 !important;
+    pointer-events: auto !important;
+    min-width: max-content !important;
+  }
+  
+  /* Prevent layout shifts */
+  .dropdown-trigger {
+    position: relative !important;
+  }
+  
   /* Fix modal positioning and responsiveness */
   [data-radix-dialog-content] {
     position: fixed !important;
@@ -70,7 +115,7 @@
     max-height: 90vh !important;
     max-width: calc(100vw - 2rem) !important;
     margin: 0 !important;
-    z-index: 50 !important;
+    z-index: 1001 !important;
   }
   
   [data-radix-alert-dialog-content] {
@@ -81,7 +126,7 @@
     max-height: 90vh !important;
     max-width: calc(100vw - 2rem) !important;
     margin: 0 !important;
-    z-index: 50 !important;
+    z-index: 1001 !important;
   }
   
   /* Ensure modal overlays cover full screen */
@@ -89,11 +134,20 @@
   [data-radix-alert-dialog-overlay] {
     position: fixed !important;
     inset: 0 !important;
-    z-index: 49 !important;
+    z-index: 1000 !important;
+  }
+  
+  /* Dropdown content positioning */
+  [data-radix-dropdown-menu-content],
+  [data-radix-select-content],
+  [data-radix-popover-content] {
+    position: absolute !important;
+    z-index: 1002 !important;
   }
   
   /* Mobile-specific modal adjustments */
   @media (max-width: 640px) {
+    .overlay-content,
     [data-radix-dialog-content],
     [data-radix-alert-dialog-content] {
       max-width: calc(100vw - 1rem) !important;
@@ -101,6 +155,12 @@
       width: auto !important;
       min-width: 320px !important;
     }
+  }
+  
+  /* Prevent body scroll when modal is open without layout shift */
+  body.modal-open {
+    overflow: hidden;
+    padding-right: 0px; /* Prevent scrollbar shift */
   }
   
   /* Responsive container with proper max-widths */
