@@ -149,52 +149,7 @@ export const createOrderItem = async (orderItem: any) => {
   return data;
 };
 
-// Dashboard metrics
-export const getDashboardMetrics = async () => {
-  // Get total revenue
-  const { data: orders } = await supabase
-    .from('orders')
-    .select('total');
-  
-  const totalRevenue = orders?.reduce((sum, order) => sum + Number(order.total), 0) || 0;
-  
-  // Get order count for today
-  const today = new Date().toISOString().split('T')[0];
-  const { data: todayOrders, count: todayOrderCount } = await supabase
-    .from('orders')
-    .select('*', { count: 'exact' })
-    .gte('created_at', today);
-  
-  // Get total products
-  const { count: productCount } = await supabase
-    .from('products')
-    .select('*', { count: 'exact' });
-  
-  // Get low stock products
-  const { data: lowStockProducts } = await supabase
-    .from('products')
-    .select('*')
-    .lt('stock', 10);
-  
-  return {
-    totalRevenue: totalRevenue.toFixed(2),
-    totalOrders: orders?.length || 0,
-    ordersToday: todayOrderCount || 0,
-    inventoryItems: productCount || 0,
-    lowStockCount: lowStockProducts?.length || 0,
-  };
-};
 
-export const getRecentOrders = async () => {
-  const { data, error } = await supabase
-    .from('orders')
-    .select('*')
-    .order('created_at', { ascending: false })
-    .limit(10);
-  
-  if (error) throw error;
-  return data;
-};
 
 // Search functionality
 export const searchProducts = async (query: string) => {
@@ -208,4 +163,98 @@ export const searchProducts = async (query: string) => {
   
   if (error) throw error;
   return data;
+};
+
+// Dashboard metrics functions
+export const getDashboardMetrics = async () => {
+  try {
+    // Get total revenue from orders
+    const { data: ordersData, error: ordersError } = await supabase
+      .from('orders')
+      .select('total, created_at');
+    
+    if (ordersError) throw ordersError;
+
+    // Get total products count
+    const { count: totalProducts, error: productsError } = await supabase
+      .from('products')
+      .select('*', { count: 'exact', head: true });
+    
+    if (productsError) throw productsError;
+
+    // Get total customers count
+    const { count: totalCustomers, error: customersError } = await supabase
+      .from('customers')
+      .select('*', { count: 'exact', head: true });
+    
+    if (customersError) throw customersError;
+
+    // Get low stock count
+    const { data: lowStockData, error: lowStockError } = await supabase
+      .from('products')
+      .select('id, stock, low_stock_threshold')
+      .not('stock', 'is', null);
+    
+    if (lowStockError) throw lowStockError;
+
+    // Calculate metrics
+    const totalRevenue = ordersData?.reduce((sum, order) => sum + (order.total || 0), 0) || 0;
+    const totalOrders = ordersData?.length || 0;
+    const lowStockCount = lowStockData?.filter(product => 
+      product.stock !== null && 
+      product.stock <= (product.low_stock_threshold || 10)
+    ).length || 0;
+
+    // Calculate today's data for growth
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const todaysOrders = ordersData?.filter(order => {
+      const orderDate = new Date(order.created_at);
+      return orderDate >= today;
+    }) || [];
+
+    return {
+      totalRevenue: totalRevenue.toFixed(2),
+      totalOrders,
+      totalProducts: totalProducts || 0,
+      totalCustomers: totalCustomers || 0,
+      revenueGrowth: "0.0", // Simplified for now
+      ordersGrowth: "0.0", // Simplified for now
+      lowStockCount,
+      activeCustomersCount: totalCustomers || 0
+    };
+  } catch (error) {
+    console.error('Error fetching dashboard metrics:', error);
+    // Return default values if there's an error
+    return {
+      totalRevenue: "0.00",
+      totalOrders: 0,
+      totalProducts: 0,
+      totalCustomers: 0,
+      revenueGrowth: "0.0",
+      ordersGrowth: "0.0",
+      lowStockCount: 0,
+      activeCustomersCount: 0
+    };
+  }
+};
+
+export const getRecentOrders = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('orders')
+      .select(`
+        *,
+        customers(name),
+        order_items(*, products(name))
+      `)
+      .order('created_at', { ascending: false })
+      .limit(10);
+    
+    if (error) throw error;
+    return data || [];
+  } catch (error) {
+    console.error('Error fetching recent orders:', error);
+    return [];
+  }
 };

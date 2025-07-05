@@ -26,27 +26,9 @@ import { formatCurrency } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ProductForm } from "@/components/inventory/product-form";
 import { CustomerForm } from "@/components/customers/customer-form";
+import { getDashboardMetrics, getRecentOrders } from "@/lib/supabase-data";
 
-interface DetailedMetrics {
-  revenue: {
-    today: number;
-    yesterday: number;
-    weekToDate: number;
-    priorWeekToDate: number;
-  };
-  orders: {
-    today: number;
-    yesterday: number;
-  };
-  inventory: {
-    totalItems: number;
-    priorSnapshot: number;
-  };
-  customers: {
-    active: number;
-    priorActive: number;
-  };
-}
+
 
 export default function Dashboard() {
   const [, setLocation] = useLocation();
@@ -54,15 +36,13 @@ export default function Dashboard() {
   const [showCustomerForm, setShowCustomerForm] = useState(false);
 
   const { data: metrics, isLoading: metricsLoading } = useQuery<DashboardMetrics>({
-    queryKey: ["/api/dashboard/metrics"],
-  });
-
-  const { data: detailedMetrics, isLoading: detailedMetricsLoading } = useQuery<DetailedMetrics>({
-    queryKey: ["/api/metrics/dashboard"],
+    queryKey: ["dashboard-metrics"],
+    queryFn: getDashboardMetrics,
   });
 
   const { data: recentOrders, isLoading: ordersLoading } = useQuery<Order[]>({
-    queryKey: ["/api/orders/recent"],
+    queryKey: ["recent-orders"],
+    queryFn: getRecentOrders,
   });
 
   // Quick Actions handlers
@@ -190,30 +170,30 @@ export default function Dashboard() {
           <section className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 sm:gap-6" role="region" aria-label="Key performance indicators">
             <SummaryCard
               title="Total Revenue"
-              value={detailedMetrics?.revenue ? formatCurrencyUtil(detailedMetrics.revenue.today) : formatCurrency(metrics?.totalRevenue || "0")}
+              value={formatCurrency(metrics?.totalRevenue || "0")}
               icon={DollarSign}
-              isLoading={detailedMetricsLoading}
+              isLoading={metricsLoading}
               iconColor="bg-green-600"
             />
             <SummaryCard
-              title="Orders Today"
-              value={detailedMetrics?.orders ? detailedMetrics.orders.today.toString() : (metrics?.totalOrders || 0).toString()}
+              title="Total Orders"
+              value={(metrics?.totalOrders || 0).toString()}
               icon={ShoppingCart}
-              isLoading={detailedMetricsLoading}
+              isLoading={metricsLoading}
               iconColor="bg-blue-600"
             />
             <SummaryCard
               title="Inventory Items"
-              value={detailedMetrics?.inventory ? detailedMetrics.inventory.totalItems.toString() : (metrics?.totalProducts || 0).toString()}
+              value={(metrics?.totalProducts || 0).toString()}
               icon={Package}
-              isLoading={detailedMetricsLoading}
+              isLoading={metricsLoading}
               iconColor="bg-purple-600"
             />
             <SummaryCard
               title="Active Customers"
-              value={detailedMetrics?.customers ? detailedMetrics.customers.active.toString() : (metrics?.activeCustomersCount || 0).toString()}
+              value={(metrics?.totalCustomers || 0).toString()}
               icon={Users}
-              isLoading={detailedMetricsLoading}
+              isLoading={metricsLoading}
               iconColor="bg-orange-600"
             />
           </section>
