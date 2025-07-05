@@ -9,7 +9,8 @@ import {
   Dialog,
   DialogContent,
   DialogHeader,
-  DialogTitle
+  DialogTitle,
+  DialogDescription
 } from "@/components/ui/dialog"
 import {
   Form,
@@ -129,7 +130,7 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
 
   return (
     <Dialog open = {open} onOpenChange = {onOpenChange}>
-      <DialogContent className = "sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
+      <DialogContent className = "w-full max-w-[500px] max-h-[90vh] overflow-y-auto mx-4">
         <DialogHeader className = "space-y-3 pb-6 border-b border-gray-100 dark:border-gray-700">
           <DialogTitle className = "text-xl font-semibold text-gray-900 dark:text-gray-100">
             {product ? "Edit Product" : "Add New Product"}

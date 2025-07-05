@@ -61,6 +61,48 @@
     transform: none !important;
   }
   
+  /* Fix modal positioning and responsiveness */
+  [data-radix-dialog-content] {
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    max-height: 90vh !important;
+    max-width: calc(100vw - 2rem) !important;
+    margin: 0 !important;
+    z-index: 50 !important;
+  }
+  
+  [data-radix-alert-dialog-content] {
+    position: fixed !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
+    max-height: 90vh !important;
+    max-width: calc(100vw - 2rem) !important;
+    margin: 0 !important;
+    z-index: 50 !important;
+  }
+  
+  /* Ensure modal overlays cover full screen */
+  [data-radix-dialog-overlay],
+  [data-radix-alert-dialog-overlay] {
+    position: fixed !important;
+    inset: 0 !important;
+    z-index: 49 !important;
+  }
+  
+  /* Mobile-specific modal adjustments */
+  @media (max-width: 640px) {
+    [data-radix-dialog-content],
+    [data-radix-alert-dialog-content] {
+      max-width: calc(100vw - 1rem) !important;
+      max-height: 95vh !important;
+      width: auto !important;
+      min-width: 320px !important;
+    }
+  }
+  
   /* Responsive container with proper max-widths */
   .container {
     max-width: 100%;
