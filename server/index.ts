@@ -676,7 +676,7 @@ if (process.env.NODE_ENV === 'production') {
   })
 } else {
   // In development, setup Vite integration
-  const { setupVite } = await import('./vite.js')
+  const { setupVite } = await import('./vite.ts')
   await setupVite(app, server)
 }
 
