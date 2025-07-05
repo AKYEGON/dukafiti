@@ -193,9 +193,9 @@ export const supabaseDb = {
 
   // Users
   async getUserByEmail(email: string) {
-    const { data, error } = await supabase.from('users').select('*').eq('email', email).single();
+    const { data, error } = await supabase.from('users').select('*').eq('email', email);
     if (error) throw error;
-    return data;
+    return data && data.length > 0 ? data[0] : null;
   },
 
   async createUser(user: any) {
@@ -207,9 +207,9 @@ export const supabaseDb = {
       phone: user.phone,
     };
     
-    const { data, error } = await supabase.from('users').insert(dbUser).select().single();
+    const { data, error } = await supabase.from('users').insert(dbUser).select();
     if (error) throw error;
-    return data;
+    return data && data.length > 0 ? data[0] : null;
   },
 
   // User Settings
