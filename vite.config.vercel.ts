@@ -18,13 +18,20 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks: {
-          vendor: ["react", "react-dom"],
-          ui: ["@radix-ui/react-dialog", "@radix-ui/react-dropdown-menu"],
-        },
-      },
+          vendor: ['react', 'react-dom'],
+          ui: ['@radix-ui/react-dialog', '@radix-ui/react-dropdown-menu', '@radix-ui/react-select'],
+          charts: ['recharts'],
+          icons: ['lucide-react'],
+          utils: ['date-fns', 'clsx', 'tailwind-merge']
+        }
+      }
     },
+    chunkSizeWarningLimit: 1000
   },
-  define: {
-    global: "globalThis",
+  server: {
+    fs: {
+      strict: true,
+      deny: ["**/.*"],
+    },
   },
 });

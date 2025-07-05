@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "buildCommand": "npm run build",
+  "buildCommand": "vite build --config vite.config.vercel.ts",
   "outputDirectory": "dist/public",
   "installCommand": "npm install",
   "framework": null,
