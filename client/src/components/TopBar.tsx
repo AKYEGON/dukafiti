@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useLocation } from 'wouter';
 import { useQuery } from '@tanstack/react-query';
 import { formatDistanceToNow } from 'date-fns';
-import { useAuth } from '@/contexts/SimpleAuth';
+import { useAuth } from '@/contexts/SupabaseAuth';
 import { 
   Search, 
   Bell, 
