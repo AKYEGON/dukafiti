@@ -1,3 +1,4 @@
+import 'dotenv/config';
 import express, { type Request, Response, NextFunction } from "express";
 import session from "express-session";
 import path from "path";
@@ -111,6 +112,14 @@ wss.on('connection', (ws) => {
 });
 
 // API Routes
+// Supabase configuration endpoint
+app.get("/api/supabase-config", (req, res) => {
+  res.json({
+    url: process.env.SUPABASE_URL,
+    anonKey: process.env.SUPABASE_ANON_KEY
+  });
+});
+
 // Authentication routes
 app.post("/api/auth/login", async (req, res) => {
   try {
