@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { supabase } from '../supabaseClient';
+import { supabase } from '../supabaseClient.ts';
 import { User, Session } from '@supabase/supabase-js';
 
 interface AuthUser {
