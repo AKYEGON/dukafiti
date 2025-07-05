@@ -1,0 +1,44 @@
+Assistant, please fix and enhance our **TopBar** component so that:
+
+1. **No Layout Shift on Profile Click**  
+   - Remove any CSS rules (e.g. `overflow-hidden`, width transitions) that cause the page content or sidebar to resize when the profile dropdown toggles.  
+   - Ensure the dropdown is positioned absolutely over the content without affecting layout.
+
+2. **Search Panel Functionality**  
+   - Convert the current static input into a **smart search** that queries Supabase in real‑time:
+     - Debounce input by 300 ms.  
+     - Search across products and customers:  
+       ```js
+       const { data: products } = await supabase
+         .from('products')
+         .select('id,name')
+         .ilike('name', `%${query}%`);
+       const { data: customers } = await supabase
+         .from('customers')
+         .select('id,name')
+         .ilike('name', `%${query}%`);
+       ```
+     - Merge results into a single dropdown list, grouping by type with a header (“Products”, “Customers”).
+
+3. **Clickable Dropdown Items**  
+   - Render each result as a button:
+     - **Product** rows link to `/inventory` and scroll/highlight that product’s card.  
+     - **Customer** rows link to `/customers/:id` to open that customer’s detail page.  
+   - Use `react-router`’s `<Link>` or `navigate()` so clicking immediately pushes the correct route and closes the dropdown.
+
+4. **Dropdown UI/UX Polish**  
+   - Style the dropdown as a card under the search input:  
+     - Light mode: white background, gray border, slight shadow.  
+     - Dark mode: dark background, subtle border, glow on hover.  
+   - Up/down arrow navigation through items, Enter to select.  
+   - “No results” message when empty.
+
+5. **QA Checklist**  
+   - [ ] Clicking the profile icon no longer shifts or resizes the sidebar or page content.  
+   - [ ] Typing in search triggers real‑time queries and populates dropdown.  
+   - [ ] Arrow keys move focus; Enter selects.  
+   - [ ] Clicking a product result navigates to Inventory and highlights that item.  
+   - [ ] Clicking a customer result navigates to the correct customer detail page.  
+   - [ ] Dropdown closes on selection or outside click, with no layout disruption.
+
+Generate the updated `TopBar.jsx` (or equivalent), the search hook logic, Tailwind classes for the dropdown, and any router/navigation code required to implement these fixes.```

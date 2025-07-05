@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Search, Bell, User, LogOut, Settings, Menu, BarChart3 } from 'lucide-react'
+import { Search, Bell, User, LogOut, Settings, Menu, BarChart3, Package, Users, Receipt, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
@@ -20,6 +20,7 @@ import {
 } from '@/components/ui/dialog'
 import { useLocation } from 'wouter'
 import { useAuth } from '@/contexts/SupabaseAuthClean'
+import { useSmartSearch } from '@/hooks/useSmartSearch'
 interface TopBarProps {
   onToggleSidebar?: () => void
   isSidebarCollapsed?: boolean
@@ -28,12 +29,21 @@ interface TopBarProps {
 export function TopBar({ onToggleSidebar }: TopBarProps) {
   const [, setLocation] = useLocation()
   const { user, logout } = useAuth()
-  const [searchQuery, setSearchQuery] = useState('')
   const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false)
   const [unreadCount, setUnreadCount] = useState(0)
-  const [searchResults, setSearchResults] = useState<any[]>([])
-  const [showSearchResults, setShowSearchResults] = useState(false)
-  const [searchLoading, setSearchLoading] = useState(false)
+  
+  const {
+    searchQuery,
+    setSearchQuery,
+    searchResults,
+    isLoading: searchLoading,
+    showResults: showSearchResults,
+    setShowResults: setShowSearchResults,
+    selectedIndex,
+    handleKeyDown,
+    clearSearch,
+    getAllResults
+  } = useSmartSearch()
   useEffect(() => {
     const fetchUnreadCount = async () => {
       try {
@@ -51,54 +61,45 @@ export function TopBar({ onToggleSidebar }: TopBarProps) {
     return () => clearInterval(interval)
   }, [])
 
-  // Smart search with debounce
-  useEffect(() => {
-    let timeoutId: NodeJS.Timeout
-
-    if (searchQuery.trim().length > 1) {
-      setSearchLoading(true)
-      timeoutId = setTimeout(async () => {
-        try {
-          const response = await fetch(`/api/search?q=${encodeURIComponent(searchQuery)}`)
-          if (response.ok) {
-            const data = await response.json()
-            setSearchResults(data.results || [])
-            setShowSearchResults(true)
-          }
-        } catch (error) {
-          setSearchResults([])
-        } finally {
-          setSearchLoading(false)
-        }
-      }, 300)
-    } else {
-      setShowSearchResults(false)
-      setSearchResults([])
-    }
-
-    return () => {
-      if (timeoutId) clearTimeout(timeoutId)
-    }
-  }, [searchQuery])
-
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (searchQuery.trim()) {
-      setLocation(`/search?q=${encodeURIComponent(searchQuery)}`)
-      setShowSearchResults(false)
+    const allResults = getAllResults()
+    if (selectedIndex >= 0 && selectedIndex < allResults.length) {
+      handleSearchResultClick(allResults[selectedIndex])
     }
   }
 
   const handleSearchResultClick = (result: any) => {
-    setShowSearchResults(false)
-    setSearchQuery('')
+    clearSearch()
     
+    // Navigate based on result type with specific parameters
     if (result.type === 'product') {
-      setLocation('/inventory')
+      setLocation(`/inventory?highlight=${result.id}`)
     } else if (result.type === 'customer') {
-      setLocation('/customers')
-    } else if (result.type === 'order') {
-      setLocation('/reports')
+      setLocation(`/customers/${result.id}`)
+    } else if (result.type === 'sale') {
+      const invoiceNumber = result.metadata?.order_number
+      if (invoiceNumber) {
+        setLocation(`/sales?invoice=${encodeURIComponent(invoiceNumber)}`)
+      } else {
+        setLocation('/reports')
+      }
+    }
+  }
+
+  const handleSearchKeyDown = (e: React.KeyboardEvent) => {
+    const result = handleKeyDown(e)
+    if (result) {
+      handleSearchResultClick(result)
+    }
+  }
+
+  const getResultIcon = (iconName: string) => {
+    switch (iconName) {
+      case 'package': return <Package className="h-4 w-4 text-blue-500" />
+      case 'user': return <Users className="h-4 w-4 text-green-500" />
+      case 'receipt': return <Receipt className="h-4 w-4 text-purple-500" />
+      default: return <Search className="h-4 w-4 text-gray-500" />
     }
   }
   const handleLogoutConfirm = async () => {
@@ -124,53 +125,88 @@ export function TopBar({ onToggleSidebar }: TopBarProps) {
             <Menu className="h-5 w-5" />
           </Button>
 
-          {/* Search Bar */}
+          {/* Enhanced Search Bar */}
           <div className="flex-1 max-w-lg relative">
             <form onSubmit={handleSearchSubmit}>
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
                   type="text"
-                  placeholder="Search products, customers, orders..."
+                  placeholder="Search products, customers, sales..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyDown={handleSearchKeyDown}
                   onFocus={() => searchResults.length > 0 && setShowSearchResults(true)}
                   onBlur={() => setTimeout(() => setShowSearchResults(false), 200)}
-                  className="pl-10 w-full"
+                  className="pl-10 pr-10 w-full"
                 />
+                {searchQuery && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={clearSearch}
+                    className="absolute right-1 top-1/2 transform -translate-y-1/2 h-6 w-6 p-0 hover:bg-transparent"
+                  >
+                    <X className="h-3 w-3" />
+                  </Button>
+                )}
               </div>
             </form>
 
-            {/* Search Results Dropdown */}
+            {/* Enhanced Search Results Dropdown */}
             {showSearchResults && (
-              <div className="absolute top-full left-0 right-0 mt-1 bg-background border rounded-md shadow-lg max-h-64 overflow-y-auto z-50">
+              <div className="absolute top-full left-0 right-0 mt-1 bg-background border rounded-md shadow-lg max-h-80 overflow-y-auto z-50">
                 {searchLoading ? (
-                  <div className="p-3 text-center text-sm text-muted-foreground">
-                    Searching...
+                  <div className="p-4 text-center text-sm text-muted-foreground">
+                    <div className="flex items-center justify-center gap-2">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-primary"></div>
+                      Searching...
+                    </div>
                   </div>
                 ) : searchResults.length > 0 ? (
-                  <div className="py-1">
-                    {searchResults.map((result, index) => (
-                      <button
-                        key={index}
-                        onClick={() => handleSearchResultClick(result)}
-                        className="w-full px-3 py-2 text-left hover:bg-accent hover:text-accent-foreground flex items-center gap-3"
-                      >
-                        <div className="flex-shrink-0">
-                          {result.type === 'product' && <div className="w-2 h-2 bg-blue-500 rounded-full" />}
-                          {result.type === 'customer' && <div className="w-2 h-2 bg-green-500 rounded-full" />}
-                          {result.type === 'order' && <div className="w-2 h-2 bg-purple-500 rounded-full" />}
+                  <div className="py-2">
+                    {searchResults.map((group, groupIndex) => (
+                      <div key={groupIndex}>
+                        <div className="px-3 py-1 text-xs font-semibold text-muted-foreground uppercase tracking-wider border-b">
+                          {group.category}
                         </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium truncate">{result.title}</p>
-                          <p className="text-xs text-muted-foreground truncate">{result.subtitle}</p>
-                        </div>
-                      </button>
+                        {group.results.map((result, resultIndex) => {
+                          const globalIndex = searchResults
+                            .slice(0, groupIndex)
+                            .reduce((sum, g) => sum + g.results.length, 0) + resultIndex
+                          const isSelected = globalIndex === selectedIndex
+                          
+                          return (
+                            <button
+                              key={`${groupIndex}-${resultIndex}`}
+                              onClick={() => handleSearchResultClick(result)}
+                              className={`w-full px-3 py-3 text-left flex items-center gap-3 transition-colors ${
+                                isSelected 
+                                  ? 'bg-accent text-accent-foreground' 
+                                  : 'hover:bg-accent/50 hover:text-accent-foreground'
+                              }`}
+                            >
+                              <div className="flex-shrink-0">
+                                {getResultIcon(result.icon)}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium truncate">{result.title}</p>
+                                <p className="text-xs text-muted-foreground truncate">{result.subtitle}</p>
+                              </div>
+                            </button>
+                          )
+                        })}
+                        {groupIndex < searchResults.length - 1 && (
+                          <div className="border-b border-border mx-3"></div>
+                        )}
+                      </div>
                     ))}
                   </div>
                 ) : (
-                  <div className="p-3 text-center text-sm text-muted-foreground">
-                    No results found
+                  <div className="p-4 text-center text-sm text-muted-foreground">
+                    <Search className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                    No results found for "{searchQuery}"
                   </div>
                 )}
               </div>
