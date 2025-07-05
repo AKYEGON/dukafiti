@@ -196,7 +196,7 @@ export class DatabaseStorage implements IStorage {
 
   async deleteProduct(id: number): Promise<boolean> {
     const result = await db.delete(products).where(eq(products.id, id))
-    return result.rowCount! > 0
+    return result.length > 0
   }
 
   async searchProducts(query: string): Promise<Product[]> {
@@ -277,7 +277,7 @@ export class DatabaseStorage implements IStorage {
 
   async deleteCustomer(id: number): Promise<boolean> {
     const result = await db.delete(customers).where(eq(customers.id, id))
-    return result.rowCount! > 0
+    return result.length > 0
   }
 
   // Order methods
@@ -310,7 +310,7 @@ export class DatabaseStorage implements IStorage {
 
   async deleteOrder(id: number): Promise<boolean> {
     const result = await db.delete(orders).where(eq(orders.id, id))
-    return result.rowCount! > 0
+    return result.length > 0
   }
 
   async getRecentOrders(limit = 10): Promise<Order[]> {
@@ -621,7 +621,8 @@ export class DatabaseStorage implements IStorage {
     const result = await db.update(notifications)
       .set({ isRead: true })
       .where(eq(notifications.id, id))
-    return result.rowCount! > 0
+      .returning()
+    return result.length > 0
   }
 
   async markAllNotificationsAsRead(userId: number): Promise<boolean> {
@@ -631,13 +632,15 @@ export class DatabaseStorage implements IStorage {
         eq(notifications.userId, userId),
         eq(notifications.isRead, false)
       ))
-    return result.rowCount! > 0
+      .returning()
+    return result.length > 0
   }
 
   async deleteNotification(id: number): Promise<boolean> {
     const result = await db.delete(notifications)
       .where(eq(notifications.id, id))
-    return result.rowCount! > 0
+      .returning()
+    return result.length > 0
   }
 
   // Search methods
