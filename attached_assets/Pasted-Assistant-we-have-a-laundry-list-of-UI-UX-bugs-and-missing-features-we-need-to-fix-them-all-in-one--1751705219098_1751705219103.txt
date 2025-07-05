@@ -1,0 +1,43 @@
+Assistant, we have a laundry list of UI/UX bugs and missing features—we need to fix them all in one sweep. Please update our React code (using Tailwind) so that:
+
+---
+
+## 1. TopBar & Profile Dropdown  
+- **No page shrink** when you click the profile icon: remove any accidental layout shifts or “overflow-hidden” applied to the root.  
+- **Profile dropdown** must include “Reports” (in addition to Settings & Logout). Clicking it navigates to `/reports`.
+
+## 2. Customers Page  
+- **Edit Customer Modal**: remove the “Initial Debt” input field entirely—only Name and Phone remain.  
+- **Edit** and **Record Repayment** buttons on each customer card must open their respective modals and work end‑to‑end:  
+  - Edit modal pre‑fills Name/Phone and saves via Supabase.  
+  - Repayment modal deducts properly from the customer’s `balance` and updates the Supabase table.
+
+## 3. TopBar Search  
+- Replace the static search input with a **smart search**:  
+  - Debounce 300ms calls to Supabase’s `products` and `customers` tables.  
+  - Show auto‑complete suggestions in a dropdown below, arrow‑key navigable, Enter to select/navigate.
+
+## 4. Reports Page  
+- **Orders Record**: data must be fetched correctly (using `supabase.from('sales')`) and displayed in a table with columns: Order ID, Date, Customer, Products (name×qty list), Amount, Status.  
+- **Trend Graph**: rebuild using a lightweight chart (e.g. Chart.js or Recharts):  
+  - Clean line chart with colored strokes (green for sales trend).  
+  - X‑axis = days/hours per period selector; Y‑axis = KES sales.  
+  - Include tooltip on hover showing exact value/date.
+
+## 5. Notifications Page  
+- Fetch relevant notifications from a Supabase `notifications` table (low‑stock, payment received, sync errors).  
+- Display as a vertical list of cards: icon, title, timestamp, optional “View” link.  
+- Remove duplicate headers; keep a single “Notifications” title.  
+- Add “Mark all as read” button and visually distinguish unread items with a green left border.
+
+---
+
+### QA Checklist  
+- [ ] Clicking profile doesn’t resize or shift the page; Reports appears in dropdown and routes correctly.  
+- [ ] Customer Edit modal hides initial debt; edit & repayment modals work and update Supabase.  
+- [ ] TopBar search shows live suggestions for products & customers, keyboard navigable.  
+- [ ] Reports Orders Record fetches and lists real data including product details.  
+- [ ] Reports trend graph is clear, tooltips work, and axis labels update per timeframe.  
+- [ ] Notifications page shows real notifications, single header, unread/read states, and “Mark all as read” works.
+
+Generate the updated React components (TopBar, Customers, Reports, Notifications), Supabase query hooks, and Tailwind classes to fully resolve these issues.```

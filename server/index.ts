@@ -435,13 +435,82 @@ app.get('/api/reports/top-customers', async (req, res) => {
   }
 })
 
+// Reports orders endpoint
+app.get('/api/reports/orders', async (req, res) => {
+  try {
+    const { period = 'daily', page = '1', limit = '10' } = req.query
+    const pageNum = parseInt(page as string)
+    const limitNum = parseInt(limit as string)
+    const offset = (pageNum - 1) * limitNum
+
+    // Get orders from database
+    const allOrders = await supabaseDb.getOrders()
+    
+    // Filter orders by period
+    const now = new Date()
+    let startDate = new Date()
+    
+    switch (period) {
+      case 'daily':
+        startDate.setHours(0, 0, 0, 0)
+        break
+      case 'weekly':
+        startDate.setDate(now.getDate() - 7)
+        break
+      case 'monthly':
+        startDate.setMonth(now.getMonth() - 1)
+        break
+    }
+    
+    const filteredOrders = allOrders
+      .filter(order => new Date(order.createdAt) >= startDate)
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+    
+    // Paginate results
+    const totalOrders = filteredOrders.length
+    const paginatedOrders = filteredOrders.slice(offset, offset + limitNum)
+    
+    // Transform orders with product details
+    const ordersWithDetails = await Promise.all(
+      paginatedOrders.map(async (order) => {
+        // Get order items for this order
+        const orderItems = await supabaseDb.getOrderItems(order.id)
+        
+        return {
+          orderId: order.id,
+          customerName: order.customerName || 'Walk-in Customer',
+          total: order.total.toString(),
+          paymentMethod: order.paymentMethod,
+          status: order.status,
+          date: new Date(order.createdAt).toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+          }),
+          products: orderItems.map(item => `${item.productName} x${item.quantity}`).join(', ') || 'No items'
+        }
+      })
+    )
+    
+    res.json({
+      orders: ordersWithDetails,
+      total: totalOrders,
+      page: pageNum,
+      totalPages: Math.ceil(totalOrders / limitNum)
+    })
+  } catch (error) {
+    console.error('Reports orders error:', error)
+    res.status(500).json({ error: 'Failed to fetch orders data' })
+  }
+})
+
 // Search endpoint
 app.get('/api/search', async (req, res) => {
   try {
     const { q } = req.query
     const query = q as string
     if (!query) {
-      return res.json({ products: [], customers: [], orders: [] })
+      return res.json({ results: [] })
     }
     
     const products = await supabaseDb.searchProducts(query)
@@ -458,16 +527,136 @@ app.get('/api/search', async (req, res) => {
       order.customerName?.toLowerCase().includes(query.toLowerCase())
     )
     
-    res.json({
-      products: products.slice(0, 5),
-      customers: filteredCustomers.slice(0, 3),
-      orders: filteredOrders.slice(0, 3)
+    const results: any[] = []
+    
+    // Add products
+    products.slice(0, 5).forEach(product => {
+      results.push({
+        type: 'product',
+        title: product.name,
+        subtitle: `KES ${product.price} - Stock: ${product.stock || 'Unknown'}`,
+        data: product
+      })
     })
+    
+    // Add customers
+    filteredCustomers.slice(0, 3).forEach(customer => {
+      results.push({
+        type: 'customer',
+        title: customer.name,
+        subtitle: `Balance: KES ${customer.balance || '0.00'}`,
+        data: customer
+      })
+    })
+    
+    // Add orders
+    filteredOrders.slice(0, 3).forEach(order => {
+      results.push({
+        type: 'order',
+        title: `Order #${order.id}`,
+        subtitle: `${order.customerName} - KES ${order.total}`,
+        data: order
+      })
+    })
+    
+    res.json({ results })
   } catch (error) {
     console.error('Search error:', error)
     res.status(500).json({ error: 'Failed to perform search' })
   }
 })
+
+// Notifications management endpoints
+app.post('/api/notifications/mark-all-read', async (req, res) => {
+  try {
+    const { data, error } = await supabase
+      .from('notifications')
+      .update({ is_read: true })
+      .eq('user_id', 1) // Assuming user ID 1 for now
+      .eq('is_read', false)
+    if (error) throw error
+    res.json({ success: true, message: 'All notifications marked as read' })
+  } catch (error) {
+    console.error('Mark all read error:', error)
+    res.status(500).json({ error: 'Failed to mark all as read' })
+  }
+})
+
+app.post('/api/notifications/:id/read', async (req, res) => {
+  try {
+    const notificationId = parseInt(req.params.id)
+    const { data, error } = await supabase
+      .from('notifications')
+      .update({ is_read: true })
+      .eq('id', notificationId)
+      .eq('user_id', 1) // Assuming user ID 1 for now
+    if (error) throw error
+    res.json({ success: true, message: 'Notification marked as read' })
+  } catch (error) {
+    console.error('Mark notification read error:', error)
+    res.status(500).json({ error: 'Failed to mark notification as read' })
+  }
+})
+
+app.delete('/api/notifications/:id', async (req, res) => {
+  try {
+    const notificationId = parseInt(req.params.id)
+    const { data, error } = await supabase
+      .from('notifications')
+      .delete()
+      .eq('id', notificationId)
+      .eq('user_id', 1) // Assuming user ID 1 for now
+    if (error) throw error
+    res.json({ success: true, message: 'Notification deleted' })
+  } catch (error) {
+    console.error('Delete notification error:', error)
+    res.status(500).json({ error: 'Failed to delete notification' })
+  }
+})
+
+// Customer repayment endpoint
+app.post('/api/customers/:id/repayment', async (req, res) => {
+  try {
+    const customerId = parseInt(req.params.id)
+    const { amount, method, note } = req.body
+
+    if (!amount || parseFloat(amount) <= 0) {
+      return res.status(400).json({ error: 'Valid payment amount is required' })
+    }
+
+    // Get current customer
+    const customer = await supabaseDb.getCustomerById(customerId)
+    if (!customer) {
+      return res.status(404).json({ error: 'Customer not found' })
+    }
+
+    // Calculate new balance (reduce debt)
+    const currentBalance = parseFloat(customer.balance || '0')
+    const paymentAmount = parseFloat(amount)
+    const newBalance = Math.max(0, currentBalance - paymentAmount)
+
+    // Update customer balance
+    await supabaseDb.updateCustomerBalance(customerId, newBalance.toString())
+
+    // Create notification for repayment
+    await supabaseDb.createNotification({
+      userId: 1,
+      title: 'Payment Received',
+      message: `${customer.name} made a payment of KES ${amount} via ${method}`,
+      type: 'success'
+    })
+
+    res.json({
+      success: true,
+      newBalance: newBalance.toString(),
+      paidAmount: amount
+    })
+  } catch (error) {
+    console.error('Record repayment error:', error)
+    res.status(500).json({ error: 'Failed to record payment' })
+  }
+})
+
 // Catch-all for other API routes
 app.use('/api/*', (req, res) => {
   res.status(404).json({ error: 'Endpoint not implemented yet' })

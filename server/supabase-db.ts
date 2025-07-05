@@ -121,6 +121,17 @@ export const supabaseDb = {
     return data && data.length > 0 ? data[0] : null
   },
 
+  async updateCustomerBalance(id: number, newBalance: string) {
+    const { data, error }  =  await supabase
+      .from('customers')
+      .update({ balance: newBalance })
+      .eq('id', id)
+      .select()
+      .single()
+    if (error) throw error
+    return data
+  },
+
   // Orders
   async getOrders(limit?: number) {
     let query = supabase.from('orders').select('*').order('created_at', { ascending: false })
@@ -175,9 +186,20 @@ export const supabaseDb = {
 
   // Order Items
   async getOrderItems(orderId: number) {
-    const { data, error }  =  await supabase.from('order_items').select('*').eq('order_id', orderId)
+    const { data, error }  =  await supabase
+      .from('order_items')
+      .select(`
+        id,
+        quantity,
+        price,
+        product_name
+      `)
+      .eq('order_id', orderId)
     if (error) throw error
-    return data
+    return data.map(item => ({
+      ...item,
+      productName: item.product_name
+    }))
   },
 
   async createOrderItem(orderItem: any) {

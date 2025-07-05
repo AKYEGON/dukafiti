@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { useToast } from "@/hooks/use-toast"
 import { formatCurrency } from "@/lib/utils"
+import { apiRequest } from "@/lib/queryClient"
 import { Wallet, Smartphone, X } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import type { Customer } from "@shared/schema"
@@ -25,19 +26,11 @@ export function RecordRepaymentModal({ isOpen, onClose, customer, previousPaymen
 
   const recordPayment = useMutation({
     mutationFn: async (data: { customerId: number; amount: string; method: string; note?: string }) => {
-      const response = await fetch(`/api/customers/${data.customerId}/payments`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          amount: data.amount,
-          method: data.method,
-          note: data.note
-        })
+      const response = await apiRequest("POST", `/api/customers/${data.customerId}/repayment`, {
+        amount: data.amount,
+        method: data.method,
+        note: data.note
       })
-      if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.message || "Failed to record payment")
-      }
       return response.json()
     },
     onSuccess: (data) => {

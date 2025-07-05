@@ -58,14 +58,20 @@ export function NotificationsPage() {
       queryClient.invalidateQueries({ queryKey: ['/api/notifications/unread-count'] })
     }
   })
-  // Filter notifications
-  const filteredNotifications = notifications.filter(notification => {
+  // Filter notifications - map to frontend format
+  const mappedNotifications = notifications.map(notification => ({
+    ...notification,
+    isRead: notification.is_read,
+    createdAt: notification.created_at
+  }))
+
+  const filteredNotifications = mappedNotifications.filter(notification => {
     if (filter  ===  'unread') return !notification.isRead
     if (filter  ===  'read') return notification.isRead
     return true
   })
 
-  const unreadCount = notifications.filter(n => !n.isRead).length
+  const unreadCount = mappedNotifications.filter(n => !n.isRead).length
 
   const getNotificationIcon = (type: string) => {
     switch (type) {

@@ -10,7 +10,7 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { apiRequest } from "@/lib/queryClient"
-import type { Customer } from "@/lib/types"
+import type { Customer } from "@shared/schema"
 const customerFormSchema = z.object({
   name: z.string().min(1, "Customer name is required"),
   phone: z.string().optional(),
@@ -52,16 +52,11 @@ export function CustomerForm({ open, onOpenChange, customer }: CustomerFormProps
   }, [customer, form])
   const createCustomer = useMutation({
     mutationFn: async (data: CustomerFormData) => {
-      const response = await fetch("/api/customers", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: data.name,
-          phone: data.phone || null,
-          balance: data.balance || "0.00"
-        })
+      const response = await apiRequest("POST", "/api/customers", {
+        name: data.name,
+        phone: data.phone || null,
+        balance: data.balance || "0.00"
       })
-      if (!response.ok) throw new Error("Failed to create customer")
       return response.json()
     },
     onSuccess: () => {
@@ -84,15 +79,11 @@ export function CustomerForm({ open, onOpenChange, customer }: CustomerFormProps
   const updateCustomer = useMutation({
     mutationFn: async (data: CustomerFormData) => {
       if (!customer) throw new Error("No customer to update")
-      const response = await apiRequest(`/api/customers/${customer.id}`, {
-        method: "PUT",
-        body: JSON.stringify({
-          name: data.name,
-          phone: data.phone || null,
-          balance: data.balance || "0.00"
-        })
+      const response = await apiRequest("PUT", `/api/customers/${customer.id}`, {
+        name: data.name,
+        phone: data.phone || null
       })
-      return response
+      return response.json()
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/customers"] })
@@ -158,24 +149,26 @@ export function CustomerForm({ open, onOpenChange, customer }: CustomerFormProps
                   )}
                 />
 
-                <FormField
-                  control={form.control}
-                  name="balance"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Initial Credit Balance (Optional)</FormLabel>
-                      <FormControl>
-                        <Input 
-                          placeholder="e.g., 500.00" 
-                          type="number"
-                          step="0.01"
-                          {...field} 
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                {!customer && (
+                  <FormField
+                    control={form.control}
+                    name="balance"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Initial Credit Balance (Optional)</FormLabel>
+                        <FormControl>
+                          <Input 
+                            placeholder="e.g., 500.00" 
+                            type="number"
+                            step="0.01"
+                            {...field} 
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
 
                 <div className="flex justify-end space-x-2 pt-4">
                   <Button 
