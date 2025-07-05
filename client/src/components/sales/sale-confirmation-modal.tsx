@@ -6,9 +6,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { formatCurrency } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
 import { type SaleLineItem } from "@/components/sales/sale-line-item";
 import { type Customer } from "@shared/schema";
+import { getCustomers } from "@/lib/supabase-data";
 
 interface SaleConfirmationModalProps {
   open: boolean;
@@ -37,7 +37,8 @@ export function SaleConfirmationModal({
 
   // Fetch existing customers
   const { data: customers = [] } = useQuery<Customer[]>({
-    queryKey: ["/api/customers"],
+    queryKey: ["customers"],
+    queryFn: getCustomers,
     enabled: paymentMethod === 'credit' && open,
   });
 

@@ -10,6 +10,7 @@ import { formatCurrency } from "@/lib/utils";
 import { offlineQueue, isOnline } from "@/lib/offline-queue";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SaleConfirmationModal } from "@/components/sales/sale-confirmation-modal";
+import { createSale, getProducts, searchProducts } from "@/lib/supabase-data";
 
 export default function Sales() {
   const [cartItems, setCartItems] = useState<SaleLineItem[]>([]);
@@ -30,12 +31,17 @@ export default function Sales() {
 
   // Fetch all products for quick select functionality
   const { data: products = [], isLoading: productsLoading } = useQuery<Product[]>({
-    queryKey: ["/api/products"],
+    queryKey: ["products"],
+    queryFn: getProducts,
   });
 
   // Get frequent products (first 6 for quick select)
   const { data: frequentProducts = [] } = useQuery<Product[]>({
-    queryKey: ["/api/products/frequent"],
+    queryKey: ["products-frequent"],
+    queryFn: async () => {
+      const allProducts = await getProducts();
+      return allProducts.sort((a: any, b: any) => (b.sales_count || 0) - (a.sales_count || 0));
+    },
   });
 
   const quickSelectProducts = frequentProducts.length > 0 
@@ -54,8 +60,7 @@ export default function Sales() {
 
       setSearchLoading(true);
       try {
-        const response = await apiRequest("GET", `/api/products/search?q=${encodeURIComponent(query)}`);
-        const data = await response.json();
+        const data = await searchProducts(query);
         setSearchResults(data || []);
         setShowSearchDropdown(true);
         setSelectedSearchIndex(-1);
@@ -349,9 +354,13 @@ export default function Sales() {
         return { success: true, status: 'queued', saleId: queuedSaleId };
       }
 
-      // Online - proceed with normal API call
-      const response = await apiRequest("POST", "/api/sales", saleData);
-      return response.json();
+      // Online - proceed with direct Supabase call
+      const result = await createSale(saleData);
+      return { 
+        success: true, 
+        status: saleData.paymentType === 'credit' ? 'pending' : 'paid', 
+        data: result 
+      };
     },
     onSuccess: (result: any) => {
       // Close modal and clear cart
@@ -362,22 +371,21 @@ export default function Sales() {
       // Immediately refresh all relevant data if online
       if (isOnline()) {
         // Dashboard metrics
-        queryClient.invalidateQueries({ queryKey: ["/api/dashboard/metrics"] });
-        queryClient.invalidateQueries({ queryKey: ["/api/metrics/dashboard"] });
-        queryClient.invalidateQueries({ queryKey: ["/api/orders/recent"] });
+        queryClient.invalidateQueries({ queryKey: ["dashboard-metrics"] });
+        queryClient.invalidateQueries({ queryKey: ["orders-recent"] });
         
         // Reports data  
-        queryClient.invalidateQueries({ queryKey: ["/api/reports/summary"] });
-        queryClient.invalidateQueries({ queryKey: ["/api/reports/trend"] });
-        queryClient.invalidateQueries({ queryKey: ["/api/orders"] });
+        queryClient.invalidateQueries({ queryKey: ["reports-summary"] });
+        queryClient.invalidateQueries({ queryKey: ["reports-trend"] });
+        queryClient.invalidateQueries({ queryKey: ["orders"] });
         
         // Inventory data
-        queryClient.invalidateQueries({ queryKey: ["/api/products"] });
-        queryClient.invalidateQueries({ queryKey: ["/api/products/frequent"] });
+        queryClient.invalidateQueries({ queryKey: ["products"] });
+        queryClient.invalidateQueries({ queryKey: ["products-frequent"] });
         
         // Customer data for credit sales
-        if (paymentMethod === 'credit') {
-          queryClient.invalidateQueries({ queryKey: ["/api/customers"] });
+        if (result.status === 'pending') {
+          queryClient.invalidateQueries({ queryKey: ["customers"] });
         }
       }
       

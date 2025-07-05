@@ -252,12 +252,55 @@ export const updateCustomer = async (id: number, updates: any) => {
 };
 
 export const deleteCustomer = async (id: number) => {
-  const { error } = await supabase
-    .from('customers')
-    .delete()
-    .eq('id', id);
-  
-  if (error) throw error;
+  try {
+    // First check if customer has any orders
+    const { data: orders, error: ordersError } = await supabase
+      .from('orders')
+      .select('id')
+      .eq('customer_id', id)
+      .limit(1);
+    
+    if (ordersError) {
+      console.error('Error checking customer orders:', ordersError);
+      throw ordersError;
+    }
+    
+    if (orders && orders.length > 0) {
+      throw new Error('Cannot delete customer with existing orders. Please contact support to archive this customer.');
+    }
+    
+    // Also check if customer has any payments
+    const { data: payments, error: paymentsError } = await supabase
+      .from('payments')
+      .select('id')
+      .eq('customer_id', id)
+      .limit(1);
+    
+    if (paymentsError) {
+      console.error('Error checking customer payments:', paymentsError);
+      throw paymentsError;
+    }
+    
+    if (payments && payments.length > 0) {
+      throw new Error('Cannot delete customer with payment history. Please contact support to archive this customer.');
+    }
+    
+    // If no orders or payments, proceed with deletion
+    const { error } = await supabase
+      .from('customers')
+      .delete()
+      .eq('id', id);
+    
+    if (error) {
+      console.error('Error deleting customer:', error);
+      throw error;
+    }
+    
+    console.log('Customer deleted successfully');
+  } catch (error) {
+    console.error('Customer deletion failed:', error);
+    throw error;
+  }
 };
 
 export const recordCustomerRepayment = async (customerId: number, amount: number, method: string, note?: string) => {
@@ -679,12 +722,12 @@ export const getOrdersData = async (period: 'daily' | 'weekly' | 'monthly', page
       
       return {
         orderId: order.id,
-        customerName: order.customers?.name || 'Walk-in Customer',
+        customerName: (order.customers as any)?.name || 'Walk-in Customer',
         total: order.total,
         paymentMethod: order.payment_method,
         date: new Date(order.created_at).toLocaleDateString(),
         products: orderItems?.map(item => ({
-          name: item.products?.name || 'Unknown Product',
+          name: (item.products as any)?.name || 'Unknown Product',
           quantity: item.quantity
         })) || []
       };
@@ -774,6 +817,101 @@ export const createOrderItem = async (orderItem: any) => {
   
   if (error) throw error;
   return data;
+};
+
+// Complete sales transaction
+export const createSale = async (saleData: any) => {
+  try {
+    console.log('Creating sale with data:', saleData);
+    
+    // Create the order first
+    const { data: order, error: orderError } = await supabase
+      .from('orders')
+      .insert([{
+        customer_id: saleData.customerId || null,
+        customer_name: saleData.customerName || 'Walk-in Customer',
+        total: saleData.total,
+        status: 'completed',
+        payment_method: saleData.paymentMethod || 'cash',
+      }])
+      .select()
+      .single();
+    
+    if (orderError) {
+      console.error('Error creating order:', orderError);
+      throw orderError;
+    }
+    
+    // Create order items
+    const orderItems = saleData.items.map((item: any) => ({
+      order_id: order.id,
+      product_id: item.productId,
+      product_name: item.productName,
+      quantity: item.quantity,
+      price: item.price,
+    }));
+    
+    const { error: itemsError } = await supabase
+      .from('order_items')
+      .insert(orderItems);
+    
+    if (itemsError) {
+      console.error('Error creating order items:', itemsError);
+      throw itemsError;
+    }
+    
+    // Update product stock levels (only for products with stock tracking)
+    for (const item of saleData.items) {
+      if (item.hasStock) {
+        const { error: stockError } = await supabase
+          .from('products')
+          .update({
+            stock: item.newStock,
+            sales_count: item.newSalesCount
+          })
+          .eq('id', item.productId);
+        
+        if (stockError) {
+          console.error('Error updating product stock:', stockError);
+          // Don't throw here, just log the error
+        }
+      } else {
+        // Update sales count for products without stock tracking
+        const { error: salesError } = await supabase
+          .from('products')
+          .update({
+            sales_count: item.newSalesCount
+          })
+          .eq('id', item.productId);
+        
+        if (salesError) {
+          console.error('Error updating sales count:', salesError);
+          // Don't throw here, just log the error
+        }
+      }
+    }
+    
+    // If credit sale, update customer balance
+    if (saleData.paymentMethod === 'credit' && saleData.customerId) {
+      const { error: balanceError } = await supabase
+        .from('customers')
+        .update({
+          balance: saleData.newCustomerBalance
+        })
+        .eq('id', saleData.customerId);
+      
+      if (balanceError) {
+        console.error('Error updating customer balance:', balanceError);
+        // Don't throw here, just log the error
+      }
+    }
+    
+    console.log('Sale created successfully:', order);
+    return order;
+  } catch (error) {
+    console.error('Sale creation failed:', error);
+    throw error;
+  }
 };
 
 
