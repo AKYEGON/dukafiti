@@ -1,7 +1,54 @@
 import { supabase } from '../supabaseClient';
 
+// Check if in development mode without Supabase credentials
+const isDevelopmentMode = () => {
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+  const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+  return import.meta.env.DEV && (!supabaseUrl || !supabaseAnonKey);
+};
+
 // Product operations
 export const getProducts = async () => {
+  // Development mode fallback
+  if (isDevelopmentMode()) {
+    console.warn('Development mode: Loading demo products');
+    const demoProducts = JSON.parse(localStorage.getItem('demo_products') || '[]');
+    
+    // Add some default demo products if none exist
+    if (demoProducts.length === 0) {
+      const defaultProducts = [
+        {
+          id: 1,
+          name: "Demo Coca Cola 500ml",
+          sku: "DEMO-COCA-500",
+          description: "Demo refreshing cola drink",
+          price: "50.00",
+          stock: 100,
+          category: "Beverages",
+          low_stock_threshold: 10,
+          sales_count: 5,
+          created_at: new Date().toISOString(),
+        },
+        {
+          id: 2,
+          name: "Demo Bread Loaf",
+          sku: "DEMO-BREAD-001",
+          description: "Demo fresh white bread",
+          price: "60.00",
+          stock: null,
+          category: "Bakery",
+          low_stock_threshold: null,
+          sales_count: 3,
+          created_at: new Date().toISOString(),
+        }
+      ];
+      localStorage.setItem('demo_products', JSON.stringify(defaultProducts));
+      return defaultProducts;
+    }
+    
+    return demoProducts;
+  }
+  
   const { data, error } = await supabase
     .from('products')
     .select('*')
@@ -12,26 +59,92 @@ export const getProducts = async () => {
 };
 
 export const createProduct = async (product: any) => {
-  const { data, error } = await supabase
-    .from('products')
-    .insert([{
+  try {
+    console.log('Supabase createProduct called with:', product);
+    
+    // Development mode fallback
+    if (isDevelopmentMode()) {
+      console.warn('Development mode: Simulating product creation');
+      const mockProduct = {
+        id: Math.floor(Math.random() * 1000),
+        name: product.name,
+        sku: product.sku,
+        description: product.description || null,
+        price: product.price,
+        stock: product.unknownQuantity ? null : product.stock,
+        category: product.category || 'General',
+        low_stock_threshold: product.unknownQuantity ? null : (product.lowStockThreshold || 10),
+        sales_count: 0,
+        created_at: new Date().toISOString(),
+      };
+      
+      // Store in localStorage for demo purposes
+      const existingProducts = JSON.parse(localStorage.getItem('demo_products') || '[]');
+      existingProducts.push(mockProduct);
+      localStorage.setItem('demo_products', JSON.stringify(existingProducts));
+      
+      console.log('Demo product created:', mockProduct);
+      return mockProduct;
+    }
+    
+    const insertData = {
       name: product.name,
       sku: product.sku,
-      description: product.description,
+      description: product.description || null,
       price: product.price,
-      stock: product.stock,
-      category: product.category,
-      low_stock_threshold: product.lowStockThreshold || 10,
+      stock: product.unknownQuantity ? null : product.stock,
+      category: product.category || 'General',
+      low_stock_threshold: product.unknownQuantity ? null : (product.lowStockThreshold || 10),
       sales_count: 0,
-    }])
-    .select()
-    .single();
-  
-  if (error) throw error;
-  return data;
+    };
+    
+    console.log('Insert data for Supabase:', insertData);
+    
+    const { data, error } = await supabase
+      .from('products')
+      .insert([insertData])
+      .select()
+      .single();
+    
+    if (error) {
+      console.error('Supabase insert error:', error);
+      throw new Error(error.message || 'Failed to create product in database');
+    }
+    
+    console.log('Product created in Supabase:', data);
+    return data;
+  } catch (error) {
+    console.error('CreateProduct function error:', error);
+    throw error;
+  }
 };
 
 export const updateProduct = async (id: number, updates: any) => {
+  // Development mode fallback
+  if (isDevelopmentMode()) {
+    console.warn('Development mode: Simulating product update');
+    const existingProducts = JSON.parse(localStorage.getItem('demo_products') || '[]');
+    const updatedProducts = existingProducts.map((product: any) => {
+      if (product.id === id) {
+        return {
+          ...product,
+          name: updates.name,
+          sku: updates.sku,
+          description: updates.description,
+          price: updates.price,
+          stock: updates.unknownQuantity ? null : updates.stock,
+          category: updates.category,
+          low_stock_threshold: updates.unknownQuantity ? null : updates.lowStockThreshold,
+        };
+      }
+      return product;
+    });
+    localStorage.setItem('demo_products', JSON.stringify(updatedProducts));
+    const updatedProduct = updatedProducts.find((p: any) => p.id === id);
+    console.log('Demo product updated:', updatedProduct);
+    return updatedProduct;
+  }
+  
   const { data, error } = await supabase
     .from('products')
     .update({
@@ -39,9 +152,9 @@ export const updateProduct = async (id: number, updates: any) => {
       sku: updates.sku,
       description: updates.description,
       price: updates.price,
-      stock: updates.stock,
+      stock: updates.unknownQuantity ? null : updates.stock,
       category: updates.category,
-      low_stock_threshold: updates.lowStockThreshold,
+      low_stock_threshold: updates.unknownQuantity ? null : updates.lowStockThreshold,
     })
     .eq('id', id)
     .select()
@@ -52,6 +165,16 @@ export const updateProduct = async (id: number, updates: any) => {
 };
 
 export const deleteProduct = async (id: number) => {
+  // Development mode fallback
+  if (isDevelopmentMode()) {
+    console.warn('Development mode: Simulating product deletion');
+    const existingProducts = JSON.parse(localStorage.getItem('demo_products') || '[]');
+    const filteredProducts = existingProducts.filter((product: any) => product.id !== id);
+    localStorage.setItem('demo_products', JSON.stringify(filteredProducts));
+    console.log('Demo product deleted:', id);
+    return;
+  }
+  
   const { error } = await supabase
     .from('products')
     .delete()

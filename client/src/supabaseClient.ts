@@ -4,24 +4,20 @@ import { createClient } from '@supabase/supabase-js';
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-// Validate required environment variables
-if (!supabaseUrl) {
-  console.error('❌ Missing VITE_SUPABASE_URL environment variable');
-  console.log('📝 To fix this:');
-  console.log('1. Get your Supabase URL from https://supabase.com/dashboard');
-  console.log('2. Add VITE_SUPABASE_URL as a Replit secret');
-  console.log('3. Restart the development server');
-  throw new Error('Missing required environment variable: VITE_SUPABASE_URL');
+// Development mode fallback - allows app to run without Supabase for demonstration
+const isDevelopment = import.meta.env.DEV && (!supabaseUrl || !supabaseAnonKey);
+
+if (isDevelopment) {
+  console.warn('🚧 Development Mode: Missing Supabase credentials');
+  console.log('📝 For full functionality, add these Replit secrets:');
+  console.log('   • VITE_SUPABASE_URL');
+  console.log('   • VITE_SUPABASE_ANON_KEY');
+  console.log('🔧 Using placeholder configuration for development...');
 }
 
-if (!supabaseAnonKey) {
-  console.error('❌ Missing VITE_SUPABASE_ANON_KEY environment variable');
-  console.log('📝 To fix this:');
-  console.log('1. Get your Supabase Anon Key from https://supabase.com/dashboard');
-  console.log('2. Add VITE_SUPABASE_ANON_KEY as a Replit secret');
-  console.log('3. Restart the development server');
-  throw new Error('Missing required environment variable: VITE_SUPABASE_ANON_KEY');
-}
+// Use fallback values for development mode
+const finalSupabaseUrl = supabaseUrl || 'https://placeholder.supabase.co';
+const finalSupabaseKey = supabaseAnonKey || 'placeholder-key';
 
 console.log('Initializing Supabase client...');
 console.log('VITE_SUPABASE_URL:', supabaseUrl ? 'Set' : 'Missing');
@@ -29,8 +25,8 @@ console.log('VITE_SUPABASE_ANON_KEY:', supabaseAnonKey ? 'Set' : 'Missing');
 
 // Create Supabase client
 export const supabase = createClient(
-  supabaseUrl,
-  supabaseAnonKey,
+  finalSupabaseUrl,
+  finalSupabaseKey,
   {
     auth: {
       persistSession: true,
@@ -47,3 +43,4 @@ export const supabase = createClient(
 
 // Export configuration status for debugging
 export const isConfigured = !!(supabaseUrl && supabaseAnonKey);
+export const isDevMode = isDevelopment;

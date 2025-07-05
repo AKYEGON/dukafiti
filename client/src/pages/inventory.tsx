@@ -38,15 +38,20 @@ export default function Inventory() {
   const queryClient = useQueryClient();
 
   const { data: products, isLoading } = useQuery<Product[]>({
-    queryKey: ["/api/products"],
+    queryKey: ["products"],
+    queryFn: async () => {
+      const { getProducts } = await import("@/lib/supabase-data");
+      return await getProducts();
+    },
   });
 
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
-      await apiRequest("DELETE", `/api/products/${id}`);
+      const { deleteProduct } = await import("@/lib/supabase-data");
+      await deleteProduct(id);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/products"] });
+      queryClient.invalidateQueries({ queryKey: ["products"] });
       queryClient.invalidateQueries({ queryKey: ["/api/dashboard/metrics"] });
       toast({ title: "Product deleted successfully" });
       setDeleteProduct(undefined);

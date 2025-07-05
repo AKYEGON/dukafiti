@@ -36,7 +36,6 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
   const [unknownQuantity, setUnknownQuantity] = useState(false);
 
   const form = useForm<InsertProduct>({
-    resolver: zodResolver(insertProductSchema),
     defaultValues: {
       name: "",
       sku: "",
@@ -82,46 +81,90 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
 
   const createMutation = useMutation({
     mutationFn: async (data: InsertProduct) => {
-      const response = await apiRequest("POST", "/api/products", data);
-      return response.json();
+      try {
+        console.log('Creating product with data:', data);
+        // Use direct Supabase function for Vercel deployment
+        const { createProduct } = await import("@/lib/supabase-data");
+        const result = await createProduct(data);
+        console.log('Product created successfully:', result);
+        return result;
+      } catch (error) {
+        console.error('Error in createProduct mutation:', error);
+        throw error;
+      }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/products"] });
+      queryClient.invalidateQueries({ queryKey: ["products"] });
       queryClient.invalidateQueries({ queryKey: ["/api/dashboard/metrics"] });
-      toast({ title: "Product created successfully" });
+      toast({ title: "Product created successfully", variant: "default" });
       onOpenChange(false);
       form.reset();
+      setUnknownQuantity(false);
     },
     onError: (error: any) => {
-      const errorMessage = error?.response?.data?.message || "Failed to create product";
+      console.error('Product creation failed:', error);
+      let errorMessage = "Failed to create product";
+      
+      if (error?.message) {
+        errorMessage = error.message;
+      } else if (error?.details) {
+        errorMessage = error.details;
+      } else if (error?.hint) {
+        errorMessage = error.hint;
+      }
+      
       toast({ title: errorMessage, variant: "destructive" });
     },
   });
 
   const updateMutation = useMutation({
     mutationFn: async (data: InsertProduct) => {
-      const response = await apiRequest("PUT", `/api/products/${product!.id}`, data);
-      return response.json();
+      // Use direct Supabase function for Vercel deployment
+      const { updateProduct } = await import("@/lib/supabase-data");
+      return await updateProduct(product!.id, data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/products"] });
+      queryClient.invalidateQueries({ queryKey: ["products"] });
       queryClient.invalidateQueries({ queryKey: ["/api/dashboard/metrics"] });
       toast({ title: "Product updated successfully" });
       onOpenChange(false);
     },
     onError: (error: any) => {
-      const errorMessage = error?.response?.data?.message || "Failed to update product";
+      const errorMessage = error?.message || "Failed to update product";
       toast({ title: errorMessage, variant: "destructive" });
     },
   });
 
   const onSubmit = (data: InsertProduct) => {
+    // Basic validation
+    if (!data.name?.trim()) {
+      toast({ title: "Product name is required", variant: "destructive" });
+      return;
+    }
+    
+    if (!data.sku?.trim()) {
+      toast({ title: "SKU is required", variant: "destructive" });
+      return;
+    }
+    
+    if (!data.price || parseFloat(data.price as string) <= 0) {
+      toast({ title: "Price must be greater than 0", variant: "destructive" });
+      return;
+    }
+    
+    if (!unknownQuantity && (!data.stock || data.stock < 0)) {
+      toast({ title: "Stock quantity must be 0 or greater", variant: "destructive" });
+      return;
+    }
+    
     // Handle unknown quantity logic
     const processedData = {
       ...data,
       stock: unknownQuantity ? null : data.stock,
       unknownQuantity: unknownQuantity,
     };
+    
+    console.log('Submitting product data:', processedData);
     
     if (product) {
       updateMutation.mutate(processedData);
