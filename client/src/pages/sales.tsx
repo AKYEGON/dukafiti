@@ -12,6 +12,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { SaleConfirmationModal } from "@/components/sales/sale-confirmation-modal";
 import { createSale, getProducts, searchProducts } from "@/lib/supabase-data";
 
+
+
 export default function Sales() {
   const [cartItems, setCartItems] = useState<SaleLineItem[]>([]);
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
@@ -48,37 +50,38 @@ export default function Sales() {
     ? frequentProducts.slice(0, 6) 
     : products.slice(0, 6);
 
-  // Debounced search function
-  const debouncedSearch = useCallback(
-    debounce(async (query: string) => {
-      if (query.length < 1) {
-        setSearchResults([]);
-        setShowSearchDropdown(false);
-        setSearchLoading(false);
-        return;
-      }
+  // Search function with timeout for debouncing
+  const performSearch = useCallback(async (query: string) => {
+    if (query.length < 1) {
+      setSearchResults([]);
+      setShowSearchDropdown(false);
+      setSearchLoading(false);
+      return;
+    }
 
-      setSearchLoading(true);
-      try {
-        const data = await searchProducts(query);
-        setSearchResults(data || []);
-        setShowSearchDropdown(true);
-        setSelectedSearchIndex(-1);
-      } catch (error) {
-        console.error('Search error:', error);
-        setSearchResults([]);
-        setShowSearchDropdown(false);
-      } finally {
-        setSearchLoading(false);
-      }
-    }, 300),
-    []
-  );
+    setSearchLoading(true);
+    try {
+      const data = await searchProducts(query);
+      setSearchResults(data || []);
+      setShowSearchDropdown(true);
+      setSelectedSearchIndex(-1);
+    } catch (error) {
+      console.error('Search error:', error);
+      setSearchResults([]);
+      setShowSearchDropdown(false);
+    } finally {
+      setSearchLoading(false);
+    }
+  }, []);
 
-  // Trigger search when query changes
+  // Trigger search when query changes with debouncing
   useEffect(() => {
-    debouncedSearch(searchQuery);
-  }, [searchQuery, debouncedSearch]);
+    const timeoutId = setTimeout(() => {
+      performSearch(searchQuery);
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+  }, [searchQuery, performSearch]);
 
   // Handle keyboard navigation for search
   useEffect(() => {
@@ -355,7 +358,31 @@ export default function Sales() {
       }
 
       // Online - proceed with direct Supabase call
-      const result = await createSale(saleData);
+      // Transform the data to match createSale expectations
+      const transformedSaleData = {
+        customerId: null, // For now, we'll handle walk-in customers
+        customerName: saleData.customerName || 'Walk-in Customer',
+        total: cartItems.reduce((sum, item) => sum + parseFloat(item.total), 0),
+        paymentMethod: saleData.paymentType,
+        items: saleData.items.map(item => {
+          const cartItem = cartItems.find(ci => ci.product.id === item.id);
+          if (!cartItem) {
+            throw new Error(`Product with ID ${item.id} not found in cart`);
+          }
+          return {
+            productId: item.id,
+            productName: cartItem.product.name || 'Unknown Product',
+            quantity: item.quantity,
+            price: parseFloat(cartItem.unitPrice || '0'),
+            hasStock: cartItem.product.stock !== null,
+            newStock: cartItem.product.stock !== null ? 
+              (cartItem.product.stock || 0) - item.quantity : null,
+            newSalesCount: (cartItem.product.salesCount || 0) + item.quantity
+          };
+        })
+      };
+      
+      const result = await createSale(transformedSaleData);
       return { 
         success: true, 
         status: saleData.paymentType === 'credit' ? 'pending' : 'paid', 
@@ -739,14 +766,3 @@ export default function Sales() {
   );
 }
 
-// Debounce utility function
-function debounce<T extends (...args: any[]) => any>(
-  func: T,
-  wait: number
-): (...args: Parameters<T>) => void {
-  let timeout: NodeJS.Timeout;
-  return (...args: Parameters<T>) => {
-    clearTimeout(timeout);
-    timeout = setTimeout(() => func(...args), wait);
-  };
-}

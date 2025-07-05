@@ -226,21 +226,32 @@ export const updateCustomer = async (id: number, updates: any) => {
   try {
     console.log('Updating customer', id, 'with data:', updates);
     
+    // Prepare update object with only the fields that should be updated
+    const updateObject: any = {
+      name: updates.name,
+      phone: updates.phone,
+    };
+    
+    // Only include balance if it's provided (for edit mode, balance might not be included)
+    if (updates.balance !== undefined) {
+      updateObject.balance = updates.balance;
+    }
+    
+    // Only include email if provided
+    if (updates.email !== undefined) {
+      updateObject.email = updates.email || null;
+    }
+    
     const { data, error } = await supabase
       .from('customers')
-      .update({
-        name: updates.name,
-        email: updates.email || null,
-        phone: updates.phone,
-        balance: updates.balance,
-      })
+      .update(updateObject)
       .eq('id', id)
       .select()
       .single();
     
     if (error) {
       console.error('Supabase customer update error:', error);
-      throw error;
+      throw new Error(`Failed to update customer: ${error.message}`);
     }
     
     console.log('Customer updated successfully:', data);
