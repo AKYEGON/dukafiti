@@ -5,6 +5,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Skeleton } from '@/components/ui/skeleton';
 import { Download, FileSpreadsheet } from 'lucide-react';
 import download from 'downloadjs';
+import { 
+  getReportsSummary, 
+  getReportsTrend, 
+  getTopCustomers, 
+  getTopProducts, 
+  getOrdersData, 
+  getCustomerCredits 
+} from '@/lib/supabase-data';
 
 // Lazy load recharts to reduce bundle size
 const LineChart = lazy(() => import('recharts').then(module => ({ default: module.LineChart })));
@@ -113,77 +121,38 @@ export default function Reports() {
 
   // Fetch summary data
   const { data: summaryData, isLoading: summaryLoading, error: summaryError } = useQuery<SummaryData>({
-    queryKey: ['/api/reports/summary', summaryPeriod],
-    queryFn: async () => {
-      const response = await fetch(`/api/reports/summary?period=${summaryPeriod}`);
-      if (!response.ok) throw new Error('Failed to fetch summary');
-      return response.json();
-    }
+    queryKey: ['reports-summary', summaryPeriod],
+    queryFn: () => getReportsSummary(summaryPeriod)
   });
 
   // Fetch trend data
   const { data: trendData, isLoading: trendLoading, error: trendError } = useQuery<TrendData[]>({
-    queryKey: ['/api/reports/trend', trendPeriod],
-    queryFn: async () => {
-      const response = await fetch(`/api/reports/trend?period=${trendPeriod}`);
-      if (!response.ok) throw new Error('Failed to fetch trend');
-      return response.json();
-    }
-  });
-
-  // Fetch top items data
-  const { data: topItemsData, isLoading: topItemsLoading } = useQuery<TopItem[]>({
-    queryKey: ['/api/reports/top-items'],
-    queryFn: async () => {
-      const response = await fetch('/api/reports/top-items');
-      if (!response.ok) throw new Error('Failed to fetch top items');
-      return response.json();
-    }
+    queryKey: ['reports-trend', trendPeriod],
+    queryFn: () => getReportsTrend(trendPeriod)
   });
 
   // Fetch customer credits data
   const { data: customerCreditsData, isLoading: customerCreditsLoading } = useQuery<CustomerCredit[]>({
-    queryKey: ['/api/reports/credits'],
-    queryFn: async () => {
-      const response = await fetch('/api/reports/credits');
-      if (!response.ok) throw new Error('Failed to fetch customer credits');
-      return response.json();
-    }
+    queryKey: ['customer-credits'],
+    queryFn: () => getCustomerCredits()
   });
 
   // Fetch top customers data
   const { data: topCustomersData, isLoading: topCustomersLoading } = useQuery<TopCustomer[]>({
-    queryKey: ['/api/reports/top-customers', summaryPeriod],
-    queryFn: async () => {
-      const response = await fetch(`/api/reports/top-customers?period=${summaryPeriod}`);
-      if (!response.ok) throw new Error('Failed to fetch top customers');
-      return response.json();
-    }
+    queryKey: ['top-customers', summaryPeriod],
+    queryFn: () => getTopCustomers(summaryPeriod)
   });
 
   // Fetch top products data
   const { data: topProductsData, isLoading: topProductsLoading } = useQuery<TopProduct[]>({
-    queryKey: ['/api/reports/top-products', summaryPeriod],
-    queryFn: async () => {
-      const response = await fetch(`/api/reports/top-products?period=${summaryPeriod}`);
-      if (!response.ok) throw new Error('Failed to fetch top products');
-      return response.json();
-    }
+    queryKey: ['top-products', summaryPeriod],
+    queryFn: () => getTopProducts(summaryPeriod)
   });
 
   // Fetch orders data
   const { data: ordersData, isLoading: ordersLoading, error: ordersError } = useQuery<OrdersResponse>({
-    queryKey: ['/api/reports/orders', ordersPeriod, ordersPage],
-    queryFn: async () => {
-      const params = new URLSearchParams({
-        period: ordersPeriod,
-        page: ordersPage.toString(),
-        limit: '10'
-      });
-      const response = await fetch(`/api/reports/orders?${params}`);
-      if (!response.ok) throw new Error('Failed to fetch orders');
-      return response.json();
-    }
+    queryKey: ['orders-data', ordersPeriod, ordersPage],
+    queryFn: () => getOrdersData(ordersPeriod, ordersPage, 10)
   });
 
   // CSV Export Functions
