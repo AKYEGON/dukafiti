@@ -10,7 +10,7 @@ import { formatCurrency } from "@/lib/utils";
 import { offlineQueue, isOnline } from "@/lib/offline-queue";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SaleConfirmationModal } from "@/components/sales/sale-confirmation-modal";
-import { createSale, getProducts, searchProducts } from "@/lib/supabase-data";
+import { createSale, getProducts, searchProducts, createCustomer, getCustomers } from "@/lib/supabase-data";
 
 
 
@@ -245,24 +245,25 @@ export default function Sales() {
       return;
     }
     
-    let customerName = customer?.name;
+    let customerId = null;
+    let customerName = customer?.name || 'Walk-in Customer';
     
     // If this is a new customer, save them to the database first
     if (customer?.isNew && customer.name) {
       try {
-        const newCustomer = await apiRequest("POST", "/api/customers", {
+        const newCustomer = await createCustomer({
           name: customer.name,
           phone: customer.phone || null,
           email: null,
           address: null,
-          balance: "0.00"
+          balance: 0
         });
         
-        const savedCustomer = await newCustomer.json();
-        console.log('New customer saved:', savedCustomer);
+        customerId = newCustomer.id;
+        console.log('New customer saved:', newCustomer);
         
         // Invalidate customers cache
-        queryClient.invalidateQueries({ queryKey: ["/api/customers"] });
+        queryClient.invalidateQueries({ queryKey: ["customers"] });
         
         toast({
           title: "Customer added",
@@ -279,17 +280,49 @@ export default function Sales() {
           duration: 3000,
         });
       }
+    } else if (customer?.name && paymentMethod === 'credit') {
+      // For existing customers, find their ID
+      try {
+        const customers = await getCustomers();
+        const existingCustomer = customers.find(c => c.name === customer.name);
+        if (existingCustomer) {
+          customerId = existingCustomer.id;
+        }
+      } catch (error) {
+        console.error('Error finding existing customer:', error);
+      }
     }
     
-    // Prepare sale data with correct field names that match backend
+    // Calculate the new customer balance for credit sales
+    let newCustomerBalance = 0;
+    if (paymentMethod === 'credit' && customerId) {
+      try {
+        const customers = await getCustomers();
+        const existingCustomer = customers.find(c => c.id === customerId);
+        const currentBalance = parseFloat(existingCustomer?.balance || "0");
+        const saleTotal = cartItems.reduce((sum, item) => sum + parseFloat(item.total), 0);
+        newCustomerBalance = currentBalance + saleTotal;
+      } catch (error) {
+        console.error('Error calculating customer balance:', error);
+      }
+    }
+    
+    // Prepare sale data for Supabase
     const saleData = {
+      customerId,
+      customerName,
+      total: cartItems.reduce((sum, item) => sum + parseFloat(item.total), 0),
+      paymentMethod: paymentMethod as 'cash' | 'credit' | 'mobileMoney',
       items: cartItems.map(item => ({
-        id: item.product.id,
-        quantity: item.quantity
+        productId: item.product.id,
+        productName: item.product.name,
+        quantity: item.quantity,
+        price: item.unitPrice,
+        hasStock: item.product.stock !== null,
+        newStock: item.product.stock !== null ? (item.product.stock || 0) - item.quantity : null,
+        newSalesCount: (item.product.salesCount || 0) + item.quantity,
       })),
-      paymentType: paymentMethod as 'cash' | 'credit' | 'mobileMoney',
-      customerName: customer?.name || '',
-      customerPhone: customer?.phone || ''
+      newCustomerBalance: paymentMethod === 'credit' ? newCustomerBalance : null
     };
 
     console.log('Sale data being sent:', saleData);
@@ -319,24 +352,19 @@ export default function Sales() {
   };
 
   const createSaleMutation = useMutation({
-    mutationFn: async (saleData: { 
-      items: Array<{ id: number; quantity: number }>;
-      paymentType: 'cash' | 'credit' | 'mobileMoney';
-      customerName?: string;
-      customerPhone?: string;
-    }) => {
+    mutationFn: async (saleData: any) => {
       // Check if online
       if (!isOnline()) {
         // Queue sale for offline processing
         const queuedSaleId = await offlineQueue.queueSale({
-          items: saleData.items.map(item => ({
-            productId: item.id,
+          items: saleData.items.map((item: any) => ({
+            productId: item.productId,
             quantity: item.quantity,
-            price: cartItems.find(cartItem => cartItem.product.id === item.id)?.unitPrice || "0"
+            price: item.price
           })),
-          paymentType: saleData.paymentType as 'cash' | 'credit' | 'mobileMoney',
+          paymentType: saleData.paymentMethod as 'cash' | 'credit' | 'mobileMoney',
           customerName: saleData.customerName,
-          customerPhone: saleData.customerPhone,
+          customerPhone: '',
         });
 
         // Register background sync if supported
@@ -358,34 +386,11 @@ export default function Sales() {
       }
 
       // Online - proceed with direct Supabase call
-      // Transform the data to match createSale expectations
-      const transformedSaleData = {
-        customerId: null, // For now, we'll handle walk-in customers
-        customerName: saleData.customerName || 'Walk-in Customer',
-        total: cartItems.reduce((sum, item) => sum + parseFloat(item.total), 0),
-        paymentMethod: saleData.paymentType,
-        items: saleData.items.map(item => {
-          const cartItem = cartItems.find(ci => ci.product.id === item.id);
-          if (!cartItem) {
-            throw new Error(`Product with ID ${item.id} not found in cart`);
-          }
-          return {
-            productId: item.id,
-            productName: cartItem.product.name || 'Unknown Product',
-            quantity: item.quantity,
-            price: parseFloat(cartItem.unitPrice || '0'),
-            hasStock: cartItem.product.stock !== null,
-            newStock: cartItem.product.stock !== null ? 
-              (cartItem.product.stock || 0) - item.quantity : null,
-            newSalesCount: (cartItem.product.salesCount || 0) + item.quantity
-          };
-        })
-      };
-      
-      const result = await createSale(transformedSaleData);
+      // Use the data as-is since it's already properly formatted from handleConfirmSale
+      const result = await createSale(saleData);
       return { 
         success: true, 
-        status: saleData.paymentType === 'credit' ? 'pending' : 'paid', 
+        status: saleData.paymentMethod === 'credit' ? 'pending' : 'paid', 
         data: result 
       };
     },

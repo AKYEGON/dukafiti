@@ -1038,7 +1038,6 @@ export const getRecentOrders = async () => {
       .from('orders')
       .select(`
         *,
-        customers(name),
         order_items(*, products(name))
       `)
       .order('created_at', { ascending: false })

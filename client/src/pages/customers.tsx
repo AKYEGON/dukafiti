@@ -1,16 +1,18 @@
 import { useState, useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { Plus, User, Phone, Search, Filter, CreditCard, Eye, AlertCircle } from "lucide-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { Plus, User, Phone, Search, Filter, CreditCard, Eye, AlertCircle, Trash2, Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { formatCurrency } from "@/lib/utils";
 import { CustomerForm } from "@/components/customers/customer-form";
 import { RecordRepaymentModal } from "@/components/customers/record-repayment-modal";
 import { MobilePageWrapper } from "@/components/layout/mobile-page-wrapper";
 import { motion, AnimatePresence } from "framer-motion";
-import { getCustomers } from "@/lib/supabase-data";
+import { getCustomers, deleteCustomer } from "@/lib/supabase-data";
+import { useToast } from "@/hooks/use-toast";
 import type { Customer } from "@shared/schema";
 
 export default function Customers() {
@@ -19,12 +21,17 @@ export default function Customers() {
     queryFn: getCustomers,
   });
 
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
   const [showNewCustomerForm, setShowNewCustomerForm] = useState(false);
   const [showEditCustomerForm, setShowEditCustomerForm] = useState(false);
   const [showRepaymentModal, setShowRepaymentModal] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterType, setFilterType] = useState<"all" | "withDebt" | "noDebt">("all");
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Filter and search customers
   const filteredCustomers = useMemo(() => {
@@ -58,6 +65,35 @@ export default function Customers() {
   const handleEditCustomer = (customer: Customer) => {
     setSelectedCustomer(customer);
     setShowEditCustomerForm(true);
+  };
+
+  const handleDeleteCustomer = (customer: Customer) => {
+    setSelectedCustomer(customer);
+    setShowDeleteConfirm(true);
+  };
+
+  const confirmDeleteCustomer = async () => {
+    if (!selectedCustomer) return;
+    
+    setIsDeleting(true);
+    try {
+      await deleteCustomer(selectedCustomer.id);
+      toast({
+        title: "Success",
+        description: "Customer deleted successfully",
+      });
+      queryClient.invalidateQueries({ queryKey: ["customers"] });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete customer",
+        variant: "destructive",
+      });
+    } finally {
+      setIsDeleting(false);
+      setShowDeleteConfirm(false);
+      setSelectedCustomer(null);
+    }
   };
 
   const handleRecordRepayment = (customer: Customer) => {
@@ -247,8 +283,19 @@ export default function Customers() {
                             className="min-h-[40px] border-gray-300 dark:border-gray-600 text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 text-xs xl:text-sm px-3"
                             aria-label={`Edit ${customer.name} details`}
                           >
-                            <Eye className="mr-1 h-4 w-4 flex-shrink-0" />
+                            <Edit className="mr-1 h-4 w-4 flex-shrink-0" />
                             Edit
+                          </Button>
+                          
+                          <Button 
+                            onClick={() => handleDeleteCustomer(customer)}
+                            variant="outline" 
+                            size="sm"
+                            className="min-h-[40px] border-red-300 dark:border-red-600 text-red-700 dark:text-red-300 hover:bg-red-50 dark:hover:bg-red-900/20 text-xs xl:text-sm px-3"
+                            aria-label={`Delete ${customer.name}`}
+                          >
+                            <Trash2 className="mr-1 h-4 w-4 flex-shrink-0" />
+                            Delete
                           </Button>
                           
                           {hasDebt && (
@@ -293,6 +340,44 @@ export default function Customers() {
             customer={selectedCustomer}
           />
         )}
+
+        {/* Delete Confirmation Dialog */}
+        <Dialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>Delete Customer</DialogTitle>
+            </DialogHeader>
+            <div className="py-4">
+              <p className="text-sm text-gray-600 dark:text-gray-400">
+                Are you sure you want to delete <strong>{selectedCustomer?.name}</strong>? 
+                This action cannot be undone.
+              </p>
+              {selectedCustomer && parseFloat(selectedCustomer.balance || "0") > 0 && (
+                <div className="mt-3 p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
+                  <p className="text-sm text-red-700 dark:text-red-300">
+                    <strong>Warning:</strong> This customer has an outstanding balance of {formatCurrency(selectedCustomer.balance)}.
+                  </p>
+                </div>
+              )}
+            </div>
+            <DialogFooter>
+              <Button
+                variant="outline"
+                onClick={() => setShowDeleteConfirm(false)}
+                disabled={isDeleting}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={confirmDeleteCustomer}
+                disabled={isDeleting}
+              >
+                {isDeleting ? "Deleting..." : "Delete Customer"}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </MobilePageWrapper>
   );
