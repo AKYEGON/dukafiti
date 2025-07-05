@@ -4,10 +4,6 @@
 
 /* Mobile-first base styles */
 @layer base {
-  * {
-    @apply border-border;
-  }
-  
   body {
     @apply bg-background text-foreground leading-relaxed;
     font-feature-settings: "rlig" 1, "calt" 1;
@@ -65,113 +61,107 @@
 
 :root {
   /* Research-Based Light Mode Palette (WCAG Compliant) */
-  --background: hsl(0, 0%, 100%);              /* Pure white */
-  --foreground: hsl(240, 5%, 10%);             /* Near black text - neutral.DEFAULT */
-  --card: hsl(0, 0%, 100%);                    /* White cards */
-  --card-foreground: hsl(240, 5%, 10%);        /* Dark text on cards */
-  --popover: hsl(0, 0%, 100%);                 /* White popovers */
-  --popover-foreground: hsl(240, 5%, 10%);     /* Dark text in popovers */
-  --muted: hsl(240, 5%, 96%);                  /* neutral.100 */
-  --muted-foreground: hsl(240, 4%, 46%);       /* neutral.500 */
+  --background: hsl(0, 0%, 100%);
+  --foreground: hsl(240, 5%, 10%);
+  --card: hsl(0, 0%, 100%);
+  --card-foreground: hsl(240, 5%, 10%);
+  --popover: hsl(0, 0%, 100%);
+  --popover-foreground: hsl(240, 5%, 10%);
+  --muted: hsl(240, 5%, 96%);
+  --muted-foreground: hsl(240, 4%, 46%);
   
   /* Primary = Emerald Green (WCAG AA: 4.52:1) */
-  --primary: hsl(160, 84%, 39%);               /* emerald.DEFAULT #059669 */
-  --primary-foreground: hsl(0, 0%, 100%);      /* White text on emerald */
+  --primary: hsl(160, 84%, 39%);
+  --primary-foreground: hsl(0, 0%, 100%);
   
   /* Secondary = Light Lavender Background */
-  --secondary: hsl(270, 40%, 95%);             /* Very light lavender */
-  --secondary-foreground: hsl(240, 5%, 10%);   /* Dark text */
+  --secondary: hsl(270, 40%, 95%);
+  --secondary-foreground: hsl(240, 5%, 10%);
   
   /* Accent = Lavender Purple (WCAG AAA: 7.04:1) */
-  --accent: hsl(258, 90%, 66%);                /* lavender.DEFAULT #7c3aed */
-  --accent-foreground: hsl(0, 0%, 100%);       /* White text on lavender */
+  --accent: hsl(258, 90%, 66%);
+  --accent-foreground: hsl(0, 0%, 100%);
   
   /* Semantic & UI */
-  --destructive: hsl(0, 84%, 60%);             /* Red for errors */
+  --destructive: hsl(0, 84%, 60%);
   --destructive-foreground: hsl(0, 0%, 100%);
-  --border: hsl(240, 6%, 90%);                 /* Light gray borders */
-  --input: hsl(240, 6%, 90%);                  /* Input borders */
-  --ring: hsl(160, 84%, 39%);                  /* Emerald focus rings */
+  --border: hsl(240, 6%, 90%);
+  --input: hsl(240, 6%, 90%);
+  --ring: hsl(160, 84%, 39%);
   --radius: 0.5rem;
   
   /* Chart Colors (Triadic Harmony) */
-  --chart-1: hsl(160, 84%, 39%);               /* Primary: Emerald */
-  --chart-2: hsl(258, 90%, 66%);               /* Secondary: Lavender */
-  --chart-3: hsl(38, 92%, 50%);                /* Tertiary: Orange */
-  --chart-4: hsl(0, 84%, 60%);                 /* Error: Red */
-  --chart-5: hsl(240, 4%, 46%);                /* Neutral: Gray */
+  --chart-1: hsl(160, 84%, 39%);
+  --chart-2: hsl(258, 90%, 66%);
+  --chart-3: hsl(38, 92%, 50%);
+  --chart-4: hsl(0, 84%, 60%);
+  --chart-5: hsl(240, 4%, 46%);
   
   /* Business Dashboard Sidebar (Light Mode) */
-  --sidebar-background: hsl(240, 5%, 10%);     /* Dark neutral for contrast */
-  --sidebar-foreground: hsl(0, 0%, 100%);      /* White text */
-  --sidebar-primary: hsl(160, 84%, 39%);       /* Emerald for active states */
+  --sidebar-background: hsl(240, 5%, 10%);
+  --sidebar-foreground: hsl(0, 0%, 100%);
+  --sidebar-primary: hsl(160, 84%, 39%);
   --sidebar-primary-foreground: hsl(0, 0%, 100%);
-  --sidebar-accent: hsl(258, 90%, 66%);        /* Lavender for hover */
+  --sidebar-accent: hsl(258, 90%, 66%);
   --sidebar-accent-foreground: hsl(0, 0%, 100%);
-  --sidebar-border: hsl(240, 4%, 16%);         /* Slightly lighter than bg */
-  --sidebar-ring: hsl(160, 84%, 39%);          /* Emerald focus */
+  --sidebar-border: hsl(240, 4%, 16%);
+  --sidebar-ring: hsl(160, 84%, 39%);
 }
 
 .dark {
   /* Research-Based Dark Mode Palette (Accessibility Optimized) */
-  --background: hsl(240, 10%, 4%);             /* Very dark background */
-  --foreground: hsl(0, 0%, 98%);               /* Near white text */
-  --card: hsl(240, 10%, 4%);                  /* Dark cards */
-  --card-foreground: hsl(0, 0%, 98%);          /* Light text on cards */
-  --popover: hsl(240, 10%, 4%);               /* Dark popovers */
-  --popover-foreground: hsl(0, 0%, 98%);       /* Light text in popovers */
-  --muted: hsl(240, 4%, 16%);                 /* Dark gray */
-  --muted-foreground: hsl(240, 5%, 65%);       /* Medium gray text */
+  --background: hsl(240, 10%, 4%);
+  --foreground: hsl(0, 0%, 98%);
+  --card: hsl(240, 10%, 4%);
+  --card-foreground: hsl(0, 0%, 98%);
+  --popover: hsl(240, 10%, 4%);
+  --popover-foreground: hsl(0, 0%, 98%);
+  --muted: hsl(240, 4%, 16%);
+  --muted-foreground: hsl(240, 5%, 65%);
   
   /* Primary = Emerald Green (Consistent in dark mode) */
-  --primary: hsl(160, 84%, 39%);               /* Same emerald for consistency */
-  --primary-foreground: hsl(240, 10%, 4%);     /* Dark text on emerald */
+  --primary: hsl(160, 84%, 39%);
+  --primary-foreground: hsl(240, 10%, 4%);
   
   /* Secondary = Dark Neutral */
-  --secondary: hsl(240, 4%, 16%);              /* Dark gray background */
-  --secondary-foreground: hsl(0, 0%, 98%);     /* Light text */
+  --secondary: hsl(240, 4%, 16%);
+  --secondary-foreground: hsl(0, 0%, 98%);
   
   /* Accent = Brighter Emerald (Dark Mode Switch) */
-  --accent: hsl(160, 84%, 39%);                /* Emerald accent in dark mode */
-  --accent-foreground: hsl(0, 0%, 98%);        /* Light text on emerald */
+  --accent: hsl(160, 84%, 39%);
+  --accent-foreground: hsl(0, 0%, 98%);
   
   /* Semantic Colors (Dark Mode Adjusted) */
-  --destructive: hsl(0, 63%, 31%);             /* Darker red for dark mode */
+  --destructive: hsl(0, 63%, 31%);
   --destructive-foreground: hsl(0, 0%, 98%);
-  --border: hsl(240, 4%, 16%);                 /* Dark borders */
-  --input: hsl(240, 4%, 16%);                  /* Dark input borders */
-  --ring: hsl(160, 84%, 39%);                  /* Emerald focus rings */
+  --border: hsl(240, 4%, 16%);
+  --input: hsl(240, 4%, 16%);
+  --ring: hsl(160, 84%, 39%);
   
   /* Chart Colors (Dark Mode Optimized) */
-  --chart-1: hsl(160, 84%, 39%);               /* Emerald (brighter for contrast) */
-  --chart-2: hsl(258, 90%, 66%);               /* Lavender (bright enough) */
-  --chart-3: hsl(38, 92%, 50%);                /* Orange (vivid) */
-  --chart-4: hsl(0, 84%, 60%);                 /* Red (error state) */
-  --chart-5: hsl(0, 0%, 98%);                  /* Light gray */
+  --chart-1: hsl(160, 84%, 39%);
+  --chart-2: hsl(258, 90%, 66%);
+  --chart-3: hsl(38, 92%, 50%);
+  --chart-4: hsl(0, 84%, 60%);
+  --chart-5: hsl(0, 0%, 98%);
   
   /* Business Dashboard Sidebar (Dark Mode) */
-  --sidebar-background: hsl(240, 10%, 4%);     /* Very dark background */
-  --sidebar-foreground: hsl(0, 0%, 98%);       /* Light text */
-  --sidebar-primary: hsl(160, 84%, 39%);       /* Emerald for active states */
+  --sidebar-background: hsl(240, 10%, 4%);
+  --sidebar-foreground: hsl(0, 0%, 98%);
+  --sidebar-primary: hsl(160, 84%, 39%);
   --sidebar-primary-foreground: hsl(0, 0%, 98%);
-  --sidebar-accent: hsl(160, 84%, 39%);        /* Emerald for hover in dark mode */
+  --sidebar-accent: hsl(160, 84%, 39%);
   --sidebar-accent-foreground: hsl(0, 0%, 98%);
-  --sidebar-border: hsl(240, 4%, 16%);         /* Dark borders */
-  --sidebar-ring: hsl(160, 84%, 39%);          /* Emerald focus */
+  --sidebar-border: hsl(240, 4%, 16%);
+  --sidebar-ring: hsl(160, 84%, 39%);
 }
 
 @layer base {
-  * {
-    @apply border-border;
-  }
-
   body {
     @apply bg-background text-foreground font-sans antialiased;
   }
   
-  /* Comprehensive text visibility fixes */
-  
-  /* Primary text elements */
+  /* Text visibility fixes */
   h1, h2, h3, h4, h5, h6 {
     color: hsl(var(--foreground)) !important;
   }
@@ -180,154 +170,23 @@
     color: hsl(var(--foreground));
   }
   
-  /* Muted text with proper contrast */
-  .text-muted-foreground,
-  .text-gray-400,
-  .text-gray-500,
-  .text-gray-600 {
+  .text-muted-foreground {
     color: hsl(var(--muted-foreground)) !important;
   }
   
-  /* White text overrides */
-  .text-white {
-    color: hsl(0, 0%, 100%) !important;
-  }
-  
-  /* Green text for accent colors */
-  .text-green-500,
-  .text-primary {
-    color: hsl(var(--primary)) !important;
-  }
-  
-  /* Form elements */
   label {
     color: hsl(var(--foreground)) !important;
     font-weight: 500;
   }
   
-  input[type="text"],
-  input[type="email"],
-  input[type="number"],
-  input[type="password"],
-  textarea,
-  select {
+  input, textarea, select {
     color: hsl(var(--foreground)) !important;
     background-color: hsl(var(--input)) !important;
     border: 1px solid hsl(var(--border));
   }
   
-  input::placeholder,
-  textarea::placeholder {
+  input::placeholder, textarea::placeholder {
     color: hsl(var(--muted-foreground)) !important;
-  }
-  
-  /* Button text visibility */
-  button {
-    color: inherit;
-  }
-  
-  /* Dialog and modal content */
-  [data-radix-dialog-content],
-  [data-radix-popover-content] {
-    background-color: hsl(var(--background)) !important;
-    color: hsl(var(--foreground)) !important;
-  }
-  
-  /* Card content */
-  .card,
-  .bg-card {
-    background-color: hsl(var(--card)) !important;
-    color: hsl(var(--card-foreground)) !important;
-  }
-  
-  /* Sidebar text visibility */
-  .sidebar * {
-    color: hsl(var(--sidebar-foreground)) !important;
-  }
-  
-  /* Table text */
-  table, thead, tbody, tr, td, th {
-    color: hsl(var(--foreground)) !important;
-  }
-  
-  /* Navigation text */
-  nav, nav * {
-    color: inherit;
-  }
-  
-  /* Destructive/error text */
-  .text-destructive,
-  .text-red-500,
-  .text-red-600 {
-    color: hsl(var(--destructive)) !important;
-  }
-  
-  /* Success text */
-  .text-green-600,
-  .text-emerald-600 {
-    color: hsl(158, 64%, 52%) !important;
-  }
-  
-  /* Force visibility for common utility classes */
-  .text-sm, .text-xs, .text-lg, .text-xl {
-    color: inherit;
-  }
-  
-  /* Ensure metric values are visible */
-  .metric-value,
-  .dashboard-metric {
-    color: hsl(var(--foreground)) !important;
-    font-weight: 600;
-  }
-  
-  /* Fix any transparent or invisible text */
-  * {
-    text-shadow: none;
-  }
-  
-  /* Specific fixes for low contrast elements */
-  .opacity-70 {
-    opacity: 0.85 !important;
-  }
-  
-  .opacity-50 {
-    opacity: 0.75 !important;
-  }
-  
-  /* Global text color enforcement */
-  * {
-    /* Ensure no invisible text */
-    color: inherit;
-  }
-  
-  /* Override any remaining hardcoded colors */
-  .text-gray-100,
-  .text-gray-200,
-  .text-gray-300 {
-    color: hsl(var(--foreground)) !important;
-  }
-  
-  .text-gray-700,
-  .text-gray-800,
-  .text-gray-900 {
-    color: hsl(var(--foreground)) !important;
-  }
-  
-  /* Ensure all buttons have proper text visibility */
-  button, .btn {
-    color: inherit;
-  }
-  
-  /* Fix any remaining invisible elements */
-  [class*="text-"] {
-    color: inherit;
-  }
-  
-  /* Strong text visibility for important elements */
-  .font-bold,
-  .font-semibold,
-  .font-medium {
-    color: hsl(var(--foreground)) !important;
   }
 }
 
@@ -347,42 +206,5 @@
 
   .btn-secondary {
     @apply bg-lavender hover:bg-lavender-800 text-white font-medium ring-lavender focus:ring-2;
-  }
-
-  .btn-outline-primary {
-    @apply border border-emerald text-emerald hover:bg-emerald hover:text-white transition-colors;
-  }
-
-  .btn-outline-secondary {
-    @apply border border-lavender text-lavender hover:bg-lavender hover:text-white transition-colors;
-  }
-
-  .brand-gradient {
-    background: linear-gradient(135deg, hsl(var(--chart-1)) 0%, hsl(var(--chart-2)) 100%);
-  }
-
-  .chart-emerald {
-    @apply text-emerald fill-emerald stroke-emerald;
-  }
-
-  .chart-lavender {
-    @apply text-lavender fill-lavender stroke-lavender;
-  }
-
-  /* Accessibility-focused text utilities */
-  .text-brand-primary {
-    @apply text-emerald;
-  }
-
-  .text-brand-secondary {
-    @apply text-lavender;
-  }
-
-  .text-success {
-    @apply text-emerald;
-  }
-
-  .text-info {
-    @apply text-lavender;
   }
 }
