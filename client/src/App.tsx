@@ -33,16 +33,10 @@ import SettingsPage from "@/pages/settings"
 import Debug from "@/pages/debug"
 
 function AuthenticatedApp() {
-  console.log("AuthenticatedApp component rendering...")
-  
   // Initialize WebSocket connection for real-time notifications
   useWebSocket()
   // Initialize Supabase real-time subscriptions
   useSupabaseRealtime()
-  // Console log environment variables for debugging
-  useEffect(() => {
-    console.log("AuthenticatedApp mounted")
-    }, [])
   // Sidebar collapse state
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
 
@@ -166,8 +160,6 @@ function Router() {
   )
 }
 function App() {
-  console.log("Main App component rendering...")
-  
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>

@@ -1,74 +1,82 @@
-import { pgTable, text, serial, integer, decimal, timestamp, boolean } from 'drizzle-orm/pg-core'
+import { sqliteTable, text, integer, real } from 'drizzle-orm/sqlite-core'
 import { relations } from 'drizzle-orm'
 import { createInsertSchema } from 'drizzle-zod'
 import { z } from 'zod'
-export const products = pgTable('products', {
-  id: serial('id').primaryKey(),
+
+export const products = sqliteTable('products', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
   name: text('name').notNull(),
   sku: text('sku').notNull().unique(),
   description: text('description'),
-  price: decimal('price', { precision: 10, scale: 2 }).notNull(),
+  price: real('price').notNull(),
   stock: integer('stock'), // Allow null for unknown quantities
   category: text('category').notNull(),
   lowStockThreshold: integer('low_stock_threshold').notNull().default(10),
   salesCount: integer('sales_count').notNull().default(0),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
 })
-export const customers = pgTable('customers', {
-  id: serial('id').primaryKey(),
+
+export const customers = sqliteTable('customers', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
   name: text('name').notNull(),
   email: text('email'),
   phone: text('phone'),
   address: text('address'),
-  balance: decimal('balance', { precision: 10, scale: 2 }).notNull().default('0.00'),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
+  balance: real('balance').notNull().default(0.00),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
 })
-export const orders = pgTable('orders', {
-  id: serial('id').primaryKey(),
+
+export const orders = sqliteTable('orders', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
   customerId: integer('customer_id').references(() => customers.id),
   customerName: text('customer_name').notNull(),
-  total: decimal('total', { precision: 10, scale: 2 }).notNull(),
+  total: real('total').notNull(),
   paymentMethod: text('payment_method').notNull().default('cash'),
   status: text('status').notNull().default('pending'),
   reference: text('reference'),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
 })
-export const orderItems = pgTable('order_items', {
-  id: serial('id').primaryKey(),
+
+export const orderItems = sqliteTable('order_items', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
   orderId: integer('order_id').notNull().references(() => orders.id),
   productId: integer('product_id').notNull().references(() => products.id),
   productName: text('product_name').notNull(),
   quantity: integer('quantity').notNull(),
-  price: decimal('price', { precision: 10, scale: 2 }).notNull(),
+  price: real('price').notNull(),
 })
-export const users = pgTable('users', {
-  id: serial('id').primaryKey(),
+
+export const users = sqliteTable('users', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
   username: text('username').notNull().unique(),
   email: text('email').notNull().unique(),
   passwordHash: text('password_hash').notNull(),
   phone: text('phone'),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
 })
-export const businessProfiles = pgTable('business_profiles', {
-  id: serial('id').primaryKey(),
+
+export const businessProfiles = sqliteTable('business_profiles', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
   userId: integer('user_id').notNull().references(() => users.id),
   businessName: text('business_name').notNull(),
   businessType: text('business_type').notNull(),
   location: text('location'),
   description: text('description'),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
 })
-export const payments = pgTable('payments', {
-  id: serial('id').primaryKey(),
+
+export const payments = sqliteTable('payments', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
   customerId: integer('customer_id').notNull().references(() => customers.id),
-  amount: decimal('amount', { precision: 10, scale: 2 }).notNull(),
+  amount: real('amount').notNull(),
   method: text('method').notNull(),
   reference: text('reference'),
   status: text('status').notNull().default('pending'),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
 })
-export const storeProfiles = pgTable('store_profiles', {
-  id: serial('id').primaryKey(),
+
+export const storeProfiles = sqliteTable('store_profiles', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
   userId: integer('user_id').notNull().references(() => users.id),
   storeName: text('store_name').notNull(),
   ownerName: text('owner_name'),
@@ -78,33 +86,37 @@ export const storeProfiles = pgTable('store_profiles', {
   paybillTillNumber: text('paybill_till_number'),
   consumerKey: text('consumer_key'),
   consumerSecret: text('consumer_secret'),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
 })
-export const userSettings = pgTable('user_settings', {
-  id: serial('id').primaryKey(),
+
+export const userSettings = sqliteTable('user_settings', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
   userId: integer('user_id').notNull().references(() => users.id),
   theme: text('theme').notNull().default('light'),
   currency: text('currency').notNull().default('KES'),
   language: text('language').notNull().default('en'),
-  notifications: boolean('notifications').notNull().default(true),
-  mpesaEnabled: boolean('mpesa_enabled').notNull().default(false),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
-  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  notifications: integer('notifications', { mode: 'boolean' }).notNull().default(true),
+  mpesaEnabled: integer('mpesa_enabled', { mode: 'boolean' }).notNull().default(false),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
+  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
 })
-export const notifications = pgTable('notifications', {
-  id: serial('id').primaryKey(),
+
+export const notifications = sqliteTable('notifications', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
   userId: integer('user_id').notNull().references(() => users.id),
   title: text('title').notNull(),
   message: text('message').notNull(),
   type: text('type').notNull().default('info'), // info, success, warning, error
-  isRead: boolean('is_read').notNull().default(false),
-  createdAt: timestamp('created_at').defaultNow().notNull(),
+  isRead: integer('is_read', { mode: 'boolean' }).notNull().default(false),
+  createdAt: integer('created_at', { mode: 'timestamp' }).notNull().$defaultFn(() => new Date()),
 })
+
 // Relations
 export const customersRelations = relations(customers, ({ many }) => ({
   orders: many(orders),
   payments: many(payments),
 }))
+
 export const ordersRelations = relations(orders, ({ one, many }) => ({
   customer: one(customers, {
     fields: [orders.customerId],
@@ -112,6 +124,7 @@ export const ordersRelations = relations(orders, ({ one, many }) => ({
   }),
   orderItems: many(orderItems),
 }))
+
 export const orderItemsRelations = relations(orderItems, ({ one }) => ({
   order: one(orders, {
     fields: [orderItems.orderId],
@@ -122,15 +135,18 @@ export const orderItemsRelations = relations(orderItems, ({ one }) => ({
     references: [products.id],
   }),
 }))
+
 export const productsRelations = relations(products, ({ many }) => ({
   orderItems: many(orderItems),
 }))
+
 export const paymentsRelations = relations(payments, ({ one }) => ({
   customer: one(customers, {
     fields: [payments.customerId],
     references: [customers.id],
   }),
 }))
+
 // Insert schemas
 export const insertProductSchema = createInsertSchema(products).omit({
   id: true,
@@ -140,41 +156,51 @@ export const insertProductSchema = createInsertSchema(products).omit({
   // Allow for unknown quantity handling on frontend
   unknownQuantity: z.boolean().optional(),
 })
+
 export const insertCustomerSchema = createInsertSchema(customers).omit({
   id: true,
   createdAt: true,
 })
+
 export const insertOrderSchema = createInsertSchema(orders).omit({
   id: true,
   createdAt: true,
 })
+
 export const insertOrderItemSchema = createInsertSchema(orderItems).omit({
   id: true,
 })
+
 export const insertUserSchema = createInsertSchema(users).omit({
   id: true,
   createdAt: true,
 })
+
 export const insertBusinessProfileSchema = createInsertSchema(businessProfiles).omit({
   id: true,
   createdAt: true,
 })
+
 export const insertPaymentSchema = createInsertSchema(payments).omit({
   id: true,
   createdAt: true,
 })
+
 export const insertStoreProfileSchema = createInsertSchema(storeProfiles).omit({
   id: true,
   createdAt: true,
 })
+
 export const insertUserSettingsSchema = createInsertSchema(userSettings).omit({
   id: true,
   createdAt: true,
 })
+
 export const insertNotificationSchema = createInsertSchema(notifications).omit({
   id: true,
   createdAt: true,
 })
+
 // Types
 export type Product = typeof products.$inferSelect
 export type InsertProduct = z.infer<typeof insertProductSchema>
@@ -196,6 +222,7 @@ export type UserSettings = typeof userSettings.$inferSelect
 export type InsertUserSettings = z.infer<typeof insertUserSettingsSchema>
 export type Notification = typeof notifications.$inferSelect
 export type InsertNotification = z.infer<typeof insertNotificationSchema>
+
 export interface DashboardMetrics {
   totalRevenue: string
   totalOrders: number

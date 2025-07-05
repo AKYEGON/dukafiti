@@ -53,19 +53,9 @@ if ('serviceWorker' in navigator) {
     }
   })
 }
-console.log("Starting DukaFiti app initialization...")
-
 const rootElement = document.getElementById("root")
 if (!rootElement) {
   console.error("Root element not found!")
-  document.body.innerHTML = "<h1>Error: Root element not found</h1>"
 } else {
-  console.log("Root element found, mounting React app...")
-  try {
-    createRoot(rootElement).render(<App />)
-    console.log("React app mounted successfully!")
-  } catch (error) {
-    console.error("Error mounting React app:", error)
-    document.body.innerHTML = "<h1>Error mounting React app: " + error + "</h1>"
-  }
+  createRoot(rootElement).render(<App />)
 }

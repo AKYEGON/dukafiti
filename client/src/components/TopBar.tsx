@@ -210,7 +210,7 @@ export function TopBar({ onToggleSidebar }: TopBarProps) {
                   <User className="h-5 w-5" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56 z-50" sideOffset={8}>
+              <DropdownMenuContent align="end" className="w-56" sideOffset={8}>
                 <div className="px-2 py-1.5">
                   <p className="text-sm font-medium">{user?.email}</p>
                   <p className="text-xs text-muted-foreground">DukaFiti User</p>
