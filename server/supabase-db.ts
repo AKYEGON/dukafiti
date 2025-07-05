@@ -141,6 +141,23 @@ export const supabaseDb = {
     })) || []
   },
 
+  async getRecentOrders() {
+    const { data, error }  =  await supabase.from('orders').select('*').order('created_at', { ascending: false }).limit(5)
+    if (error) throw error
+    // Map snake_case to camelCase for frontend compatibility
+    return data?.map(order => ({
+      id: order.id,
+      customerId: order.customer_id,
+      customerName: order.customer_name,
+      total: order.total,
+      paymentMethod: order.payment_method,
+      status: order.status,
+      reference: order.reference,
+      createdAt: order.created_at,
+      updatedAt: order.updated_at
+    })) || []
+  },
+
   async createOrder(order: any) {
     // Map camelCase to snake_case for database
     const dbOrder = {

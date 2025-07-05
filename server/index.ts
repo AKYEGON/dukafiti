@@ -156,6 +156,16 @@ app.get('/api/orders', async (req, res) => {
   }
 })
 
+app.get('/api/orders/recent', async (req, res) => {
+  try {
+    const orders = await supabaseDb.getRecentOrders()
+    res.json(orders || [])
+  } catch (error) {
+    console.error('Recent orders fetch error:', error)
+    res.status(500).json({ error: 'Failed to fetch recent orders' })
+  }
+})
+
 app.post('/api/orders', async (req, res) => {
   try {
     const { items, customer, paymentMethod, total } = req.body
@@ -191,6 +201,27 @@ app.post('/api/orders', async (req, res) => {
           }
           await supabaseDb.updateProduct(item.id, updates)
         }
+      }
+    }
+
+    // Create notifications for sale completion
+    await supabaseDb.createNotification({
+      userId: 1,
+      title: 'Sale Completed',
+      message: `New sale of KES ${total} completed using ${paymentMethod}`,
+      type: 'success'
+    })
+
+    // Check for low stock and create notifications
+    for (const item of items) {
+      const product = await supabaseDb.getProductById(item.id)
+      if (product && product.stock !== null && product.stock <= product.low_stock_threshold) {
+        await supabaseDb.createNotification({
+          userId: 1,
+          title: 'Low Stock Alert',
+          message: `${product.name} is running low (${product.stock} items remaining)`,
+          type: 'warning'
+        })
       }
     }
 
@@ -239,6 +270,72 @@ app.put('/api/notifications/:id/read', async (req, res) => {
   } catch (error) {
     console.error('Mark notification read error:', error)
     res.status(500).json({ error: 'Failed to mark notification as read' })
+  }
+})
+
+// Universal search endpoint
+app.get('/api/search', async (req, res) => {
+  try {
+    const { q } = req.query
+    if (!q || q.toString().trim().length < 2) {
+      return res.json({ results: [] })
+    }
+
+    const query = q.toString().trim()
+    const results: any[] = []
+
+    // Search products
+    const products = await supabaseDb.searchProducts(query)
+    if (products && products.length > 0) {
+      products.slice(0, 3).forEach(product => {
+        results.push({
+          type: 'product',
+          title: product.name,
+          subtitle: `KES ${product.price} - Stock: ${product.stock || 'Unknown'}`,
+          data: product
+        })
+      })
+    }
+
+    // Search customers  
+    const customers = await supabaseDb.getCustomers()
+    if (customers && customers.length > 0) {
+      const filteredCustomers = customers.filter(customer => 
+        customer.name?.toLowerCase().includes(query.toLowerCase()) ||
+        customer.phone?.includes(query) ||
+        customer.email?.toLowerCase().includes(query.toLowerCase())
+      )
+      filteredCustomers.slice(0, 2).forEach(customer => {
+        results.push({
+          type: 'customer',
+          title: customer.name,
+          subtitle: `${customer.phone} - Balance: KES ${customer.balance}`,
+          data: customer
+        })
+      })
+    }
+
+    // Search orders
+    const orders = await supabaseDb.getOrders(20)
+    if (orders && orders.length > 0) {
+      const filteredOrders = orders.filter(order => 
+        order.customerName?.toLowerCase().includes(query.toLowerCase()) ||
+        order.reference?.includes(query)
+      )
+      filteredOrders.slice(0, 2).forEach(order => {
+        results.push({
+          type: 'order',
+          title: `Order #${order.id}`,
+          subtitle: `${order.customerName} - KES ${order.total}`,
+          data: order
+        })
+      })
+    }
+
+    res.json({ results: results.slice(0, 8) })
+  } catch (error) {
+    console.error('Search error:', error)
+    res.status(500).json({ error: 'Search failed' })
   }
 })
 

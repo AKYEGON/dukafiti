@@ -254,15 +254,20 @@ export default function Sales() {
       }
     }
 
+    // Calculate total
+    const total = cartItems.reduce((sum, item) => sum + parseFloat(item.total), 0)
+
     // Prepare sale data with correct field names that match backend
     const saleData = {
       items: cartItems.map(item => ({
         id: item.product.id,
+        name: item.product.name,
+        price: parseFloat(item.unitPrice),
         quantity: item.quantity
       })),
-      paymentType: paymentMethod as 'cash' | 'credit' | 'mobileMoney',
-      customerName: customer?.name || '',
-      customerPhone: customer?.phone || ''
+      paymentMethod: paymentMethod as 'cash' | 'credit' | 'mobileMoney',
+      customer: customerName || 'Walk-in Customer',
+      total: total
     }
     createSaleMutation.mutate(saleData)
   }
@@ -288,10 +293,10 @@ export default function Sales() {
 
   const createSaleMutation = useMutation({
     mutationFn: async (saleData: {
-      items: Array<{ id: number; quantity: number }>
-      paymentType: 'cash' | 'credit' | 'mobileMoney'
-      customerName?: string
-      customerPhone?: string
+      items: Array<{ id: number; name: string; price: number; quantity: number }>
+      paymentMethod: 'cash' | 'credit' | 'mobileMoney'
+      customer: string
+      total: number
     }) => {
       // Check if online
       if (!isOnline()) {
@@ -300,11 +305,11 @@ export default function Sales() {
           items: saleData.items.map(item => ({
             productId: item.id,
             quantity: item.quantity,
-            price: cartItems.find(cartItem => cartItem.product.id  ===  item.id)?.unitPrice || "0"
+            price: item.price.toString()
           })),
-          paymentType: saleData.paymentType as 'cash' | 'credit' | 'mobileMoney',
-          customerName: saleData.customerName,
-          customerPhone: saleData.customerPhone
+          paymentType: saleData.paymentMethod as 'cash' | 'credit' | 'mobileMoney',
+          customerName: saleData.customer,
+          customerPhone: ''
         })
         // Register background sync if supported
         if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
@@ -324,7 +329,7 @@ export default function Sales() {
       }
 
       // Online - proceed with normal API call
-      const response = await apiRequest("POST", "/api/sales", saleData)
+      const response = await apiRequest("POST", "/api/orders", saleData)
       return response.json()
     },
     onSuccess: (result: any) => {
