@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../supabaseClient';
-import { useAuth } from '@/contexts/SupabaseAuthContext';
+import { useAuth } from '@/contexts/SessionAuthContext';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
@@ -9,7 +9,7 @@ export default function Debug() {
   const [userInfo, setUserInfo] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { user, session, isAuthenticated } = useAuth();
+  const { user, isAuthenticated } = useAuth();
 
   useEffect(() => {
     const checkSession = async () => {

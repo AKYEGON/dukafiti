@@ -125,7 +125,7 @@ app.post("/api/auth/login", async (req, res) => {
       return res.status(401).json({ error: "Invalid email or password" });
     }
 
-    const isValidPassword = await bcrypt.compare(password, user.password);
+    const isValidPassword = await bcrypt.compare(password, user.password_hash);
     if (!isValidPassword) {
       return res.status(401).json({ error: "Invalid email or password" });
     }
@@ -158,7 +158,7 @@ app.post("/api/auth/register", async (req, res) => {
     // Create user
     const user = await supabaseDb.createUser({
       email,
-      password: hashedPassword,
+      password_hash: hashedPassword,
       phone,
       username
     });
