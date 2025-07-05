@@ -10,11 +10,13 @@ import { CustomerForm } from "@/components/customers/customer-form";
 import { RecordRepaymentModal } from "@/components/customers/record-repayment-modal";
 import { MobilePageWrapper } from "@/components/layout/mobile-page-wrapper";
 import { motion, AnimatePresence } from "framer-motion";
+import { getCustomers } from "@/lib/supabase-data";
 import type { Customer } from "@shared/schema";
 
 export default function Customers() {
   const { data: customers, isLoading } = useQuery<Customer[]>({
-    queryKey: ["/api/customers"],
+    queryKey: ["customers"],
+    queryFn: getCustomers,
   });
 
   const [showNewCustomerForm, setShowNewCustomerForm] = useState(false);

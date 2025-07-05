@@ -195,36 +195,127 @@ export const getCustomers = async () => {
 };
 
 export const createCustomer = async (customer: any) => {
-  const { data, error } = await supabase
-    .from('customers')
-    .insert([{
-      name: customer.name,
-      email: customer.email,
-      phone: customer.phone,
-      balance: customer.balance || 0,
-    }])
-    .select()
-    .single();
-  
-  if (error) throw error;
-  return data;
+  try {
+    console.log('Creating customer with data:', customer);
+    
+    const { data, error } = await supabase
+      .from('customers')
+      .insert([{
+        name: customer.name,
+        email: customer.email || null,
+        phone: customer.phone,
+        balance: customer.balance || 0,
+      }])
+      .select()
+      .single();
+    
+    if (error) {
+      console.error('Supabase customer creation error:', error);
+      throw error;
+    }
+    
+    console.log('Customer created successfully:', data);
+    return data;
+  } catch (error) {
+    console.error('Customer creation failed:', error);
+    throw error;
+  }
 };
 
 export const updateCustomer = async (id: number, updates: any) => {
-  const { data, error } = await supabase
+  try {
+    console.log('Updating customer', id, 'with data:', updates);
+    
+    const { data, error } = await supabase
+      .from('customers')
+      .update({
+        name: updates.name,
+        email: updates.email || null,
+        phone: updates.phone,
+        balance: updates.balance,
+      })
+      .eq('id', id)
+      .select()
+      .single();
+    
+    if (error) {
+      console.error('Supabase customer update error:', error);
+      throw error;
+    }
+    
+    console.log('Customer updated successfully:', data);
+    return data;
+  } catch (error) {
+    console.error('Customer update failed:', error);
+    throw error;
+  }
+};
+
+export const deleteCustomer = async (id: number) => {
+  const { error } = await supabase
     .from('customers')
-    .update({
-      name: updates.name,
-      email: updates.email,
-      phone: updates.phone,
-      balance: updates.balance,
-    })
-    .eq('id', id)
-    .select()
-    .single();
+    .delete()
+    .eq('id', id);
   
   if (error) throw error;
-  return data;
+};
+
+export const recordCustomerRepayment = async (customerId: number, amount: number, method: string, note?: string) => {
+  try {
+    console.log('Recording repayment for customer', customerId, 'amount:', amount);
+    
+    // Get current customer balance
+    const { data: customer, error: customerError } = await supabase
+      .from('customers')
+      .select('balance')
+      .eq('id', customerId)
+      .single();
+    
+    if (customerError) {
+      console.error('Error fetching customer:', customerError);
+      throw customerError;
+    }
+    
+    const currentBalance = parseFloat(customer.balance || '0');
+    const newBalance = Math.max(0, currentBalance - amount);
+    
+    // Update customer balance
+    const { data: updatedCustomer, error: updateError } = await supabase
+      .from('customers')
+      .update({ balance: newBalance })
+      .eq('id', customerId)
+      .select()
+      .single();
+    
+    if (updateError) {
+      console.error('Error updating customer balance:', updateError);
+      throw updateError;
+    }
+    
+    // Record the payment
+    const { data: payment, error: paymentError } = await supabase
+      .from('payments')
+      .insert([{
+        customer_id: customerId,
+        amount: amount,
+        method: method,
+        reference: note || null,
+        status: 'completed',
+      }])
+      .select()
+      .single();
+    
+    if (paymentError) {
+      console.error('Error recording payment:', paymentError);
+      throw paymentError;
+    }
+    
+    console.log('Repayment recorded successfully:', payment);
+    return { customer: updatedCustomer, payment };
+  } catch (error) {
+    console.error('Customer repayment failed:', error);
+    throw error;
+  }
 };
 
 // Order operations

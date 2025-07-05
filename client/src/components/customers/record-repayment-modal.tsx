@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { formatCurrency } from "@/lib/utils";
 import { Wallet, Smartphone, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { recordCustomerRepayment } from "@/lib/supabase-data";
 import type { Customer } from "@shared/schema";
 
 interface RecordRepaymentModalProps {
@@ -22,44 +23,9 @@ export function RecordRepaymentModal({ isOpen, onClose, customer, previousPaymen
   const [amount, setAmount] = useState("");
   const [method, setMethod] = useState<"cash" | "mobileMoney">("cash");
   const [note, setNote] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
-
-  const recordPayment = useMutation({
-    mutationFn: async (data: { customerId: number; amount: string; method: string; note?: string }) => {
-      const response = await fetch(`/api/customers/${data.customerId}/payments`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          amount: data.amount,
-          method: data.method,
-          note: data.note,
-        }),
-      });
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || "Failed to record payment");
-      }
-      return response.json();
-    },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["/api/customers"] });
-      toast({
-        title: "Payment Recorded",
-        description: `Repayment of ${formatCurrency(parseFloat(amount))} recorded successfully`,
-        className: "bg-green-600 text-white",
-      });
-      onClose();
-      resetForm();
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to record payment",
-        variant: "destructive",
-      });
-    },
-  });
 
   const resetForm = () => {
     setAmount("");
@@ -67,7 +33,7 @@ export function RecordRepaymentModal({ isOpen, onClose, customer, previousPaymen
     setNote("");
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     const paymentAmount = parseFloat(amount);
@@ -91,16 +57,39 @@ export function RecordRepaymentModal({ isOpen, onClose, customer, previousPaymen
       return;
     }
 
-    recordPayment.mutate({
-      customerId: customer.id,
-      amount: amount,
-      method: method,
-      note: note.trim() || undefined,
-    });
+    setIsLoading(true);
+    
+    try {
+      await recordCustomerRepayment(
+        customer.id,
+        paymentAmount,
+        method,
+        note.trim() || undefined
+      );
+      
+      queryClient.invalidateQueries({ queryKey: ["customers"] });
+      
+      toast({
+        title: "Payment Recorded",
+        description: `Repayment of ${formatCurrency(paymentAmount)} recorded successfully`,
+        className: "bg-green-600 text-white",
+      });
+      
+      onClose();
+      resetForm();
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to record payment",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const handleClose = () => {
-    if (!recordPayment.isPending) {
+    if (!isLoading) {
       onClose();
       resetForm();
     }
@@ -126,7 +115,7 @@ export function RecordRepaymentModal({ isOpen, onClose, customer, previousPaymen
                     variant="ghost"
                     size="sm"
                     onClick={handleClose}
-                    disabled={recordPayment.isPending}
+                    disabled={isLoading}
                     className="h-8 w-8 p-0"
                     aria-label="Close"
                   >
@@ -240,17 +229,17 @@ export function RecordRepaymentModal({ isOpen, onClose, customer, previousPaymen
                     type="button"
                     variant="outline"
                     onClick={handleClose}
-                    disabled={recordPayment.isPending}
+                    disabled={isLoading}
                     className="flex-1 border-gray-300 dark:border-gray-600"
                   >
                     Cancel
                   </Button>
                   <Button
                     type="submit"
-                    disabled={!amount || recordPayment.isPending}
+                    disabled={!amount || isLoading}
                     className="flex-1 bg-green-600 hover:bg-green-700 text-white min-h-[48px]"
                   >
-                    {recordPayment.isPending ? (
+                    {isLoading ? (
                       <div className="flex items-center gap-2">
                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
                         Recording...

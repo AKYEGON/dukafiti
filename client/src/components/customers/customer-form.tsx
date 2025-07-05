@@ -1,14 +1,15 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { Trash2 } from "lucide-react";
+import { createCustomer, updateCustomer, deleteCustomer } from "@/lib/supabase-data";
 import type { Customer } from "@shared/schema";
 
 const customerFormSchema = z.object({
@@ -55,111 +56,67 @@ export function CustomerForm({ open, onOpenChange, customer }: CustomerFormProps
     }
   }, [customer, form]);
 
-  const createCustomer = useMutation({
-    mutationFn: async (data: CustomerFormData) => {
-      const response = await fetch("/api/customers", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          ...data,
-          balance: data.balance && data.balance.trim() !== "" ? data.balance : "0.00",
-        }),
-      });
-      if (!response.ok) {
-        throw new Error("Failed to create customer");
+  const [isLoading, setIsLoading] = useState(false);
+
+  const onSubmit = async (data: CustomerFormData) => {
+    setIsLoading(true);
+    
+    try {
+      const customerData = {
+        ...data,
+        balance: data.balance && data.balance.trim() !== "" ? parseFloat(data.balance) : 0,
+      };
+      
+      if (customer) {
+        await updateCustomer(customer.id, customerData);
+        toast({
+          title: "Success",
+          description: "Customer updated successfully",
+        });
+      } else {
+        await createCustomer(customerData);
+        toast({
+          title: "Success",
+          description: "Customer created successfully",
+        });
       }
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/customers"] });
-      toast({
-        title: "Success",
-        description: "Customer created successfully",
-      });
+      
+      queryClient.invalidateQueries({ queryKey: ["customers"] });
       onOpenChange(false);
       form.reset();
-    },
-    onError: (error: any) => {
+    } catch (error: any) {
       toast({
         title: "Error",
-        description: error.message || "Failed to create customer",
+        description: error.message || "Failed to save customer",
         variant: "destructive",
       });
-    },
-  });
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-  const updateCustomer = useMutation({
-    mutationFn: async (data: CustomerFormData) => {
-      const response = await fetch(`/api/customers/${customer!.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(data),
-      });
-      if (!response.ok) {
-        throw new Error("Failed to update customer");
-      }
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/customers"] });
-      toast({
-        title: "Success",
-        description: "Customer updated successfully",
-      });
-      onOpenChange(false);
-      form.reset();
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to update customer",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const deleteCustomer = useMutation({
-    mutationFn: async () => {
-      const response = await fetch(`/api/customers/${customer!.id}`, {
-        method: "DELETE",
-      });
-      if (!response.ok) {
-        throw new Error("Failed to delete customer");
-      }
-      // Don't try to parse JSON for 204 No Content responses
-      if (response.status === 204) {
-        return null;
-      }
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["/api/customers"] });
+  const handleDeleteCustomer = async () => {
+    if (!customer) return;
+    
+    setIsLoading(true);
+    
+    try {
+      await deleteCustomer(customer.id);
       toast({
         title: "Success",
         description: "Customer deleted successfully",
       });
+      queryClient.invalidateQueries({ queryKey: ["customers"] });
       onOpenChange(false);
       form.reset();
-    },
-    onError: (error: any) => {
+    } catch (error: any) {
       toast({
         title: "Error",
         description: error.message || "Failed to delete customer",
         variant: "destructive",
       });
-    },
-  });
-
-  const onSubmit = (data: CustomerFormData) => {
-    // Keep the balance field as-is, let the mutation handle defaults
-    const processedData = {
-      ...data
-    };
-    
-    if (customer) {
-      updateCustomer.mutate(processedData);
-    } else {
-      createCustomer.mutate(processedData);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -248,14 +205,12 @@ export function CustomerForm({ open, onOpenChange, customer }: CustomerFormProps
                 <Button 
                   type="button" 
                   variant="destructive"
-                  onClick={() => {
-                    deleteCustomer.mutate();
-                  }}
-                  disabled={deleteCustomer.isPending}
+                  onClick={handleDeleteCustomer}
+                  disabled={isLoading}
                   className="bg-red-600 hover:bg-red-700 text-white"
                 >
                   <Trash2 className="mr-2 h-4 w-4" />
-                  {deleteCustomer.isPending ? "Deleting..." : "Delete"}
+                  {isLoading ? "Deleting..." : "Delete"}
                 </Button>
               )}
               
@@ -270,10 +225,10 @@ export function CustomerForm({ open, onOpenChange, customer }: CustomerFormProps
                 </Button>
                 <Button 
                   type="submit" 
-                  disabled={createCustomer.isPending || updateCustomer.isPending}
+                  disabled={isLoading}
                   className="bg-green-600 hover:bg-green-700 text-foreground"
                 >
-                  {createCustomer.isPending || updateCustomer.isPending ? "Saving..." : customer ? "Update Customer" : "Add Customer"}
+                  {isLoading ? "Saving..." : customer ? "Update Customer" : "Add Customer"}
                 </Button>
               </div>
             </div>
