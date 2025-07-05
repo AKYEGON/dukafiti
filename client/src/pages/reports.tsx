@@ -334,7 +334,8 @@ export default function Reports() {
                         dataKey="value" 
                         stroke="#00AA00" 
                         strokeWidth={3}
-                        dot={{ fill: '#00AA00', strokeWidth: 2 }}
+                        dot={{ fill: '#00AA00', strokeWidth: 2, r: 6 }}
+                        activeDot={{ r: 8, fill: '#00AA00', strokeWidth: 0 }}
                         className="dark:stroke-[#6B46C1]"
                       />
                     </LineChart>

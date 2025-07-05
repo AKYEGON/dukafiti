@@ -8,8 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { Trash2 } from "lucide-react";
-import { createCustomer, updateCustomer, deleteCustomer } from "@/lib/supabase-data";
+import { createCustomer, updateCustomer } from "@/lib/supabase-data";
 import type { Customer } from "@shared/schema";
 
 const customerFormSchema = z.object({
@@ -95,30 +94,7 @@ export function CustomerForm({ open, onOpenChange, customer }: CustomerFormProps
     }
   };
 
-  const handleDeleteCustomer = async () => {
-    if (!customer) return;
-    
-    setIsLoading(true);
-    
-    try {
-      await deleteCustomer(customer.id);
-      toast({
-        title: "Success",
-        description: "Customer deleted successfully",
-      });
-      queryClient.invalidateQueries({ queryKey: ["customers"] });
-      onOpenChange(false);
-      form.reset();
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to delete customer",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
+
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -200,37 +176,22 @@ export function CustomerForm({ open, onOpenChange, customer }: CustomerFormProps
               />
             )}
 
-            <div className="flex justify-between space-x-2 pt-4">
-              {customer && (
-                <Button 
-                  type="button" 
-                  variant="destructive"
-                  onClick={handleDeleteCustomer}
-                  disabled={isLoading}
-                  className="bg-red-600 hover:bg-red-700 text-white"
-                >
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  {isLoading ? "Deleting..." : "Delete"}
-                </Button>
-              )}
-              
-              <div className="flex space-x-2 ml-auto">
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  onClick={() => onOpenChange(false)}
-                  className="border-border text-muted-foreground hover:bg-input"
-                >
-                  Cancel
-                </Button>
-                <Button 
-                  type="submit" 
-                  disabled={isLoading}
-                  className="bg-green-600 hover:bg-green-700 text-foreground"
-                >
-                  {isLoading ? "Saving..." : customer ? "Update Customer" : "Add Customer"}
-                </Button>
-              </div>
+            <div className="flex justify-end space-x-2 pt-4">
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => onOpenChange(false)}
+                className="border-border text-muted-foreground hover:bg-input"
+              >
+                Cancel
+              </Button>
+              <Button 
+                type="submit" 
+                disabled={isLoading}
+                className="bg-green-600 hover:bg-green-700 text-foreground"
+              >
+                {isLoading ? "Saving..." : customer ? "Update Customer" : "Add Customer"}
+              </Button>
             </div>
           </form>
         </Form>

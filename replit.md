@@ -338,6 +338,13 @@ Changelog:
 - July 5, 2025. Created comprehensive deployment guides and frontend-only package.json configuration for Vercel
 - July 5, 2025. Added missing tsx and esbuild dependencies and validated Vite build process works correctly
 - July 5, 2025. Prepared complete deployment solution with environment templates and troubleshooting documentation
+- July 5, 2025. Fixed dashboard recent orders to properly display customer names using stored customer_name field
+- July 5, 2025. Enhanced customer management to allow editing/deleting ALL customers regardless of debt or order status
+- July 5, 2025. Removed duplicate delete button from customer edit modal, kept only on customer cards
+- July 5, 2025. Updated customer deletion to cascade delete related orders, order items, and payments
+- July 5, 2025. Fixed all Reports page functions to show real data by removing incorrect 'completed' status filters
+- July 5, 2025. Enhanced sales trend chart with visible data points (r=6) and active dots (r=8) for better UX
+- July 5, 2025. Updated reports data queries to use customer_name field directly for accurate customer display
 - July 3, 2025. Implemented comprehensive offline functionality with enhanced service worker and IndexedDB queue system
 - July 3, 2025. Created robust offline action queue supporting sales, inventory, and customer operations with FIFO processing
 - July 3, 2025. Added intelligent API caching with network-first, cache-fallback strategy for seamless offline operation

@@ -264,39 +264,57 @@ export const updateCustomer = async (id: number, updates: any) => {
 
 export const deleteCustomer = async (id: number) => {
   try {
-    // First check if customer has any orders
+    console.log('Deleting customer with ID:', id);
+    
+    // First delete any related orders and order items
     const { data: orders, error: ordersError } = await supabase
       .from('orders')
       .select('id')
-      .eq('customer_id', id)
-      .limit(1);
+      .eq('customer_id', id);
     
     if (ordersError) {
-      console.error('Error checking customer orders:', ordersError);
+      console.error('Error fetching customer orders:', ordersError);
       throw ordersError;
     }
     
     if (orders && orders.length > 0) {
-      throw new Error('Cannot delete customer with existing orders. Please contact support to archive this customer.');
+      // Delete order items first
+      for (const order of orders) {
+        const { error: orderItemsError } = await supabase
+          .from('order_items')
+          .delete()
+          .eq('order_id', order.id);
+        
+        if (orderItemsError) {
+          console.error('Error deleting order items:', orderItemsError);
+          throw orderItemsError;
+        }
+      }
+      
+      // Then delete orders
+      const { error: deleteOrdersError } = await supabase
+        .from('orders')
+        .delete()
+        .eq('customer_id', id);
+      
+      if (deleteOrdersError) {
+        console.error('Error deleting customer orders:', deleteOrdersError);
+        throw deleteOrdersError;
+      }
     }
     
-    // Also check if customer has any payments
-    const { data: payments, error: paymentsError } = await supabase
+    // Delete any payments
+    const { error: paymentsError } = await supabase
       .from('payments')
-      .select('id')
-      .eq('customer_id', id)
-      .limit(1);
+      .delete()
+      .eq('customer_id', id);
     
     if (paymentsError) {
-      console.error('Error checking customer payments:', paymentsError);
+      console.error('Error deleting customer payments:', paymentsError);
       throw paymentsError;
     }
     
-    if (payments && payments.length > 0) {
-      throw new Error('Cannot delete customer with payment history. Please contact support to archive this customer.');
-    }
-    
-    // If no orders or payments, proceed with deletion
+    // Finally delete the customer
     const { error } = await supabase
       .from('customers')
       .delete()
@@ -307,7 +325,7 @@ export const deleteCustomer = async (id: number) => {
       throw error;
     }
     
-    console.log('Customer deleted successfully');
+    console.log('Customer and all related data deleted successfully');
   } catch (error) {
     console.error('Customer deletion failed:', error);
     throw error;
@@ -396,13 +414,12 @@ export const getReportsSummary = async (period: 'today' | 'weekly' | 'monthly') 
         break;
     }
     
-    // Get orders within the date range
+    // Get orders within the date range (all orders, not just completed)
     const { data: orders, error: ordersError } = await supabase
       .from('orders')
       .select('total, payment_method, status')
       .gte('created_at', startDate.toISOString())
-      .lte('created_at', endDate.toISOString())
-      .eq('status', 'completed');
+      .lte('created_at', endDate.toISOString());
     
     if (ordersError) {
       console.error('Error fetching orders:', ordersError);
@@ -450,13 +467,12 @@ export const getReportsTrend = async (period: 'daily' | 'weekly' | 'monthly') =>
         break;
     }
     
-    // Get orders within the date range
+    // Get orders within the date range (all orders, not just completed)
     const { data: orders, error: ordersError } = await supabase
       .from('orders')
       .select('total, created_at')
       .gte('created_at', startDate.toISOString())
       .lte('created_at', endDate.toISOString())
-      .eq('status', 'completed')
       .order('created_at', { ascending: true });
     
     if (ordersError) {
@@ -692,8 +708,7 @@ export const getOrdersData = async (period: 'daily' | 'weekly' | 'monthly', page
       .from('orders')
       .select('*', { count: 'exact' })
       .gte('created_at', startDate.toISOString())
-      .lte('created_at', endDate.toISOString())
-      .eq('status', 'completed');
+      .lte('created_at', endDate.toISOString());
     
     if (countError) {
       console.error('Error counting orders:', countError);
@@ -708,11 +723,10 @@ export const getOrdersData = async (period: 'daily' | 'weekly' | 'monthly', page
         total,
         payment_method,
         created_at,
-        customers (name)
+        customer_name
       `)
       .gte('created_at', startDate.toISOString())
       .lte('created_at', endDate.toISOString())
-      .eq('status', 'completed')
       .order('created_at', { ascending: false })
       .range((page - 1) * limit, page * limit - 1);
     
@@ -733,7 +747,7 @@ export const getOrdersData = async (period: 'daily' | 'weekly' | 'monthly', page
       
       return {
         orderId: order.id,
-        customerName: (order.customers as any)?.name || 'Walk-in Customer',
+        customerName: order.customer_name || 'Walk-in Customer',
         total: order.total,
         paymentMethod: order.payment_method,
         date: new Date(order.created_at).toLocaleDateString(),
@@ -1044,6 +1058,9 @@ export const getRecentOrders = async () => {
       .limit(10);
     
     if (error) throw error;
+    
+    // The customer_name is already stored in the orders table
+    // Return the data as-is since it should include customer_name field
     return data || [];
   } catch (error) {
     console.error('Error fetching recent orders:', error);
