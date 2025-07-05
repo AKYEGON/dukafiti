@@ -32,10 +32,12 @@ function broadcastToClients(message: any) {
 
 // Authentication middleware
 function requireAuth(req: any, res: any, next: any) {
-  // For now, bypass authentication checks and set a default user
-  // This allows the app to work while we transition to Supabase Auth
-  req.user = { email: 'admin@dukafiti.com', id: 1 };
-  next();
+  if (req.session.user) {
+    req.user = req.session.user;
+    next();
+  } else {
+    res.status(401).json({ error: "Not authenticated" });
+  }
 }
 
 const app = express();
@@ -44,14 +46,15 @@ app.use(express.urlencoded({ extended: false }));
 
 // Configure express-session with persistent login
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'default-secret-key-change-in-production',
+  secret: process.env.SESSION_SECRET || 'default-secret-key-change-in-production-' + Date.now(),
   resave: false,
   saveUninitialized: false,
+  name: 'dukafiti-session',
   cookie: {
     maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days in milliseconds
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production', // Secure only in production
-    sameSite: 'lax'
+    secure: process.env.NODE_ENV === 'production' && process.env.VERCEL_ENV === 'production',
+    sameSite: process.env.NODE_ENV === 'production' ? 'strict' : 'lax'
   }
 }));
 
@@ -113,6 +116,16 @@ wss.on('connection', (ws) => {
 });
 
 // API Routes
+// Health check endpoint
+app.get("/api/health", (req, res) => {
+  res.json({ 
+    status: "ok", 
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV,
+    supabase_configured: !!(process.env.SUPABASE_URL && process.env.SUPABASE_SERVICE_ROLE_KEY)
+  });
+});
+
 // Supabase configuration endpoint
 app.get("/api/supabase-config", (req, res) => {
   res.json({
@@ -130,14 +143,55 @@ app.post("/api/auth/login", async (req, res) => {
       return res.status(400).json({ error: "Email and password are required" });
     }
 
-    // For migration purposes, accept any login credentials
-    // Later this will be replaced with proper Supabase Auth
-    if (email && password) {
-      const user = { id: 1, email: email, username: email.split('@')[0], phone: '+254700000000' };
-      req.session.user = user;
-      res.json({ message: "Login successful", user });
-    } else {
-      res.status(401).json({ error: "Invalid email or password" });
+    // Try to authenticate with Supabase database
+    try {
+      const user = await supabaseDb.getUserByEmail(email);
+      if (!user) {
+        console.log("User not found:", email);
+        return res.status(401).json({ error: "Invalid email or password" });
+      }
+
+      // Check password
+      const isValidPassword = await bcrypt.compare(password, user.password);
+      if (!isValidPassword) {
+        console.log("Invalid password for user:", email);
+        return res.status(401).json({ error: "Invalid email or password" });
+      }
+
+      // Set session
+      req.session.user = { 
+        id: user.id, 
+        email: user.email, 
+        username: user.username, 
+        phone: user.phone 
+      };
+      
+      console.log("Login successful for:", email);
+      res.json({ 
+        message: "Login successful", 
+        user: { 
+          id: user.id, 
+          email: user.email, 
+          username: user.username, 
+          phone: user.phone 
+        } 
+      });
+    } catch (dbError) {
+      console.log("Database auth failed:", dbError);
+      
+      // Fallback for development - accept any credentials
+      if (process.env.NODE_ENV === 'development') {
+        const fallbackUser = { 
+          id: 1, 
+          email: email, 
+          username: email.split('@')[0], 
+          phone: '+254700000000' 
+        };
+        req.session.user = fallbackUser;
+        res.json({ message: "Login successful", user: fallbackUser });
+      } else {
+        res.status(401).json({ error: "Invalid email or password" });
+      }
     }
   } catch (error) {
     console.error("Login error:", error);
@@ -153,11 +207,59 @@ app.post("/api/auth/register", async (req, res) => {
       return res.status(400).json({ error: "Email and password are required" });
     }
 
-    // For migration purposes, accept any registration
-    // Later this will be replaced with proper Supabase Auth
-    const user = { id: 1, email: email, username: username || email.split('@')[0], phone: phone || '+254700000000' };
-    req.session.user = user;
-    res.json({ message: "Registration successful", user });
+    // Try to register with Supabase database
+    try {
+      // Check if user already exists
+      const existingUser = await supabaseDb.getUserByEmail(email);
+      if (existingUser) {
+        return res.status(400).json({ error: "User already exists" });
+      }
+
+      // Hash password
+      const hashedPassword = await bcrypt.hash(password, 10);
+
+      // Create user
+      const user = await supabaseDb.createUser({
+        email,
+        password: hashedPassword,
+        phone: phone || '+254700000000',
+        username: username || email.split('@')[0]
+      });
+
+      // Set session
+      req.session.user = { 
+        id: user.id, 
+        email: user.email, 
+        username: user.username, 
+        phone: user.phone 
+      };
+      
+      res.json({ 
+        message: "Registration successful", 
+        user: { 
+          id: user.id, 
+          email: user.email, 
+          username: user.username, 
+          phone: user.phone 
+        } 
+      });
+    } catch (dbError) {
+      console.log("Database registration failed, using fallback:", dbError);
+      
+      // Fallback for development - accept any registration
+      if (process.env.NODE_ENV === 'development') {
+        const fallbackUser = { 
+          id: 1, 
+          email: email, 
+          username: username || email.split('@')[0], 
+          phone: phone || '+254700000000' 
+        };
+        req.session.user = fallbackUser;
+        res.json({ message: "Registration successful", user: fallbackUser });
+      } else {
+        res.status(500).json({ error: "Registration failed" });
+      }
+    }
   } catch (error) {
     console.error("Registration error:", error);
     res.status(500).json({ error: "Registration failed" });
