@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#00AA00" />
+    <title>DukaSmart - Offline</title>
+    <link rel="icon" type="image/svg+xml" href="/icons/icon.svg" />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #334155;
+      }
+      
+      .offline-container {
+        background: white;
+        border-radius: 16px;
+        padding: 3rem 2rem;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+        text-align: center;
+        max-width: 480px;
+        margin: 2rem;
+      }
+      
+      .offline-icon {
+        width: 80px;
+        height: 80px;
+        margin: 0 auto 2rem;
+        background: #fee2e2;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 2rem;
+      }
+      
+      .offline-title {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 1rem;
+        color: #1e293b;
+      }
+      
+      .offline-message {
+        color: #64748b;
+        line-height: 1.6;
+        margin-bottom: 2rem;
+      }
+      
+      .features-list {
+        background: #f8fafc;
+        border-radius: 8px;
+        padding: 1.5rem;
+        margin-bottom: 2rem;
+        text-align: left;
+      }
+      
+      .features-title {
+        font-weight: 600;
+        margin-bottom: 1rem;
+        color: #374151;
+      }
+      
+      .features-list ul {
+        list-style: none;
+      }
+      
+      .features-list li {
+        padding: 0.5rem 0;
+        position: relative;
+        padding-left: 1.5rem;
+      }
+      
+      .features-list li:before {
+        content: '✓';
+        position: absolute;
+        left: 0;
+        color: #00AA00;
+        font-weight: bold;
+      }
+      
+      .retry-button {
+        background: #00AA00;
+        color: white;
+        border: none;
+        padding: 0.75rem 2rem;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: background 0.2s;
+        font-size: 1rem;
+      }
+      
+      .retry-button:hover {
+        background: #059669;
+      }
+      
+      .offline-status {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        background: #fef3c7;
+        color: #92400e;
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        font-size: 0.875rem;
+        margin-bottom: 1rem;
+      }
+      
+      .pulse {
+        width: 8px;
+        height: 8px;
+        background: #f59e0b;
+        border-radius: 50%;
+        animation: pulse 2s infinite;
+      }
+      
+      @keyframes pulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="offline-container">
+      <div class="offline-icon">📱</div>
+      
+      <div class="offline-status">
+        <div class="pulse"></div>
+        You are currently offline
+      </div>
+      
+      <h1 class="offline-title">Limited Functionality Available</h1>
+      
+      <p class="offline-message">
+        DukaSmart is running in offline mode. Some features are still available while you're disconnected from the internet.
+      </p>
+      
+      <div class="features-list">
+        <div class="features-title">Available offline:</div>
+        <ul>
+          <li>View cached product inventory</li>
+          <li>View cached customer information</li>
+          <li>Queue sales for when you're back online</li>
+          <li>View recent transaction history</li>
+        </ul>
+      </div>
+      
+      <button class="retry-button" onclick="window.location.reload()">
+        Check Connection
+      </button>
+      
+      <script>
+        // Check connection status
+        function updateConnectionStatus() {
+          if (navigator.onLine) {
+            window.location.href = '/';
+          }
+        }
+        
+        // Listen for online event
+        window.addEventListener('online', updateConnectionStatus);
+        
+        // Auto-check every 5 seconds
+        setInterval(updateConnectionStatus, 5000);
+        
+        console.log('DukaSmart offline page loaded');
+      </script>
+    </div>
+  </body>
+</html>

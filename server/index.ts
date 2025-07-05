@@ -396,5 +396,7 @@ if (process.env.NODE_ENV === 'production') {
 
 // Start server
 server.listen(port, '0.0.0.0', () => {
+  console.log(`Server running on port ${port}`)
+  console.log(`Environment: ${process.env.NODE_ENV || 'development'}`)
 })
 export default app;

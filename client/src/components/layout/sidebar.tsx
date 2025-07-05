@@ -1,123 +1,208 @@
-import { useState } from "react"
 import { Link, useLocation } from "wouter"
-import { 
-  Home,
-  Package,
-  ShoppingCart,
-  Users,
-  BarChart3,
-  Settings,
-  Menu,
-  X,
-  ChevronLeft,
-  ChevronRight
-} from "lucide-react"
+import { Store, BarChart3, Package, Users, FileText, Settings, Menu, X, PanelLeftClose, PanelLeftOpen } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 
 const navigation = [
-  { name: "Dashboard", href: "/dashboard", icon: Home },
+  { name: "Dashboard", href: "/", icon: BarChart3 },
   { name: "Inventory", href: "/inventory", icon: Package },
-  { name: "Sales", href: "/sales", icon: ShoppingCart },
+  { name: "Sales", href: "/sales", icon: BarChart3 },
   { name: "Customers", href: "/customers", icon: Users },
-  { name: "Reports", href: "/reports", icon: BarChart3 },
+  { name: "Reports", href: "/reports", icon: FileText },
   { name: "Settings", href: "/settings", icon: Settings },
 ]
 
-export function Sidebar() {
-  const [location] = useLocation()
-  const [isCollapsed, setIsCollapsed] = useState(false)
-  const [isMobileOpen, setIsMobileOpen] = useState(false)
+const getPageTitle = (location: string) => {
+  const page = navigation.find(item => item.href  ===  location)
+  if (page) return page.name
+  if (location  ===  "/" || location  ===  "/dashboard") return "Dashboard"
+  return "DukaFiti"
+}
+interface SidebarProps {
+  className?: string
+  collapsed?: boolean
+  toggleSidebar?: () => void
+}
+export function Sidebar({ className, collapsed = false, toggleSidebar }: SidebarProps) {
+  const [location]  =  useLocation()
+  const [isMobileMenuOpen, setIsMobileMenuOpen]  =  useState(false)
+  const pageTitle = getPageTitle(location)
+  // Handle escape key to close mobile menu
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key  ===  'Escape' && isMobileMenuOpen) {
+        setIsMobileMenuOpen(false)
+      }
+    }
+    document.addEventListener('keydown', handleEscape)
+    return () => document.removeEventListener('keydown', handleEscape)
+  }, [isMobileMenuOpen])
+  // Prevent body scroll when mobile menu is open
+  useEffect(() => {
+    if (isMobileMenuOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = 'unset'
+    }
+    return () => {
+      document.body.style.overflow = 'unset'
+    }
+  }, [isMobileMenuOpen])
 
-  return (
-    <>
-      {/* Mobile overlay */}
-      {isMobileOpen && (
-        <div 
-          className="fixed inset-0 z-20 bg-black/50 lg:hidden"
-          onClick={() => setIsMobileOpen(false)}
-        />
-      )}
-
-      {/* Mobile menu button */}
-      <Button
-        variant="ghost"
-        size="sm"
-        className="fixed top-4 left-4 z-30 lg:hidden"
-        onClick={() => setIsMobileOpen(true)}
-      >
-        <Menu className="h-5 w-5" />
-      </Button>
-
-      {/* Sidebar */}
-      <div className={cn(
-        "fixed inset-y-0 left-0 z-30 flex flex-col bg-background border-r border-border transition-all duration-300",
-        isCollapsed ? "w-16" : "w-64",
-        isMobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
-      )}>
-        {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-border">
-          {!isCollapsed && (
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-purple-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">DF</span>
+  const SidebarContent = ({ isCollapsed = false, isMobile = false }) => (
+    <div className = "flex flex-col justify-between h-screen">
+      {/* Top section with logo and navigation */}
+      <div className = "flex flex-col">
+        {/* Store logo/name mini-header */}
+        <div className = {cn(
+          "p-4 flex items-center justify-center border-b border-gray-200 dark:border-gray-700",
+          isCollapsed && !isMobile ? "px-2" : "px-4"
+        )}>
+          {isCollapsed && !isMobile ? (
+            <div className = "w-10 h-10 bg-purple-600 rounded-lg flex items-center justify-center">
+              <Store className = "text-white" size = {20} />
+            </div>
+          ) : (
+            <div className = "flex items-center space-x-3">
+              <div className = "w-10 h-10 bg-purple-600 rounded-lg flex items-center justify-center">
+                <Store className = "text-white" size = {20} />
               </div>
-              <span className="font-semibold text-lg">DukaFiti</span>
+              <div>
+                <h1 className = "text-xl font-bold text-purple-600">DukaFiti</h1>
+                <p className = "text-sm text-neutral-600 dark:text-neutral-400">Duka Fiti ni Duka Bora</p>
+              </div>
             </div>
           )}
-          
-          {/* Desktop collapse button */}
-          <Button
-            variant="ghost"
-            size="sm"
-            className="hidden lg:flex"
-            onClick={() => setIsCollapsed(!isCollapsed)}
-          >
-            {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
-          </Button>
 
           {/* Mobile close button */}
-          <Button
-            variant="ghost"
-            size="sm"
-            className="lg:hidden"
-            onClick={() => setIsMobileOpen(false)}
-          >
-            <X className="h-4 w-4" />
-          </Button>
+          {isMobile && (
+            <Button
+              variant = "ghost"
+              size = "sm"
+              className = "ml-auto h-10 w-10"
+              onClick = {() => setIsMobileMenuOpen(false)}
+            >
+              <X size = {20} />
+            </Button>
+          )}
         </div>
 
-        {/* Navigation */}
-        <nav className="flex-1 p-4 space-y-2">
+        {/* Divider */}
+        <div className = "border-t border-gray-200 dark:border-gray-700 my-4" />
+
+        {/* Navigation links */}
+        <nav className = {cn(
+          "space-y-2 flex-1",
+          isCollapsed && !isMobile ? "px-2" : "px-4"
+        )}>
           {navigation.map((item) => {
             const Icon = item.icon
-            const isActive = location === item.href
-            
+            const isActive = location  ===  item.href
+
             return (
-              <Link
-                key={item.name}
-                href={item.href}
-                className={cn(
-                  "flex items-center px-3 py-2 rounded-lg text-sm font-medium transition-colors",
-                  isActive 
-                    ? "bg-purple-100 text-purple-900 dark:bg-purple-900 dark:text-purple-100"
-                    : "text-muted-foreground hover:bg-muted hover:text-foreground"
-                )}
-                onClick={() => setIsMobileOpen(false)}
-              >
-                <Icon className={cn("h-5 w-5", isCollapsed ? "mx-auto" : "mr-3")} />
-                {!isCollapsed && <span>{item.name}</span>}
+              <Link key = {item.name} href = {item.href}>
+                <div
+                  className = {cn(
+                    "flex items-center gap-3 p-3 rounded-lg transition-all duration-200",
+                    isCollapsed && !isMobile ? "justify-center w-12 mx-auto" : "",
+                    isActive
+                      ? "bg-green-600 text-white"
+                      : "bg-transparent text-neutral-800 dark:text-neutral-200 hover:bg-green-100 hover:text-green-800 dark:hover:bg-green-900 dark:hover:text-green-200"
+                  )}
+                  onClick = {() => setIsMobileMenuOpen(false)}
+                  title = {isCollapsed && !isMobile ? item.name : undefined}
+                >
+                  <Icon
+                    className = {cn(
+                      "w-6 h-6 flex-shrink-0",
+                      isActive ? "text-white" : "text-purple-600"
+                    )}
+                  />
+                  {(!isCollapsed || isMobile) && (
+                    <span className = "flex-1 text-base font-medium">
+                      {item.name}
+                    </span>
+                  )}
+                </div>
               </Link>
             )
           })}
         </nav>
       </div>
 
-      {/* Main content offset */}
-      <div className={cn(
-        "hidden lg:block transition-all duration-300",
-        isCollapsed ? "w-16" : "w-64"
-      )} />
+      {/* Bottom section with collapse toggle */}
+      {!isMobile && toggleSidebar && (
+        <div className = "p-4">
+          <Button
+            variant = "ghost"
+            onClick = {toggleSidebar}
+            className = "w-10 h-10 flex items-center justify-center bg-gray-100 dark:bg-gray-700 rounded-full hover:bg-purple-100 dark:hover:bg-purple-900 transition-colors duration-200 mx-auto"
+          >
+            {collapsed ? (
+              <PanelLeftOpen className = "w-5 h-5 text-purple-600" />
+            ) : (
+              <PanelLeftClose className = "w-5 h-5 text-purple-600" />
+            )}
+          </Button>
+        </div>
+      )}
+    </div>
+  )
+
+  return (
+    <>
+      {/* Mobile sticky header - visible on mobile and tablet when sidebar is hidden */}
+      <div className = "md:hidden sticky top-0 z-40 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700">
+        <div className = "flex items-center justify-between px-4 py-3 h-16">
+          <div className = "flex items-center space-x-3">
+            <Button
+              variant = "ghost"
+              size = "sm"
+              className = "h-10 w-10 text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900"
+              onClick = {() => setIsMobileMenuOpen(true)}
+            >
+              <Menu size = {20} />
+            </Button>
+            <h1 className = "text-xl font-semibold text-neutral-800 dark:text-neutral-200">{pageTitle}</h1>
+          </div>
+          <div className = "w-10 h-10 bg-purple-600 rounded-lg flex items-center justify-center">
+            <Store className = "text-white" size = {20} />
+          </div>
+        </div>
+      </div>
+
+      {/* Desktop and Tablet sidebar with collapsible animation */}
+      <aside className = {cn(
+        "hidden md:flex flex-col bg-white dark:bg-gray-900 transition-all duration-300 ease-in-out flex-shrink-0 h-screen overflow-hidden border-r border-gray-200 dark:border-gray-700",
+        collapsed ? "w-16" : "w-64",
+        className
+      )}>
+        <SidebarContent isCollapsed = {collapsed} />
+      </aside>
+
+      {/* Mobile and Tablet sidebar overlay with slide animation */}
+      <div className = {cn(
+        "fixed inset-0 z-50 md:hidden transition-all duration-300",
+        isMobileMenuOpen ? "opacity-100 visible" : "opacity-0 invisible"
+      )}>
+        {/* Backdrop */}
+        <div
+          className = {cn(
+            "fixed inset-0 bg-black transition-opacity duration-300",
+            isMobileMenuOpen ? "bg-opacity-50" : "bg-opacity-0"
+          )}
+          onClick = {() => setIsMobileMenuOpen(false)}
+        />
+
+        {/* Mobile Drawer */}
+        <aside className = {cn(
+          "fixed left-0 top-0 h-full w-80 bg-white dark:bg-gray-900 z-50 shadow-2xl transition-transform duration-300 ease-in-out border-r border-gray-200 dark:border-gray-700",
+          isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
+        )}>
+          <SidebarContent isMobile = {true} />
+        </aside>
+      </div>
     </>
   )
 }

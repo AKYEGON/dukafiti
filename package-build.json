@@ -1,0 +1,14 @@
+{
+  "name": "dukafiti-vercel",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "build": "node comprehensive-supabase-migration.js",
+    "vercel-build": "node comprehensive-supabase-migration.js"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.50.3",
+    "express": "^4.21.2",
+    "cors": "^2.8.5"
+  }
+}

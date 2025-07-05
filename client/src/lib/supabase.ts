@@ -1,14 +1,66 @@
 import { createClient } from '@supabase/supabase-js'
-
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://kwdzbssuovwemthmiuht.supabase.co'
-const supabaseKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt3ZHpic3N1b3Z3ZW10aG1pdWh0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE1NDEyMDYsImV4cCI6MjA2NzExNzIwNn0.7AGomhrpXHBnSgJ15DxFMi80E479S9w9mIeqMnsvNrA'
-
-export const supabase = createClient(supabaseUrl, supabaseKey, {
-  auth: {
-    autoRefreshToken: true,
-    persistSession: true,
-    detectSessionInUrl: true
+// Get Supabase config from the server
+async function getSupabaseConfig() {
+  try {
+    const response = await fetch('/api/supabase-config')
+    const config = await response.json()
+    return config
+  } catch (error) {
+    console.error('Failed to get Supabase config:', error)
+    throw new Error('Failed to initialize Supabase client')
   }
-})
+}
 
-export default supabase
+// Create Supabase client with config from server
+let supabaseClient: ReturnType<typeof createClient> | null = null
+export async function getSupabaseClient() {
+  if (!supabaseClient) {
+    const config = await getSupabaseConfig()
+    supabaseClient = createClient(config.url, config.anonKey, {
+      auth: {
+        autoRefreshToken: true,
+        persistSession: true,
+        detectSessionInUrl: true
+      }
+    })
+  }
+  return supabaseClient
+}
+export const supabase = {
+  auth: {
+    async signUp(credentials: any, options?: any) {
+      const client = await getSupabaseClient()
+      if (options) {
+        return client.auth.signUp({ ...credentials, options })
+      }
+      return client.auth.signUp(credentials)
+    },
+    async signInWithOtp(credentials: any) {
+      const client = await getSupabaseClient()
+      return client.auth.signInWithOtp(credentials)
+    },
+    async signInWithPassword(credentials: any) {
+      const client = await getSupabaseClient()
+      return client.auth.signInWithPassword(credentials)
+    },
+    async getSession() {
+      const client = await getSupabaseClient()
+      return client.auth.getSession()
+    },
+    async getUser() {
+      const client = await getSupabaseClient()
+      return client.auth.getUser()
+    },
+    async signOut() {
+      const client = await getSupabaseClient()
+      return client.auth.signOut()
+    },
+    onAuthStateChange(callback: any) {
+      getSupabaseClient().then(client => {
+        client.auth.onAuthStateChange(callback)
+      })
+    }
+  }
+}
+
+export default supabase;
