@@ -54,14 +54,27 @@ export class ErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoun
                 The application encountered an error and couldn't continue.
               </p>
               
-              {process.env.NODE_ENV === 'development' && this.state.error && (
-                <details className="mt-4">
+              {(import.meta.env.DEV || import.meta.env.MODE === 'development') && this.state.error && (
+                <details className="mt-4" open>
                   <summary className="text-sm font-medium cursor-pointer">
                     Error Details (Development Only)
                   </summary>
-                  <pre className="mt-2 text-xs bg-muted p-3 rounded overflow-auto max-h-32">
-                    {this.state.error.toString()}
-                    {this.state.errorInfo?.componentStack}
+                  <pre className="mt-2 text-xs bg-muted p-3 rounded overflow-auto max-h-48 whitespace-pre-wrap">
+                    <strong>Error:</strong> {this.state.error.toString()}
+                    {this.state.error.stack && (
+                      <>
+                        <br/><br/>
+                        <strong>Stack:</strong>
+                        <br/>{this.state.error.stack}
+                      </>
+                    )}
+                    {this.state.errorInfo?.componentStack && (
+                      <>
+                        <br/><br/>
+                        <strong>Component Stack:</strong>
+                        <br/>{this.state.errorInfo.componentStack}
+                      </>
+                    )}
                   </pre>
                 </details>
               )}

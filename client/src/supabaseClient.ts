@@ -5,26 +5,28 @@ const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
 // Validate required environment variables
-if (!supabaseUrl || supabaseUrl === 'your_supabase_project_url_here') {
+if (!supabaseUrl) {
   console.error('❌ Missing VITE_SUPABASE_URL environment variable');
   console.log('📝 To fix this:');
   console.log('1. Get your Supabase URL from https://supabase.com/dashboard');
-  console.log('2. Add VITE_SUPABASE_URL=your_actual_url to your .env file');
+  console.log('2. Add VITE_SUPABASE_URL as a Replit secret');
   console.log('3. Restart the development server');
+  throw new Error('Missing required environment variable: VITE_SUPABASE_URL');
 }
 
-if (!supabaseAnonKey || supabaseAnonKey === 'your_supabase_anon_key_here') {
+if (!supabaseAnonKey) {
   console.error('❌ Missing VITE_SUPABASE_ANON_KEY environment variable');
   console.log('📝 To fix this:');
   console.log('1. Get your Supabase Anon Key from https://supabase.com/dashboard');
-  console.log('2. Add VITE_SUPABASE_ANON_KEY=your_actual_key to your .env file');
+  console.log('2. Add VITE_SUPABASE_ANON_KEY as a Replit secret');
   console.log('3. Restart the development server');
+  throw new Error('Missing required environment variable: VITE_SUPABASE_ANON_KEY');
 }
 
-// Create Supabase client with fallback values for development
+// Create Supabase client
 export const supabase = createClient(
-  supabaseUrl || 'https://placeholder.supabase.co',
-  supabaseAnonKey || 'placeholder-key',
+  supabaseUrl,
+  supabaseAnonKey,
   {
     auth: {
       persistSession: true,
@@ -40,6 +42,4 @@ export const supabase = createClient(
 );
 
 // Export configuration status for debugging
-export const isConfigured = !!(supabaseUrl && supabaseAnonKey && 
-  supabaseUrl !== 'your_supabase_project_url_here' && 
-  supabaseAnonKey !== 'your_supabase_anon_key_here');
+export const isConfigured = !!(supabaseUrl && supabaseAnonKey);
