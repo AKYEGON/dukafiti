@@ -1,0 +1,53 @@
+Assistant, I want to go completely server‑free using **only Supabase** for data/auth/business logic and **Vercel** to host our React PWA—so we can sell this as a self‑contained product. Please perform the following at a high level, without getting bogged down in every single line (let me refine if needed):
+
+1. **Strip Out Express & Backend**  
+   - Remove all Express server files, API routes, and server‑side dependencies.  
+   - Delete any `server.js`/`api/` folders and prune `package.json` of unused packages (Express, CORS, etc.).
+
+2. **Direct Supabase Integration**  
+   - In every React component or service that used `fetch` or axios, replace with direct calls to our shared `supabaseClient`:
+     ```js
+     supabase.from('YOUR_TABLE').select()/insert()/update()/delete();
+     ```
+   - Ensure Supabase Auth (email/password or magic link) handles all login/registration flows.  
+
+3. **Edge Functions for Billing & M‑Pesa**  
+   - Create Supabase Edge Functions for any server‑side actions:
+     - **Subscription billing**: 14‑day trial → KES 200/month renewals  
+     - **M‑Pesa STK push**: use Daraja keys from `Deno.env`  
+   - Wire their endpoints so React calls them at:
+     ```
+     https://<project>.functions.supabase.co/<function-name>
+     ```
+
+4. **Subscription & Payment Models**  
+   - Ensure our “subscriptions” table tracks trialStart, nextBillingDate, status, and M‑Pesa request IDs.  
+   - In the UI, add a “Subscribe” flow that triggers the STK push edge function, shows PIN prompt, and handles the callback.
+
+5. **Vercel Deployment**  
+   - Add a `vercel.json` to configure `npm run build` → `build/` output as a SPA.  
+   - Update `package.json` scripts for Vercel:  
+     ```json
+     "scripts": {
+       "build": "react-scripts build",
+       "start": "react-scripts start",
+       "vercel-build": "npm run build"
+     }
+     ```
+   - Document required env vars in README and in Vercel settings:
+     ```
+     REACT_APP_SUPABASE_URL
+     REACT_APP_SUPABASE_ANON_KEY
+     REACT_APP_FUNCTIONS_URL  // base URL for Supabase Edge Functions
+     ```
+   - Ensure the PWA manifest and service worker are in place for offline use.
+
+6. **Selling the App**  
+   - Add marketing text or a “Pricing & Subscribe” page in the React app explaining the 14‑day trial and KES 200/month plan.  
+   - On purchase, that same subscription flow via STK push applies.
+
+7. **Final QA**  
+   - Confirm the React app runs locally (`npm start`), builds (`npm run build`), and deploys on Vercel without errors.  
+   - Test all CRUD, auth, subscription, and M‑Pesa flows end‑to‑end using Supabase and Edge Functions only.
+
+Generate all code and config updates (file additions and deletions), as well as a brief README section on “Deploying with Supabase + Vercel” and “Monetization & Subscriptions.”```

@@ -2,7 +2,7 @@
 
 ## Overview
 
-DukaFiti is a comprehensive business management platform built with a modern full-stack architecture. The application provides inventory management, sales tracking, customer management, and business analytics through an intuitive web interface. It's designed as a single-page application with a REST API backend.
+DukaFiti is a comprehensive business management platform built with a modern serverless architecture. The application provides inventory management, sales tracking, customer management, business analytics, and subscription billing through an intuitive web interface. It's designed as a Progressive Web App (PWA) that can be deployed globally on Vercel with Supabase handling all backend services.
 
 ## System Architecture
 
@@ -391,6 +391,17 @@ Changelog:
 - July 3, 2025. Updated server configuration to use environment variables and proper port binding for production deployment
 - July 3, 2025. Added Supabase configuration endpoint and comprehensive deployment documentation (REPLIT_SETUP.md, DEPLOYMENT_FIX.md)
 - July 3, 2025. Created deployment scripts and resolved "No Output Directory named 'build'" error for Replit deployments
+- July 5, 2025. MAJOR ARCHITECTURAL TRANSFORMATION: Completed full migration to serverless architecture
+- July 5, 2025. Removed Express backend entirely and created pure Supabase + Vercel deployment
+- July 5, 2025. Created Supabase Edge Functions for subscription billing and M-Pesa STK push integration
+- July 5, 2025. Implemented comprehensive subscription management system with 14-day trial and KES 200/month pricing
+- July 5, 2025. Added SubscriptionManager React component with M-Pesa payment flow and trial management
+- July 5, 2025. Created complete Supabase database schema with RLS policies for multi-tenant security
+- July 5, 2025. Built Pricing page with subscription features and Kenyan business testimonials
+- July 5, 2025. Enhanced Supabase client with direct database operations replacing all API endpoints
+- July 5, 2025. Created Vercel deployment configuration with proper environment variable handling
+- July 5, 2025. Added comprehensive README-SERVERLESS.md with deployment and configuration instructions
+- July 5, 2025. Application now ready for global deployment as a SaaS product with automatic scaling
 ```
 
 ## User Preferences
