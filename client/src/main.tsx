@@ -2,33 +2,33 @@ import { createRoot } from "react-dom/client"
 import App from "./App"
 import "./index.css"
 import { errorHandler } from "./lib/error-handler"
-// Service worker registration with proper error handling
-if ('serviceWorker' in navigator) {
-  window.addEventListener('load', async () => {
-    try {
-      const registration = await navigator.serviceWorker.register('/service-worker.js', {
-        updateViaCache: 'none'
-      })
-      if (registration.waiting) {
-        registration.waiting.postMessage({ type: 'SKIP_WAITING' })
-      }
+// Service worker registration disabled for debugging
+// if ('serviceWorker' in navigator) {
+//   window.addEventListener('load', async () => {
+//     try {
+//       const registration = await navigator.serviceWorker.register('/service-worker.js', {
+//         updateViaCache: 'none'
+//       })
+//       if (registration.waiting) {
+//         registration.waiting.postMessage({ type: 'SKIP_WAITING' })
+//       }
 
-      registration.addEventListener('updatefound', () => {
-        const newWorker = registration.installing
-        if (newWorker) {
-          newWorker.addEventListener('statechange', () => {
-            if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-              window.location.reload()
-            }
-          })
-        }
-      })
-    } catch (error) {
-      // Service worker registration failed but app should still work
-      console.warn('Service worker registration failed:', error instanceof Error ? error.message : 'Unknown error')
-    }
-  })
-}
+//       registration.addEventListener('updatefound', () => {
+//         const newWorker = registration.installing
+//         if (newWorker) {
+//           newWorker.addEventListener('statechange', () => {
+//             if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+//               window.location.reload()
+//             }
+//           })
+//         }
+//       })
+//     } catch (error) {
+//       // Service worker registration failed but app should still work
+//       console.warn('Service worker registration failed:', error instanceof Error ? error.message : 'Unknown error')
+//     }
+//   })
+// }
 
 // Handle PWA install prompt
 let deferredPrompt: any
@@ -53,9 +53,19 @@ if ('serviceWorker' in navigator) {
     }
   })
 }
+console.log("Starting DukaFiti app initialization...")
+
 const rootElement = document.getElementById("root")
 if (!rootElement) {
   console.error("Root element not found!")
+  document.body.innerHTML = "<h1>Error: Root element not found</h1>"
 } else {
-  createRoot(rootElement).render(<App />)
+  console.log("Root element found, mounting React app...")
+  try {
+    createRoot(rootElement).render(<App />)
+    console.log("React app mounted successfully!")
+  } catch (error) {
+    console.error("Error mounting React app:", error)
+    document.body.innerHTML = "<h1>Error mounting React app: " + error + "</h1>"
   }
+}
