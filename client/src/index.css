@@ -45,6 +45,22 @@
     @apply text-foreground;
   }
   
+  /* Prevent layout shifts for dropdowns and overlays */
+  body {
+    overflow-x: hidden; /* Prevent horizontal scroll */
+  }
+  
+  /* Ensure dropdowns don't affect layout */
+  [data-radix-popper-content-wrapper] {
+    position: fixed !important;
+    z-index: 9999 !important;
+  }
+  
+  /* Prevent profile dropdown from causing layout shifts */
+  [data-state="open"] {
+    transform: none !important;
+  }
+  
   /* Responsive container with proper max-widths */
   .container {
     max-width: 100%;

@@ -114,7 +114,7 @@ export function TopBar({ onToggleSidebar }: TopBarProps) {
   return (
     <>
       <header className="sticky top-0 z-40 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="flex h-14 items-center px-4 gap-4">
+        <div className="flex h-14 items-center px-4 gap-4 relative">
           {/* Sidebar Toggle Button */}
           <Button
             variant="ghost"
@@ -156,7 +156,7 @@ export function TopBar({ onToggleSidebar }: TopBarProps) {
 
             {/* Enhanced Search Results Dropdown */}
             {showSearchResults && (
-              <div className="absolute top-full left-0 right-0 mt-1 bg-background border rounded-md shadow-lg max-h-80 overflow-y-auto z-50">
+              <div className="absolute top-full left-0 right-0 mt-1 bg-background border rounded-md shadow-lg max-h-80 overflow-y-auto z-50 min-w-0">
                 {searchLoading ? (
                   <div className="p-4 text-center text-sm text-muted-foreground">
                     <div className="flex items-center justify-center gap-2">
@@ -214,13 +214,13 @@ export function TopBar({ onToggleSidebar }: TopBarProps) {
           </div>
 
           {/* Right Side Actions */}
-          <div className="flex items-center gap-2 ml-auto">
+          <div className="flex items-center gap-2 ml-auto flex-shrink-0">
             {/* Notification Bell */}
             <Button
               variant="ghost"
               size="sm"
               onClick={() => setLocation('/notifications')}
-              className="relative"
+              className="relative flex-shrink-0 w-9 h-9"
               aria-label={`Notifications ${unreadCount > 0 ? `(${unreadCount} unread)` : ''}`}
             >
               <Bell className="h-5 w-5" />
@@ -235,38 +235,48 @@ export function TopBar({ onToggleSidebar }: TopBarProps) {
             </Button>
 
             {/* Profile Dropdown */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="relative"
-                  aria-label="User menu"
+            <div className="relative">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="relative flex-shrink-0 w-9 h-9"
+                    aria-label="User menu"
+                  >
+                    <User className="h-5 w-5" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent 
+                  align="end" 
+                  className="w-56 z-50" 
+                  sideOffset={8}
+                  avoidCollisions={true}
+                  collisionPadding={8}
+                  side="bottom"
+                  alignOffset={0}
                 >
-                  <User className="h-5 w-5" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56" sideOffset={8}>
-                <div className="px-2 py-1.5">
-                  <p className="text-sm font-medium">{user?.email}</p>
-                  <p className="text-xs text-muted-foreground">DukaFiti User</p>
-                </div>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => setLocation('/reports')}>
-                  <BarChart3 className="mr-2 h-4 w-4" />
-                  Reports
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => setLocation('/settings')}>
-                  <Settings className="mr-2 h-4 w-4" />
-                  Settings
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => setIsLogoutModalOpen(true)}>
-                  <LogOut className="mr-2 h-4 w-4" />
-                  Sign out
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+                  <div className="px-2 py-1.5">
+                    <p className="text-sm font-medium">{user?.email}</p>
+                    <p className="text-xs text-muted-foreground">DukaFiti User</p>
+                  </div>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => setLocation('/reports')}>
+                    <BarChart3 className="mr-2 h-4 w-4" />
+                    Reports
+                  </DropdownMenuItem>
+                  <DropdownMenuItem onClick={() => setLocation('/settings')}>
+                    <Settings className="mr-2 h-4 w-4" />
+                    Settings
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={() => setIsLogoutModalOpen(true)}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Sign out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </div>
         </div>
       </header>
