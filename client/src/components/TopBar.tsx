@@ -40,7 +40,7 @@ export function TopBar({ onToggleSidebar, isSidebarCollapsed }: TopBarProps) {
   const [selectedIndex, setSelectedIndex] = useState(-1);
   
   // Notifications functionality
-  const { unreadCount, notifications, setNotifications } = useNotifications();
+  const { unreadCount, markAllAsReadOnOpen } = useNotifications();
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   
   // Profile dropdown state
@@ -278,25 +278,9 @@ export function TopBar({ onToggleSidebar, isSidebarCollapsed }: TopBarProps) {
           <div className="relative" ref={notificationRef}>
             <button
               onClick={async () => {
+                // Auto-mark all notifications as read when opening panel
                 if (!isNotificationOpen && unreadCount > 0) {
-                  try {
-                    // Mark all notifications as read in Supabase
-                    const { error } = await supabase
-                      .from('notifications')
-                      .update({ is_read: true })
-                      .eq('user_id', 1) // Using user_id since there's no store_id
-                      .eq('is_read', false);
-
-                    if (error) {
-                      console.error('Error marking notifications as read:', error);
-                    } else {
-                      // Update local state to mark all as read
-                      setNotifications(notifications.map(n => ({ ...n, is_read: true })));
-                      console.log('All notifications marked as read');
-                    }
-                  } catch (error) {
-                    console.error('Failed to mark notifications as read:', error);
-                  }
+                  await markAllAsReadOnOpen();
                 }
                 setIsNotificationOpen(!isNotificationOpen);
               }}

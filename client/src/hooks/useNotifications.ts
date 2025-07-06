@@ -25,16 +25,32 @@ export function useNotifications() {
   const [unreadCount, setUnreadCount] = useState(0);
   const { toast } = useToast();
 
-  // Fetch all notifications
+  // Fetch all notifications directly from Supabase
   const fetchNotifications = useCallback(async () => {
     try {
-      console.log('Fetching notifications...');
-      const data = await getNotifications(50);
-      console.log('Notifications fetched:', data?.length || 0, 'notifications');
-      setNotifications(data || []);
-      const unread = data?.filter(n => !n.is_read).length || 0;
+      console.log('Fetching all notifications from Supabase...');
+      setIsLoading(true);
+      
+      const { data, error } = await supabase
+        .from('notifications')
+        .select('*')
+        .eq('user_id', 1) // Current user filter
+        .order('created_at', { ascending: false })
+        .limit(50);
+      
+      if (error) {
+        console.error('Error fetching notifications:', error);
+        throw error;
+      }
+      
+      console.log('Notifications fetched from Supabase:', data?.length || 0, 'notifications');
+      const notificationsList = data || [];
+      setNotifications(notificationsList);
+      
+      const unread = notificationsList.filter(n => !n.is_read).length;
       console.log('Unread notifications count:', unread);
       setUnreadCount(unread);
+      
     } catch (error) {
       console.error('Error fetching notifications:', error);
       toast({
@@ -46,20 +62,35 @@ export function useNotifications() {
     }
   }, [toast]);
 
-  // Mark all notifications as read for current user
+  // Mark all notifications as read when opening panel
   const markAllAsReadOnOpen = useCallback(async () => {
     const unreadNotifications = notifications.filter(n => !n.is_read);
     
     if (unreadNotifications.length === 0) {
+      console.log('No unread notifications to mark as read');
       return;
     }
+
+    console.log(`Marking ${unreadNotifications.length} notifications as read...`);
 
     // Optimistic update - update UI immediately
     setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
     setUnreadCount(0);
 
     try {
-      await markAllNotificationsAsRead();
+      // Direct Supabase call to mark all as read
+      const { error } = await supabase
+        .from('notifications')
+        .update({ is_read: true })
+        .eq('user_id', 1) // Current user
+        .eq('is_read', false);
+
+      if (error) {
+        console.error('Supabase error marking notifications as read:', error);
+        throw error;
+      }
+
+      console.log('✅ All notifications marked as read successfully');
     } catch (error) {
       console.error('Error marking all notifications as read:', error);
       
@@ -175,57 +206,74 @@ export function useNotifications() {
 
   // Initialize notifications and set up real-time subscription
   useEffect(() => {
-    fetchNotifications();
+    let mounted = true;
+    let subscription: any = null;
 
-    // Set up real-time subscription for INSERT and UPDATE events
-    const currentUserId = 1; // Using user_id since there's no store_id field in current schema
-    
-    const subscription = supabase
-      .channel(`notifications-channel-${Date.now()}`)
-      .on('postgres_changes', {
-        event: 'INSERT',
-        schema: 'public',
-        table: 'notifications',
-        filter: `user_id=eq.${currentUserId}`
-      }, (payload) => {
-        console.log('🚀 Real-time INSERT notification received:', payload);
-        const newNotification = payload.new as Notification;
-        
-        // Add to state immediately for real-time updates
-        setNotifications(prev => [newNotification, ...prev]);
-        
-        // Show toast notification for new notifications
-        toast({
-          title: newNotification.title,
-          description: newNotification.message,
-          className: getNotificationToastStyle(newNotification.type)
+    const initializeNotifications = async () => {
+      // 1. First, fetch all existing notifications
+      await fetchNotifications();
+      
+      if (!mounted) return;
+
+      // 2. Then set up real-time subscription for new notifications
+      console.log('🔗 Setting up real-time subscription for notifications...');
+      
+      subscription = supabase
+        .channel('notifications_realtime_channel')
+        .on('postgres_changes', {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'notifications',
+          filter: 'user_id=eq.1' // Current user filter
+        }, (payload) => {
+          console.log('🚀 NEW notification received via realtime:', payload.new);
+          const newNotification = payload.new as Notification;
+          
+          if (mounted) {
+            // Add new notification to the beginning of the list
+            setNotifications(prev => [newNotification, ...prev]);
+            
+            // Show toast notification for real-time updates
+            toast({
+              title: newNotification.title,
+              description: newNotification.message,
+              className: getNotificationToastStyle(newNotification.type)
+            });
+          }
+        })
+        .on('postgres_changes', {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'notifications',
+          filter: 'user_id=eq.1'
+        }, (payload) => {
+          console.log('🔄 UPDATED notification received via realtime:', payload.new);
+          const updatedNotification = payload.new as Notification;
+          
+          if (mounted) {
+            // Update existing notification in the list
+            setNotifications(prev => prev.map(n => 
+              n.id === updatedNotification.id ? updatedNotification : n
+            ));
+          }
+        })
+        .subscribe((status) => {
+          console.log('📊 Real-time subscription status:', status);
         });
-      })
-      .on('postgres_changes', {
-        event: 'UPDATE',
-        schema: 'public',
-        table: 'notifications',
-        filter: `user_id=eq.${currentUserId}`
-      }, (payload) => {
-        console.log('🔄 Real-time UPDATE notification received:', payload);
-        const updatedNotification = payload.new as Notification;
-        
-        // Update state for read status changes
-        setNotifications(prev => prev.map(n => 
-          n.id === updatedNotification.id ? updatedNotification : n
-        ));
-      })
-      .subscribe((status) => {
-        console.log('📊 Notifications subscription status:', status);
-      });
 
-    console.log('Notifications subscription created:', subscription);
+      console.log('✅ Real-time subscription created successfully');
+    };
+
+    initializeNotifications();
 
     return () => {
-      console.log('Unsubscribing from notifications channel');
-      supabase.removeChannel(subscription);
+      mounted = false;
+      if (subscription) {
+        console.log('🔌 Cleaning up real-time subscription');
+        supabase.removeChannel(subscription);
+      }
     };
-  }, [fetchNotifications, toast]);
+  }, []); // Only run once on mount
 
   // Calculate unread count from current notifications state
   useEffect(() => {
