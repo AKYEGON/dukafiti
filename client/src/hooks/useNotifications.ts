@@ -2,9 +2,9 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 
 interface Notification {
-  id: string;
-  type: 'credit' | 'low_stock';
-  entity_id: string;
+  id: number;
+  user_id?: number;
+  type: string;
   title: string;
   message: string;
   is_read: boolean;
@@ -87,15 +87,16 @@ export default function useNotifications() {
 
   // 4. Create new notification
   const createNotification = async (notification: {
-    type: 'credit' | 'low_stock';
-    entity_id: string;
+    type: string;
     title: string;
     message: string;
+    user_id?: number;
   }) => {
     const { data, error } = await supabase
       .from('notifications')
       .insert([{
         ...notification,
+        user_id: notification.user_id || 1, // Default user_id to 1 if not provided
         is_read: false
       }])
       .select()

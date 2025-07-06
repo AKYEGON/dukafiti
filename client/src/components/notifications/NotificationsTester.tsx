@@ -13,7 +13,6 @@ export function NotificationsTester() {
     try {
       await createNotification({
         type: 'low_stock',
-        entity_id: crypto.randomUUID(),
         title: 'Low Stock Alert',
         message: 'Coca Cola 500ml is running low (Stock: 3)',
       });
@@ -29,7 +28,6 @@ export function NotificationsTester() {
     try {
       await createNotification({
         type: 'credit',
-        entity_id: crypto.randomUUID(),
         title: 'Payment Reminder',
         message: 'John Doe owes KES 1,200 (7 days overdue)',
       });
@@ -53,7 +51,6 @@ export function NotificationsTester() {
       for (const customer of customers) {
         await createNotification({
           type: 'credit',
-          entity_id: crypto.randomUUID(),
           title: 'Payment Reminder',
           message: `${customer.name} owes KES ${customer.amount} (7+ days overdue)`,
         });
