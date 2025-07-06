@@ -29,9 +29,13 @@ export function useNotifications() {
   // Fetch all notifications
   const fetchNotifications = useCallback(async () => {
     try {
+      console.log('Fetching notifications...');
       const data = await getNotifications(50);
+      console.log('Notifications fetched:', data?.length || 0, 'notifications');
       setNotifications(data || []);
-      setUnreadCount(data?.filter(n => !n.is_read).length || 0);
+      const unread = data?.filter(n => !n.is_read).length || 0;
+      console.log('Unread notifications count:', unread);
+      setUnreadCount(unread);
     } catch (error) {
       console.error('Error fetching notifications:', error);
       toast({
@@ -176,8 +180,7 @@ export function useNotifications() {
     fetchNotifications();
 
     // Set up real-time subscription for INSERT and UPDATE events
-    // Using user_id filtering since there's no store_id field in current schema
-    const currentUserId = 1; // This would be dynamic in a multi-user system
+    const currentUserId = 1; // Using user_id since there's no store_id field in current schema
     
     const subscription = supabase
       .channel('notifications-realtime-channel')
@@ -187,12 +190,12 @@ export function useNotifications() {
         table: 'notifications',
         filter: `user_id=eq.${currentUserId}`
       }, (payload) => {
+        console.log('Real-time INSERT notification received:', payload);
         const newNotification = payload.new as Notification;
         
         // Add to state immediately for real-time updates
         setNotifications(prev => [newNotification, ...prev]);
-        setUnreadCount(prev => prev + 1);
-
+        
         // Show toast notification for new notifications
         toast({
           title: newNotification.title,
@@ -206,27 +209,33 @@ export function useNotifications() {
         table: 'notifications',
         filter: `user_id=eq.${currentUserId}`
       }, (payload) => {
+        console.log('Real-time UPDATE notification received:', payload);
         const updatedNotification = payload.new as Notification;
         
         // Update state for read status changes
         setNotifications(prev => prev.map(n => 
           n.id === updatedNotification.id ? updatedNotification : n
         ));
-        
-        // Update unread count if notification was marked as read
-        if (updatedNotification.is_read && payload.old && !payload.old.is_read) {
-          setUnreadCount(prev => Math.max(0, prev - 1));
-        }
       })
       .subscribe();
 
+    console.log('Notifications subscription created:', subscription);
+
     return () => {
-      subscription.unsubscribe();
+      console.log('Unsubscribing from notifications channel');
+      supabase.removeChannel(subscription);
     };
   }, [fetchNotifications, toast]);
 
+  // Calculate unread count from current notifications state
+  useEffect(() => {
+    const count = notifications.filter(n => !n.is_read).length;
+    setUnreadCount(count);
+  }, [notifications]);
+
   return {
     notifications,
+    setNotifications,
     unreadCount,
     isLoading,
     markAsRead,

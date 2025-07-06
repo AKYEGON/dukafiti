@@ -435,6 +435,11 @@ Changelog:
 - July 6, 2025. Enhanced Inventory page with professional three-column grid layout and improved card design with accent stripes
 - July 6, 2025. Added sticky header with backdrop blur, redesigned product cards with elevated shadows and proper accessibility
 - July 6, 2025. Implemented color-coded left borders (green for normal stock, red for low stock) and top-right action buttons
+- July 6, 2025. Fixed real-time notifications system with proper Supabase subscription using postgres_changes events
+- July 6, 2025. Implemented auto-mark-as-read functionality when notification panel opens, removing manual "Mark all read" button
+- July 6, 2025. Enhanced TopBar bell icon to automatically mark all notifications as read when dropdown opens
+- July 6, 2025. Added proper real-time subscription cleanup using supabase.removeChannel() to prevent memory leaks
+- July 6, 2025. Updated notification badge count to calculate from local state for immediate UI updates
 ```
 
 ## User Preferences

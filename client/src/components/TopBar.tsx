@@ -6,6 +6,7 @@ import { useAuth } from '@/contexts/SupabaseAuth';
 import { OfflineIndicator } from '@/components/offline/OfflineIndicator';
 import { NotificationsPanel } from '@/components/notifications/NotificationsPanel';
 import { useNotifications } from '@/hooks/useNotifications';
+import { supabase } from '@/lib/supabase';
 import { 
   Search, 
   Bell, 
@@ -39,7 +40,7 @@ export function TopBar({ onToggleSidebar, isSidebarCollapsed }: TopBarProps) {
   const [selectedIndex, setSelectedIndex] = useState(-1);
   
   // Notifications functionality
-  const { unreadCount, markAllAsReadOnOpen } = useNotifications();
+  const { unreadCount, notifications, setNotifications } = useNotifications();
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   
   // Profile dropdown state
@@ -276,10 +277,26 @@ export function TopBar({ onToggleSidebar, isSidebarCollapsed }: TopBarProps) {
           {/* Notifications */}
           <div className="relative" ref={notificationRef}>
             <button
-              onClick={() => {
-                if (!isNotificationOpen) {
-                  // Mark all notifications as read when opening the panel
-                  markAllAsReadOnOpen();
+              onClick={async () => {
+                if (!isNotificationOpen && unreadCount > 0) {
+                  try {
+                    // Mark all notifications as read in Supabase
+                    const { error } = await supabase
+                      .from('notifications')
+                      .update({ is_read: true })
+                      .eq('user_id', 1) // Using user_id since there's no store_id
+                      .eq('is_read', false);
+
+                    if (error) {
+                      console.error('Error marking notifications as read:', error);
+                    } else {
+                      // Update local state to mark all as read
+                      setNotifications(notifications.map(n => ({ ...n, is_read: true })));
+                      console.log('All notifications marked as read');
+                    }
+                  } catch (error) {
+                    console.error('Failed to mark notifications as read:', error);
+                  }
                 }
                 setIsNotificationOpen(!isNotificationOpen);
               }}
