@@ -410,6 +410,7 @@ Changelog:
 - July 6, 2025. Added keyboard navigation (↑/↓ arrows, Enter, Esc) and intelligent URL routing for search results
 - July 6, 2025. Created responsive search dropdown with category headers, icons, and touch-friendly 44px minimum height
 - July 6, 2025. Enhanced search with real-time loading states, highlight matching text, and "no results" feedback
+- July 6, 2025. Added clear cart button to Sales page header with conditional visibility and red styling for destructive action
 ```
 
 ## User Preferences

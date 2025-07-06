@@ -638,7 +638,17 @@ export default function Sales() {
 
       {/* 3. Mini-Cart Summary */}
       <div className="bg-white dark:bg-[#1F1F1F] rounded-lg p-4 shadow-md">
-        <h3 className="text-lg font-semibold mb-3">Cart</h3>
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-lg font-semibold">Cart</h3>
+          {!isCartEmpty && (
+            <button
+              onClick={handleClearCart}
+              className="text-sm text-red-600 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300 hover:underline transition-colors focus:outline-none focus:ring-2 focus:ring-red-500 rounded px-2 py-1"
+            >
+              Clear Cart
+            </button>
+          )}
+        </div>
         
         {isCartEmpty ? (
           <div className="text-center py-8">
