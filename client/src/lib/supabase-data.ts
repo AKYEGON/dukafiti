@@ -376,58 +376,58 @@ export const getReportsTrend = async (period: 'hourly' | 'daily' | 'monthly') =>
     
     console.log(`Found ${orders?.length || 0} orders for trend period ${period} from ${startDate.toISOString()} to ${endDate.toISOString()}`);
     
-    // If no orders found, create sample trend data to demonstrate functionality
-    if (!orders || orders.length === 0) {
-      console.log('No orders found, creating sample trend data');
-      const sampleTrendData: Array<{ label: string; value: number }> = [];
-      
-      if (period === 'hourly') {
-        // Last 24 hours with realistic sales patterns
-        for (let i = 23; i >= 0; i--) {
-          const hour = new Date();
-          hour.setHours(hour.getHours() - i);
-          // Simulate business hours having higher sales
-          const isBusinessHour = hour.getHours() >= 8 && hour.getHours() <= 20;
-          const baseValue = isBusinessHour ? 150 : 30;
-          const variance = Math.random() * 100;
-          sampleTrendData.push({
-            label: hour.toLocaleTimeString('en-US', { hour: 'numeric', hour12: true }),
-            value: Math.round(baseValue + variance)
-          });
-        }
-      } else if (period === 'daily') {
-        // Last 7 days with weekend patterns
-        for (let i = 6; i >= 0; i--) {
-          const day = new Date();
-          day.setDate(day.getDate() - i);
-          // Weekends typically have different sales patterns
-          const isWeekend = day.getDay() === 0 || day.getDay() === 6;
-          const baseValue = isWeekend ? 400 : 800;
-          const variance = Math.random() * 300;
-          sampleTrendData.push({
-            label: day.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-            value: Math.round(baseValue + variance)
-          });
-        }
-      } else {
-        // Last 12 months with seasonal patterns
-        for (let i = 11; i >= 0; i--) {
-          const month = new Date();
-          month.setMonth(month.getMonth() - i);
-          // Simulate seasonal business patterns
-          const monthNumber = month.getMonth();
-          const isHolidaySeason = monthNumber === 11 || monthNumber === 0; // Dec/Jan
-          const baseValue = isHolidaySeason ? 15000 : 8000;
-          const seasonalFactor = Math.sin((monthNumber * Math.PI) / 6) * 2000;
-          const variance = Math.random() * 3000;
-          sampleTrendData.push({
-            label: month.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
-            value: Math.round(baseValue + seasonalFactor + variance)
-          });
-        }
+    // Create sample trend data to demonstrate functionality when no real data exists
+    const sampleTrendData: Array<{ label: string; value: number }> = [];
+    
+    if (period === 'hourly') {
+      // Last 24 hours with realistic sales patterns
+      for (let i = 23; i >= 0; i--) {
+        const hour = new Date();
+        hour.setHours(hour.getHours() - i);
+        // Simulate business hours having higher sales
+        const isBusinessHour = hour.getHours() >= 8 && hour.getHours() <= 20;
+        const baseValue = isBusinessHour ? 150 : 30;
+        const variance = Math.random() * 100;
+        sampleTrendData.push({
+          label: hour.toLocaleTimeString('en-US', { hour: 'numeric', hour12: true }),
+          value: Math.round(baseValue + variance)
+        });
       }
-      
-      console.log('Generated sample trend data:', sampleTrendData);
+    } else if (period === 'daily') {
+      // Last 30 days with realistic daily patterns
+      for (let i = 29; i >= 0; i--) {
+        const day = new Date();
+        day.setDate(day.getDate() - i);
+        // Weekends typically have different sales patterns
+        const isWeekend = day.getDay() === 0 || day.getDay() === 6;
+        const baseValue = isWeekend ? 400 : 800;
+        const variance = Math.random() * 300;
+        sampleTrendData.push({
+          label: day.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+          value: Math.round(baseValue + variance)
+        });
+      }
+    } else {
+      // Last 12 months with seasonal patterns
+      for (let i = 11; i >= 0; i--) {
+        const month = new Date();
+        month.setMonth(month.getMonth() - i);
+        // Simulate seasonal business patterns
+        const monthNumber = month.getMonth();
+        const isHolidaySeason = monthNumber === 11 || monthNumber === 0; // Dec/Jan
+        const baseValue = isHolidaySeason ? 15000 : 8000;
+        const seasonalFactor = Math.sin((monthNumber * Math.PI) / 6) * 2000;
+        const variance = Math.random() * 3000;
+        sampleTrendData.push({
+          label: month.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
+          value: Math.round(baseValue + seasonalFactor + variance)
+        });
+      }
+    }
+    
+    // If no orders found, return sample data
+    if (!orders || orders.length === 0) {
+      console.log('No orders found, returning sample trend data:', sampleTrendData);
       return sampleTrendData;
     }
     

@@ -178,7 +178,9 @@ export default function Reports() {
     error: trendError,
     period: trendPeriod,
     dataLength: trendData?.length,
-    sampleData: trendData?.[0]
+    sampleData: trendData?.[0],
+    isArray: Array.isArray(trendData),
+    hasData: trendData && Array.isArray(trendData) && trendData.length > 0
   });
   
 
@@ -440,6 +442,12 @@ export default function Reports() {
             {trendLoading ? (
               <div className="h-64 flex items-center justify-center">
                 <Skeleton className="h-full w-full" />
+              </div>
+            ) : trendError ? (
+              <div className="h-64 flex items-center justify-center">
+                <div className="text-center text-gray-500 dark:text-gray-400">
+                  <p>Error loading trend data: {trendError.message}</p>
+                </div>
               </div>
             ) : trendData && Array.isArray(trendData) && trendData.length > 0 ? (
               <div className="h-64">
