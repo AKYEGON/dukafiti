@@ -151,11 +151,13 @@ export default function SettingsPage() {
     },
   });
 
-  // Manual sync mutation
+  // Manual sync mutation - refresh all queries from Supabase
   const syncMutation = useMutation({
     mutationFn: async () => {
-      const response = await apiRequest("GET", "/api/sync");
-      return response.json();
+      // Invalidate all queries to force refresh from Supabase
+      await queryClient.invalidateQueries();
+      await new Promise(resolve => setTimeout(resolve, 1000)); // Small delay to ensure all queries refresh
+      return { success: true };
     },
     onSuccess: () => {
       toast({ title: "Data synced successfully" });

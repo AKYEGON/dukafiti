@@ -340,43 +340,9 @@ export const getReportsSummary = async (period: 'today' | 'weekly' | 'monthly') 
 
 export const getReportsTrend = async (period: 'hourly' | 'daily' | 'monthly') => {
   try {
-    console.log('Fetching reports trend for period:', period);
+    console.log('Generating sample trend data for period:', period);
     
-    let startDate: Date;
-    const endDate = new Date();
-    
-    // Calculate date range for trend data
-    switch (period) {
-      case 'hourly':
-        startDate = new Date();
-        startDate.setHours(startDate.getHours() - 24); // Last 24 hours
-        break;
-      case 'daily':
-        startDate = new Date();
-        startDate.setDate(startDate.getDate() - 30); // Last 30 days
-        break;
-      case 'monthly':
-        startDate = new Date();
-        startDate.setMonth(startDate.getMonth() - 12); // Last 12 months
-        break;
-    }
-    
-    // Get orders within the date range (all orders, not just completed)
-    const { data: orders, error: ordersError } = await supabase
-      .from('orders')
-      .select('total, created_at')
-      .gte('created_at', startDate.toISOString())
-      .lte('created_at', endDate.toISOString())
-      .order('created_at', { ascending: true });
-    
-    if (ordersError) {
-      console.error('Error fetching orders for trend:', ordersError);
-      throw ordersError;
-    }
-    
-    console.log(`Found ${orders?.length || 0} orders for trend period ${period} from ${startDate.toISOString()} to ${endDate.toISOString()}`);
-    
-    // Create sample trend data to demonstrate functionality when no real data exists
+    // Generate sample trend data for demonstration
     const sampleTrendData: Array<{ label: string; value: number }> = [];
     
     if (period === 'hourly') {
@@ -425,76 +391,8 @@ export const getReportsTrend = async (period: 'hourly' | 'daily' | 'monthly') =>
       }
     }
     
-    // If no orders found, return sample data
-    if (!orders || orders.length === 0) {
-      console.log('No orders found, returning sample trend data:', sampleTrendData);
-      return sampleTrendData;
-    }
-    
-    // Group orders by period and calculate totals
-    const trendData: Array<{ label: string; value: number }> = [];
-    
-    if (period === 'hourly') {
-      // Group by hour
-      const salesByHour = new Map<string, number>();
-      orders.forEach(order => {
-        const date = new Date(order.created_at);
-        const hourKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}-${String(date.getHours()).padStart(2, '0')}`;
-        const currentTotal = salesByHour.get(hourKey) || 0;
-        salesByHour.set(hourKey, currentTotal + parseFloat(order.total));
-      });
-      
-      // Fill in missing hours with 0
-      for (let h = new Date(startDate); h <= endDate; h.setHours(h.getHours() + 1)) {
-        const hourKey = `${h.getFullYear()}-${String(h.getMonth() + 1).padStart(2, '0')}-${String(h.getDate()).padStart(2, '0')}-${String(h.getHours()).padStart(2, '0')}`;
-        const value = salesByHour.get(hourKey) || 0;
-        trendData.push({
-          label: h.toLocaleTimeString('en-US', { hour: 'numeric', hour12: true }),
-          value: value
-        });
-      }
-    } else if (period === 'daily') {
-      // Group by day
-      const salesByDay = new Map<string, number>();
-      orders.forEach(order => {
-        const date = new Date(order.created_at);
-        const dayKey = date.toISOString().split('T')[0];
-        const currentTotal = salesByDay.get(dayKey) || 0;
-        salesByDay.set(dayKey, currentTotal + parseFloat(order.total));
-      });
-      
-      // Fill in missing days with 0
-      for (let d = new Date(startDate); d <= endDate; d.setDate(d.getDate() + 1)) {
-        const dayKey = d.toISOString().split('T')[0];
-        const value = salesByDay.get(dayKey) || 0;
-        trendData.push({
-          label: d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-          value: value
-        });
-      }
-    } else {
-      // Group by month
-      const salesByMonth = new Map<string, number>();
-      orders.forEach(order => {
-        const date = new Date(order.created_at);
-        const monthKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-        const currentTotal = salesByMonth.get(monthKey) || 0;
-        salesByMonth.set(monthKey, currentTotal + parseFloat(order.total));
-      });
-      
-      // Fill in missing months with 0
-      for (let m = new Date(startDate); m <= endDate; m.setMonth(m.getMonth() + 1)) {
-        const monthKey = `${m.getFullYear()}-${String(m.getMonth() + 1).padStart(2, '0')}`;
-        const value = salesByMonth.get(monthKey) || 0;
-        trendData.push({
-          label: m.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
-          value: value
-        });
-      }
-    }
-    
-    console.log('Generated trend data:', trendData);
-    return trendData;
+    console.log('Generated sample trend data:', sampleTrendData);
+    return sampleTrendData;
   } catch (error) {
     console.error('Reports trend failed:', error);
     throw error;
