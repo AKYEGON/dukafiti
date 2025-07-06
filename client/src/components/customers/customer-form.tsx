@@ -44,7 +44,7 @@ export function CustomerForm({ open, onOpenChange, customer }: CustomerFormProps
       form.reset({
         name: customer.name || "",
         phone: customer.phone || "",
-        balance: customer.balance || "",
+        balance: customer.balance?.toString() || "",
       });
     } else {
       form.reset({
@@ -61,18 +61,25 @@ export function CustomerForm({ open, onOpenChange, customer }: CustomerFormProps
     setIsLoading(true);
     
     try {
-      const customerData = {
-        ...data,
-        balance: data.balance && data.balance.trim() !== "" ? parseFloat(data.balance) : 0,
-      };
-      
       if (customer) {
+        // For updates, only send name and phone (don't modify balance)
+        const customerData = {
+          name: data.name,
+          phone: data.phone,
+        };
+        
         await updateCustomer(customer.id, customerData);
         toast({
           title: "Success",
           description: "Customer updated successfully",
         });
       } else {
+        // For new customers, include balance
+        const customerData = {
+          ...data,
+          balance: data.balance && data.balance.trim() !== "" ? parseFloat(data.balance) : 0,
+        };
+        
         await createCustomer(customerData);
         toast({
           title: "Success",
@@ -84,6 +91,7 @@ export function CustomerForm({ open, onOpenChange, customer }: CustomerFormProps
       onOpenChange(false);
       form.reset();
     } catch (error: any) {
+      console.error("Form submission error:", error);
       toast({
         title: "Error",
         description: error.message || "Failed to save customer",
