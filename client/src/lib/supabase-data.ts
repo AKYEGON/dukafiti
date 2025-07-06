@@ -339,64 +339,56 @@ export const getReportsSummary = async (period: 'today' | 'weekly' | 'monthly') 
 };
 
 export const getReportsTrend = async (period: 'hourly' | 'daily' | 'monthly') => {
-  try {
-    console.log('Generating sample trend data for period:', period);
-    
-    // Generate sample trend data for demonstration
-    const sampleTrendData: Array<{ label: string; value: number }> = [];
-    
-    if (period === 'hourly') {
-      // Last 24 hours with realistic sales patterns
-      for (let i = 23; i >= 0; i--) {
-        const hour = new Date();
-        hour.setHours(hour.getHours() - i);
-        // Simulate business hours having higher sales
-        const isBusinessHour = hour.getHours() >= 8 && hour.getHours() <= 20;
-        const baseValue = isBusinessHour ? 150 : 30;
-        const variance = Math.random() * 100;
-        sampleTrendData.push({
-          label: hour.toLocaleTimeString('en-US', { hour: 'numeric', hour12: true }),
-          value: Math.round(baseValue + variance)
-        });
-      }
-    } else if (period === 'daily') {
-      // Last 30 days with realistic daily patterns
-      for (let i = 29; i >= 0; i--) {
-        const day = new Date();
-        day.setDate(day.getDate() - i);
-        // Weekends typically have different sales patterns
-        const isWeekend = day.getDay() === 0 || day.getDay() === 6;
-        const baseValue = isWeekend ? 400 : 800;
-        const variance = Math.random() * 300;
-        sampleTrendData.push({
-          label: day.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-          value: Math.round(baseValue + variance)
-        });
-      }
-    } else {
-      // Last 12 months with seasonal patterns
-      for (let i = 11; i >= 0; i--) {
-        const month = new Date();
-        month.setMonth(month.getMonth() - i);
-        // Simulate seasonal business patterns
-        const monthNumber = month.getMonth();
-        const isHolidaySeason = monthNumber === 11 || monthNumber === 0; // Dec/Jan
-        const baseValue = isHolidaySeason ? 15000 : 8000;
-        const seasonalFactor = Math.sin((monthNumber * Math.PI) / 6) * 2000;
-        const variance = Math.random() * 3000;
-        sampleTrendData.push({
-          label: month.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
-          value: Math.round(baseValue + seasonalFactor + variance)
-        });
-      }
+  console.log('getReportsTrend called with period:', period);
+  
+  // Always return sample data for demonstration
+  const sampleTrendData: Array<{ label: string; value: number }> = [];
+  
+  if (period === 'hourly') {
+    // Last 24 hours
+    for (let i = 23; i >= 0; i--) {
+      const hour = new Date();
+      hour.setHours(hour.getHours() - i);
+      const isBusinessHour = hour.getHours() >= 8 && hour.getHours() <= 20;
+      const baseValue = isBusinessHour ? 150 : 30;
+      const variance = Math.random() * 100;
+      sampleTrendData.push({
+        label: hour.toLocaleTimeString('en-US', { hour: 'numeric', hour12: true }),
+        value: Math.round(baseValue + variance)
+      });
     }
-    
-    console.log('Generated sample trend data:', sampleTrendData);
-    return sampleTrendData;
-  } catch (error) {
-    console.error('Reports trend failed:', error);
-    throw error;
+  } else if (period === 'daily') {
+    // Last 30 days
+    for (let i = 29; i >= 0; i--) {
+      const day = new Date();
+      day.setDate(day.getDate() - i);
+      const isWeekend = day.getDay() === 0 || day.getDay() === 6;
+      const baseValue = isWeekend ? 400 : 800;
+      const variance = Math.random() * 300;
+      sampleTrendData.push({
+        label: day.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+        value: Math.round(baseValue + variance)
+      });
+    }
+  } else {
+    // Last 12 months
+    for (let i = 11; i >= 0; i--) {
+      const month = new Date();
+      month.setMonth(month.getMonth() - i);
+      const monthNumber = month.getMonth();
+      const isHolidaySeason = monthNumber === 11 || monthNumber === 0;
+      const baseValue = isHolidaySeason ? 15000 : 8000;
+      const seasonalFactor = Math.sin((monthNumber * Math.PI) / 6) * 2000;
+      const variance = Math.random() * 3000;
+      sampleTrendData.push({
+        label: month.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
+        value: Math.round(baseValue + seasonalFactor + variance)
+      });
+    }
   }
+  
+  console.log(`Generated ${sampleTrendData.length} data points:`, sampleTrendData.slice(0, 3));
+  return sampleTrendData;
 };
 
 export const getTopCustomers = async (period: 'today' | 'weekly' | 'monthly') => {

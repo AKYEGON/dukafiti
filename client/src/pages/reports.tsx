@@ -170,7 +170,9 @@ export default function Reports() {
   // Fetch trend data
   const { data: trendData, isLoading: trendLoading, error: trendError } = useQuery<TrendData[]>({
     queryKey: ['reports-trend', trendPeriod],
-    queryFn: () => getReportsTrend(trendPeriod)
+    queryFn: () => getReportsTrend(trendPeriod),
+    staleTime: 0, // Always refetch
+    refetchOnMount: 'always'
   });
 
   // Debug trend data
