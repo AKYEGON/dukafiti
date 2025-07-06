@@ -11,7 +11,7 @@ import {
 
 export interface Notification {
   id: string;
-  type: 'low_stock' | 'payment_received' | 'sync_failed' | 'sale_completed' | 'customer_payment';
+  type: string; // Made more flexible to handle legacy types like 'info', 'success'
   title: string;
   message?: string;
   is_read: boolean;
@@ -139,18 +139,22 @@ export function useNotifications() {
 }
 
 // Helper function to get toast styling based on notification type
-function getNotificationToastStyle(type: Notification['type']): string {
+function getNotificationToastStyle(type: string): string {
   switch (type) {
     case 'low_stock':
       return 'bg-orange-50 border-orange-200 text-orange-800';
     case 'payment_received':
+    case 'customer_payment':
       return 'bg-green-50 border-green-200 text-green-800';
     case 'sync_failed':
       return 'bg-red-50 border-red-200 text-red-800';
     case 'sale_completed':
       return 'bg-blue-50 border-blue-200 text-blue-800';
-    case 'customer_payment':
-      return 'bg-purple-50 border-purple-200 text-purple-800';
+    // Handle legacy notification types
+    case 'success':
+      return 'bg-green-50 border-green-200 text-green-800';
+    case 'info':
+      return 'bg-blue-50 border-blue-200 text-blue-800';
     default:
       return 'bg-gray-50 border-gray-200 text-gray-800';
   }

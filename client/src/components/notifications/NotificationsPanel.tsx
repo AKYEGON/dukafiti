@@ -69,7 +69,7 @@ export function NotificationsPanel({ isOpen, onClose }: NotificationsPanelProps)
     onClose();
   };
 
-  const getNotificationIcon = (type: Notification['type']) => {
+  const getNotificationIcon = (type: string) => {
     switch (type) {
       case 'low_stock':
         return <Package className="w-5 h-5 text-orange-500" />;
@@ -80,12 +80,17 @@ export function NotificationsPanel({ isOpen, onClose }: NotificationsPanelProps)
         return <AlertTriangle className="w-5 h-5 text-red-500" />;
       case 'sale_completed':
         return <CheckCircle className="w-5 h-5 text-blue-500" />;
+      // Handle legacy notification types
+      case 'success':
+        return <CheckCircle className="w-5 h-5 text-green-500" />;
+      case 'info':
+        return <Bell className="w-5 h-5 text-blue-500" />;
       default:
         return <Bell className="w-5 h-5 text-gray-500" />;
     }
   };
 
-  const getNotificationBorderColor = (type: Notification['type']) => {
+  const getNotificationBorderColor = (type: string) => {
     switch (type) {
       case 'low_stock':
         return 'border-l-orange-500';
@@ -95,6 +100,11 @@ export function NotificationsPanel({ isOpen, onClose }: NotificationsPanelProps)
       case 'sync_failed':
         return 'border-l-red-500';
       case 'sale_completed':
+        return 'border-l-blue-500';
+      // Handle legacy notification types
+      case 'success':
+        return 'border-l-green-500';
+      case 'info':
         return 'border-l-blue-500';
       default:
         return 'border-l-gray-500';
