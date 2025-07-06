@@ -271,7 +271,7 @@ export default function Dashboard() {
                             <TableCell className="font-medium text-neutral-900 dark:text-neutral-100">
                               #ORD-{order.id.toString().padStart(3, '0')}
                             </TableCell>
-                            <TableCell className="text-neutral-700 dark:text-neutral-300">{order.customerName}</TableCell>
+                            <TableCell className="text-neutral-700 dark:text-neutral-300">{order.customerName || 'N/A'}</TableCell>
                             <TableCell className="text-right font-semibold text-neutral-900 dark:text-neutral-100">{formatCurrency(order.total)}</TableCell>
                             <TableCell>
                               <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 px-2 py-1 rounded-full text-xs font-medium">
@@ -296,7 +296,7 @@ export default function Dashboard() {
                             {order.status}
                           </Badge>
                         </div>
-                        <p className="text-sm text-neutral-700 dark:text-neutral-300 mb-1">{order.customerName}</p>
+                        <p className="text-sm text-neutral-700 dark:text-neutral-300 mb-1">{order.customerName || 'N/A'}</p>
                         <p className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">{formatCurrency(order.total)}</p>
                       </div>
                     ))}

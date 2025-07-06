@@ -444,7 +444,7 @@ export const getReportsSummary = async (period: 'today' | 'weekly' | 'monthly') 
   }
 };
 
-export const getReportsTrend = async (period: 'daily' | 'weekly' | 'monthly') => {
+export const getReportsTrend = async (period: 'hourly' | 'daily' | 'monthly') => {
   try {
     console.log('Fetching reports trend for period:', period);
     
@@ -453,13 +453,13 @@ export const getReportsTrend = async (period: 'daily' | 'weekly' | 'monthly') =>
     
     // Calculate date range for trend data
     switch (period) {
+      case 'hourly':
+        startDate = new Date();
+        startDate.setHours(startDate.getHours() - 24); // Last 24 hours
+        break;
       case 'daily':
         startDate = new Date();
         startDate.setDate(startDate.getDate() - 30); // Last 30 days
-        break;
-      case 'weekly':
-        startDate = new Date();
-        startDate.setDate(startDate.getDate() - 84); // Last 12 weeks
         break;
       case 'monthly':
         startDate = new Date();
@@ -483,7 +483,26 @@ export const getReportsTrend = async (period: 'daily' | 'weekly' | 'monthly') =>
     // Group orders by period and calculate totals
     const trendData: Array<{ label: string; value: number }> = [];
     
-    if (period === 'daily') {
+    if (period === 'hourly') {
+      // Group by hour
+      const salesByHour = new Map<string, number>();
+      orders.forEach(order => {
+        const date = new Date(order.created_at);
+        const hourKey = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}-${String(date.getHours()).padStart(2, '0')}`;
+        const currentTotal = salesByHour.get(hourKey) || 0;
+        salesByHour.set(hourKey, currentTotal + parseFloat(order.total));
+      });
+      
+      // Fill in missing hours with 0
+      for (let h = new Date(startDate); h <= endDate; h.setHours(h.getHours() + 1)) {
+        const hourKey = `${h.getFullYear()}-${String(h.getMonth() + 1).padStart(2, '0')}-${String(h.getDate()).padStart(2, '0')}-${String(h.getHours()).padStart(2, '0')}`;
+        const value = salesByHour.get(hourKey) || 0;
+        trendData.push({
+          label: h.toLocaleTimeString('en-US', { hour: 'numeric', hour12: true }),
+          value: value
+        });
+      }
+    } else if (period === 'daily') {
       // Group by day
       const salesByDay = new Map<string, number>();
       orders.forEach(order => {
@@ -502,24 +521,6 @@ export const getReportsTrend = async (period: 'daily' | 'weekly' | 'monthly') =>
           value: value
         });
       }
-    } else if (period === 'weekly') {
-      // Group by week
-      const salesByWeek = new Map<string, number>();
-      orders.forEach(order => {
-        const date = new Date(order.created_at);
-        const weekStart = new Date(date.setDate(date.getDate() - date.getDay()));
-        const weekKey = weekStart.toISOString().split('T')[0];
-        const currentTotal = salesByWeek.get(weekKey) || 0;
-        salesByWeek.set(weekKey, currentTotal + parseFloat(order.total));
-      });
-      
-      salesByWeek.forEach((value, weekKey) => {
-        const weekDate = new Date(weekKey);
-        trendData.push({
-          label: weekDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-          value: value
-        });
-      });
     } else {
       // Group by month
       const salesByMonth = new Map<string, number>();
@@ -530,14 +531,15 @@ export const getReportsTrend = async (period: 'daily' | 'weekly' | 'monthly') =>
         salesByMonth.set(monthKey, currentTotal + parseFloat(order.total));
       });
       
-      salesByMonth.forEach((value, monthKey) => {
-        const [year, month] = monthKey.split('-');
-        const monthDate = new Date(parseInt(year), parseInt(month) - 1);
+      // Fill in missing months with 0
+      for (let m = new Date(startDate); m <= endDate; m.setMonth(m.getMonth() + 1)) {
+        const monthKey = `${m.getFullYear()}-${String(m.getMonth() + 1).padStart(2, '0')}`;
+        const value = salesByMonth.get(monthKey) || 0;
         trendData.push({
-          label: monthDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
+          label: m.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
           value: value
         });
-      });
+      }
     }
     
     return trendData.sort((a, b) => new Date(a.label).getTime() - new Date(b.label).getTime());
@@ -551,26 +553,7 @@ export const getTopCustomers = async (period: 'today' | 'weekly' | 'monthly') =>
   try {
     console.log('Fetching top customers for period:', period);
     
-    let startDate: Date;
-    const endDate = new Date();
-    
-    // Calculate date range based on period
-    switch (period) {
-      case 'today':
-        startDate = new Date();
-        startDate.setHours(0, 0, 0, 0);
-        break;
-      case 'weekly':
-        startDate = new Date();
-        startDate.setDate(startDate.getDate() - 7);
-        break;
-      case 'monthly':
-        startDate = new Date();
-        startDate.setMonth(startDate.getMonth() - 1);
-        break;
-    }
-    
-    // Get customers with credit sales in the period
+    // Get customers with credit balance (debt) ordered by highest amount
     const { data: customers, error: customersError } = await supabase
       .from('customers')
       .select('id, name, balance')
@@ -589,21 +572,19 @@ export const getTopCustomers = async (period: 'today' | 'weekly' | 'monthly') =>
         .from('orders')
         .select('id')
         .eq('customer_id', customer.id)
-        .eq('payment_method', 'credit')
-        .gte('created_at', startDate.toISOString())
-        .lte('created_at', endDate.toISOString());
+        .eq('payment_method', 'credit');
       
       return {
         customerName: customer.name,
-        totalOwed: customer.balance,
+        totalOwed: customer.balance.toFixed(2),
         outstandingOrders: orders?.length || 0
       };
     }));
     
-    return topCustomers.filter(c => c.outstandingOrders > 0);
+    return topCustomers.filter(c => parseFloat(c.totalOwed) > 0);
   } catch (error) {
     console.error('Top customers failed:', error);
-    throw error;
+    return [];
   }
 };
 
@@ -611,26 +592,7 @@ export const getTopProducts = async (period: 'today' | 'weekly' | 'monthly') => 
   try {
     console.log('Fetching top products for period:', period);
     
-    let startDate: Date;
-    const endDate = new Date();
-    
-    // Calculate date range based on period
-    switch (period) {
-      case 'today':
-        startDate = new Date();
-        startDate.setHours(0, 0, 0, 0);
-        break;
-      case 'weekly':
-        startDate = new Date();
-        startDate.setDate(startDate.getDate() - 7);
-        break;
-      case 'monthly':
-        startDate = new Date();
-        startDate.setMonth(startDate.getMonth() - 1);
-        break;
-    }
-    
-    // Get order items with product info from the period
+    // Get order items with product info (remove date filtering for now to get all data)
     const { data: orderItems, error: orderItemsError } = await supabase
       .from('order_items')
       .select(`
@@ -638,13 +600,16 @@ export const getTopProducts = async (period: 'today' | 'weekly' | 'monthly') => 
         quantity,
         price,
         products (name)
-      `)
-      .gte('created_at', startDate.toISOString())
-      .lte('created_at', endDate.toISOString());
+      `);
     
     if (orderItemsError) {
       console.error('Error fetching order items:', orderItemsError);
       throw orderItemsError;
+    }
+    
+    if (!orderItems || orderItems.length === 0) {
+      console.log('No order items found');
+      return [];
     }
     
     // Group by product and calculate totals
@@ -1051,17 +1016,33 @@ export const getRecentOrders = async () => {
     const { data, error } = await supabase
       .from('orders')
       .select(`
-        *,
-        order_items(*, products(name))
+        id,
+        total,
+        status,
+        customer_name,
+        payment_method,
+        created_at,
+        customer_id,
+        reference
       `)
       .order('created_at', { ascending: false })
       .limit(10);
     
     if (error) throw error;
     
-    // The customer_name is already stored in the orders table
-    // Return the data as-is since it should include customer_name field
-    return data || [];
+    // Transform data to ensure consistent format
+    const transformedData = (data || []).map(order => ({
+      id: order.id,
+      total: order.total,
+      status: order.status,
+      customerName: order.customer_name || 'N/A',
+      paymentMethod: order.payment_method,
+      createdAt: new Date(order.created_at),
+      customerId: order.customer_id,
+      reference: order.reference
+    }));
+    
+    return transformedData;
   } catch (error) {
     console.error('Error fetching recent orders:', error);
     return [];

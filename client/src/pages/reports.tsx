@@ -111,7 +111,7 @@ const downloadCSV = (csvContent: string, filename: string): void => {
 export default function Reports() {
   // State for timeframe selectors
   const [summaryPeriod, setSummaryPeriod] = useState<'today' | 'weekly' | 'monthly'>('today');
-  const [trendPeriod, setTrendPeriod] = useState<'daily' | 'weekly' | 'monthly'>('daily');
+  const [trendPeriod, setTrendPeriod] = useState<'hourly' | 'daily' | 'monthly'>('daily');
   
   // Orders Record state
   const [ordersPeriod, setOrdersPeriod] = useState<'daily' | 'weekly' | 'monthly'>('daily');
@@ -288,13 +288,13 @@ export default function Reports() {
           <div className="bg-white dark:bg-[#1F1F1F] border border-gray-200 dark:border-gray-700 rounded-lg p-6 shadow-sm">
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">Sales Trend</h3>
-              <Select value={trendPeriod} onValueChange={(value: 'daily' | 'weekly' | 'monthly') => setTrendPeriod(value)}>
+              <Select value={trendPeriod} onValueChange={(value: 'hourly' | 'daily' | 'monthly') => setTrendPeriod(value)}>
                 <SelectTrigger className="w-32 bg-gray-50 dark:bg-gray-800 border rounded px-3 py-2 focus:ring-2 focus:ring-emerald-500">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="hourly">Hourly</SelectItem>
                   <SelectItem value="daily">Daily</SelectItem>
-                  <SelectItem value="weekly">Weekly</SelectItem>
                   <SelectItem value="monthly">Monthly</SelectItem>
                 </SelectContent>
               </Select>
