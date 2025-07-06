@@ -41,6 +41,19 @@
     @apply text-foreground;
   }
   
+  /* DukaFiti Brand Typography */
+  .brand-gradient {
+    @apply bg-gradient-to-r from-brand-600 to-brand-500 bg-clip-text text-transparent;
+  }
+  
+  .brand-button {
+    @apply bg-brand hover:bg-brand-700 text-white font-medium transition-all duration-200;
+  }
+  
+  .brand-button-outline {
+    @apply border-brand text-brand hover:bg-brand hover:text-white transition-all duration-200;
+  }
+  
   /* Responsive container with proper max-widths */
   .container {
     max-width: 100%;

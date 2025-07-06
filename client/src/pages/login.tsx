@@ -73,7 +73,7 @@ export default function Login() {
         <div className="text-center mb-6">
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center">
             <img 
-              src="/assets/logo-icon.svg" 
+              src="/assets/logo.png" 
               alt="DukaFiti" 
               className="h-16 w-16"
             />
@@ -153,7 +153,7 @@ export default function Login() {
         <div className="text-center mt-4">
           <button
             onClick={() => navigate('/register')}
-            className="text-sm text-primaryGreen hover:underline font-medium focus:outline-none focus:ring-2 focus:ring-primaryGreen rounded transition-all duration-200"
+            className="text-sm text-brand hover:underline font-medium focus:outline-none focus:ring-2 focus:ring-brand rounded transition-all duration-200"
           >
             Forgot your password?
           </button>
@@ -163,7 +163,7 @@ export default function Login() {
         <div className="text-center mt-6">
           <p className="text-sm text-gray-600 dark:text-gray-400">
             Don't have an account?{' '}
-            <Link href="/register" className="text-primaryGreen hover:underline font-medium focus:outline-none focus:ring-2 focus:ring-primaryGreen rounded transition-all duration-200">
+            <Link href="/register" className="text-brand hover:underline font-medium focus:outline-none focus:ring-2 focus:ring-brand rounded transition-all duration-200">
               Create account
             </Link>
           </p>

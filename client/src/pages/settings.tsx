@@ -54,17 +54,17 @@ const EditableSection = ({
   <div className="bg-white dark:bg-[#1F1F1F] border border-gray-200 dark:border-gray-700 rounded-lg p-6 shadow-sm hover:shadow-md transition dark:shadow-[0_4px_8px_rgba(0,0,0,0.5)]">
     <div className="flex items-center justify-between mb-6">
       <div className="flex items-center gap-3">
-        <Icon className="h-6 w-6 text-purple-600" />
+        <Icon className="h-6 w-6 text-accent" />
         <h2 className="text-xl font-bold text-foreground">
           {title}
-          <div className="h-0.5 bg-purple-600 mt-1 w-full"></div>
+          <div className="h-0.5 bg-accent mt-1 w-full"></div>
         </h2>
       </div>
       {!isEditing && onSave && (
         <button
           onClick={onEditToggle}
           aria-label={`Edit ${title}`}
-          className="p-2 text-gray-500 hover:text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-purple-600"
+          className="p-2 text-gray-500 hover:text-accent hover:bg-accent-50 dark:hover:bg-purple-900/20 rounded-md transition-colors focus:outline-none focus:ring-2 focus:ring-accent"
         >
           <Edit2 className="h-5 w-5" />
         </button>
@@ -88,7 +88,7 @@ const EditableSection = ({
         <Button
           onClick={onCancel}
           disabled={isLoading}
-          className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 h-12 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-600"
+          className="bg-gray-200 hover:bg-gray-300 text-gray-800 px-4 py-2 h-12 rounded-md focus:outline-none focus:ring-2 focus:ring-accent"
         >
           <X className="h-4 w-4 mr-2" />
           Cancel
@@ -208,8 +208,8 @@ export default function SettingsPage() {
         <div className="space-y-6 sm:space-y-8">
           {/* Header */}
           <div className="flex items-center gap-3">
-            <div className="p-3 bg-purple-500/10 rounded-lg">
-              <Store className="h-7 w-7 text-purple-600" />
+            <div className="p-3 bg-accent-500/10 rounded-lg">
+              <Store className="h-7 w-7 text-accent" />
             </div>
             <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Settings</h1>
           </div>
@@ -318,7 +318,7 @@ export default function SettingsPage() {
               <Switch
                 checked={theme === 'dark'}
                 onCheckedChange={(checked) => setTheme(checked ? 'dark' : 'light')}
-                className="focus:ring-2 focus:ring-purple-600"
+                className="focus:ring-2 focus:ring-accent"
               />
             </div>
           </EditableSection>

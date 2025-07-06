@@ -68,7 +68,7 @@ export function Sidebar({ className, collapsed = false, toggleSidebar }: Sidebar
           {isCollapsed && !isMobile ? (
             <Link href="/">
               <img 
-                src="/assets/logo-icon.svg" 
+                src="/assets/logo.png" 
                 alt="DukaFiti" 
                 className="w-10 h-10 hover:scale-105 transition-transform duration-200"
               />
@@ -76,7 +76,7 @@ export function Sidebar({ className, collapsed = false, toggleSidebar }: Sidebar
           ) : (
             <Link href="/" className="flex items-center space-x-3 hover:opacity-80 transition-opacity duration-200">
               <img 
-                src="/assets/logo-icon.svg" 
+                src="/assets/logo.png" 
                 alt="DukaFiti Icon" 
                 className="w-10 h-10"
               />

@@ -449,6 +449,12 @@ Changelog:
 - July 6, 2025. Verified auto-mark-as-read functionality works when notification bell is clicked
 - July 6, 2025. Enhanced notification panel to render specific contextual messages based on payload data
 - July 6, 2025. Verified real-time inventory updates reflect stock changes immediately after sales
+- July 6, 2025. Fixed critical logo import errors by updating all logo paths from logo-icon.svg to logo.png
+- July 6, 2025. Applied comprehensive brand color updates across all pages replacing legacy green/purple with new DukaFiti brand palette
+- July 6, 2025. Updated Tailwind config, CSS variables, and component styling for consistent purple-to-blue gradient brand colors
+- July 6, 2025. Fixed favicon and PWA manifest to use correct logo assets and DukaFiti brand identity
+- July 6, 2025. Added brand typography utilities (.brand-gradient, .brand-button) for consistent styling standards
+- July 6, 2025. Systematically replaced all text-green-, bg-green-, text-purple-, bg-purple- references with brand color tokens
 ```
 
 ## User Preferences

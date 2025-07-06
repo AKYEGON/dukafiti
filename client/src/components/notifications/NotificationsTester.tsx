@@ -132,7 +132,7 @@ export function NotificationsTester() {
       message: 'Alice Kamau made a payment of KES 500 via Cash',
       payload: { customerId: 2, customerName: 'Alice Kamau', amount: 500, paymentMethod: 'Cash', timestamp: new Date().toISOString() },
       icon: Users,
-      color: 'text-purple-500'
+      color: 'text-accent-500'
     }
   ];
 

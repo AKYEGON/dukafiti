@@ -81,7 +81,7 @@ export function InstallButton() {
   if (showPrompt && canInstall) {
     return (
       <div className="fixed bottom-4 left-4 right-4 z-50 md:left-auto md:right-4 md:w-80">
-        <Card className="bg-gradient-to-r from-purple-600 to-green-600 text-white border-0 shadow-lg">
+        <Card className="bg-gradient-to-r from-accent to-green-600 text-white border-0 shadow-lg">
           <CardContent className="p-4">
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-3 flex-1">

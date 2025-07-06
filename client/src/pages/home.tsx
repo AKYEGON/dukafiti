@@ -51,7 +51,7 @@ export default function Home() {
             {/* Logo */}
             <div className="flex-shrink-0 flex items-center space-x-3">
               <img 
-                src="/assets/logo-icon.svg" 
+                src="/assets/logo.png" 
                 alt="DukaFiti" 
                 className="h-8 w-8"
               />
@@ -227,7 +227,7 @@ export default function Home() {
 
           <div className="grid md:grid-cols-2 gap-8">
             {testimonials.map((testimonial, index) => (
-              <Card key={index} className="bg-white dark:bg-gray-900 border-l-4 border-l-purple-600 shadow-lg p-6">
+              <Card key={index} className="bg-white dark:bg-gray-900 border-l-4 border-l-accent shadow-lg p-6">
                 <CardContent className="p-0">
                   <div className="flex mb-4">
                     {[...Array(5)].map((_, i) => (
@@ -249,7 +249,7 @@ export default function Home() {
       </section>
 
       {/* Footer CTA Section */}
-      <section className="bg-gradient-to-r from-green-600 to-purple-600 py-16">
+      <section className="bg-gradient-to-r from-green-600 to-accent py-16">
         <div className="max-w-4xl mx-auto text-center px-4 sm:px-6 lg:px-8">
           <h2 className="text-3xl lg:text-4xl font-bold text-white mb-4">
             Ready to Transform Your Duka?
