@@ -339,56 +339,107 @@ export const getReportsSummary = async (period: 'today' | 'weekly' | 'monthly') 
 };
 
 export const getReportsTrend = async (period: 'hourly' | 'daily' | 'monthly') => {
-  console.log('getReportsTrend called with period:', period);
-  
-  // Always return sample data for demonstration
-  const sampleTrendData: Array<{ label: string; value: number }> = [];
-  
-  if (period === 'hourly') {
-    // Last 24 hours
-    for (let i = 23; i >= 0; i--) {
-      const hour = new Date();
-      hour.setHours(hour.getHours() - i);
-      const isBusinessHour = hour.getHours() >= 8 && hour.getHours() <= 20;
-      const baseValue = isBusinessHour ? 150 : 30;
-      const variance = Math.random() * 100;
-      sampleTrendData.push({
-        label: hour.toLocaleTimeString('en-US', { hour: 'numeric', hour12: true }),
-        value: Math.round(baseValue + variance)
+  try {
+    console.log('getReportsTrend called with period:', period);
+    
+    let query = supabase
+      .from('orders')
+      .select('created_at, total_amount, status');
+    
+    // Set date range based on period
+    const now = new Date();
+    let startDate: Date;
+    
+    if (period === 'hourly') {
+      startDate = new Date(now.getTime() - 24 * 60 * 60 * 1000); // Last 24 hours
+    } else if (period === 'daily') {
+      startDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000); // Last 30 days
+    } else {
+      startDate = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000); // Last 12 months
+    }
+    
+    query = query.gte('created_at', startDate.toISOString());
+    
+    const { data: orders, error } = await query;
+    
+    if (error) {
+      console.error('Error fetching trend data:', error);
+      throw error;
+    }
+    
+    console.log(`Fetched ${orders?.length || 0} orders for trend analysis`);
+    if (orders && orders.length > 0) {
+      console.log('Sample order data:', orders[0]);
+      console.log('Order statuses found:', [...new Set(orders.map(o => o.status))]);
+    }
+    
+    // Group orders by time period and calculate totals
+    const trendData: Array<{ label: string; value: number }> = [];
+    const groupedData: { [key: string]: number } = {};
+    
+    if (period === 'hourly') {
+      // Initialize 24 hours with 0
+      for (let i = 23; i >= 0; i--) {
+        const hour = new Date(now.getTime() - i * 60 * 60 * 1000);
+        const key = hour.toLocaleTimeString('en-US', { hour: 'numeric', hour12: true });
+        groupedData[key] = 0;
+      }
+      
+      // Group orders by hour
+      orders?.forEach(order => {
+        const orderDate = new Date(order.created_at);
+        const hourKey = orderDate.toLocaleTimeString('en-US', { hour: 'numeric', hour12: true });
+        if (groupedData.hasOwnProperty(hourKey)) {
+          groupedData[hourKey] += order.total_amount || 0;
+        }
+      });
+    } else if (period === 'daily') {
+      // Initialize 30 days with 0
+      for (let i = 29; i >= 0; i--) {
+        const day = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
+        const key = day.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        groupedData[key] = 0;
+      }
+      
+      // Group orders by day
+      orders?.forEach(order => {
+        const orderDate = new Date(order.created_at);
+        const dayKey = orderDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        if (groupedData.hasOwnProperty(dayKey)) {
+          groupedData[dayKey] += order.total_amount || 0;
+        }
+      });
+    } else {
+      // Initialize 12 months with 0
+      for (let i = 11; i >= 0; i--) {
+        const month = new Date(now.getTime() - i * 30 * 24 * 60 * 60 * 1000);
+        const key = month.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+        groupedData[key] = 0;
+      }
+      
+      // Group orders by month
+      orders?.forEach(order => {
+        const orderDate = new Date(order.created_at);
+        const monthKey = orderDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+        if (groupedData.hasOwnProperty(monthKey)) {
+          groupedData[monthKey] += order.total_amount || 0;
+        }
       });
     }
-  } else if (period === 'daily') {
-    // Last 30 days
-    for (let i = 29; i >= 0; i--) {
-      const day = new Date();
-      day.setDate(day.getDate() - i);
-      const isWeekend = day.getDay() === 0 || day.getDay() === 6;
-      const baseValue = isWeekend ? 400 : 800;
-      const variance = Math.random() * 300;
-      sampleTrendData.push({
-        label: day.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-        value: Math.round(baseValue + variance)
-      });
-    }
-  } else {
-    // Last 12 months
-    for (let i = 11; i >= 0; i--) {
-      const month = new Date();
-      month.setMonth(month.getMonth() - i);
-      const monthNumber = month.getMonth();
-      const isHolidaySeason = monthNumber === 11 || monthNumber === 0;
-      const baseValue = isHolidaySeason ? 15000 : 8000;
-      const seasonalFactor = Math.sin((monthNumber * Math.PI) / 6) * 2000;
-      const variance = Math.random() * 3000;
-      sampleTrendData.push({
-        label: month.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
-        value: Math.round(baseValue + seasonalFactor + variance)
-      });
-    }
+    
+    // Convert grouped data to trend format
+    Object.entries(groupedData).forEach(([label, value]) => {
+      trendData.push({ label, value: Math.round(value) });
+    });
+    
+    console.log(`Generated trend data with ${trendData.length} points:`, trendData.slice(0, 3));
+    return trendData;
+    
+  } catch (error) {
+    console.error('Reports trend failed:', error);
+    // Return empty data instead of throwing to prevent UI crashes
+    return [];
   }
-  
-  console.log(`Generated ${sampleTrendData.length} data points:`, sampleTrendData.slice(0, 3));
-  return sampleTrendData;
 };
 
 export const getTopCustomers = async (period: 'today' | 'weekly' | 'monthly') => {
