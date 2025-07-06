@@ -11,21 +11,22 @@ export default {
         sm: "calc(var(--radius) - 4px)",
       },
       colors: {
-        // DukaFiti Brand Color System (WCAG Compliant)
+        // DukaFiti Brand Color System (Updated from logo assets)
         brand: {
-          50: "#f5f3ff",
-          100: "#ede9fe",
-          200: "#ddd6fe",
-          300: "#c4b5fd",
-          400: "#a78bfa",
-          500: "#8b7ff8",  // Light gradient color
-          600: "#6366f1",  // Mid gradient color  
-          DEFAULT: "#4f46e5",  // Primary brand - Dark gradient color
-          800: "#3730a3",
-          900: "#312e81",
-          950: "#1e1b4b"
+          50: "#f0f9ff",
+          100: "#e0f2fe", 
+          200: "#bae6fd",
+          300: "#7dd3fc",
+          400: "#38bdf8",
+          500: "#0ea5e9",  // Light blue from logo
+          600: "#0284c7",  // Mid blue from logo
+          700: "#0369a1",  // Primary brand - teal-blue from logo
+          DEFAULT: "#0369a1",  // Primary brand - teal-blue from logo
+          800: "#075985",
+          900: "#0c4a6e",
+          950: "#082f49"
         },
-        accent: {
+        'accent-blue': {
           50: "#f0f9ff",
           100: "#e0f2fe",
           200: "#bae6fd",
@@ -132,6 +133,9 @@ export default {
           border: "var(--sidebar-border)",
           ring: "var(--sidebar-ring)",
         },
+      },
+      fontFamily: {
+        'brand': ['Inter', 'system-ui', 'sans-serif'],
       },
       keyframes: {
         "accordion-down": {

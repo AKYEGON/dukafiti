@@ -67,9 +67,9 @@ export function Sidebar({ className, collapsed = false, toggleSidebar }: Sidebar
         )}>
           {isCollapsed && !isMobile ? (
             <Link href="/">
-              <div className="p-2 rounded-lg bg-brand-700 dark:bg-brand-900 hover:bg-brand-600 dark:hover:bg-brand-700 transition-all duration-200">
+              <div className="brand-logo-container">
                 <img 
-                  src="/assets/logo_1751815320625.png" 
+                  src="/assets/logo-grayscale.png" 
                   alt="DukaFiti" 
                   className="w-8 h-8 drop-shadow-md"
                 />
@@ -77,11 +77,11 @@ export function Sidebar({ className, collapsed = false, toggleSidebar }: Sidebar
             </Link>
           ) : (
             <Link href="/" className="flex items-center justify-center hover:opacity-90 transition-opacity duration-200">
-              <div className="p-3 rounded-lg bg-brand-700 dark:bg-brand-900">
+              <div className="brand-logo-container">
                 <img 
-                  src="/assets/logo plus background_1751815320608.png" 
+                  src="/assets/logo-full.png" 
                   alt="DukaFiti - Duka Fiti ni Duka Bora" 
-                  className="h-10 w-auto max-w-[160px] drop-shadow-md"
+                  className="h-12 w-auto drop-shadow-md"
                 />
               </div>
             </Link>

@@ -95,7 +95,9 @@ export default function useNotifications() {
     const { data, error } = await supabase
       .from('notifications')
       .insert([{
-        ...notification,
+        type: notification.type,
+        title: notification.title,
+        message: notification.message,
         user_id: notification.user_id || 1, // Default user_id to 1 if not provided
         is_read: false
       }])

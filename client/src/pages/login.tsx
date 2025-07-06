@@ -69,28 +69,26 @@ export default function Login() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4 sm:px-6 lg:px-8">
       <div className="bg-white dark:bg-[#1F1F1F] border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg p-6 sm:p-8 w-full max-w-md mx-auto my-12">
         
-        {/* Logo/App Name - Enterprise Grade */}
+        {/* Logo/App Name - DukaFiti Branding */}
         <div className="text-center mb-6">
           <div className="mx-auto mb-4 flex items-center justify-center">
-            <div className="p-4 rounded-xl bg-brand dark:bg-brand-700">
+            <div className="brand-logo-container">
               <img 
-                src="/assets/logo plus background_1751815320608.png" 
-                alt="DukaFiti - Duka Fiti ni Duka Bora" 
-                className="h-12 w-auto max-w-[180px] drop-shadow-md"
+                src="/assets/logo-full.png" 
+                alt="DukaFiti" 
+                className="h-16 w-auto drop-shadow-md"
               />
             </div>
           </div>
-          <div className="mt-2 mb-4 flex items-center justify-center">
-            <div className="px-4 py-2 rounded-lg bg-brand-50 dark:bg-brand-900/30">
-              <img 
-                src="/assets/slogan_1751815320627.png" 
-                alt="Duka Fiti ni Duka Bora" 
-                className="h-5 w-auto max-w-[160px] drop-shadow-sm"
-              />
-            </div>
+          <div className="mt-3 mb-4 flex items-center justify-center">
+            <img 
+              src="/assets/slogan_1751824985940.png" 
+              alt="Duka Fiti ni Duka Bora" 
+              className="h-6 w-auto opacity-70 dark:opacity-50"
+            />
           </div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-brand-600 to-brand-500 bg-clip-text text-transparent text-center">DukaFiti</h1>
-          <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">Duka Bora ni Duka Fiti - Welcome back</p>
+          <h1 className="text-3xl font-bold text-brand-700 dark:text-brand-300 text-center">DukaFiti</h1>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">Welcome back to your business</p>
         </div>
 
         {/* Login Form */}
