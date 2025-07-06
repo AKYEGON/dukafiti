@@ -1,22 +1,23 @@
--- Create settings table for store profile data
+-- Create settings table for DukaFiti store profile
 CREATE TABLE IF NOT EXISTS settings (
-  id SERIAL PRIMARY KEY,
-  user_id INTEGER DEFAULT 1,
-  store_name TEXT,
-  owner_name TEXT, 
-  address TEXT,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+    id SERIAL PRIMARY KEY,
+    store_name TEXT DEFAULT '',
+    owner_name TEXT DEFAULT '',
+    address TEXT DEFAULT '',
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
--- Enable RLS
+-- Enable Row Level Security
 ALTER TABLE settings ENABLE ROW LEVEL SECURITY;
 
--- Create policy to allow all operations
-DROP POLICY IF EXISTS "Allow all operations" ON settings;
-CREATE POLICY "Allow all operations" ON settings FOR ALL USING (true);
+-- Create a policy that allows all access (for simplicity)
+CREATE POLICY "Allow all access to settings" ON settings 
+    FOR ALL 
+    USING (true) 
+    WITH CHECK (true);
 
--- Insert default settings if none exist
+-- Insert default settings row if none exists
 INSERT INTO settings (store_name, owner_name, address) 
 SELECT '', '', ''
-WHERE NOT EXISTS (SELECT 1 FROM settings);
+WHERE NOT EXISTS (SELECT 1 FROM settings LIMIT 1);

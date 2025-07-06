@@ -62,14 +62,14 @@ export function Sidebar({ className, collapsed = false, toggleSidebar }: Sidebar
       <div className="flex flex-col">
         {/* Store logo/name mini-header */}
         <div className={cn(
-          "p-4 flex items-center justify-center border-b border-gray-200 dark:border-gray-700 bg-brand dark:bg-brand-800",
+          "p-4 flex items-center justify-center border-b border-gray-200 dark:border-gray-700",
           isCollapsed && !isMobile ? "px-2" : "px-4"
         )}>
           {isCollapsed && !isMobile ? (
             <Link href="/">
-              <div className="brand-logo-container">
+              <div>
                 <img 
-                  src="/assets/logo-grayscale.png" 
+                  src="/assets/logo-icon.png" 
                   alt="DukaFiti" 
                   className="w-8 h-8 drop-shadow-md"
                 />
@@ -77,11 +77,11 @@ export function Sidebar({ className, collapsed = false, toggleSidebar }: Sidebar
             </Link>
           ) : (
             <Link href="/" className="flex items-center justify-center hover:opacity-90 transition-opacity duration-200">
-              <div className="brand-logo-container">
+              <div>
                 <img 
                   src="/assets/logo-full.png" 
                   alt="DukaFiti - Duka Fiti ni Duka Bora" 
-                  className="h-12 w-auto drop-shadow-md"
+                  className="h-10 w-auto drop-shadow-md"
                 />
               </div>
             </Link>

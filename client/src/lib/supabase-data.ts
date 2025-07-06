@@ -1040,7 +1040,7 @@ export const getRecentOrders = async () => {
   }
 };
 
-// Store Profile operations - using Supabase settings table
+// Store Profile operations - with fallback to localStorage when Supabase settings table doesn't exist
 export const getStoreProfile = async () => {
   try {
     console.log('Fetching store profile from Supabase');
@@ -1052,7 +1052,32 @@ export const getStoreProfile = async () => {
     
     if (error) {
       console.error('Store profile fetch failed:', error);
-      // Try to create default settings entry
+      
+      // If settings table doesn't exist, use localStorage fallback
+      if (error.code === '42P01' || error.message.includes('does not exist')) {
+        console.log('Settings table not found, using localStorage fallback');
+        const localData = localStorage.getItem('dukafiti_store_profile');
+        if (localData) {
+          try {
+            const parsed = JSON.parse(localData);
+            return {
+              storeName: parsed.storeName || '',
+              ownerName: parsed.ownerName || '',
+              address: parsed.address || ''
+            };
+          } catch (parseError) {
+            console.error('Error parsing localStorage data:', parseError);
+          }
+        }
+        
+        return {
+          storeName: '',
+          ownerName: '',
+          address: ''
+        };
+      }
+      
+      // Try to create default settings entry for other errors
       const { data: newData, error: insertError } = await supabase
         .from('settings')
         .insert([{
@@ -1065,6 +1090,21 @@ export const getStoreProfile = async () => {
       
       if (insertError) {
         console.error('Failed to create default settings:', insertError);
+        // Fallback to localStorage
+        const localData = localStorage.getItem('dukafiti_store_profile');
+        if (localData) {
+          try {
+            const parsed = JSON.parse(localData);
+            return {
+              storeName: parsed.storeName || '',
+              ownerName: parsed.ownerName || '',
+              address: parsed.address || ''
+            };
+          } catch (parseError) {
+            console.error('Error parsing localStorage data:', parseError);
+          }
+        }
+        
         return {
           storeName: '',
           ownerName: '',
@@ -1086,6 +1126,22 @@ export const getStoreProfile = async () => {
     };
   } catch (error) {
     console.error('Store profile fetch failed:', error);
+    
+    // Fallback to localStorage
+    const localData = localStorage.getItem('dukafiti_store_profile');
+    if (localData) {
+      try {
+        const parsed = JSON.parse(localData);
+        return {
+          storeName: parsed.storeName || '',
+          ownerName: parsed.ownerName || '',
+          address: parsed.address || ''
+        };
+      } catch (parseError) {
+        console.error('Error parsing localStorage data:', parseError);
+      }
+    }
+    
     return {
       storeName: '',
       ownerName: '',
@@ -1115,10 +1171,22 @@ export const updateStoreProfile = async (profileData: {
     
     if (error) {
       console.error('Store profile update failed:', error);
+      
+      // If settings table doesn't exist, save to localStorage as fallback
+      if (error.code === '42P01' || error.message.includes('does not exist')) {
+        console.log('Settings table not found, saving to localStorage');
+        localStorage.setItem('dukafiti_store_profile', JSON.stringify(profileData));
+        return profileData;
+      }
+      
       throw error;
     }
     
     console.log('Store profile updated successfully in Supabase');
+    
+    // Also save to localStorage as backup
+    localStorage.setItem('dukafiti_store_profile', JSON.stringify(profileData));
+    
     return {
       storeName: data.store_name,
       ownerName: data.owner_name,
@@ -1126,6 +1194,14 @@ export const updateStoreProfile = async (profileData: {
     };
   } catch (error) {
     console.error('Store profile update failed:', error);
+    
+    // Final fallback to localStorage
+    if ((error as any)?.code === '42P01' || (error as any)?.message?.includes('does not exist')) {
+      console.log('Using localStorage fallback for settings');
+      localStorage.setItem('dukafiti_store_profile', JSON.stringify(profileData));
+      return profileData;
+    }
+    
     throw error;
   }
 };

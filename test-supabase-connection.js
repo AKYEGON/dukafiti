@@ -1,63 +1,80 @@
+#!/usr/bin/env node
+/**
+ * Test Supabase connection with the provided credentials
+ */
+
 import { createClient } from '@supabase/supabase-js';
+import dotenv from 'dotenv';
 
-const supabaseUrl = 'https://kwdzbssuovwemthmiuht.supabase.co';
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt3ZHpic3N1b3Z3ZW10aG1pdWh0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE1NDEyMDYsImV4cCI6MjA2NzExNzIwNn0.7AGomhrpXHBnSgJ15DxFMi80E479S9w9mIeqMnsvNrA';
-
-const supabase = createClient(supabaseUrl, supabaseKey);
+// Load environment variables
+dotenv.config();
 
 async function testSupabaseConnection() {
-  console.log('Testing Supabase connection...');
+  console.log('🔗 Testing Supabase connection...');
+  
+  // Test with the provided credentials
+  const supabaseUrl = process.env.VITE_SUPABASE_URL || 'https://kwdzbssuovwemthmiuht.supabase.co';
+  const supabaseKey = process.env.VITE_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imt3ZHpic3N1b3Z3ZW10aG1pdWh0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTE1NDEyMDYsImV4cCI6MjA2NzExNzIwNn0.7AGomhrpXHBnSgJ15DxFMi80E479S9w9mIeqMnsvNrA';
+  
+  console.log('📍 Supabase URL:', supabaseUrl);
+  console.log('🔑 Using Anon Key:', supabaseKey.substring(0, 20) + '...');
+  
+  const supabase = createClient(supabaseUrl, supabaseKey);
   
   try {
     // Test basic connection
-    const { data: products, error: productsError } = await supabase
+    console.log('\n1. Testing basic connection...');
+    const { data: healthData, error: healthError } = await supabase
       .from('products')
-      .select('*')
-      .limit(5);
+      .select('id')
+      .limit(1);
     
-    if (productsError) {
-      console.error('Error accessing products table:', productsError);
+    if (healthError) {
+      console.error('❌ Connection failed:', healthError.message);
       return;
     }
     
-    console.log('✓ Products table accessible, found:', products?.length || 0, 'products');
+    console.log('✅ Basic connection successful');
+    
+    // Test table access
+    console.log('\n2. Testing table access...');
+    const tables = ['products', 'customers', 'orders', 'notifications'];
+    
+    for (const table of tables) {
+      try {
+        const { data, error } = await supabase
+          .from(table)
+          .select('*')
+          .limit(1);
+        
+        if (error) {
+          console.log(`❌ ${table}: ${error.message}`);
+        } else {
+          console.log(`✅ ${table}: ${data ? data.length : 0} rows accessible`);
+        }
+      } catch (err) {
+        console.log(`❌ ${table}: ${err.message}`);
+      }
+    }
     
     // Test authentication
-    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    console.log('\n3. Testing authentication...');
+    const { data: authData, error: authError } = await supabase.auth.getSession();
+    
     if (authError) {
-      console.log('Auth check (expected null for anon):', authError.message);
+      console.log('⚠️ Auth error:', authError.message);
     } else {
-      console.log('Current user:', user ? user.email : 'Anonymous');
+      console.log('✅ Auth system accessible');
+      console.log('📊 Current session:', authData.session ? 'Active' : 'None');
     }
     
-    // Test other tables
-    const { data: customers, error: customersError } = await supabase
-      .from('customers')
-      .select('*')
-      .limit(3);
-    
-    if (customersError) {
-      console.error('Error accessing customers table:', customersError);
-    } else {
-      console.log('✓ Customers table accessible, found:', customers?.length || 0, 'customers');
-    }
-    
-    const { data: orders, error: ordersError } = await supabase
-      .from('orders')
-      .select('*')
-      .limit(3);
-    
-    if (ordersError) {
-      console.error('Error accessing orders table:', ordersError);
-    } else {
-      console.log('✓ Orders table accessible, found:', orders?.length || 0, 'orders');
-    }
-    
-    console.log('✓ Supabase connection test completed successfully!');
+    console.log('\n🎉 Supabase connection test completed successfully!');
     
   } catch (error) {
-    console.error('Supabase connection test failed:', error);
+    console.error('❌ Connection test failed:', error.message);
+    console.error('Full error:', error);
   }
 }
 
-testSupabaseConnection();
+// Run the test
+testSupabaseConnection().catch(console.error);
