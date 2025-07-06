@@ -8,7 +8,7 @@ import {
   AlertTriangle, 
   CheckCircle, 
   Users,
-  MarkAsReadIcon,
+  Check,
   X 
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -26,19 +26,29 @@ export function NotificationsPanel({ isOpen, onClose }: NotificationsPanelProps)
   const [, setLocation] = useLocation();
   const { notifications, unreadCount, isLoading, markAsRead, markAllAsRead } = useNotifications();
 
-  // Close panel on escape key
+  // Enhanced keyboard shortcuts
   useEffect(() => {
-    const handleEscape = (e: KeyboardEvent) => {
+    const handleKeyboard = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         onClose();
+      } else if (e.key === 'a' && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
+        markAllAsRead();
+      } else if (e.key === 'r' && (e.ctrlKey || e.metaKey)) {
+        e.preventDefault();
+        // Mark first unread notification as read
+        const firstUnread = notifications.find(n => !n.is_read);
+        if (firstUnread) {
+          markAsRead(firstUnread.id, true);
+        }
       }
     };
 
     if (isOpen) {
-      document.addEventListener('keydown', handleEscape);
-      return () => document.removeEventListener('keydown', handleEscape);
+      document.addEventListener('keydown', handleKeyboard);
+      return () => document.removeEventListener('keydown', handleKeyboard);
     }
-  }, [isOpen, onClose]);
+  }, [isOpen, onClose, markAllAsRead, markAsRead, notifications]);
 
   const handleNotificationClick = async (notification: Notification) => {
     // Mark as read
@@ -141,9 +151,10 @@ export function NotificationsPanel({ isOpen, onClose }: NotificationsPanelProps)
                     variant="ghost"
                     size="sm"
                     onClick={markAllAsRead}
-                    className="text-green-600 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-900/20"
+                    className="text-green-600 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-900/20 font-medium"
                   >
-                    Mark all read
+                    <Check className="w-4 h-4 mr-1" />
+                    Mark all read ({unreadCount})
                   </Button>
                 )}
                 <Button
@@ -187,47 +198,83 @@ export function NotificationsPanel({ isOpen, onClose }: NotificationsPanelProps)
               // Notifications list
               <div className="divide-y divide-gray-200 dark:divide-gray-700">
                 {notifications.map((notification) => (
-                  <button
+                  <div
                     key={notification.id}
-                    onClick={() => handleNotificationClick(notification)}
-                    className={`w-full text-left p-4 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors border-l-4 ${
+                    className={`relative border-l-4 transition-colors ${
                       !notification.is_read 
                         ? `${getNotificationBorderColor(notification.type)} bg-green-50/30 dark:bg-green-900/10` 
                         : 'border-l-transparent'
                     }`}
                   >
-                    <div className="flex items-start gap-3">
-                      <div className="flex-shrink-0 mt-1">
-                        {getNotificationIcon(notification.type)}
-                      </div>
-                      
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-start justify-between gap-2">
-                          <h4 className={`text-sm font-medium truncate ${
-                            !notification.is_read 
-                              ? 'text-gray-900 dark:text-gray-100 font-semibold' 
-                              : 'text-gray-700 dark:text-gray-300'
-                          }`}>
-                            {notification.title}
-                          </h4>
-                          {!notification.is_read && (
-                            <div className="w-2 h-2 bg-green-500 rounded-full flex-shrink-0 mt-1" />
-                          )}
+                    <div 
+                      onClick={() => handleNotificationClick(notification)}
+                      className="w-full text-left p-4 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer"
+                    >
+                      <div className="flex items-start gap-3">
+                        <div className="flex-shrink-0 mt-1">
+                          {getNotificationIcon(notification.type)}
                         </div>
                         
-                        {notification.message && (
-                          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1 line-clamp-2">
-                            {notification.message}
-                          </p>
-                        )}
-                        
-                        <p className="text-xs text-gray-500 dark:text-gray-500 mt-2">
-                          {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
-                        </p>
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start justify-between gap-2">
+                            <h4 className={`text-sm font-medium truncate ${
+                              !notification.is_read 
+                                ? 'text-gray-900 dark:text-gray-100 font-semibold' 
+                                : 'text-gray-700 dark:text-gray-300'
+                            }`}>
+                              {notification.title}
+                            </h4>
+                            <div className="flex items-center gap-1 flex-shrink-0">
+                              {!notification.is_read && (
+                                <>
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      markAsRead(notification.id, true);
+                                    }}
+                                    className="p-1 rounded-full hover:bg-green-100 dark:hover:bg-green-900/30 text-green-600 hover:text-green-700 transition-colors"
+                                    title="Mark as read"
+                                  >
+                                    <Check className="w-3 h-3" />
+                                  </button>
+                                  <div className="w-2 h-2 bg-green-500 rounded-full" />
+                                </>
+                              )}
+                            </div>
+                          </div>
+                          
+                          {notification.message && (
+                            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1 line-clamp-2">
+                              {notification.message}
+                            </p>
+                          )}
+                          
+                          <div className="flex items-center justify-between mt-2">
+                            <p className="text-xs text-gray-500 dark:text-gray-500">
+                              {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
+                            </p>
+                            {!notification.is_read && (
+                              <span className="text-xs font-medium text-green-600 bg-green-100 dark:bg-green-900/30 px-2 py-1 rounded-full">
+                                New
+                              </span>
+                            )}
+                          </div>
+                        </div>
                       </div>
                     </div>
-                  </button>
+                  </div>
                 ))}
+              </div>
+            )}
+            
+            {/* Keyboard shortcuts help */}
+            {notifications.length > 0 && (
+              <div className="border-t border-gray-200 dark:border-gray-700 p-3 bg-gray-50 dark:bg-gray-800/50">
+                <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
+                  <kbd className="px-1.5 py-0.5 text-xs font-mono bg-gray-200 dark:bg-gray-700 rounded">Ctrl+A</kbd> Mark all read • 
+                  <kbd className="px-1.5 py-0.5 text-xs font-mono bg-gray-200 dark:bg-gray-700 rounded ml-1">Ctrl+R</kbd> Mark first unread • 
+                  <kbd className="px-1.5 py-0.5 text-xs font-mono bg-gray-200 dark:bg-gray-700 rounded ml-1">Esc</kbd> Close
+                </p>
               </div>
             )}
           </CardContent>

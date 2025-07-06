@@ -1071,21 +1071,50 @@ export const getNotifications = async (limit = 50) => {
 };
 
 export const markNotificationAsRead = async (notificationId: string) => {
-  const { error } = await supabase
-    .from('notifications')
-    .update({ is_read: true })
-    .eq('id', notificationId);
-  
-  if (error) throw error;
+  try {
+    console.log('Marking notification as read:', notificationId);
+    
+    const { data, error } = await supabase
+      .from('notifications')
+      .update({ is_read: true })
+      .eq('id', notificationId)
+      .select()
+      .single();
+    
+    if (error) {
+      console.error('Error marking notification as read:', error);
+      throw new Error(`Failed to mark notification as read: ${error.message}`);
+    }
+    
+    console.log('Notification marked as read successfully:', data);
+    return data;
+  } catch (error) {
+    console.error('markNotificationAsRead error:', error);
+    throw error;
+  }
 };
 
 export const markAllNotificationsAsRead = async () => {
-  const { error } = await supabase
-    .from('notifications')
-    .update({ is_read: true })
-    .eq('is_read', false);
-  
-  if (error) throw error;
+  try {
+    console.log('Marking all notifications as read...');
+    
+    const { data, error } = await supabase
+      .from('notifications')
+      .update({ is_read: true })
+      .eq('is_read', false)
+      .select();
+    
+    if (error) {
+      console.error('Error marking all notifications as read:', error);
+      throw new Error(`Failed to mark all notifications as read: ${error.message}`);
+    }
+    
+    console.log('All notifications marked as read successfully:', data?.length || 0, 'notifications updated');
+    return data;
+  } catch (error) {
+    console.error('markAllNotificationsAsRead error:', error);
+    throw error;
+  }
 };
 
 export const createNotification = async (notification: {

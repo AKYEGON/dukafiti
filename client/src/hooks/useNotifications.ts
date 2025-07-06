@@ -44,45 +44,83 @@ export function useNotifications() {
   }, [toast]);
 
   // Mark notification as read
-  const markAsRead = useCallback(async (notificationId: string) => {
+  const markAsRead = useCallback(async (notificationId: string, showToast: boolean = false) => {
+    // Optimistic update - update UI immediately
+    const previousNotifications = notifications;
+    const previousUnreadCount = unreadCount;
+    
+    setNotifications(prev => prev.map(n => 
+      n.id === notificationId ? { ...n, is_read: true } : n
+    ));
+    setUnreadCount(prev => Math.max(0, prev - 1));
+
     try {
       await markNotificationAsRead(notificationId);
-
-      // Update local state
-      setNotifications(prev => prev.map(n => 
-        n.id === notificationId ? { ...n, is_read: true } : n
-      ));
-      setUnreadCount(prev => Math.max(0, prev - 1));
+      
+      if (showToast) {
+        toast({
+          title: 'Notification marked as read',
+          className: 'bg-green-50 border-green-200 text-green-800',
+          duration: 2000
+        });
+      }
     } catch (error) {
       console.error('Error marking notification as read:', error);
+      
+      // Revert optimistic update on error
+      setNotifications(previousNotifications);
+      setUnreadCount(previousUnreadCount);
+      
+      toast({
+        title: 'Error marking notification as read',
+        description: 'Please try again',
+        variant: 'destructive'
+      });
     }
-  }, []);
+  }, [notifications, unreadCount, toast]);
 
   // Mark all notifications as read
   const markAllAsRead = useCallback(async () => {
-    try {
-      const unreadIds = notifications.filter(n => !n.is_read).map(n => n.id);
-      
-      if (unreadIds.length === 0) return;
+    const unreadNotifications = notifications.filter(n => !n.is_read);
+    
+    if (unreadNotifications.length === 0) {
+      toast({
+        title: 'No unread notifications',
+        description: 'All notifications are already marked as read',
+        className: 'bg-blue-50 border-blue-200 text-blue-800'
+      });
+      return;
+    }
 
+    // Optimistic update - update UI immediately
+    const previousNotifications = notifications;
+    const previousUnreadCount = unreadCount;
+    
+    setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
+    setUnreadCount(0);
+
+    try {
       await markAllNotificationsAsRead();
 
-      // Update local state
-      setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
-      setUnreadCount(0);
-
       toast({
-        title: 'All notifications marked as read',
+        title: `${unreadNotifications.length} notifications marked as read`,
+        description: 'All notifications have been marked as read',
         className: 'bg-green-50 border-green-200 text-green-800'
       });
     } catch (error) {
       console.error('Error marking all notifications as read:', error);
+      
+      // Revert optimistic update on error
+      setNotifications(previousNotifications);
+      setUnreadCount(previousUnreadCount);
+      
       toast({
         title: 'Error updating notifications',
+        description: 'Failed to mark all notifications as read. Please try again.',
         variant: 'destructive'
       });
     }
-  }, [notifications, toast]);
+  }, [notifications, unreadCount, toast]);
 
   // Create notification (for testing and manual triggers)
   const createNotification = useCallback(async (notification: Omit<Notification, 'id' | 'created_at' | 'user_id'>) => {
@@ -99,7 +137,7 @@ export function useNotifications() {
   useEffect(() => {
     fetchNotifications();
 
-    // Set up real-time subscription
+    // Set up real-time subscription for INSERT and UPDATE events
     const subscription = supabase
       .channel('notifications-channel')
       .on('postgres_changes', {
@@ -113,12 +151,29 @@ export function useNotifications() {
         setNotifications(prev => [newNotification, ...prev]);
         setUnreadCount(prev => prev + 1);
 
-        // Show toast notification
+        // Show toast notification for new notifications
         toast({
           title: newNotification.title,
           description: newNotification.message,
           className: getNotificationToastStyle(newNotification.type)
         });
+      })
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'notifications'
+      }, (payload) => {
+        const updatedNotification = payload.new as Notification;
+        
+        // Update state for read status changes
+        setNotifications(prev => prev.map(n => 
+          n.id === updatedNotification.id ? updatedNotification : n
+        ));
+        
+        // Update unread count if notification was marked as read
+        if (updatedNotification.is_read && payload.old && !payload.old.is_read) {
+          setUnreadCount(prev => Math.max(0, prev - 1));
+        }
       })
       .subscribe();
 
