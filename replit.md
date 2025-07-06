@@ -443,6 +443,31 @@ Changelog:
 - July 6, 2025. Enhanced TopBar bell icon to automatically mark all notifications as read when dropdown opens
 - July 6, 2025. Added proper real-time subscription cleanup using supabase.removeChannel() to prevent memory leaks
 - July 6, 2025. Updated notification badge count to calculate from local state for immediate UI updates
+- July 6, 2025. Fixed notification system to show only real contextual notifications with proper payload data
+- July 6, 2025. Enhanced notification creation functions across all sales, inventory, and customer operations
+- July 6, 2025. Added notification cleanup functionality to NotificationsTester for managing test notifications
+- July 6, 2025. Verified auto-mark-as-read functionality works when notification bell is clicked
+- July 6, 2025. Enhanced notification panel to render specific contextual messages based on payload data
+- July 6, 2025. Verified real-time inventory updates reflect stock changes immediately after sales
+- July 6, 2025. Fixed critical logo import errors by updating all logo paths from logo-icon.svg to logo.png
+- July 6, 2025. Applied comprehensive brand color updates across all pages replacing legacy green/purple with new DukaFiti brand palette
+- July 6, 2025. Updated Tailwind config, CSS variables, and component styling for consistent purple-to-blue gradient brand colors
+- July 6, 2025. Fixed favicon and PWA manifest to use correct logo assets and DukaFiti brand identity
+- July 6, 2025. Added brand typography utilities (.brand-gradient, .brand-button) for consistent styling standards
+- July 6, 2025. Systematically replaced all text-green-, bg-green-, text-purple-, bg-purple- references with brand color tokens
+- July 6, 2025. Integrated professional logo assets: logo-icon.png (cube icon), logo-full.png (icon + wordmark), logo-slogan.png (slogan)
+- July 6, 2025. Updated Sidebar to use full logo when expanded and icon-only when collapsed with proper sizing
+- July 6, 2025. Enhanced Login and Register pages to display full logo with slogan beneath for professional branding
+- July 6, 2025. Updated Home page navigation to use full logo with proper responsive sizing
+- July 6, 2025. Configured favicon and PWA manifest icons to use new cube logo icon for consistent brand identity
+- July 6, 2025. Applied comprehensive brand asset integration following professional logo placement guidelines across all pages
+- July 6, 2025. Replaced background-embedded logos with transparent PNG versions for clean professional appearance
+- July 6, 2025. Updated all logo containers to use brand purple backgrounds (bg-brand, bg-brand-700) with proper contrast
+- July 6, 2025. Enhanced Sidebar logo display with purple background containers and hover effects for collapsed/expanded states
+- July 6, 2025. Updated Login and Register pages with purple-contained logos and subtle slogan backgrounds
+- July 6, 2025. Modified Home page navigation logo to use branded container with drop shadows
+- July 6, 2025. Created Footer component with slogan logo in brand-appropriate container styling
+- July 6, 2025. Applied drop-shadow effects to all logos for enhanced visual depth and professional appearance
 ```
 
 ## User Preferences

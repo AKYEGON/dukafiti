@@ -1,0 +1,86 @@
+Assistant, please overwrite our **Login** and **SignUp** pages to deliver a polished, professional UX/UI suitable for a POS app—without adding unnecessary features. Use research-backed best practices and ensure both light and dark mode aesthetics:
+
+---
+
+### A. Layout & Visual Hierarchy
+
+- Center both forms vertically and horizontally on the screen.  
+- Enclose form inside a card:
+  - Light: `bg-white border border-gray-200 rounded-lg shadow-md p-8 w-full max-w-sm`
+  - Dark: `dark:bg-[#1F1F1F] dark:border-gray-700 dark:shadow-lg`
+- Logo or app name at top (centered): `text-2xl font-bold text-primaryPurple`
+
+---
+
+### B. Form Fields & Labels
+
+- Include only essential inputs:
+  - **Login**: Email, Password
+  - **Sign Up**: Name, Email, Password, optional "Show password" toggle
+- Place labels **above** inputs, not placeholders
+- Inputs styled:  
+  `w-full px-4 py-3 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primaryGreen`
+- Use real-time validation:
+  - Show inline errors below fields with red text (`text-red-500 text-sm`)
+  - Clear error when field is corrected
+
+---
+
+### C. Buttons & Call-to-Action
+
+- Use distinct primary buttons:
+  - Login button (`bg-primaryGreen hover:bg-primaryGreen-dark text-white`) labeled “Log In”
+  - Sign up button (`bg-primaryPurple hover:bg-primaryPurple-dark text-white`) labeled “Register”
+- Buttons are full-width and touch-friendly: `py-3 font-semibold rounded-md`
+- Place a small “Forgot password?” link under the password field: `text-xs text-primaryPurple hover:underline`, aligned left
+
+---
+
+### D. Switch Between Login & Sign Up
+
+- Include clear toggler at bottom:
+  - On login: “Don’t have an account? Register”
+  - On signup: “Already have an account? Log in”
+- Link styled as `text-primaryGreen hover:underline`, easy to spot
+
+---
+
+### E. Accessibility & Mobile Considerations
+
+- Ensure inputs and buttons are sized for thumbs (`min-h-[44px]`), with sufficient spacing
+- Inputs retain value on validation errors
+- All interactive elements: keyboard-focusable, accessible labels, `role="button"` where needed
+- Ensure input fields stay visible when on-screen keyboard opens
+
+---
+
+### F. Dark Mode Readiness
+
+- Use `dark:` variants consistently:
+  - `text-white` for labels and placeholder text
+  - `bg-[#1F1F1F]` for backgrounds
+  - Input borders swap to `dark:border-gray-600`
+
+---
+
+### G. Best Practice References
+- Minimal steps and fields improve conversion :contentReference[oaicite:0]{index=0}
+- Inline labels outperform placeholders :contentReference[oaicite:1]{index=1}
+- Clear password “show/hide” toggle supports usability :contentReference[oaicite:2]{index=2}
+- Provide “Forgot password?” near password field :contentReference[oaicite:3]{index=3}
+
+---
+
+### H. QA Checklist
+- [ ] Form card styled per light/dark specifications
+- [ ] All labels appear above inputs
+- [ ] Inline validation works and corrects dynamically
+- [ ] Primary buttons are distinct, full-width, correctly labeled
+- [ ] “Forgot password?” and toggle links present and accessible
+- [ ] Toggle between login/signup flows works with clear links
+- [ ] UI is responsive and inputs stay visible on mobile keyboard
+
+---
+
+Generate the updated `Login.jsx` and `SignUp.jsx` including JSX, styling, validation logic, and links to switch flows—adhering to research-supported UX best practices.```
+::contentReference[oaicite:4]{index=4}

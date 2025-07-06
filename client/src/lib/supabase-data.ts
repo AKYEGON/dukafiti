@@ -730,25 +730,39 @@ export const createOrderItem = async (orderItem: any) => {
 // Complete sales transaction
 export const createSale = async (saleData: any) => {
   try {
-    console.log('Creating sale with data:', saleData);
+    console.log('=== SUPABASE SALE CREATION START ===');
+    console.log('Sale data received:', JSON.stringify(saleData, null, 2));
+    console.log('Supabase client configured:', !!supabase);
     
     // Create the order first
+    const orderData = {
+      customer_id: saleData.customerId || null,
+      customer_name: saleData.customerName || 'Walk-in Customer',
+      total: saleData.total,
+      status: 'completed',
+      payment_method: saleData.paymentMethod || 'cash',
+    };
+    
+    console.log('Creating order with data:', orderData);
+    
     const { data: order, error: orderError } = await supabase
       .from('orders')
-      .insert([{
-        customer_id: saleData.customerId || null,
-        customer_name: saleData.customerName || 'Walk-in Customer',
-        total: saleData.total,
-        status: 'completed',
-        payment_method: saleData.paymentMethod || 'cash',
-      }])
+      .insert([orderData])
       .select()
       .single();
     
     if (orderError) {
-      console.error('Error creating order:', orderError);
+      console.error('❌ ERROR creating order:', orderError);
+      console.error('Error details:', {
+        code: orderError.code,
+        message: orderError.message,
+        details: orderError.details,
+        hint: orderError.hint
+      });
       throw orderError;
     }
+    
+    console.log('✅ Order created successfully:', order);
     
     // Create order items
     const orderItems = saleData.items.map((item: any) => ({

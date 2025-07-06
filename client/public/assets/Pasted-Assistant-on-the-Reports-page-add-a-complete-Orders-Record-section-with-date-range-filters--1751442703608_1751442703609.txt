@@ -1,0 +1,41 @@
+Assistant, on the **Reports** page add a complete **Orders Record** section with date‐range filters (Daily, Weekly, Monthly) and a search panel. Please generate all frontend components, backend routes, styling, state management, and QA checklist:
+
+1. **Backend – Orders Endpoint**  
+   - Create an Express GET route `/api/reports/orders` that accepts query parameters:
+     - `period` (“daily” | “weekly” | “monthly”)  
+     - `q` (optional search string)  
+   - Fetch orders from the database where:
+     - For “daily”: `createdAt` is today  
+     - For “weekly”: within the last 7 days  
+     - For “monthly”: within the last 30 days  
+     - If `q` is provided, filter orders by matching `orderId`, `customerName`, or product names.  
+   - Return an array of orders: `{ orderId, date, customerName, totalAmount, status }`.
+
+2. **Frontend – Filters & Search Panel**  
+   - In the Reports page, above existing charts, add a horizontal toolbar:
+     - Three toggle buttons: “Daily”, “Weekly”, “Monthly”  
+       • Styled as pills: inactive = black bg, white text; active = green bg (#00AA00), white text  
+     - A search input on the right with placeholder “Search orders…” and a search icon.  
+   - Selecting a filter or typing in the search box (debounced 300 ms) fetches `/api/reports/orders?period=…&q=…` and updates the table.
+
+3. **Frontend – Orders Table**  
+   - Below the toolbar, render a scrollable table or list of orders:
+     - Columns: Order ID, Date (formatted “YYYY‑MM‑DD”), Customer, Amount (KES, comma delim.), Status (badge: green for “paid”, yellow for “pending”, red for “cancelled”).  
+     - Use Tailwind: `table-auto w-full text-sm` on desktop; on mobile, switch to a stacked card list with each order in a card.  
+   - Style table headers with a purple bg (#6B46C1), white text, and a border-bottom in gray.  
+   - Add pagination controls below if more than 20 results (simple “Prev”/“Next”).
+
+4. **State & UX**  
+   - Manage `period`, `q`, and `orders` in React state.  
+   - Show a loading spinner while fetching and an error message “Couldn’t load orders. Retry.” on failure.  
+   - If no orders match, display “No orders found for this period.”
+
+5. **QA Checklist**  
+   - [ ] Filter buttons correctly fetch and display daily, weekly, and monthly orders.  
+   - [ ] Search input filters orders by ID, customer name, or product.  
+   - [ ] Orders table/cards render accurately on desktop and mobile.  
+   - [ ] Status badges change color based on status.  
+   - [ ] Loading spinner and error message appear appropriately.  
+   - [ ] Pagination works when more than 20 results.  
+
+Please generate the React component(s), Tailwind styling, Express route code for `/api/reports/orders`, and the QA checklist in Markdown.```

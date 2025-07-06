@@ -1,0 +1,55 @@
+Assistant, our React front‑end on Replit is stuck in an infinite loading state after deploy, and we’re seeing build errors. Please overwrite our Replit config and code as follows:
+
+1. **Environment Variables**  
+   - In Replit Secrets, add:  
+     - `REACT_APP_API_URL` = `https://api-dukasmart.onrender.app`  
+     - `REACT_APP_SUPABASE_URL` = `<your‑supabase‑url>`  
+     - `REACT_APP_SUPABASE_ANON_KEY` = `<your‑supabase‑anon‑key>`  
+
+2. **package.json Scripts**  
+   - Update `"scripts"` block to:  
+     ```json
+     "scripts": {
+       "start": "node server.js",
+       "dev": "concurrently \"npm run dev-server\" \"cd client && npm start\"",
+       "dev-server": "nodemon server.js",
+       "build": "cd client && npm install && npm run build"
+     }
+     ```
+   - Install `concurrently` and `nodemon` as devDependencies.
+
+3. **server.js Static Serve & Port**  
+   - Ensure Express listens on `process.env.PORT || 3000`.  
+   - In production (`NODE_ENV==='production'`), serve React’s `client/build` directory:
+     ```js
+     if (process.env.NODE_ENV === 'production') {
+       app.use(express.static(path.join(__dirname, 'client/build')));
+       app.get('*', (req, res) =>
+         res.sendFile(path.join(__dirname, 'client/build', 'index.html'))
+       );
+     }
+     ```
+
+4. **React API Fetch Fix**  
+   - In `App.jsx` (or wherever you call your API), read from `process.env.REACT_APP_API_URL`, not `API_URL`.  
+   - Add a `console.log(process.env.REACT_APP_API_URL)` in `useEffect` to verify it’s defined.  
+   - For initial `/api/me` fetch, add a timeout/fallback so the UI doesn’t spin forever:
+     ```js
+     useEffect(() => {
+       const controller = new AbortController();
+       const timeout = setTimeout(() => controller.abort(), 10000);
+       fetch(`${process.env.REACT_APP_API_URL}/api/me`, { signal: controller.signal, credentials: 'include' })
+         .then(r => r.json())
+         .then(...).catch(() => navigate('/login'))
+         .finally(() => clearTimeout(timeout));
+     }, []);
+     ```
+
+5. **Replit Run Command**  
+   - In Replit’s “Run” configuration, set the command to:
+     ```bash
+     npm install && npm run dev
+     ```
+   - This will start both server (nodemon) and React client.
+
+Please apply these changes, regenerate any missing config files, and then restart the repl. After that, verify the front‑end loads correctly and API calls to our Render backend succeed.```

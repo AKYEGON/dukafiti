@@ -1,0 +1,89 @@
+Assistant, please overwrite our authentication flow to use Supabase and implement an **email‑link verification** process. Use the Supabase credentials I will supply. Generate all frontend and backend code needed:
+
+---
+
+## 1. Supabase Setup  
+- Initialize Supabase client with:
+  ```js
+  import { createClient } from '@supabase/supabase-js';
+  const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+Use Supabase Auth for email magic links.
+
+2. Registration Flow
+Register Page (/signup):
+
+Form: single input for Email and a Register button.
+
+On submit, call:
+
+js
+Copy
+Edit
+const { error } = await supabase.auth.signUp(
+  { email },
+  { redirectTo: `${APP_URL}/auth/callback` }
+);
+If error, display inline; if success, show a “Check your email” confirmation message in a styled card.
+
+3. Magic Link Callback
+Auth Callback Page (/auth/callback):
+
+On mount, call:
+
+js
+Copy
+Edit
+const { data, error } = await supabase.auth.getSessionFromUrl();
+If error, show “Verification failed” with retry link.
+
+If success, Supabase sets the session cookie; then immediately redirect to /dashboard.
+
+4. Login Flow
+Login Page (/login):
+
+Change to an Email field + Send link button.
+
+On submit, call the same supabase.auth.signInWithOtp({ email, options: { redirectTo } }).
+
+Show the same “Check your email” confirmation.
+
+5. Protected Routes & Session
+In App.jsx, replace custom session logic with:
+
+js
+Copy
+Edit
+const user = supabase.auth.user();
+Use a ProtectedRoute that checks user; if missing, redirect to /login.
+
+6. Logout
+Button calls:
+
+js
+Copy
+Edit
+await supabase.auth.signOut();
+navigate('/');
+7. Styling & UX Best Practices
+“Check your email” page in the same card layout as login/signup, with our green/black/purple theme.
+
+Inline validation, loading spinners on button, and clear success/error toasts.
+
+Ensure mobile and tablet responsiveness.
+
+8. QA Checklist
+ Supabase client initializes with provided keys.
+
+ Register sends email magic link successfully.
+
+ Callback page processes link, authenticates user, and redirects to /dashboard.
+
+ Login sends magic link and shows “Check your email.”
+
+ Protected routes guard correctly and redirect unauthenticated users.
+
+ Logout clears session and returns to home.
+
+ UI cards and toasts match app theme.
+
+Once I share the SUPABASE_URL, SUPABASE_ANON_KEY, and (if needed) SUPABASE_SERVICE_ROLE_KEY, please implement the above end‑to‑end email‑link authentication flow with Supabase.```

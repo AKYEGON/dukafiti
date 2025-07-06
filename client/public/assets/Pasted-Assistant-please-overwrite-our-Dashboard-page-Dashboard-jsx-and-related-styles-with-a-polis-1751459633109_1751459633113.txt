@@ -1,0 +1,58 @@
+Assistant, please overwrite our **Dashboard** page (`Dashboard.jsx` and related styles) with a polished, professional redesign—no new features, just refined UX/UI. Focus on the existing **summary cards**, **quick action buttons**, and **recent orders** section. 
+
+1. **Overall Layout & Structure**  
+   - Desktop: Use a three‑row layout inside a padded container (`p-6 lg:p-12`):  
+     1. **Summary Cards** in a responsive grid (4 cards, `grid-cols-1 sm:grid-cols-2 lg:grid-cols-4`, gap `6`).  
+     2. **Quick Actions** below cards in a flex wrap container (`flex flex-wrap gap-4 mt-8`), each button a uniform card.  
+     3. **Recent Orders** table or card list full‑width (`mt-10`), with a header and “View All” link aligned right.  
+   - Mobile: collapse to a single column, stacking in the same order. Ensure ample vertical spacing (`space-y-6`).
+
+2. **Summary Cards Redesign**  
+   - Each card:  
+     - Light mode: `bg-white border border-gray-200 rounded-xl p-6 shadow hover:shadow-lg transition`  
+     - Dark mode: `dark:bg-[#1F1F1F] dark:border-gray-700 dark:shadow-[0_4px_8px_rgba(0,0,0,0.5)]`  
+   - Inside:  
+     - Icon (SVG) in a colored circle top‑left (`bg-primaryGreen p-3 rounded-full`).  
+     - Metric label (uppercase, `text-sm text-gray-500`).  
+     - Value (`text-2xl font-extrabold mt-2`).  
+     - Remove percentage subtext entirely.  
+   - Consistent padding and alignments.
+
+3. **Quick Action Buttons**  
+   - Render as cards with icon + text:  
+     - `bg-primaryPurple hover:bg-primaryPurple-dark text-white px-6 py-4 rounded-xl flex items-center gap-3 shadow-md transition`  
+   - Uniform size (`min-w-[200px]`), with a subtle hover lift (`transform hover:-translate-y-1`).  
+   - Wrap responsively: `flex-wrap justify-start`.
+
+4. **Recent Orders Section**  
+   - Header: `flex items-center justify-between mb-4`: Title “Recent Orders” (`text-xl font-semibold`), “View All” link (`text-primaryGreen hover:underline`).  
+   - Table (desktop):  
+     - `table-auto w-full text-sm bg-white dark:bg-[#1F1F1F] rounded-xl overflow-hidden shadow`.  
+     - Header row: `bg-gray-100 dark:bg-[#2A2A2A] text-gray-700 dark:text-gray-300`.  
+     - Rows: even/odd shading (`even:bg-gray-50 odd:bg-white`, dark mode analogous).  
+     - Cells: `px-4 py-3`, with amount right‑aligned and status badges (`bg-primaryGreen-light text-white px-2 py-1 rounded-full`).  
+   - Mobile card list fallback: each order a card (`p-4 mb-4 bg-white dark:bg-[#1F1F1F] rounded-xl shadow`), showing ID, date, customer, amount, status.
+
+5. **Loading & Empty States**  
+   - Display skeleton loaders for cards and table rows with Tailwind’s `animate-pulse bg-gray-200 dark:bg-gray-700`.  
+   - If no orders, center a message “No recent orders” with a neutral icon.
+
+6. **Typography & Spacing**  
+   - Use consistent font sizes: titles `text-xl/2xl`, body `text-base`.  
+   - Ensure line heights (`leading-relaxed`) for readability.  
+   - White space: comfortable margins/padding (min `p-6` on cards).
+
+7. **Accessibility & Keyboard**  
+   - All buttons and links have clear `aria-label`s.  
+   - Focus states: `focus:outline-none focus:ring-2 focus:ring-primaryGreen`.
+
+8. **QA Checklist**  
+   - [ ] Desktop grid displays 4 summary cards in one row; mobile stacks them.  
+   - [ ] Quick Action buttons are uniform size, responsive wrap, and hover lift works.  
+   - [ ] Recent Orders table shows correct headers, zebra stripes, and “View All” link.  
+   - [ ] Mobile fallback renders order cards.  
+   - [ ] Skeletons appear during data load; empty state displays properly.  
+   - [ ] Dark mode styling matches light mode structure with inverted backgrounds.  
+   - [ ] All interactive elements have focus rings and aria labels.
+
+Generate the updated `Dashboard.jsx` (including JSX layout and Tailwind classes), any new shared components (e.g. `Card`, `ActionButton`), and ensure the redesign applies across both light and dark themes.```

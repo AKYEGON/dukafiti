@@ -1,0 +1,30 @@
+Assistant, please overwrite our **TopBar.jsx** and related layout so that:
+
+1. **Replace Report Icon with Profile Dropdown**  
+   - Remove the existing “Reports” button/icon.  
+   - In its place, add a **Profile** icon (user avatar or generic person SVG) on the right side of the bar.  
+   - Clicking the Profile icon opens a dropdown with four items:  
+     1. **Settings** → navigates to `/settings`  
+     2. **Reports** → navigates to `/reports`  
+     3. **Help & Support** → navigates to `/support` (optional stub)  
+     4. **Logout** → triggers a confirmation popup  
+   - Style the dropdown: `bg-white dark:bg-[#1F1F1F] border border-gray-200 dark:border-gray-700 rounded-md shadow-md py-2 w-48`, items `px-4 py-2 hover:bg-gray-100 dark:hover:bg-gray-800`.
+
+2. **Logout Confirmation Popup**  
+   - When “Logout” is clicked in the dropdown, open a modal overlay:
+     - Message: “Are you sure you want to log out?”  
+     - Buttons: **Cancel** (gray outline) and **Confirm Logout** (red background).  
+   - On confirm, call POST `/api/logout`, clear session, and redirect to `/login`.  
+   - On cancel, close the modal with no action.
+
+3. **Move Sidebar Toggle to Top Bar & Remove Sidebar Arrow**  
+   - Remove the arrow icon in the sidebar component entirely.  
+   - In the TopBar’s leftmost slot, reuse our “hamburger in a rounded square” icon as the **Sidebar Toggle**.  
+   - Hook its `onClick` to call the same `toggleSidebar()` function previously bound to the sidebar arrow.  
+   - Ensure the icon rotates 90° on collapse/expand with `transition-transform duration-200 ease-in-out`.
+
+4. **Accessibility & Focus**  
+   - All new buttons and dropdown items have `aria-label` and are keyboard‐navigable.  
+   - The logout modal traps focus while open and restores focus to the Profile icon on close.
+
+Generate the full, updated **TopBar.jsx**, the logout confirmation modal component, and any necessary changes to **Sidebar.jsx** to remove the arrow and wire the toggle to TopBar.  

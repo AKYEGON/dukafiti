@@ -1,0 +1,32 @@
+Assistant, please make **small, safe tweaks** to refine the Sales page UI—no large layout changes or feature additions beyond what’s requested. Target a smooth “point‑of‑hire” (POH) cashier flow:
+
+1. **Quick‑Select Panel Top‑6**  
+   - Limit the existing Quick‑Select strip to show only the **top 6** most‑frequently sold items.  
+   - If fewer than 6 exist, fill remaining slots with the next highest‑frequency items.  
+   - Ensure the panel remains horizontally scrollable if more than 6 are available in total, but only the top 6 are shown by default.
+
+2. **Smart Product Search Bar**  
+   - Below the Quick‑Select panel, add a **smart search input**:
+     - Placeholder: “Search products…” with a search icon inside the input.  
+     - Debounced (300 ms) calls to `/api/products/search?q=…`, returning matching product names and prices.  
+     - Show a dropdown of up to 8 results with each entry as “Name – KES Price”.  
+     - Up/down arrow navigation and Enter to select, which adds the item to the cart (qty = 1).
+
+3. **Minor Styling Tweaks**  
+   - Add a subtle divider (`border-t border-gray-200 dark:border-gray-700`) between Quick‑Select and the search bar.  
+   - Ensure both elements use consistent padding (`px-4 py-2`) and align with the overall card styling.  
+   - Keep the existing “Sell” button and confirmation modal flow unchanged.
+
+4. **Accessibility & UX**  
+   - Both the Quick‑Select buttons and search input must have `aria-label`s.  
+   - Maintain focus rings (`focus:ring-2 focus:ring-primaryGreen`).  
+   - Test tap targets: each Quick‑Select button should be at least `44×44px`.
+
+5. **QA Checklist**  
+   - [ ] Only top 6 frequent items show in Quick‑Select by default.  
+   - [ ] Search bar fetches and displays smart suggestions correctly.  
+   - [ ] Arrow/Enter navigation works in dropdown.  
+   - [ ] Tapping a Quick‑Select or dropdown item adds it to the cart with qty=1.  
+   - [ ] UI spacing and dividers align with existing Sales page design.  
+
+Generate the precise React updates, API call integration, and styling adjustments (Tailwind classes) to implement these tweaks without disrupting existing Sales page functionality.```

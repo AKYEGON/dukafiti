@@ -1,0 +1,54 @@
+Assistant, sales and inventory updates aren’t propagating to the Dashboard, Reports, and Inventory views—please overwrite the relevant code so that:
+
+1. **Backend – Emit Data Update Events**  
+   - In the Express POST `/api/sales` handler (for all payment types), after saving the sale and decrementing inventory:
+     ```js
+     // pseudo-code inside sale handler:
+     saveSale(...)
+       .then(newSale => {
+         // decrement inventory...
+         io.emit('dataUpdate', { 
+           type: 'sale', 
+           sale: newSale 
+         });
+         return res.json({ success: true, sale: newSale });
+       });
+     ```
+   - Also emit an `inventoryUpdate` event with `{ productId, newQuantity }`.
+
+2. **Frontend – Subscribe & Refresh on Events**  
+   - In the Dashboard component, inside `useEffect`, subscribe to `socket.on('dataUpdate')`:
+     ```js
+     socket.on('dataUpdate', ({ type }) => {
+       if (type === 'sale') fetchDashboardMetrics();
+     });
+     ```
+   - Similarly in the Reports page, listen for `dataUpdate` and call `fetchSummary()` and `fetchTrend()` again.
+   - In the Inventory page, listen for `inventoryUpdate` and call `fetchProducts()` to refresh the stock list.
+
+3. **Frontend – Immediate Data Refresh on Sale**  
+   - In the Sales page, after the `/api/sales` POST returns success:
+     ```js
+     // existing toast logic...
+     fetchDashboardMetrics();
+     fetchReportsOrders(currentPeriod, currentSearch);
+     fetchProducts();
+     ```
+   - Ensure these fetch calls update state so the UI reflects the new sale immediately.
+
+4. **Ensure Inventory Decrement Logic is Correct**  
+   - In the backend sale handler, confirm that for each line item you’re subtracting exactly `qty` from the stored product quantity:
+     ```js
+     product.quantity -= qty;
+     await db.set(`product:${product.id}`, product);
+     ```
+   - Handle concurrent sales by reading, updating, and writing atomically or by using database transactions if supported.
+
+5. **QA Checklist**  
+   - [ ] After making a sale, the Dashboard’s Total Sales and percentage cards update without reload.  
+   - [ ] Reports summary (Total/Cash/MobileMoney/Credit) and trend graph update immediately.  
+   - [ ] Inventory page shows reduced quantities for sold items right away.  
+   - [ ] Real‑time events drive UI refresh on multiple open tabs.  
+   - [ ] No duplicated fetches or memory leaks in subscription hooks.
+
+Please generate the updated Express sale handler, the Socket.IO emitters, and the React `useEffect` hooks and post‑sale fetch calls for Dashboard, Reports, and Inventory.```

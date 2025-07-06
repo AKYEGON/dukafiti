@@ -26,8 +26,7 @@ import { formatCurrency } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ProductForm } from "@/components/inventory/product-form";
 import { CustomerForm } from "@/components/customers/customer-form";
-import { NotificationsTester } from "@/components/notifications/NotificationsTester";
-import { NotificationsDebug } from "@/components/notifications/NotificationsDebug";
+
 import { getDashboardMetrics, getRecentOrders } from "@/lib/supabase-data";
 
 
@@ -118,7 +117,7 @@ export default function Dashboard() {
     <button
       onClick={onClick}
       aria-label={ariaLabel}
-      className="flex items-center justify-center bg-purple-600 hover:bg-purple-700 text-white rounded-lg px-6 py-4 shadow-md hover:shadow-lg transition-all duration-200 transform hover:-translate-y-1 min-w-[180px] focus:outline-none focus:ring-2 focus:ring-purple-600 focus:ring-offset-2"
+      className="flex items-center justify-center bg-accent hover:bg-purple-700 text-white rounded-lg px-6 py-4 shadow-md hover:shadow-lg transition-all duration-200 transform hover:-translate-y-1 min-w-[180px] focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2"
     >
       <Icon className="h-5 w-5 mr-3" />
       <span className="font-medium">{label}</span>
@@ -189,7 +188,7 @@ export default function Dashboard() {
               value={(metrics?.totalProducts || 0).toString()}
               icon={Package}
               isLoading={metricsLoading}
-              iconColor="bg-purple-600"
+              iconColor="bg-accent"
             />
             <SummaryCard
               title="Active Customers"
@@ -349,22 +348,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Development Testing - Remove in Production */}
-      <div className="mt-8 space-y-6">
-        <div className="p-4 border-2 border-dashed border-yellow-200 dark:border-yellow-800 rounded-lg bg-yellow-50 dark:bg-yellow-900/10">
-          <h3 className="text-lg font-medium text-yellow-800 dark:text-yellow-200 mb-4">
-            🧪 Development: Notifications Testing
-          </h3>
-          <NotificationsTester />
-        </div>
-        
-        <div className="p-4 border-2 border-dashed border-red-200 dark:border-red-800 rounded-lg bg-red-50 dark:bg-red-900/10">
-          <h3 className="text-lg font-medium text-red-800 dark:text-red-200 mb-4">
-            🔧 Debug: Real-time Diagnostics
-          </h3>
-          <NotificationsDebug />
-        </div>
-      </div>
+
 
       {/* Modal Components */}
       <ProductForm 
