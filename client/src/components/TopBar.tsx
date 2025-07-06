@@ -16,10 +16,10 @@ import {
   Users,
   ShoppingCart
 } from 'lucide-react';
-import { useDebounce } from '@/hooks/useDebounce';
 import { useOutsideClick } from '@/hooks/useOutsideClick';
+import { useSmartSearch, type SmartSearchResult } from '@/hooks/useSmartSearch';
 import { SidebarToggleIcon } from '@/components/icons/sidebar-toggle-icon';
-import type { SearchResult, Notification } from '@shared/schema';
+import type { Notification } from '@shared/schema';
 
 
 
@@ -32,12 +32,10 @@ export function TopBar({ onToggleSidebar, isSidebarCollapsed }: TopBarProps) {
   const [, setLocation] = useLocation();
   const { user, logout } = useAuth();
   
-  // Search state
-  const [searchQuery, setSearchQuery] = useState('');
+  // Smart search functionality
+  const { query, setQuery, groupedResults, hasResults, isLoading } = useSmartSearch();
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [searchResults, setSearchResults] = useState<SearchResult[]>([]);
   const [selectedIndex, setSelectedIndex] = useState(-1);
-  const debouncedSearchQuery = useDebounce(searchQuery, 300);
   
   // Notification state
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
@@ -84,25 +82,10 @@ export function TopBar({ onToggleSidebar, isSidebarCollapsed }: TopBarProps) {
 
   const unreadCount = unreadData?.count || 0;
 
-  // Search functionality
+  // Update search open state when query changes
   useEffect(() => {
-    if (debouncedSearchQuery.trim()) {
-      const searchUrl = `/api/search?q=${encodeURIComponent(debouncedSearchQuery)}`;
-      fetch(searchUrl)
-        .then(res => res.json())
-        .then(data => {
-          setSearchResults(data || []);
-          setIsSearchOpen(true);
-        })
-        .catch(err => {
-          console.error('Search error:', err);
-          setSearchResults([]);
-        });
-    } else {
-      setSearchResults([]);
-      setIsSearchOpen(false);
-    }
-  }, [debouncedSearchQuery]);
+    setIsSearchOpen(hasResults && query.trim().length > 0);
+  }, [hasResults, query]);
 
   const handleLogout = async () => {
     setIsLogoutModalOpen(false);
@@ -111,30 +94,23 @@ export function TopBar({ onToggleSidebar, isSidebarCollapsed }: TopBarProps) {
     setLocation('/');
   };
 
-  const handleSearch = (query: string) => {
-    setSearchQuery(query);
+  const handleSearch = (newQuery: string) => {
+    setQuery(newQuery);
     setSelectedIndex(-1);
   };
 
-  const handleSearchSelect = (result: any) => {
-    setSearchQuery('');
+  const handleSearchSelect = (result: SmartSearchResult) => {
+    setQuery('');
     setIsSearchOpen(false);
     setSelectedIndex(-1);
-    
-    if (result.type === 'product') {
-      setLocation('/inventory');
-    } else if (result.type === 'customer') {
-      setLocation('/customers');
-    } else if (result.type === 'order') {
-      setLocation('/reports');
-    }
+    setLocation(result.url);
   };
 
   // Helper function to highlight matching text
-  const highlightText = (text: string, query: string) => {
-    if (!query) return text;
+  const highlightText = (text: string, searchQuery: string) => {
+    if (!searchQuery) return text;
     
-    const regex = new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
+    const regex = new RegExp(`(${searchQuery.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi');
     const parts = text.split(regex);
     
     return parts.map((part, index) => 
@@ -146,14 +122,12 @@ export function TopBar({ onToggleSidebar, isSidebarCollapsed }: TopBarProps) {
     );
   };
 
-  // Group search results by type
-  const groupedResults = searchResults.reduce((acc: any, result: any) => {
-    if (!acc[result.type]) {
-      acc[result.type] = [];
-    }
-    acc[result.type].push(result);
-    return acc;
-  }, {});
+  // Create flat array of all results for keyboard navigation
+  const allResults: SmartSearchResult[] = [
+    ...groupedResults.products,
+    ...groupedResults.customers,
+    ...groupedResults.orders
+  ];
 
   const typeLabels: { [key: string]: string } = {
     product: 'Products',
@@ -168,17 +142,17 @@ export function TopBar({ onToggleSidebar, isSidebarCollapsed }: TopBarProps) {
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (!isSearchOpen || searchResults.length === 0) return;
+    if (!isSearchOpen || allResults.length === 0) return;
     
     if (e.key === 'ArrowDown') {
       e.preventDefault();
-      setSelectedIndex(prev => (prev + 1) % searchResults.length);
+      setSelectedIndex(prev => (prev + 1) % allResults.length);
     } else if (e.key === 'ArrowUp') {
       e.preventDefault();
-      setSelectedIndex(prev => prev <= 0 ? searchResults.length - 1 : prev - 1);
+      setSelectedIndex(prev => prev <= 0 ? allResults.length - 1 : prev - 1);
     } else if (e.key === 'Enter' && selectedIndex >= 0) {
       e.preventDefault();
-      handleSearchSelect(searchResults[selectedIndex]);
+      handleSearchSelect(allResults[selectedIndex]);
     } else if (e.key === 'Escape') {
       setIsSearchOpen(false);
       setSelectedIndex(-1);
@@ -221,76 +195,84 @@ export function TopBar({ onToggleSidebar, isSidebarCollapsed }: TopBarProps) {
             <input
               ref={searchInputRef}
               type="text"
-              placeholder="Search..."
-              value={searchQuery}
+              placeholder="Search products, customers, orders..."
+              value={query}
               onChange={(e) => handleSearch(e.target.value)}
               onKeyDown={handleKeyDown}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-[#2A2A2A] text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-green-500 focus:border-transparent"
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-[#2A2A2A] text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
               role="combobox"
               aria-expanded={isSearchOpen}
               aria-haspopup="listbox"
               aria-activedescendant={selectedIndex >= 0 ? `search-option-${selectedIndex}` : undefined}
             />
+            {isLoading && (
+              <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-500"></div>
+              </div>
+            )}
           </div>
           
           {/* Search Results Dropdown */}
-          {isSearchOpen && searchResults.length > 0 && (
-            <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-[#1F1F1F] border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-50 max-h-96 overflow-y-auto" role="listbox">
-              {Object.entries(groupedResults).map(([type, results]: [string, any]) => (
-                <div key={type}>
-                  {/* Category Header */}
-                  <div className="px-4 pt-2 pb-1 text-xs uppercase text-gray-500 dark:text-gray-400 font-medium">
-                    {typeLabels[type] || type}
-                  </div>
-                  
-                  {/* Category Items */}
-                  {(results as any[]).slice(0, 5).map((result, index) => {
-                    const IconComponent = typeIcons[type];
-                    const globalIndex = searchResults.findIndex(r => r.id === result.id);
-                    const isSelected = globalIndex === selectedIndex;
+          {isSearchOpen && hasResults && (
+            <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-[#1F1F1F] border border-gray-200 dark:border-gray-700 rounded-lg shadow-xl z-50 max-h-96 overflow-y-auto animate-in slide-in-from-top-2 duration-200" role="listbox">
+              {Object.entries(groupedResults).map(([type, results]: [string, SmartSearchResult[]]) => 
+                results.length > 0 && (
+                  <div key={type}>
+                    {/* Category Header */}
+                    <div className="px-4 pt-3 pb-1 text-xs uppercase text-gray-500 dark:text-gray-400 font-semibold tracking-wider">
+                      {typeLabels[type] || type}
+                    </div>
                     
-                    return (
-                      <button
-                        key={result.id}
-                        id={`search-option-${globalIndex}`}
-                        onClick={() => handleSearchSelect(result)}
-                        className={`w-full text-left px-4 py-2 flex items-center hover:bg-green-50 dark:hover:bg-green-900/20 cursor-pointer transition-colors ${
-                          isSelected ? 'bg-green-500 text-white dark:bg-green-600' : ''
-                        }`}
-                        role="option"
-                        aria-selected={isSelected}
-                      >
-                        {IconComponent && (
-                          <IconComponent className={`w-4 h-4 mr-3 flex-shrink-0 ${
-                            isSelected ? 'text-white' : 'text-gray-400 dark:text-gray-500'
-                          }`} />
-                        )}
-                        <div className="min-w-0 flex-1">
-                          <div className={`font-medium truncate ${
-                            isSelected ? 'text-white' : 'text-gray-900 dark:text-gray-100'
-                          }`}>
-                            {highlightText(result.name || result.title, searchQuery)}
+                    {/* Category Items */}
+                    {results.slice(0, 5).map((result) => {
+                      const IconComponent = typeIcons[type];
+                      const globalIndex = allResults.findIndex(r => r.id === result.id && r.type === result.type);
+                      const isSelected = globalIndex === selectedIndex;
+                      
+                      return (
+                        <button
+                          key={`${result.type}-${result.id}`}
+                          id={`search-option-${globalIndex}`}
+                          onClick={() => handleSearchSelect(result)}
+                          className={`w-full text-left px-4 py-3 flex items-center hover:bg-green-50 dark:hover:bg-green-900/20 cursor-pointer transition-all duration-150 min-h-[44px] ${
+                            isSelected ? 'bg-green-500 text-white dark:bg-green-600' : ''
+                          }`}
+                          role="option"
+                          aria-selected={isSelected}
+                        >
+                          {IconComponent && (
+                            <IconComponent className={`w-5 h-5 mr-3 flex-shrink-0 ${
+                              isSelected ? 'text-white' : 'text-gray-400 dark:text-gray-500'
+                            }`} />
+                          )}
+                          <div className="min-w-0 flex-1">
+                            <div className={`font-medium truncate ${
+                              isSelected ? 'text-white' : 'text-gray-900 dark:text-gray-100'
+                            }`}>
+                              {highlightText(result.name, query)}
+                            </div>
+                            {result.subtitle && (
+                              <div className={`text-sm truncate ${
+                                isSelected ? 'text-white/80' : 'text-gray-500 dark:text-gray-400'
+                              }`}>
+                                {result.subtitle}
+                              </div>
+                            )}
                           </div>
-                          <div className={`text-sm truncate ${
-                            isSelected ? 'text-white/80' : 'text-gray-500 dark:text-gray-400'
-                          }`}>
-                            {result.subtitle}
-                          </div>
-                        </div>
-                      </button>
-                    );
-                  })}
+                        </button>
+                      );
+                    })}
+                  </div>
+                )
+              )}
+              
+              {/* No Results Message */}
+              {!isLoading && !hasResults && query.trim().length > 0 && (
+                <div className="px-4 py-6 text-center text-gray-500 dark:text-gray-400">
+                  <Search className="w-8 h-8 mx-auto mb-2 opacity-50" />
+                  <p>No results found for "{query}"</p>
                 </div>
-              ))}
-            </div>
-          )}
-          
-          {/* No Results */}
-          {isSearchOpen && searchResults.length === 0 && searchQuery.trim() && (
-            <div className="absolute top-full left-0 right-0 mt-2 bg-white dark:bg-[#1F1F1F] border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-50">
-              <div className="px-4 py-3 text-gray-500 dark:text-gray-400 italic">
-                No matches found
-              </div>
+              )}
             </div>
           )}
         </div>
