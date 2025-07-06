@@ -11,7 +11,7 @@ import { offlineQueue, isOnline } from "@/lib/offline-queue";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SaleConfirmationModal } from "@/components/sales/sale-confirmation-modal";
 import { createSale, getProducts, searchProducts, createCustomer, getCustomers } from "@/lib/supabase-data";
-import useNotifications from "@/hooks/useNotifications";
+import { triggerSaleCompletedNotification, triggerLowStockNotification } from "@/lib/notification-triggers";
 import { supabase } from "@/lib/supabase";
 
 
@@ -30,7 +30,7 @@ export default function Sales() {
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { createNotification } = useNotifications();
+
   const buttonRef = useRef<HTMLButtonElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
@@ -467,7 +467,7 @@ export default function Sales() {
         throw error;
       }
     },
-    onSuccess: (result: any) => {
+    onSuccess: (result: any, saleData: any) => {
       // Close modal and clear cart
       setShowConfirmationModal(false);
       setCartItems([]);
@@ -497,6 +497,7 @@ export default function Sales() {
       // Show appropriate toast based on status
       const status = result.status;
       const totalAmount = cartItems.reduce((sum, item) => sum + parseFloat(item.total), 0);
+      const customerName = saleData.customerName;
       
       if (status === 'queued') {
         toast({ 
@@ -514,11 +515,33 @@ export default function Sales() {
         });
         
         // Create notification for completed sale
-        createNotification({
-          type: 'sale_completed',
-          title: 'Sale Completed',
-          message: `Sale of ${formatCurrency(totalAmount)} completed via ${paymentMethod}`
-        }).catch(err => console.error('Failed to create sale notification:', err));
+        const saleId = result.data?.id || result.id || 'unknown';
+        triggerSaleCompletedNotification(
+          saleId.toString(),
+          totalAmount,
+          paymentMethod,
+          customerName || undefined
+        ).catch((err: any) => console.error('Failed to create sale notification:', err));
+        
+        // Check for low stock after sale
+        saleData.items.forEach(async (item: any) => {
+          if (item.hasStock) {
+            try {
+              const { getProducts } = await import("@/lib/supabase-data");
+              const products = await getProducts();
+              const product = products.find(p => p.id === item.productId);
+              if (product && product.stock !== null && product.stock <= 5) {
+                triggerLowStockNotification(
+                  product.id.toString(),
+                  product.name,
+                  product.stock
+                ).catch((err: any) => console.error('Failed to create low stock notification:', err));
+              }
+            } catch (error) {
+              console.error('Error checking stock levels:', error);
+            }
+          }
+        });
         
       } else if (status === 'pending') {
         toast({ 
@@ -529,11 +552,13 @@ export default function Sales() {
         });
         
         // Create notification for credit sale
-        createNotification({
-          type: 'customer_payment',
-          title: 'Credit Sale Recorded',
-          message: `Credit sale of ${formatCurrency(totalAmount)} recorded for customer`
-        }).catch(err => console.error('Failed to create credit sale notification:', err));
+        const saleId = result.data?.id || result.id || 'unknown';
+        triggerSaleCompletedNotification(
+          saleId.toString(),
+          totalAmount,
+          paymentMethod,
+          customerName || "Credit Customer"
+        ).catch((err: any) => console.error('Failed to create credit sale notification:', err));
       }
     },
     onError: (error: any) => {
