@@ -60,7 +60,14 @@ export default function Home() {
             </div>
 
             {/* Desktop Navigation */}
-            <div className="hidden md:block">
+            <div className="hidden md:flex items-center space-x-4">
+              <Button
+                onClick={() => setLocation("/website")}
+                variant="ghost"
+                className="text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white"
+              >
+                New Website
+              </Button>
               <Button
                 onClick={() => setLocation("/login")}
                 variant="outline"

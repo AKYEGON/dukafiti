@@ -35,6 +35,7 @@ import NotFound from "@/pages/not-found";
 import SettingsPage from "@/pages/settings";
 import Debug from "@/pages/debug";
 import DebugAuth from "@/pages/debug-auth";
+import BrandedWebsite from "@/pages/BrandedWebsite";
 
 function AuthenticatedApp() {
   // Initialize WebSocket connection for real-time notifications
@@ -137,6 +138,7 @@ function Router() {
       <Route path="/onboarding" component={Onboarding} />
       <Route path="/debug" component={Debug} />
       <Route path="/debug-auth" component={DebugAuth} />
+      <Route path="/website" component={BrandedWebsite} />
       
       {/* Protected routes */}
       <Route path="/dashboard">
