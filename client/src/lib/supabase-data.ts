@@ -1040,32 +1040,52 @@ export const getRecentOrders = async () => {
   }
 };
 
-// Store Profile operations - using localStorage for simplicity since settings table doesn't exist
+// Store Profile operations - using Supabase settings table
 export const getStoreProfile = async () => {
   try {
-    console.log('Fetching store profile from localStorage');
+    console.log('Fetching store profile from Supabase');
     
-    // Get store profile from localStorage since settings table doesn't exist
-    const storedProfile = localStorage.getItem('dukafiti-store-profile');
+    const { data, error } = await supabase
+      .from('settings')
+      .select('*')
+      .single();
     
-    if (storedProfile) {
-      const profile = JSON.parse(storedProfile);
+    if (error) {
+      console.error('Store profile fetch failed:', error);
+      // Try to create default settings entry
+      const { data: newData, error: insertError } = await supabase
+        .from('settings')
+        .insert([{
+          store_name: '',
+          owner_name: '',
+          address: ''
+        }])
+        .select()
+        .single();
+      
+      if (insertError) {
+        console.error('Failed to create default settings:', insertError);
+        return {
+          storeName: '',
+          ownerName: '',
+          address: ''
+        };
+      }
+      
       return {
-        storeName: profile.storeName || '',
-        ownerName: profile.ownerName || '',
-        address: profile.address || ''
+        storeName: newData.store_name || '',
+        ownerName: newData.owner_name || '',
+        address: newData.address || ''
       };
     }
     
-    // Return empty defaults if no stored profile
     return {
-      storeName: '',
-      ownerName: '',
-      address: ''
+      storeName: data.store_name || '',
+      ownerName: data.owner_name || '',
+      address: data.address || ''
     };
   } catch (error) {
     console.error('Store profile fetch failed:', error);
-    // Return default values instead of throwing
     return {
       storeName: '',
       ownerName: '',
@@ -1080,13 +1100,30 @@ export const updateStoreProfile = async (profileData: {
   address: string;
 }) => {
   try {
-    console.log('Updating store profile:', profileData);
+    console.log('Updating store profile in Supabase:', profileData);
     
-    // Save to localStorage since settings table doesn't exist
-    localStorage.setItem('dukafiti-store-profile', JSON.stringify(profileData));
+    const { data, error } = await supabase
+      .from('settings')
+      .upsert([{
+        store_name: profileData.storeName,
+        owner_name: profileData.ownerName,
+        address: profileData.address,
+        updated_at: new Date().toISOString()
+      }])
+      .select()
+      .single();
     
-    console.log('Store profile updated successfully in localStorage');
-    return profileData;
+    if (error) {
+      console.error('Store profile update failed:', error);
+      throw error;
+    }
+    
+    console.log('Store profile updated successfully in Supabase');
+    return {
+      storeName: data.store_name,
+      ownerName: data.owner_name,
+      address: data.address
+    };
   } catch (error) {
     console.error('Store profile update failed:', error);
     throw error;
