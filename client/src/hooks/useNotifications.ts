@@ -43,6 +43,39 @@ export function useNotifications() {
     }
   }, [toast]);
 
+  // Mark all notifications as read for current user
+  const markAllAsReadOnOpen = useCallback(async () => {
+    const unreadNotifications = notifications.filter(n => !n.is_read);
+    
+    if (unreadNotifications.length === 0) {
+      return;
+    }
+
+    // Optimistic update - update UI immediately
+    setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
+    setUnreadCount(0);
+
+    try {
+      await markAllNotificationsAsRead();
+    } catch (error) {
+      console.error('Error marking all notifications as read:', error);
+      
+      // Revert optimistic update on error
+      setNotifications(prev => prev.map(n => 
+        unreadNotifications.find(unread => unread.id === n.id) 
+          ? { ...n, is_read: false } 
+          : n
+      ));
+      setUnreadCount(unreadNotifications.length);
+      
+      toast({
+        title: 'Error updating notifications',
+        description: 'Failed to mark notifications as read',
+        variant: 'destructive'
+      });
+    }
+  }, [notifications, toast]);
+
   // Mark notification as read
   const markAsRead = useCallback(async (notificationId: number, showToast: boolean = false) => {
     // Optimistic update - update UI immediately
@@ -123,7 +156,12 @@ export function useNotifications() {
   }, [notifications, unreadCount, toast]);
 
   // Create notification (for testing and manual triggers)
-  const createNotification = useCallback(async (notification: Omit<Notification, 'id' | 'created_at' | 'user_id'>) => {
+  const createNotification = useCallback(async (notification: {
+    type: 'low_stock' | 'payment_received' | 'customer_payment' | 'sync_failed' | 'sale_completed';
+    title: string;
+    message?: string;
+    metadata?: Record<string, any>;
+  }) => {
     try {
       const data = await createNotificationAPI(notification);
       return data;
@@ -138,17 +176,20 @@ export function useNotifications() {
     fetchNotifications();
 
     // Set up real-time subscription for INSERT and UPDATE events
+    // Using user_id filtering since there's no store_id field in current schema
+    const currentUserId = 1; // This would be dynamic in a multi-user system
+    
     const subscription = supabase
-      .channel('notifications-channel')
+      .channel('notifications-realtime-channel')
       .on('postgres_changes', {
         event: 'INSERT',
         schema: 'public',
         table: 'notifications',
-        filter: 'user_id=eq.1'
+        filter: `user_id=eq.${currentUserId}`
       }, (payload) => {
         const newNotification = payload.new as Notification;
         
-        // Add to state
+        // Add to state immediately for real-time updates
         setNotifications(prev => [newNotification, ...prev]);
         setUnreadCount(prev => prev + 1);
 
@@ -163,7 +204,7 @@ export function useNotifications() {
         event: 'UPDATE',
         schema: 'public',
         table: 'notifications',
-        filter: 'user_id=eq.1'
+        filter: `user_id=eq.${currentUserId}`
       }, (payload) => {
         const updatedNotification = payload.new as Notification;
         
@@ -190,6 +231,7 @@ export function useNotifications() {
     isLoading,
     markAsRead,
     markAllAsRead,
+    markAllAsReadOnOpen,
     createNotification,
     refetch: fetchNotifications
   };

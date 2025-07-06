@@ -24,16 +24,13 @@ interface NotificationsPanelProps {
 
 export function NotificationsPanel({ isOpen, onClose }: NotificationsPanelProps) {
   const [, setLocation] = useLocation();
-  const { notifications, unreadCount, isLoading, markAsRead, markAllAsRead } = useNotifications();
+  const { notifications, unreadCount, isLoading, markAsRead } = useNotifications();
 
   // Enhanced keyboard shortcuts
   useEffect(() => {
     const handleKeyboard = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         onClose();
-      } else if (e.key === 'a' && (e.ctrlKey || e.metaKey)) {
-        e.preventDefault();
-        markAllAsRead();
       } else if (e.key === 'r' && (e.ctrlKey || e.metaKey)) {
         e.preventDefault();
         // Mark first unread notification as read
@@ -48,7 +45,7 @@ export function NotificationsPanel({ isOpen, onClose }: NotificationsPanelProps)
       document.addEventListener('keydown', handleKeyboard);
       return () => document.removeEventListener('keydown', handleKeyboard);
     }
-  }, [isOpen, onClose, markAllAsRead, markAsRead, notifications]);
+  }, [isOpen, onClose, markAsRead, notifications]);
 
   const handleNotificationClick = async (notification: Notification) => {
     // Mark as read
@@ -146,17 +143,6 @@ export function NotificationsPanel({ isOpen, onClose }: NotificationsPanelProps)
                 )}
               </CardTitle>
               <div className="flex items-center gap-2">
-                {unreadCount > 0 && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={markAllAsRead}
-                    className="text-green-600 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-900/20 font-medium"
-                  >
-                    <Check className="w-4 h-4 mr-1" />
-                    Mark all read ({unreadCount})
-                  </Button>
-                )}
                 <Button
                   variant="ghost"
                   size="sm"

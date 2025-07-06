@@ -39,7 +39,7 @@ export function TopBar({ onToggleSidebar, isSidebarCollapsed }: TopBarProps) {
   const [selectedIndex, setSelectedIndex] = useState(-1);
   
   // Notifications functionality
-  const { unreadCount } = useNotifications();
+  const { unreadCount, markAllAsReadOnOpen } = useNotifications();
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   
   // Profile dropdown state
@@ -276,7 +276,13 @@ export function TopBar({ onToggleSidebar, isSidebarCollapsed }: TopBarProps) {
           {/* Notifications */}
           <div className="relative" ref={notificationRef}>
             <button
-              onClick={() => setIsNotificationOpen(!isNotificationOpen)}
+              onClick={() => {
+                if (!isNotificationOpen) {
+                  // Mark all notifications as read when opening the panel
+                  markAllAsReadOnOpen();
+                }
+                setIsNotificationOpen(!isNotificationOpen);
+              }}
               className="relative w-10 h-10 rounded-lg flex items-center justify-center text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
               aria-label={`Notifications ${unreadCount > 0 ? `(${unreadCount} unread)` : ''}`}
             >
