@@ -13,36 +13,31 @@ export function NotificationsTest() {
       type: 'low_stock' as const,
       title: 'Low Stock Alert',
       message: 'Product "Coca Cola 500ml" is running low (Stock: 3)',
-      icon: Package,
-      metadata: { product_name: 'Coca Cola 500ml', current_stock: 3 }
+      icon: Package
     },
     {
       type: 'payment_received' as const,
       title: 'Payment Received',
       message: 'Payment of KES 1,200 received from John Doe',
-      icon: CreditCard,
-      metadata: { amount: 1200, customer_name: 'John Doe' }
+      icon: CreditCard
     },
     {
       type: 'sync_failed' as const,
       title: 'Sync Failed',
       message: 'Failed to sync data: Network timeout',
-      icon: AlertTriangle,
-      metadata: { error: 'Network timeout' }
+      icon: AlertTriangle
     },
     {
       type: 'sale_completed' as const,
       title: 'Sale Completed',
       message: 'Sale of KES 750 to Mary Wanjiku completed',
-      icon: CheckCircle,
-      metadata: { total: 750, customer_name: 'Mary Wanjiku' }
+      icon: CheckCircle
     },
     {
       type: 'customer_payment' as const,
       title: 'Customer Payment',
       message: 'Alice Kamau paid KES 300 via M-Pesa',
-      icon: Users,
-      metadata: { amount: 300, customer_name: 'Alice Kamau' }
+      icon: Users
     }
   ];
 
@@ -52,8 +47,7 @@ export function NotificationsTest() {
       await createNotification({
         type: notification.type,
         title: notification.title,
-        message: notification.message,
-        metadata: notification.metadata
+        message: notification.message
       });
       console.log('Test notification created:', notification.title);
     } catch (error) {

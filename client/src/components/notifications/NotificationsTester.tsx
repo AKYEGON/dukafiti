@@ -22,8 +22,7 @@ export function NotificationsTester() {
   const createTestNotification = async (
     type: 'low_stock' | 'payment_received' | 'sync_failed' | 'sale_completed' | 'customer_payment',
     title: string,
-    message: string,
-    metadata: Record<string, any> = {}
+    message: string
   ) => {
     setIsLoading(type);
     try {
@@ -108,9 +107,7 @@ export function NotificationsTester() {
         await createNotification({
           type: notification.type,
           title: notification.title,
-          message: notification.message,
-          is_read: false,
-          metadata: notification.metadata
+          message: notification.message
         });
         // Small delay between notifications
         await new Promise(resolve => setTimeout(resolve, 200));
@@ -186,8 +183,7 @@ export function NotificationsTester() {
                   onClick={() => createTestNotification(
                     notification.type,
                     notification.title,
-                    notification.message,
-                    notification.metadata
+                    notification.message
                   )}
                   disabled={isLoading === notification.type}
                   className="flex-shrink-0"

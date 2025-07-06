@@ -56,8 +56,7 @@ export function NotificationsPanel({ isOpen, onClose }: NotificationsPanelProps)
     // Navigate based on notification type
     switch (notification.type) {
       case 'low_stock':
-        const productId = notification.metadata?.product_id;
-        setLocation(productId ? `/inventory?highlight=${productId}` : '/inventory');
+        setLocation('/inventory');
         break;
       case 'payment_received':
       case 'customer_payment':

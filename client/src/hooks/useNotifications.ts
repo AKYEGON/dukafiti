@@ -17,7 +17,6 @@ export interface Notification {
   is_read: boolean;
   created_at: string;
   user_id: number;
-  metadata?: Record<string, any>;
 }
 
 export function useNotifications() {
@@ -164,7 +163,6 @@ export function useNotifications() {
     type: 'low_stock' | 'payment_received' | 'customer_payment' | 'sync_failed' | 'sale_completed';
     title: string;
     message?: string;
-    metadata?: Record<string, any>;
   }) => {
     try {
       const data = await createNotificationAPI(notification);
@@ -183,14 +181,14 @@ export function useNotifications() {
     const currentUserId = 1; // Using user_id since there's no store_id field in current schema
     
     const subscription = supabase
-      .channel('notifications-realtime-channel')
+      .channel(`notifications-channel-${Date.now()}`)
       .on('postgres_changes', {
         event: 'INSERT',
         schema: 'public',
         table: 'notifications',
         filter: `user_id=eq.${currentUserId}`
       }, (payload) => {
-        console.log('Real-time INSERT notification received:', payload);
+        console.log('🚀 Real-time INSERT notification received:', payload);
         const newNotification = payload.new as Notification;
         
         // Add to state immediately for real-time updates
@@ -209,7 +207,7 @@ export function useNotifications() {
         table: 'notifications',
         filter: `user_id=eq.${currentUserId}`
       }, (payload) => {
-        console.log('Real-time UPDATE notification received:', payload);
+        console.log('🔄 Real-time UPDATE notification received:', payload);
         const updatedNotification = payload.new as Notification;
         
         // Update state for read status changes
@@ -217,7 +215,9 @@ export function useNotifications() {
           n.id === updatedNotification.id ? updatedNotification : n
         ));
       })
-      .subscribe();
+      .subscribe((status) => {
+        console.log('📊 Notifications subscription status:', status);
+      });
 
     console.log('Notifications subscription created:', subscription);
 

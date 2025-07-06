@@ -27,6 +27,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ProductForm } from "@/components/inventory/product-form";
 import { CustomerForm } from "@/components/customers/customer-form";
 import { NotificationsTester } from "@/components/notifications/NotificationsTester";
+import { NotificationsDebug } from "@/components/notifications/NotificationsDebug";
 import { getDashboardMetrics, getRecentOrders } from "@/lib/supabase-data";
 
 
@@ -349,11 +350,20 @@ export default function Dashboard() {
       </div>
 
       {/* Development Testing - Remove in Production */}
-      <div className="mt-8 p-4 border-2 border-dashed border-yellow-200 dark:border-yellow-800 rounded-lg bg-yellow-50 dark:bg-yellow-900/10">
-        <h3 className="text-lg font-medium text-yellow-800 dark:text-yellow-200 mb-4">
-          🧪 Development: Notifications Testing
-        </h3>
-        <NotificationsTester />
+      <div className="mt-8 space-y-6">
+        <div className="p-4 border-2 border-dashed border-yellow-200 dark:border-yellow-800 rounded-lg bg-yellow-50 dark:bg-yellow-900/10">
+          <h3 className="text-lg font-medium text-yellow-800 dark:text-yellow-200 mb-4">
+            🧪 Development: Notifications Testing
+          </h3>
+          <NotificationsTester />
+        </div>
+        
+        <div className="p-4 border-2 border-dashed border-red-200 dark:border-red-800 rounded-lg bg-red-50 dark:bg-red-900/10">
+          <h3 className="text-lg font-medium text-red-800 dark:text-red-200 mb-4">
+            🔧 Debug: Real-time Diagnostics
+          </h3>
+          <NotificationsDebug />
+        </div>
       </div>
 
       {/* Modal Components */}
