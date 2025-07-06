@@ -49,15 +49,12 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
-            <div className="flex-shrink-0 flex items-center space-x-3">
+            <div className="flex-shrink-0 flex items-center">
               <img 
-                src="/assets/logo.png" 
-                alt="DukaFiti" 
-                className="h-8 w-8"
+                src="/assets/logo-full.png" 
+                alt="DukaFiti - Duka Fiti ni Duka Bora" 
+                className="h-8 w-auto max-w-[120px]"
               />
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-brand-600 to-brand-500 bg-clip-text text-transparent">
-                DukaFiti
-              </h1>
             </div>
 
             {/* Desktop Navigation */}

@@ -124,15 +124,21 @@ export default function Register() {
         
         {/* Logo/App Name - Enterprise Grade */}
         <div className="text-center mb-6">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center">
+          <div className="mx-auto mb-4 flex items-center justify-center">
             <img 
-              src="/assets/logo.png" 
-              alt="DukaFiti" 
-              className="h-16 w-16"
+              src="/assets/logo-full.png" 
+              alt="DukaFiti - Duka Fiti ni Duka Bora" 
+              className="h-16 w-auto max-w-[200px]"
             />
           </div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-brand-600 to-brand-500 bg-clip-text text-transparent text-center">DukaFiti</h1>
-          <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">Duka Bora ni Duka Fiti - Create your business account</p>
+          <div className="mt-2 mb-4 flex items-center justify-center">
+            <img 
+              src="/assets/logo-slogan.png" 
+              alt="Duka Fiti ni Duka Bora" 
+              className="h-8 w-auto max-w-[250px]"
+            />
+          </div>
+          <p className="text-sm text-gray-600 dark:text-gray-400">Create your business account</p>
         </div>
 
         {/* Register Form */}

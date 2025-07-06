@@ -68,22 +68,18 @@ export function Sidebar({ className, collapsed = false, toggleSidebar }: Sidebar
           {isCollapsed && !isMobile ? (
             <Link href="/">
               <img 
-                src="/assets/logo.png" 
+                src="/assets/logo-icon.png" 
                 alt="DukaFiti" 
                 className="w-10 h-10 hover:scale-105 transition-transform duration-200"
               />
             </Link>
           ) : (
-            <Link href="/" className="flex items-center space-x-3 hover:opacity-80 transition-opacity duration-200">
+            <Link href="/" className="flex items-center justify-center hover:opacity-80 transition-opacity duration-200">
               <img 
-                src="/assets/logo.png" 
-                alt="DukaFiti Icon" 
-                className="w-10 h-10"
+                src="/assets/logo-full.png" 
+                alt="DukaFiti - Duka Fiti ni Duka Bora" 
+                className="h-12 w-auto max-w-[180px]"
               />
-              <div>
-                <h1 className="text-xl font-bold bg-gradient-to-r from-brand-600 to-brand-500 bg-clip-text text-transparent">DukaFiti</h1>
-                <p className="text-sm text-neutral-600 dark:text-neutral-400">Duka Bora ni Duka Fiti</p>
-              </div>
             </Link>
           )}
           

@@ -71,11 +71,18 @@ export default function Login() {
         
         {/* Logo/App Name - Enterprise Grade */}
         <div className="text-center mb-6">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center">
+          <div className="mx-auto mb-4 flex items-center justify-center">
             <img 
-              src="/assets/logo.png" 
-              alt="DukaFiti" 
-              className="h-16 w-16"
+              src="/assets/logo-full.png" 
+              alt="DukaFiti - Duka Fiti ni Duka Bora" 
+              className="h-16 w-auto max-w-[200px]"
+            />
+          </div>
+          <div className="mt-2 mb-4 flex items-center justify-center">
+            <img 
+              src="/assets/logo-slogan.png" 
+              alt="Duka Fiti ni Duka Bora" 
+              className="h-6 w-auto max-w-[180px]"
             />
           </div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-brand-600 to-brand-500 bg-clip-text text-transparent text-center">DukaFiti</h1>
