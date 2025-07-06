@@ -170,6 +170,16 @@ export default function Reports() {
     queryKey: ['reports-trend', trendPeriod],
     queryFn: () => getReportsTrend(trendPeriod)
   });
+
+  // Debug trend data
+  console.log('Trend Data Debug:', {
+    trendData,
+    isLoading: trendLoading,
+    error: trendError,
+    period: trendPeriod,
+    dataLength: trendData?.length,
+    sampleData: trendData?.[0]
+  });
   
 
 
