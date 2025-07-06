@@ -426,6 +426,10 @@ Changelog:
 - July 6, 2025. Implemented keyboard shortcuts (Ctrl+A for mark all, Ctrl+R for mark first unread, Esc to close)
 - July 6, 2025. Added real-time synchronization for notification status updates across multiple sessions
 - July 6, 2025. Enhanced notification panel UI with "New" badges, check buttons, and improved interaction patterns
+- July 6, 2025. Completely rebuilt notifications page to use Supabase-based useNotifications hook instead of server endpoints
+- July 6, 2025. Implemented automatic mark-as-read functionality: opening notifications page marks all notifications as read
+- July 6, 2025. Fixed notification field references throughout pages to use correct Supabase schema (is_read, created_at, etc.)
+- July 6, 2025. Enhanced notification icons with proper type mapping and visual consistency across all notification types
 ```
 
 ## User Preferences
