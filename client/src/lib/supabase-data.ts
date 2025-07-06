@@ -342,9 +342,23 @@ export const getReportsTrend = async (period: 'hourly' | 'daily' | 'monthly') =>
   try {
     console.log('getReportsTrend called with period:', period);
     
+    // First, let's get ALL orders to see what we're working with
+    const { data: allOrders, error: allError } = await supabase
+      .from('orders')
+      .select('id, created_at, total_amount, status')
+      .limit(10);
+    
+    if (allError) {
+      console.error('Error fetching all orders:', allError);
+    } else {
+      console.log('All orders sample:', allOrders);
+    }
+    
+    // Now get orders for the specific period without status filtering
     let query = supabase
       .from('orders')
-      .select('created_at, total_amount, status');
+      .select('created_at, total_amount, status')
+      .order('created_at', { ascending: false });
     
     // Set date range based on period
     const now = new Date();
@@ -358,7 +372,12 @@ export const getReportsTrend = async (period: 'hourly' | 'daily' | 'monthly') =>
       startDate = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000); // Last 12 months
     }
     
-    query = query.gte('created_at', startDate.toISOString());
+    console.log('Date range:', { startDate: startDate.toISOString(), endDate: now.toISOString() });
+    
+    // Only apply date filter if we have a valid start date
+    if (startDate && !isNaN(startDate.getTime())) {
+      query = query.gte('created_at', startDate.toISOString());
+    }
     
     const { data: orders, error } = await query;
     
@@ -371,10 +390,45 @@ export const getReportsTrend = async (period: 'hourly' | 'daily' | 'monthly') =>
     if (orders && orders.length > 0) {
       console.log('Sample order data:', orders[0]);
       console.log('Order statuses found:', [...new Set(orders.map(o => o.status))]);
+      console.log('Date range of orders:', {
+        earliest: orders[orders.length - 1]?.created_at,
+        latest: orders[0]?.created_at
+      });
+    }
+    
+    // If no orders found, return sample data to show the chart works
+    if (!orders || orders.length === 0) {
+      console.log('No orders found, returning sample data');
+      const sampleData = [];
+      if (period === 'hourly') {
+        for (let i = 23; i >= 0; i--) {
+          const hour = new Date(now.getTime() - i * 60 * 60 * 1000);
+          sampleData.push({
+            label: hour.toLocaleTimeString('en-US', { hour: 'numeric', hour12: true }),
+            value: 0
+          });
+        }
+      } else if (period === 'daily') {
+        for (let i = 29; i >= 0; i--) {
+          const day = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
+          sampleData.push({
+            label: day.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+            value: 0
+          });
+        }
+      } else {
+        for (let i = 11; i >= 0; i--) {
+          const month = new Date(now.getTime() - i * 30 * 24 * 60 * 60 * 1000);
+          sampleData.push({
+            label: month.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
+            value: 0
+          });
+        }
+      }
+      return sampleData;
     }
     
     // Group orders by time period and calculate totals
-    const trendData: Array<{ label: string; value: number }> = [];
     const groupedData: { [key: string]: number } = {};
     
     if (period === 'hourly') {
@@ -386,7 +440,7 @@ export const getReportsTrend = async (period: 'hourly' | 'daily' | 'monthly') =>
       }
       
       // Group orders by hour
-      orders?.forEach(order => {
+      orders.forEach(order => {
         const orderDate = new Date(order.created_at);
         const hourKey = orderDate.toLocaleTimeString('en-US', { hour: 'numeric', hour12: true });
         if (groupedData.hasOwnProperty(hourKey)) {
@@ -402,7 +456,7 @@ export const getReportsTrend = async (period: 'hourly' | 'daily' | 'monthly') =>
       }
       
       // Group orders by day
-      orders?.forEach(order => {
+      orders.forEach(order => {
         const orderDate = new Date(order.created_at);
         const dayKey = orderDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
         if (groupedData.hasOwnProperty(dayKey)) {
@@ -418,7 +472,7 @@ export const getReportsTrend = async (period: 'hourly' | 'daily' | 'monthly') =>
       }
       
       // Group orders by month
-      orders?.forEach(order => {
+      orders.forEach(order => {
         const orderDate = new Date(order.created_at);
         const monthKey = orderDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
         if (groupedData.hasOwnProperty(monthKey)) {
@@ -428,11 +482,13 @@ export const getReportsTrend = async (period: 'hourly' | 'daily' | 'monthly') =>
     }
     
     // Convert grouped data to trend format
+    const trendData: Array<{ label: string; value: number }> = [];
     Object.entries(groupedData).forEach(([label, value]) => {
       trendData.push({ label, value: Math.round(value) });
     });
     
     console.log(`Generated trend data with ${trendData.length} points:`, trendData.slice(0, 3));
+    console.log('Full trend data:', trendData);
     return trendData;
     
   } catch (error) {
