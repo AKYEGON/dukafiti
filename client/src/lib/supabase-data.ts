@@ -832,20 +832,35 @@ export const createSale = async (saleData: any) => {
       }
     }
     
-    // Create sale completion notification
+    // Create sale completion notification with rich payload
     try {
       await createNotification({
         type: 'sale_completed',
         title: 'Sale Completed',
-        message: `Sale of KES ${saleData.total} to ${saleData.customerName || 'customer'} processed successfully`
+        message: `Sale of KES ${saleData.total} to ${saleData.customerName || 'customer'} processed successfully`,
+        payload: {
+          saleId: order.id,
+          customerName: saleData.customerName || 'Walk-in Customer',
+          amount: saleData.total,
+          paymentMethod: saleData.paymentMethod,
+          itemsCount: saleData.items.length,
+          orderReference: order.reference
+        }
       });
 
-      // Create payment notification for non-credit sales
+      // Create payment notification for non-credit sales with rich payload
       if (saleData.paymentMethod !== 'credit') {
         await createNotification({
           type: 'payment_received',
           title: 'Payment Received',
-          message: `Payment of KES ${saleData.total} received from ${saleData.customerName || 'customer'}`
+          message: `Payment of KES ${saleData.total} received via ${saleData.paymentMethod}`,
+          payload: {
+            saleId: order.id,
+            method: saleData.paymentMethod,
+            amount: saleData.total,
+            customerName: saleData.customerName || 'Walk-in Customer',
+            orderReference: order.reference
+          }
         });
       }
     } catch (notificationError) {
@@ -1180,12 +1195,12 @@ export const createNotification = async (notification: {
   type: 'low_stock' | 'payment_received' | 'sync_failed' | 'sale_completed' | 'customer_payment';
   title: string;
   message?: string;
-  metadata?: Record<string, any>;
+  payload?: Record<string, any>;
 }) => {
   try {
-    console.log('Creating notification:', notification);
+    console.log('Creating notification with payload:', notification);
     
-    // Check if the table has metadata column first
+    // Create notification with payload data
     const { data, error } = await supabase
       .from('notifications')
       .insert([{
@@ -1193,7 +1208,8 @@ export const createNotification = async (notification: {
         title: notification.title,
         message: notification.message || '',
         user_id: 1, // Default user - adjust as needed
-        is_read: false
+        is_read: false,
+        payload: notification.payload || {}
       }])
       .select()
       .single();
@@ -1222,11 +1238,17 @@ export const checkAndNotifyLowStock = async (updatedProducts: Array<{id: number,
       
       // Check if stock is low
       if (product.stock <= LOW_STOCK_THRESHOLD) {
-        // Create low stock notification
+        // Create low stock notification with rich payload
         await createNotification({
           type: 'low_stock',
           title: 'Low Stock Alert',
-          message: `${product.name} is running low (Stock: ${product.stock})`
+          message: `${product.name} is running low (Stock: ${product.stock} vs threshold ${LOW_STOCK_THRESHOLD})`,
+          payload: {
+            productId: product.id,
+            productName: product.name,
+            currentQty: product.stock,
+            threshold: LOW_STOCK_THRESHOLD
+          }
         });
       }
     }
@@ -1250,7 +1272,12 @@ export const createSyncFailureNotification = async (error: string, retryCount: n
   return await createNotification({
     type: 'sync_failed',
     title: 'Sync Failed',
-    message: `Failed to sync data after ${retryCount} retries: ${error}`
+    message: `Failed to sync data after ${retryCount} retries: ${error}`,
+    payload: {
+      errorDetail: error,
+      retryCount: retryCount,
+      timestamp: new Date().toISOString()
+    }
   });
 };
 
@@ -1264,10 +1291,17 @@ export const createLowStockNotification = async (productName: string, currentSto
 };
 
 // Helper function to create customer payment notifications
-export const createCustomerPaymentNotification = async (customerName: string, amount: number, paymentMethod: string) => {
+export const createCustomerPaymentNotification = async (customerId: number, customerName: string, amount: number, paymentMethod: string) => {
   return await createNotification({
     type: 'customer_payment',
     title: 'Customer Payment',
-    message: `${customerName} made a payment of KES ${amount} via ${paymentMethod}`
+    message: `${customerName} made a payment of KES ${amount} via ${paymentMethod}`,
+    payload: {
+      customerId: customerId,
+      customerName: customerName,
+      amount: amount,
+      paymentMethod: paymentMethod,
+      timestamp: new Date().toISOString()
+    }
   });
 };

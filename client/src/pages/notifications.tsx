@@ -1,12 +1,15 @@
 import { useState, useEffect } from 'react';
+import { useLocation } from 'wouter';
 import { formatDistanceToNow } from 'date-fns';
-import { Bell, AlertTriangle, CheckCircle, Info, Trash2, Package, CreditCard, Users } from 'lucide-react';
+import { Bell, AlertTriangle, CheckCircle, Info, Trash2, Package, CreditCard, Users, ExternalLink } from 'lucide-react';
 import { MobilePageWrapper } from '@/components/layout/mobile-page-wrapper';
 import { useNotifications } from '@/hooks/useNotifications';
+import { Button } from '@/components/ui/button';
 import type { Notification } from '@shared/schema';
 
 export function NotificationsPage() {
   const [filter, setFilter] = useState<'all' | 'unread' | 'read'>('all');
+  const [, setLocation] = useLocation();
   const { notifications, unreadCount, isLoading, markAsRead, markAllAsRead } = useNotifications();
 
   // Automatically mark all notifications as read when the page is opened
@@ -30,9 +33,11 @@ export function NotificationsPage() {
       case 'payment_received':
         return <CreditCard className="w-5 h-5 text-green-500" />;
       case 'low_stock':
-        return <Package className="w-5 h-5 text-yellow-500" />;
+        return <Package className="w-5 h-5 text-orange-500" />;
       case 'sync_failed':
         return <AlertTriangle className="w-5 h-5 text-red-500" />;
+      case 'customer_payment':
+        return <CreditCard className="w-5 h-5 text-blue-500" />;
       case 'customer_added':
         return <Users className="w-5 h-5 text-blue-500" />;
       case 'warning':
@@ -41,6 +46,74 @@ export function NotificationsPage() {
         return <AlertTriangle className="w-5 h-5 text-red-500" />;
       default:
         return <Bell className="w-5 h-5 text-blue-500" />;
+    }
+  };
+
+  const getEnhancedNotificationMessage = (notification: Notification) => {
+    // If no payload, fallback to original message
+    if (!notification.payload) {
+      return notification.message;
+    }
+
+    const payload = notification.payload;
+
+    switch (notification.type) {
+      case 'low_stock':
+        if (payload.productName && payload.currentQty !== undefined && payload.threshold) {
+          return `${payload.productName} is running low (Stock: ${payload.currentQty} vs threshold ${payload.threshold})`;
+        }
+        break;
+      case 'sale_completed':
+        if (payload.amount && payload.customerName) {
+          return `Sale of KES ${payload.amount} to ${payload.customerName} completed successfully`;
+        }
+        break;
+      case 'payment_received':
+        if (payload.amount && payload.method) {
+          return `Payment of KES ${payload.amount} received via ${payload.method}`;
+        }
+        break;
+      case 'customer_payment':
+        if (payload.customerName && payload.amount && payload.paymentMethod) {
+          return `${payload.customerName} made a payment of KES ${payload.amount} via ${payload.paymentMethod}`;
+        }
+        break;
+      case 'sync_failed':
+        if (payload.errorDetail) {
+          const retryText = payload.retryCount ? ` after ${payload.retryCount} retries` : '';
+          return `Sync failed${retryText}: ${payload.errorDetail}`;
+        }
+        break;
+    }
+
+    // Fallback to original message if payload parsing fails
+    return notification.message;
+  };
+
+  const handleNotificationClick = (notification: Notification) => {
+    // Navigate based on notification type and payload context
+    switch (notification.type) {
+      case 'low_stock':
+        const productId = notification.payload?.productId;
+        setLocation(productId ? `/inventory?highlight=${productId}` : '/inventory');
+        break;
+      case 'payment_received':
+        const saleId = notification.payload?.saleId;
+        setLocation(saleId ? `/sales?invoice=${saleId}` : '/sales');
+        break;
+      case 'customer_payment':
+        const customerId = notification.payload?.customerId;
+        setLocation(customerId ? `/customers?highlight=${customerId}` : '/customers');
+        break;
+      case 'sale_completed':
+        const completedSaleId = notification.payload?.saleId;
+        setLocation(completedSaleId ? `/sales?invoice=${completedSaleId}` : '/sales');
+        break;
+      case 'sync_failed':
+        setLocation('/settings#sync-errors');
+        break;
+      default:
+        break;
     }
   };
 
@@ -168,7 +241,7 @@ export function NotificationsPage() {
                           </h3>
                           {notification.message && (
                             <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                              {notification.message}
+                              {getEnhancedNotificationMessage(notification)}
                             </p>
                           )}
                           <p className="text-xs text-gray-500 dark:text-gray-500 mt-2">
@@ -178,6 +251,18 @@ export function NotificationsPage() {
                         
                         {/* Actions */}
                         <div className="flex items-center gap-2 ml-4">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleNotificationClick(notification);
+                            }}
+                            className="text-xs px-2 py-1 h-7"
+                          >
+                            <ExternalLink className="w-3 h-3 mr-1" />
+                            View
+                          </Button>
                           {!notification.is_read && (
                             <div className="w-2 h-2 bg-purple-500 rounded-full" aria-label="Unread" />
                           )}

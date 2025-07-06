@@ -17,6 +17,7 @@ export interface Notification {
   is_read: boolean;
   created_at: string;
   user_id: number;
+  payload?: Record<string, any>; // Added payload field for context data
 }
 
 export function useNotifications() {
@@ -194,6 +195,7 @@ export function useNotifications() {
     type: 'low_stock' | 'payment_received' | 'customer_payment' | 'sync_failed' | 'sale_completed';
     title: string;
     message?: string;
+    payload?: Record<string, any>;
   }) => {
     try {
       const data = await createNotificationAPI(notification);

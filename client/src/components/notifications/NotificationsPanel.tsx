@@ -53,20 +53,26 @@ export function NotificationsPanel({ isOpen, onClose }: NotificationsPanelProps)
       await markAsRead(notification.id);
     }
 
-    // Navigate based on notification type
+    // Navigate based on notification type and payload context
     switch (notification.type) {
       case 'low_stock':
-        setLocation('/inventory');
+        const productId = notification.payload?.productId;
+        setLocation(productId ? `/inventory?highlight=${productId}` : '/inventory');
         break;
       case 'payment_received':
+        const saleId = notification.payload?.saleId;
+        setLocation(saleId ? `/sales?invoice=${saleId}` : '/sales');
+        break;
       case 'customer_payment':
-        setLocation('/customers');
+        const customerId = notification.payload?.customerId;
+        setLocation(customerId ? `/customers?highlight=${customerId}` : '/customers');
         break;
       case 'sale_completed':
-        setLocation('/reports');
+        const completedSaleId = notification.payload?.saleId;
+        setLocation(completedSaleId ? `/sales?invoice=${completedSaleId}` : '/sales');
         break;
       case 'sync_failed':
-        setLocation('/settings#sync');
+        setLocation('/settings#sync-errors');
         break;
       default:
         break;
@@ -115,6 +121,47 @@ export function NotificationsPanel({ isOpen, onClose }: NotificationsPanelProps)
       default:
         return 'border-l-gray-500';
     }
+  };
+
+  const getEnhancedNotificationMessage = (notification: Notification) => {
+    // If no payload, fallback to original message
+    if (!notification.payload) {
+      return notification.message;
+    }
+
+    const payload = notification.payload;
+
+    switch (notification.type) {
+      case 'low_stock':
+        if (payload.productName && payload.currentQty !== undefined && payload.threshold) {
+          return `${payload.productName} is running low (Stock: ${payload.currentQty} vs threshold ${payload.threshold})`;
+        }
+        break;
+      case 'sale_completed':
+        if (payload.amount && payload.customerName) {
+          return `Sale of KES ${payload.amount} to ${payload.customerName} completed successfully`;
+        }
+        break;
+      case 'payment_received':
+        if (payload.amount && payload.method) {
+          return `Payment of KES ${payload.amount} received via ${payload.method}`;
+        }
+        break;
+      case 'customer_payment':
+        if (payload.customerName && payload.amount && payload.paymentMethod) {
+          return `${payload.customerName} made a payment of KES ${payload.amount} via ${payload.paymentMethod}`;
+        }
+        break;
+      case 'sync_failed':
+        if (payload.errorDetail) {
+          const retryText = payload.retryCount ? ` after ${payload.retryCount} retries` : '';
+          return `Sync failed${retryText}: ${payload.errorDetail}`;
+        }
+        break;
+    }
+
+    // Fallback to original message if payload parsing fails
+    return notification.message;
   };
 
   if (!isOpen) return null;
@@ -230,7 +277,7 @@ export function NotificationsPanel({ isOpen, onClose }: NotificationsPanelProps)
                           
                           {notification.message && (
                             <p className="text-sm text-gray-600 dark:text-gray-400 mt-1 line-clamp-2">
-                              {notification.message}
+                              {getEnhancedNotificationMessage(notification)}
                             </p>
                           )}
                           

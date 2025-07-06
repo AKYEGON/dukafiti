@@ -22,15 +22,16 @@ export function NotificationsTester() {
   const createTestNotification = async (
     type: 'low_stock' | 'payment_received' | 'sync_failed' | 'sale_completed' | 'customer_payment',
     title: string,
-    message: string
+    message: string,
+    payload?: Record<string, any>
   ) => {
     setIsLoading(type);
     try {
       await createNotification({
         type,
         title,
-        message
-        // metadata removed since table doesn't have this column yet
+        message,
+        payload
       });
       toast({
         title: 'Test notification created',
@@ -62,15 +63,15 @@ export function NotificationsTester() {
       type: 'low_stock' as const,
       title: 'Low Stock Alert',
       message: 'Product "Coca Cola 500ml" is running low (Stock: 5, Threshold: 10)',
-      metadata: { product_name: 'Coca Cola 500ml', current_stock: 5, threshold: 10 },
+      payload: { productId: 1, productName: 'Coca Cola 500ml', currentQty: 5, threshold: 10 },
       icon: Package,
       color: 'text-orange-500'
     },
     {
       type: 'payment_received' as const,
       title: 'Payment Received',
-      message: 'Payment of KES 1,250 received from John Doe',
-      metadata: { amount: 1250, customer_name: 'John Doe', payment_method: 'M-Pesa' },
+      message: 'Payment of KES 1,250 received via M-Pesa',
+      payload: { saleId: 123, method: 'mobileMoney', amount: 1250, customerName: 'John Doe', orderReference: 'ORD-001' },
       icon: CreditCard,
       color: 'text-green-500'
     },
@@ -78,7 +79,7 @@ export function NotificationsTester() {
       type: 'sync_failed' as const,
       title: 'Sync Failed',
       message: 'Failed to sync data after 3 retries: Network timeout',
-      metadata: { error_message: 'Network timeout', retry_count: 3 },
+      payload: { errorDetail: 'Network timeout', retryCount: 3, timestamp: new Date().toISOString() },
       icon: AlertTriangle,
       color: 'text-red-500'
     },
@@ -86,7 +87,7 @@ export function NotificationsTester() {
       type: 'sale_completed' as const,
       title: 'Sale Completed',
       message: 'Sale of KES 850 to Mary Wanjiku processed successfully',
-      metadata: { total: 850, customer_name: 'Mary Wanjiku', items_count: 3 },
+      payload: { saleId: 124, customerName: 'Mary Wanjiku', amount: 850, paymentMethod: 'cash', itemsCount: 3, orderReference: 'ORD-002' },
       icon: CheckCircle,
       color: 'text-blue-500'
     },
@@ -94,7 +95,7 @@ export function NotificationsTester() {
       type: 'customer_payment' as const,
       title: 'Customer Payment',
       message: 'Alice Kamau made a payment of KES 500 via Cash',
-      metadata: { customer_name: 'Alice Kamau', amount: 500, payment_method: 'Cash' },
+      payload: { customerId: 2, customerName: 'Alice Kamau', amount: 500, paymentMethod: 'Cash', timestamp: new Date().toISOString() },
       icon: Users,
       color: 'text-purple-500'
     }
@@ -107,7 +108,8 @@ export function NotificationsTester() {
         await createNotification({
           type: notification.type,
           title: notification.title,
-          message: notification.message
+          message: notification.message,
+          payload: notification.payload
         });
         // Small delay between notifications
         await new Promise(resolve => setTimeout(resolve, 200));
@@ -183,7 +185,8 @@ export function NotificationsTester() {
                   onClick={() => createTestNotification(
                     notification.type,
                     notification.title,
-                    notification.message
+                    notification.message,
+                    notification.payload
                   )}
                   disabled={isLoading === notification.type}
                   className="flex-shrink-0"
