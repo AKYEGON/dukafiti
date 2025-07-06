@@ -456,7 +456,7 @@ export default function Reports() {
             ) : trendData && Array.isArray(trendData) && trendData.length > 0 ? (
               <div className="h-64">
                 <ResponsiveContainer width="100%" height="100%">
-                  <LineChart data={trendData}>
+                  <LineChart data={trendData} margin={{ top: 20, right: 20, bottom: 20, left: 0 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" className="dark:stroke-[#374151]" />
                     <XAxis 
                       dataKey="label" 
@@ -468,6 +468,7 @@ export default function Reports() {
                       stroke="#6B7280" 
                       fontSize={12}
                       className="dark:stroke-[#9CA3AF]"
+                      tickFormatter={(value) => `${value.toLocaleString()}`}
                     />
                     <Tooltip 
                       contentStyle={{
@@ -476,15 +477,16 @@ export default function Reports() {
                         borderRadius: '8px',
                         boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
                       }}
+                      labelStyle={{ color: '#374151', fontWeight: 'bold' }}
+                      formatter={(value: number) => [`KES ${value.toLocaleString()}`, 'Sales']}
                     />
                     <Line 
                       type="monotone" 
                       dataKey="value" 
                       stroke="#00AA00" 
-                      strokeWidth={3}
-                      dot={{ fill: '#00AA00', strokeWidth: 2, r: 6 }}
+                      strokeWidth={2}
+                      dot={false}
                       activeDot={{ r: 8, fill: '#00AA00', strokeWidth: 0 }}
-                      className="dark:stroke-[#6B46C1]"
                     />
                   </LineChart>
                 </ResponsiveContainer>

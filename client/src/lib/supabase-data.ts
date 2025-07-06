@@ -351,82 +351,120 @@ export const getReportsSummary = async (period: 'today' | 'weekly' | 'monthly') 
 };
 
 export const getReportsTrend = async (period: 'hourly' | 'daily' | 'monthly') => {
-  console.log('getReportsTrend called with period:', period);
-  
-  // Get the actual sales summary first to use for realistic trend data
-  const summaryData = await getReportsSummary('today');
-  const totalSales = summaryData?.totalSales || 1235; // Use actual total or fallback
-  
-  // Generate realistic trend data based on actual sales totals
-  const trendData: Array<{ label: string; value: number }> = [];
-  const now = new Date();
-  
-  if (period === 'hourly') {
-    // Distribute sales across 24 hours with realistic business patterns
-    const avgHourlySales = totalSales / 12; // Assume sales happen over 12 business hours
+  try {
+    console.log('getReportsTrend called with period:', period);
     
-    for (let i = 23; i >= 0; i--) {
-      const hour = new Date(now.getTime() - i * 60 * 60 * 1000);
-      const hourNum = hour.getHours();
-      
-      // Business hours pattern: higher sales during 8 AM - 8 PM
-      let multiplier = 0;
-      if (hourNum >= 8 && hourNum <= 20) {
-        multiplier = 0.6 + (Math.random() * 0.8); // 60-140% of average
-      } else {
-        multiplier = 0.1 + (Math.random() * 0.2); // 10-30% of average
-      }
-      
-      const value = Math.round(avgHourlySales * multiplier);
-      trendData.push({
-        label: hour.toLocaleTimeString('en-US', { hour: 'numeric', hour12: true }),
-        value: value
-      });
-    }
-  } else if (period === 'daily') {
-    // Distribute sales across 30 days with realistic daily patterns
-    const avgDailySales = totalSales / 30;
+    let startDate: Date;
+    const endDate = new Date();
     
-    for (let i = 29; i >= 0; i--) {
-      const day = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
-      const dayOfWeek = day.getDay();
-      
-      // Weekend pattern: typically lower sales
-      let multiplier = 0.5 + (Math.random() * 1.0); // 50-150% of average
-      if (dayOfWeek === 0 || dayOfWeek === 6) {
-        multiplier *= 0.7; // 70% of weekday sales
-      }
-      
-      const value = Math.round(avgDailySales * multiplier);
-      trendData.push({
-        label: day.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-        value: value
-      });
+    // Calculate date range and fetch orders based on period
+    if (period === 'hourly') {
+      // Past 24 hours
+      startDate = new Date(Date.now() - 24 * 60 * 60 * 1000);
+    } else if (period === 'daily') {
+      // Past 30 days
+      startDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    } else {
+      // Past 12 months
+      startDate = new Date();
+      startDate.setFullYear(startDate.getFullYear() - 1);
     }
-  } else {
-    // Monthly data for 12 months
-    const avgMonthlySales = totalSales * 30; // Assume current daily sales apply to monthly
     
-    for (let i = 11; i >= 0; i--) {
-      const month = new Date(now.getTime() - i * 30 * 24 * 60 * 60 * 1000);
-      const monthNum = month.getMonth();
-      
-      // Seasonal pattern: December/January higher, mid-year lower
-      let multiplier = 0.7 + (Math.random() * 0.6); // 70-130% of average
-      if (monthNum === 11 || monthNum === 0) {
-        multiplier *= 1.3; // Holiday season boost
-      }
-      
-      const value = Math.round(avgMonthlySales * multiplier);
-      trendData.push({
-        label: month.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
-        value: value
-      });
+    // Fetch orders from Supabase
+    const { data: orders, error } = await supabase
+      .from('orders')
+      .select('created_at, total')
+      .gte('created_at', startDate.toISOString())
+      .lte('created_at', endDate.toISOString())
+      .order('created_at', { ascending: true });
+    
+    if (error) {
+      console.error('Error fetching orders for trend:', error);
+      throw error;
     }
+    
+    const trendData: Array<{ label: string; value: number }> = [];
+    
+    if (period === 'hourly') {
+      // Create 24 hourly buckets
+      const buckets = Array.from({ length: 24 }, (_, i) => {
+        const hour = new Date();
+        hour.setHours(hour.getHours() - (23 - i), 0, 0, 0);
+        return { 
+          label: `${hour.getHours().toString().padStart(2, '0')}:00`, 
+          value: 0 
+        };
+      });
+      
+      // Bucket orders by hour
+      orders?.forEach(order => {
+        const orderDate = new Date(order.created_at);
+        const hourLabel = `${orderDate.getHours().toString().padStart(2, '0')}:00`;
+        const bucket = buckets.find(b => b.label === hourLabel);
+        if (bucket) {
+          bucket.value += parseFloat(order.total);
+        }
+      });
+      
+      trendData.push(...buckets);
+      
+    } else if (period === 'daily') {
+      // Create 30 daily buckets
+      const buckets = Array.from({ length: 30 }, (_, i) => {
+        const day = new Date();
+        day.setDate(day.getDate() - (29 - i));
+        day.setHours(0, 0, 0, 0);
+        return { 
+          label: day.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }), 
+          value: 0 
+        };
+      });
+      
+      // Bucket orders by day
+      orders?.forEach(order => {
+        const orderDate = new Date(order.created_at);
+        const dayLabel = orderDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        const bucket = buckets.find(b => b.label === dayLabel);
+        if (bucket) {
+          bucket.value += parseFloat(order.total);
+        }
+      });
+      
+      trendData.push(...buckets);
+      
+    } else {
+      // Create 12 monthly buckets
+      const buckets = Array.from({ length: 12 }, (_, i) => {
+        const month = new Date();
+        month.setMonth(month.getMonth() - (11 - i));
+        month.setDate(1);
+        month.setHours(0, 0, 0, 0);
+        return { 
+          label: month.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }), 
+          value: 0 
+        };
+      });
+      
+      // Bucket orders by month
+      orders?.forEach(order => {
+        const orderDate = new Date(order.created_at);
+        const monthLabel = orderDate.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+        const bucket = buckets.find(b => b.label === monthLabel);
+        if (bucket) {
+          bucket.value += parseFloat(order.total);
+        }
+      });
+      
+      trendData.push(...buckets);
+    }
+    
+    console.log(`Fetched real trend data for ${period} with ${trendData.length} data points:`, trendData.slice(0, 3));
+    return trendData;
+    
+  } catch (error) {
+    console.error('Error in getReportsTrend:', error);
+    throw error;
   }
-  
-  console.log(`Generated realistic trend data with ${trendData.length} points based on actual sales of ${totalSales}:`, trendData.slice(0, 3));
-  return trendData;
 };
 
 export const getTopCustomers = async (period: 'today' | 'weekly' | 'monthly') => {

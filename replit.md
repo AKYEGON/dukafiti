@@ -426,6 +426,9 @@ Changelog:
 - July 6, 2025. Implemented keyboard shortcuts (Ctrl+A for mark all, Ctrl+R for mark first unread, Esc to close)
 - July 6, 2025. Added real-time synchronization for notification status updates across multiple sessions
 - July 6, 2025. Enhanced notification panel UI with "New" badges, check buttons, and improved interaction patterns
+- July 6, 2025. Fixed Sales Trend graph to use real Supabase data with proper time bucketing for hourly (24hrs), daily (30 days), and monthly (12 months) views
+- July 6, 2025. Enhanced chart configuration with KES currency formatting, clean line styling, and automatic real-time updates
+- July 6, 2025. Improved inventory page search box styling with modern design, purple accent colors, and better user experience
 - July 6, 2025. Completely rebuilt notifications page to use Supabase-based useNotifications hook instead of server endpoints
 - July 6, 2025. Implemented automatic mark-as-read functionality: opening notifications page marks all notifications as read
 - July 6, 2025. Fixed notification field references throughout pages to use correct Supabase schema (is_read, created_at, etc.)
