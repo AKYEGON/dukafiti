@@ -17,17 +17,18 @@ DukaFiti is a comprehensive business management platform built with a modern ful
 - **PWA Features**: Service worker for offline caching, Web App Manifest for installability
 
 ### Backend Architecture
-- **Runtime**: Node.js with Express.js server
-- **Language**: TypeScript with ES modules
-- **API Design**: RESTful API with JSON responses
-- **Request Logging**: Custom middleware for API request tracking
-- **Error Handling**: Centralized error handling middleware
+- **Database**: Supabase (PostgreSQL) with built-in authentication and real-time features
+- **Authentication**: Supabase Auth with email/password authentication
+- **Real-time**: Supabase real-time subscriptions for live updates
+- **API Design**: Direct Supabase client calls from frontend (serverless architecture)
+- **Data Operations**: Supabase JavaScript SDK for all CRUD operations
 
 ### Data Storage Solutions
-- **Database**: PostgreSQL with Neon serverless database
-- **ORM**: Drizzle ORM for type-safe database operations
-- **Schema Management**: Drizzle Kit for migrations and schema evolution
-- **Session Storage**: PostgreSQL with connect-pg-simple for session management
+- **Database**: Supabase PostgreSQL with built-in security and RLS
+- **Authentication**: Supabase Auth with session management
+- **Real-time Features**: Supabase real-time subscriptions
+- **File Storage**: Supabase Storage (available if needed)
+- **Edge Functions**: Supabase Edge Functions for serverless API endpoints
 
 ## Key Components
 
@@ -55,17 +56,16 @@ RESTful endpoints organized by resource:
 
 ## Data Flow
 
-1. **Client Requests**: React components make API calls through TanStack Query
-2. **API Processing**: Express server handles requests with type validation
-3. **Database Operations**: Drizzle ORM executes type-safe database queries
-4. **Response Handling**: Structured JSON responses with error handling
+1. **Client Requests**: React components make direct Supabase API calls through TanStack Query
+2. **Authentication**: Supabase Auth handles user sessions and security
+3. **Database Operations**: Supabase JavaScript SDK executes queries with built-in security
+4. **Real-time Updates**: Supabase real-time subscriptions provide live data updates
 5. **UI Updates**: React Query manages cache invalidation and optimistic updates
 
 ## External Dependencies
 
 ### Core Dependencies
-- **@neondatabase/serverless**: Neon PostgreSQL driver for serverless environments
-- **drizzle-orm & drizzle-kit**: Type-safe ORM with migration tools
+- **@supabase/supabase-js**: Supabase JavaScript SDK for database and auth operations
 - **@tanstack/react-query**: Server state management and caching
 - **react-hook-form**: Performant form handling with validation
 - **zod**: Runtime type validation and schema definition
@@ -475,6 +475,11 @@ Changelog:
 - July 6, 2025. Integrated MVP notification creation functions: createCreditReminderNotification, createLowStockAlertNotification
 - July 6, 2025. Added low stock checking after sales and daily credit reminder checking for customers with 7+ day overdue balances
 - July 6, 2025. Added NotificationsTester component to dashboard for MVP system validation and QA testing
+- July 6, 2025. Completed full Supabase integration with provided credentials (URL: kwdzbssuovwemthmiuht.supabase.co)
+- July 6, 2025. Updated environment variables with VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY, and VITE_SUPABASE_SERVICE_ROLE_KEY
+- July 6, 2025. Verified Supabase connection with successful test - all tables (products, customers, orders) accessible with data
+- July 6, 2025. Updated replit.md architecture documentation to reflect serverless Supabase-first approach
+- July 6, 2025. Migrated from Express/Node.js backend to direct Supabase client operations for improved performance
 ```
 
 ## User Preferences
