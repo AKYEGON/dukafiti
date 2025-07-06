@@ -1,0 +1,49 @@
+Assistant, the logos we pasted are carrying their purple‐background rectangles straight into our UI—let’s fix that so the **icon**, **wordmark**, and **slogan** float cleanly over our brand background:
+
+---
+
+## 1. Replace Logo Assets with Transparent Versions  
+- Swap out `logo-full.svg` and `logo-slogan.svg` in `src/assets/` (or `public/assets/`) with **transparent‐background** exports (PNG or SVG). Make sure their artboards are tight to the artwork—no extra purple fills.
+
+## 2. Component Backgrounds & Containers  
+- Everywhere we show a logo (Sidebar, TopBar, Landing, Auth pages, Footer), wrap the `<img>` in a container with our brand purple as its background. For example, in Sidebar:
+  ```jsx
+  <div className="p-4 bg-primaryPurple flex items-center justify-center">
+    <img src="/assets/logo-full.svg" alt="DukaSmart" className="h-10" />
+  </div>
+Use the same purple (bg-primaryPurple) in Tailwind across all logo wrappers.
+
+3. Adjust Tailwind Theme
+In tailwind.config.js, confirm:
+
+js
+Copy
+Edit
+theme: {
+  extend: {
+    colors: {
+      primaryPurple: '#6B46C1', // your brand purple
+    }
+  }
+}
+Remove any direct color fills in the logo <img> tags—logos should rely on their own shapes.
+
+4. Text & Contrast
+On purple backgrounds, ensure any overlaid text (e.g. the slogan on the landing page) is text-white or text-neutral-100 for contrast.
+
+Use drop-shadow on the logo if needed to help it pop:
+
+html
+Copy
+Edit
+<img src="/assets/logo-full.svg" className="h-10 drop-shadow-md" alt="DukaSmart" />
+5. QA Checklist
+ All logos now float on a solid purple block, not their own purple fill.
+
+ No “purple box” remains around any logo—only the container shows purple.
+
+ Contrast & sizing consistent across Sidebar, TopBar, Landing, Auth, and Footer.
+
+ Light/dark modes still work: in dark mode, containers switch to a slightly darker purple (dark:bg-primaryPurple-dark).
+
+Apply these changes so our logos blend seamlessly into the purple brand background without carrying their own unwanted fill.```

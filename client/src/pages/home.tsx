@@ -52,7 +52,7 @@ export default function Home() {
             <div className="flex-shrink-0 flex items-center">
               <div className="px-3 py-2 rounded-lg bg-brand dark:bg-brand-700">
                 <img 
-                  src="/assets/logo-full.png" 
+                  src="/assets/logo plus background_1751815320608.png" 
                   alt="DukaFiti - Duka Fiti ni Duka Bora" 
                   className="h-6 w-auto max-w-[100px] drop-shadow-md"
                 />

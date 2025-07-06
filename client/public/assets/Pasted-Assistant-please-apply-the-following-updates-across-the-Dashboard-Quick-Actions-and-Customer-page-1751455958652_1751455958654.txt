@@ -1,0 +1,43 @@
+Assistant, please apply the following updates across the Dashboard, Quick Actions, and Customer pages—overwrite existing code as needed:
+
+---
+
+## 1. Dashboard: Remove Percentage Displays  
+1. In `Dashboard.jsx`, locate the summary cards for Total Revenue, Orders Today, Inventory Items, and Active Customers.  
+2. Remove any `<span>` or `<div>` that renders the percentage change under each value.  
+3. Adjust the card layouts so the numeric value (e.g. “KES 12,345”) is centered vertically, with no empty gap below.  
+4. Ensure the cards still fetch and display their main values correctly from `/api/metrics/dashboard`.
+
+---
+
+## 2. Quick Actions: Remove Keyboard Shortcut Labels  
+1. In your `QuickActions.jsx` (or wherever the buttons are defined), find the labels like “Ctrl+P”, “Ctrl+O”, etc.  
+2. Delete those labels so each button simply shows its icon and text (e.g. “Add New Product”, “Create Order”).  
+3. Ensure no leftover `<kbd>` or `<small>` elements remain.  
+4. Confirm the click handlers and routing still work exactly as before.
+
+---
+
+## 3. Customer Page: “Edit” & “Record Repayment” Fixes  
+1. **Edit Button & Autofill**  
+   - Replace the “View Customer” button on each customer card with an **“Edit”** button styled the same.  
+   - Clicking “Edit” opens the existing Add/Edit Customer modal pre‑filled with that customer’s name and phone.  
+   - On submit, PUT to `/api/customers/:id` to save updates, then refresh the Customer list.
+
+2. **Record Repayment Bug**  
+   - In the `RecordRepaymentModal.jsx` handler, ensure the POST to `/api/customers/:id/payments` includes the correct remaining balance calculation:
+     ```js
+     newBalance = currentBalance - repaymentAmount;
+     ```
+   - After saving, update the stored `customer.balance` in the database and in local state.  
+   - Refresh the customer card so it shows the new reduced balance immediately.
+
+3. **QA Checklist**  
+   - [ ] Dashboard cards no longer show percentages, values aligned correctly.  
+   - [ ] Quick Actions buttons display only icon and text, no shortcut hints.  
+   - [ ] Clicking “Edit” on a customer card opens the modal with correct pre‑filled data.  
+   - [ ] Saving edits updates customer info in the list.  
+   - [ ] Recording a repayment deducts the amount from balance, both backend and UI reflect the change.  
+   - [ ] No console errors or broken UI flows after changes.
+
+Generate all updated React components (`Dashboard.jsx`, `QuickActions.jsx`, `Customers.jsx`, modals), the Express PUT `/api/customers/:id` handler if needed, and the fixed repayment POST logic in the modal component.```

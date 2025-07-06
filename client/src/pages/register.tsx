@@ -127,7 +127,7 @@ export default function Register() {
           <div className="mx-auto mb-4 flex items-center justify-center">
             <div className="p-4 rounded-xl bg-brand dark:bg-brand-700">
               <img 
-                src="/assets/logo-full.png" 
+                src="/assets/logo plus background_1751815320608.png" 
                 alt="DukaFiti - Duka Fiti ni Duka Bora" 
                 className="h-12 w-auto max-w-[180px] drop-shadow-md"
               />
@@ -136,7 +136,7 @@ export default function Register() {
           <div className="mt-2 mb-4 flex items-center justify-center">
             <div className="px-4 py-2 rounded-lg bg-brand-50 dark:bg-brand-900/30">
               <img 
-                src="/assets/logo-slogan.png" 
+                src="/assets/slogan_1751815320627.png" 
                 alt="Duka Fiti ni Duka Bora" 
                 className="h-5 w-auto max-w-[160px] drop-shadow-sm"
               />

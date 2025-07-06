@@ -1,0 +1,48 @@
+Assistant, I need to ensure the entire DukaSmart app works seamlessly **offline**—so dukawalas can operate even without internet. Please overwrite and enhance our current offline support with these refinements:
+
+---
+
+## 1. Service Worker & App Shell Caching  
+- **Cache on install**: all HTML, CSS, JS bundles, icons, fonts, and core JSON routes (`/api/products`, `/api/customers`, `/api/settings`)  
+- **Fetch handler**: serve cached assets first, fall back to network; for API calls, attempt network then cache fallback for GETs  
+- **Cache versioning**: use a versioned cache name and clear old caches on activation  
+
+## 2. Offline Action Queue (IndexedDB)  
+- Create a client‑side queue for user actions when offline:
+  - **Sales** (cash, credit, mobileMoney)  
+  - **Inventory updates** (add/edit/delete)  
+  - **Customer adds/edits**  
+- On attempted POST/PUT/DELETE while `navigator.onLine === false`, enqueue the payload with a timestamp.  
+- Display a yellow toast “Action queued – offline mode” for each.
+
+## 3. Automatic Sync & Conflict Handling  
+- Listen for `window.online` event:
+  1. Read queued actions in FIFO order.
+  2. Fire the appropriate API calls (`/api/sales`, `/api/products`, `/api/customers`).
+  3. On success, remove from queue and show green toast “Synced: [Action]”.  
+  4. On failure, leave in queue and show red toast “Sync error: [Action] – retrying”.  
+- If the same record was edited both locally and remotely, detect conflicts via a `lastUpdated` timestamp and prompt the user with a simple “Keep local” / “Use server” modal.
+
+## 4. Offline UI Indicators  
+- Add a persistent banner or pill in the header:  
+  - **Online**: hidden  
+  - **Offline**: `fixed top-16 w-full bg-yellow-500 text-black text-center py-1` reading “You are offline – actions will sync when back online.”  
+- Disable any UI elements that only work online (e.g. manual Sync Now button) and gray them out.
+
+## 5. Data Persistence & Read‑Through Cache  
+- For **read operations** (lists, dashboards), when offline:
+  - Serve the last‑cached JSON from IndexedDB or service worker cache.  
+  - Show a “Showing cached data” subtitle under headings.
+- For **exports** (CSV), allow exporting from the cached data sets.
+
+## 6. QA Checklist  
+- [ ] App shell loads when completely offline.  
+- [ ] Navigating between pages works without network.  
+- [ ] Creating sales, inventory edits, and customer adds offline queue and toast correctly.  
+- [ ] On reconnection, queued actions replay in order and UI updates.  
+- [ ] Conflict modal appears only when needed.  
+- [ ] Offline banner displays when offline and hides when online.  
+- [ ] Cached data is shown with “cached” notice.  
+- [ ] Exporting CSV works with cached data when offline.
+
+Please generate the service worker script, IndexedDB queue implementation (with helper functions), React hooks for online/offline detection, and UI updates (banners, disabled buttons) to fully enable robust offline functionality.```
