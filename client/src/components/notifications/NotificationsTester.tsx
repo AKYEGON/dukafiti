@@ -4,7 +4,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/lib/supabase';
 import { 
   Package, 
   CreditCard, 
@@ -12,15 +11,13 @@ import {
   CheckCircle, 
   Users,
   Play,
-  RotateCcw,
-  Trash2
+  RotateCcw
 } from 'lucide-react';
 
 export function NotificationsTester() {
   const { createNotification } = useNotifications();
   const { toast } = useToast();
   const [isLoading, setIsLoading] = useState<string | null>(null);
-  const [isCleaningUp, setIsCleaningUp] = useState(false);
 
   const createTestNotification = async (
     type: 'low_stock' | 'payment_received' | 'sync_failed' | 'sale_completed' | 'customer_payment',
@@ -58,38 +55,6 @@ export function NotificationsTester() {
       });
     } finally {
       setIsLoading(null);
-    }
-  };
-
-  const cleanupTestNotifications = async () => {
-    setIsCleaningUp(true);
-    try {
-      // Remove any test notifications that don't have proper context
-      const { data, error } = await supabase
-        .from('notifications')
-        .delete()
-        .or('message.like.%Test notification%,message.like.%Real-time Test%,title.like.%Test%')
-        .select();
-      
-      if (error) {
-        console.error('Error cleaning up test notifications:', error);
-        throw error;
-      }
-      
-      toast({
-        title: 'Test notifications cleaned up',
-        description: `Removed ${data?.length || 0} test notifications`,
-        className: 'bg-green-50 border-green-200 text-green-800'
-      });
-    } catch (error: any) {
-      console.error('Error cleaning up test notifications:', error);
-      toast({
-        title: 'Cleanup failed',
-        description: error.message || 'Failed to clean up test notifications',
-        variant: 'destructive'
-      });
-    } finally {
-      setIsCleaningUp(false);
     }
   };
 
@@ -132,7 +97,7 @@ export function NotificationsTester() {
       message: 'Alice Kamau made a payment of KES 500 via Cash',
       payload: { customerId: 2, customerName: 'Alice Kamau', amount: 500, paymentMethod: 'Cash', timestamp: new Date().toISOString() },
       icon: Users,
-      color: 'text-accent-500'
+      color: 'text-purple-500'
     }
   ];
 
@@ -237,7 +202,7 @@ export function NotificationsTester() {
           })}
         </div>
 
-        <div className="pt-4 border-t border-gray-200 dark:border-gray-700 space-y-3">
+        <div className="pt-4 border-t border-gray-200 dark:border-gray-700">
           <Button
             onClick={createAllTestNotifications}
             disabled={isLoading === 'all'}
@@ -252,25 +217,6 @@ export function NotificationsTester() {
               <>
                 <Play className="w-4 h-4 mr-2" />
                 Create All Test Notifications
-              </>
-            )}
-          </Button>
-          
-          <Button
-            onClick={cleanupTestNotifications}
-            disabled={isCleaningUp}
-            variant="outline"
-            className="w-full border-red-200 text-red-600 hover:bg-red-50 hover:text-red-700 dark:border-red-800 dark:text-red-400 dark:hover:bg-red-900/20"
-          >
-            {isCleaningUp ? (
-              <>
-                <RotateCcw className="w-4 h-4 animate-spin mr-2" />
-                Cleaning Up...
-              </>
-            ) : (
-              <>
-                <Trash2 className="w-4 h-4 mr-2" />
-                Clean Up Test Notifications
               </>
             )}
           </Button>

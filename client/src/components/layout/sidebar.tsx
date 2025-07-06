@@ -62,29 +62,23 @@ export function Sidebar({ className, collapsed = false, toggleSidebar }: Sidebar
       <div className="flex flex-col">
         {/* Store logo/name mini-header */}
         <div className={cn(
-          "p-4 flex items-center justify-center border-b border-gray-200 dark:border-gray-700 bg-brand dark:bg-brand-800",
+          "p-4 flex items-center justify-center border-b border-gray-200 dark:border-gray-700",
           isCollapsed && !isMobile ? "px-2" : "px-4"
         )}>
           {isCollapsed && !isMobile ? (
-            <Link href="/">
-              <div className="p-2 rounded-lg bg-brand-700 dark:bg-brand-900 hover:bg-brand-600 dark:hover:bg-brand-700 transition-all duration-200">
-                <img 
-                  src="/assets/logo_1751815320625.png" 
-                  alt="DukaFiti" 
-                  className="w-8 h-8 drop-shadow-md"
-                />
-              </div>
-            </Link>
+            <div className="w-10 h-10 bg-purple-600 rounded-lg flex items-center justify-center">
+              <Store className="text-white" size={20} />
+            </div>
           ) : (
-            <Link href="/" className="flex items-center justify-center hover:opacity-90 transition-opacity duration-200">
-              <div className="p-3 rounded-lg bg-brand-700 dark:bg-brand-900">
-                <img 
-                  src="/assets/logo plus background_1751815320608.png" 
-                  alt="DukaFiti - Duka Fiti ni Duka Bora" 
-                  className="h-10 w-auto max-w-[160px] drop-shadow-md"
-                />
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-purple-600 rounded-lg flex items-center justify-center">
+                <Store className="text-white" size={20} />
               </div>
-            </Link>
+              <div>
+                <h1 className="text-xl font-bold text-purple-600">DukaFiti</h1>
+                <p className="text-sm text-neutral-600 dark:text-neutral-400">Duka Fiti ni Duka Bora</p>
+              </div>
+            </div>
           )}
           
           {/* Mobile close button */}
@@ -119,8 +113,8 @@ export function Sidebar({ className, collapsed = false, toggleSidebar }: Sidebar
                     "flex items-center gap-3 p-3 rounded-lg transition-all duration-200",
                     isCollapsed && !isMobile ? "justify-center w-12 mx-auto" : "",
                     isActive
-                      ? "bg-brand text-white"
-                      : "bg-transparent text-neutral-800 dark:text-neutral-200 hover:bg-brand-50 hover:text-brand-700 dark:hover:bg-brand-900 dark:hover:text-brand-200"
+                      ? "bg-green-600 text-white"
+                      : "bg-transparent text-neutral-800 dark:text-neutral-200 hover:bg-green-100 hover:text-green-800 dark:hover:bg-green-900 dark:hover:text-green-200"
                   )}
                   onClick={() => setIsMobileMenuOpen(false)}
                   title={isCollapsed && !isMobile ? item.name : undefined}
@@ -128,7 +122,7 @@ export function Sidebar({ className, collapsed = false, toggleSidebar }: Sidebar
                   <Icon 
                     className={cn(
                       "w-6 h-6 flex-shrink-0",
-                      isActive ? "text-white" : "text-brand-600"
+                      isActive ? "text-white" : "text-purple-600"
                     )} 
                   />
                   {(!isCollapsed || isMobile) && (
@@ -149,12 +143,12 @@ export function Sidebar({ className, collapsed = false, toggleSidebar }: Sidebar
           <Button
             variant="ghost"
             onClick={toggleSidebar}
-            className="w-10 h-10 flex items-center justify-center bg-gray-100 dark:bg-gray-700 rounded-full hover:bg-brand-100 dark:hover:bg-brand-900 transition-colors duration-200 mx-auto"
+            className="w-10 h-10 flex items-center justify-center bg-gray-100 dark:bg-gray-700 rounded-full hover:bg-purple-100 dark:hover:bg-purple-900 transition-colors duration-200 mx-auto"
           >
             {collapsed ? (
-              <PanelLeftOpen className="w-5 h-5 text-brand-600" />
+              <PanelLeftOpen className="w-5 h-5 text-purple-600" />
             ) : (
-              <PanelLeftClose className="w-5 h-5 text-brand-600" />
+              <PanelLeftClose className="w-5 h-5 text-purple-600" />
             )}
           </Button>
         </div>
@@ -171,18 +165,16 @@ export function Sidebar({ className, collapsed = false, toggleSidebar }: Sidebar
             <Button
               variant="ghost"
               size="sm"
-              className="h-10 w-10 text-brand-600 hover:bg-brand-50 dark:hover:bg-brand-900"
+              className="h-10 w-10 text-purple-600 hover:bg-purple-50 dark:hover:bg-purple-900"
               onClick={() => setIsMobileMenuOpen(true)}
             >
               <Menu size={20} />
             </Button>
             <h1 className="text-xl font-semibold text-neutral-800 dark:text-neutral-200">{pageTitle}</h1>
           </div>
-          <img 
-            src="/assets/logo-icon.png" 
-            alt="DukaFiti" 
-            className="w-10 h-10"
-          />
+          <div className="w-10 h-10 bg-purple-600 rounded-lg flex items-center justify-center">
+            <Store className="text-white" size={20} />
+          </div>
         </div>
       </div>
 

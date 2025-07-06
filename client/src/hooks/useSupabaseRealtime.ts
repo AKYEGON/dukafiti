@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { supabase } from '../lib/supabase';
+import { supabase } from '../supabaseClient.ts';
 import { useAuth } from '../contexts/SupabaseAuth';
 
 export function useSupabaseRealtime() {

@@ -701,7 +701,7 @@ export default function Reports() {
             <Button
               onClick={exportDetailedCSV}
               disabled={exportingCSV === 'detailed'}
-              className="w-full bg-accent hover:bg-purple-700 text-white focus:ring-2 focus:ring-accent-500"
+              className="w-full bg-purple-600 hover:bg-purple-700 text-white focus:ring-2 focus:ring-purple-500"
             >
               <FileSpreadsheet className="h-4 w-4 mr-2" />
               {exportingCSV === 'detailed' ? 'Exporting...' : 'Export Detailed CSV'}

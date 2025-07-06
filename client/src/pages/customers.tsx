@@ -141,7 +141,7 @@ export default function Customers() {
           <div className="flex items-center justify-between">
             <Button 
               onClick={() => setShowNewCustomerForm(true)}
-              className="bg-accent hover:bg-purple-700 text-white min-h-[48px] px-6"
+              className="bg-purple-600 hover:bg-purple-700 text-white min-h-[48px] px-6"
               aria-label="Add new customer"
             >
               <Plus className="mr-2 h-5 w-5" />
@@ -223,7 +223,7 @@ export default function Customers() {
                       className={`
                         bg-white dark:bg-gray-800 
                         border-2 transition-all duration-300 cursor-pointer
-                        hover:shadow-xl hover:-translate-y-1 hover:shadow-accent-500/20
+                        hover:shadow-xl hover:-translate-y-1 hover:shadow-purple-500/20
                         ${hasDebt 
                           ? "border-green-500 shadow-lg shadow-green-500/10" 
                           : "border-gray-200 dark:border-gray-700"

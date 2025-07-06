@@ -300,7 +300,7 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
               </div>
 
               {/* Unknown Quantity Toggle */}
-              <div className="relative bg-gradient-to-r from-accent-50 to-indigo-50 dark:from-purple-950/30 dark:to-indigo-950/30 border border-purple-200 dark:border-purple-700 rounded-xl p-5 transition-all duration-200 hover:shadow-md">
+              <div className="relative bg-gradient-to-r from-purple-50 to-indigo-50 dark:from-purple-950/30 dark:to-indigo-950/30 border border-purple-200 dark:border-purple-700 rounded-xl p-5 transition-all duration-200 hover:shadow-md">
                 <div className="flex items-start space-x-4">
                   <div className="relative">
                     <Checkbox
@@ -313,7 +313,7 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
                           form.setValue("stock", 0);
                         }
                       }}
-                      className="w-5 h-5 data-[state=checked]:bg-accent data-[state=checked]:border-accent data-[state=checked]:text-white border-2 border-purple-300 dark:border-accent rounded-md transition-all duration-200 hover:border-purple-400 dark:hover:border-accent-500"
+                      className="w-5 h-5 data-[state=checked]:bg-purple-600 data-[state=checked]:border-purple-600 data-[state=checked]:text-white border-2 border-purple-300 dark:border-purple-600 rounded-md transition-all duration-200 hover:border-purple-400 dark:hover:border-purple-500"
                     />
                   </div>
                   <div className="flex-1">
@@ -323,13 +323,13 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
                     >
                       Unknown Quantity
                     </label>
-                    <p className="text-xs text-accent dark:text-purple-300 mt-2 leading-relaxed">
+                    <p className="text-xs text-purple-600 dark:text-purple-300 mt-2 leading-relaxed">
                       Check this for items measured in variable units (e.g., sacks sold by cups, services, or bulk items)
                     </p>
                   </div>
                 </div>
                 {/* Visual accent */}
-                <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-accent-500 to-indigo-500 rounded-l-xl"></div>
+                <div className="absolute top-0 left-0 w-1 h-full bg-gradient-to-b from-purple-500 to-indigo-500 rounded-l-xl"></div>
               </div>
             </div>
 
@@ -394,7 +394,7 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
               <Button
                 type="submit"
                 disabled={createMutation.isPending || updateMutation.isPending}
-                className="h-10 px-6 text-base bg-accent hover:bg-purple-700 text-white font-medium shadow-sm"
+                className="h-10 px-6 text-base bg-purple-600 hover:bg-purple-700 text-white font-medium shadow-sm"
               >
                 {createMutation.isPending || updateMutation.isPending
                   ? "Saving..."

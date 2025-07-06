@@ -175,12 +175,12 @@ export default function Inventory() {
               placeholder="Search by name, SKU, or category..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="pl-10 h-12 w-full border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:border-accent-500 dark:focus:border-purple-400 focus:ring-2 focus:ring-accent-500/20 dark:focus:ring-purple-400/20 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 transition-all duration-200 shadow-sm hover:shadow-md focus:shadow-lg"
+              className="pl-10 h-12 w-full border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:border-purple-500 dark:focus:border-purple-400 focus:ring-2 focus:ring-purple-500/20 dark:focus:ring-purple-400/20 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 transition-all duration-200 shadow-sm hover:shadow-md focus:shadow-lg"
               aria-label="Search products by name, SKU, or category"
             />
           </div>
           <Select value={sortBy} onValueChange={(value: SortOption) => setSortBy(value)}>
-            <SelectTrigger className="w-full sm:w-48 h-12 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:border-accent-500 dark:focus:border-purple-400 focus:ring-2 focus:ring-accent-500/20 dark:focus:ring-purple-400/20 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 transition-all duration-200">
+            <SelectTrigger className="w-full sm:w-48 h-12 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:border-purple-500 dark:focus:border-purple-400 focus:ring-2 focus:ring-purple-500/20 dark:focus:ring-purple-400/20 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 transition-all duration-200">
               <SelectValue placeholder="Sort by Name/Qty/Price" />
             </SelectTrigger>
             <SelectContent>
@@ -233,7 +233,7 @@ export default function Inventory() {
                   tabIndex={0}
                   className={`bg-white dark:bg-[#1F1F1F] rounded-lg shadow-lg hover:shadow-xl dark:shadow-[0_4px_12px_rgba(0,0,0,0.5)] hover:dark:shadow-[0_6px_16px_rgba(0,0,0,0.7)] transition-shadow duration-200 border-l-4 ${
                     isLowStock ? 'border-red-500' : 'border-green-500'
-                  } relative focus:outline-none focus:ring-2 focus:ring-accent-500 cursor-pointer`}
+                  } relative focus:outline-none focus:ring-2 focus:ring-purple-500 cursor-pointer`}
                   aria-label={`Product: ${product.name}`}
                 >
                   {/* Action Buttons - Top Right Corner */}

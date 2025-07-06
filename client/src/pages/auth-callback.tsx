@@ -109,7 +109,7 @@ export default function AuthCallback() {
             <div className="mt-6">
               <Button
                 onClick={() => navigate('/login')}
-                className="bg-accent hover:bg-accent-dark text-white w-full py-3 rounded-md font-semibold h-12"
+                className="bg-primaryPurple hover:bg-primaryPurple-dark text-white w-full py-3 rounded-md font-semibold h-12"
               >
                 Go to Login
               </Button>
@@ -155,7 +155,7 @@ export default function AuthCallback() {
           <div className="space-y-3">
             <Button
               onClick={handleRetry}
-              className="bg-accent hover:bg-accent-dark text-white w-full py-3 rounded-md font-semibold h-12"
+              className="bg-primaryPurple hover:bg-primaryPurple-dark text-white w-full py-3 rounded-md font-semibold h-12"
             >
               Try logging in again
             </Button>

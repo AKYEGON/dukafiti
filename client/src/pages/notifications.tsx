@@ -141,7 +141,7 @@ export function NotificationsPage() {
             {unreadCount > 0 && (
               <button
                 onClick={handleMarkAllRead}
-                className="text-sm text-accent dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 disabled:opacity-50 transition-colors"
+                className="text-sm text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300 disabled:opacity-50 transition-colors"
               >
                 Mark all as read
               </button>
@@ -208,7 +208,7 @@ export function NotificationsPage() {
                   key={notification.id}
                   className={`bg-white dark:bg-[#1F1F1F] border border-gray-200 dark:border-gray-700 rounded-lg p-4 shadow-sm hover:bg-gray-50 dark:hover:bg-[#2A2A2A] transition-colors ${
                     !notification.is_read 
-                      ? 'border-l-4 border-l-accent-500' 
+                      ? 'border-l-4 border-l-purple-500' 
                       : 'border-l-4 border-l-transparent'
                   }`}
                   role="button"
@@ -264,7 +264,7 @@ export function NotificationsPage() {
                             View
                           </Button>
                           {!notification.is_read && (
-                            <div className="w-2 h-2 bg-accent-500 rounded-full" aria-label="Unread" />
+                            <div className="w-2 h-2 bg-purple-500 rounded-full" aria-label="Unread" />
                           )}
                         </div>
                       </div>

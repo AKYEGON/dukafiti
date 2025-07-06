@@ -235,7 +235,7 @@ export default function Sales() {
       toast({
         title: "Product added",
         description: `${product.name} added to cart`,
-        className: "bg-brand-50 border-brand-200 text-brand-800",
+        className: "bg-green-50 border-green-200 text-green-800",
         duration: 2000,
       });
     }
@@ -330,7 +330,7 @@ export default function Sales() {
         toast({
           title: "Customer added",
           description: `${customer.name} has been added to your customers list`,
-          className: "bg-brand-50 border-brand-200 text-brand-800",
+          className: "bg-green-50 border-green-200 text-green-800",
           duration: 3000,
         });
       } catch (error) {
@@ -408,20 +408,15 @@ export default function Sales() {
     toast({
       title: "Product added",
       description: `${product.name} added to cart`,
-      className: "bg-brand-50 border-brand-200 text-brand-800",
+      className: "bg-green-50 border-green-200 text-green-800",
       duration: 2000,
     });
   };
 
   const createSaleMutation = useMutation({
     mutationFn: async (saleData: any) => {
-      console.log('=== SALES MUTATION START ===');
-      console.log('Sale data:', saleData);
-      console.log('Online status:', isOnline());
-      
       // Check if online
       if (!isOnline()) {
-        console.log('Processing offline sale...');
         // Queue sale for offline processing
         const queuedSaleId = await offlineQueue.queueSale({
           items: saleData.items.map((item: any) => ({
@@ -453,19 +448,13 @@ export default function Sales() {
       }
 
       // Online - proceed with direct Supabase call
-      console.log('Processing online sale...');
-      try {
-        const result = await createSale(saleData);
-        console.log('Sale creation result:', result);
-        return { 
-          success: true, 
-          status: saleData.paymentMethod === 'credit' ? 'pending' : 'paid', 
-          data: result 
-        };
-      } catch (error) {
-        console.error('Sale creation failed:', error);
-        throw error;
-      }
+      // Use the data as-is since it's already properly formatted from handleConfirmSale
+      const result = await createSale(saleData);
+      return { 
+        success: true, 
+        status: saleData.paymentMethod === 'credit' ? 'pending' : 'paid', 
+        data: result 
+      };
     },
     onSuccess: (result: any) => {
       // Close modal and clear cart
@@ -509,7 +498,7 @@ export default function Sales() {
         toast({ 
           title: "Sale completed successfully!", 
           description: `Payment received via ${paymentMethod}`,
-          className: "bg-brand-50 border-brand-200 text-brand-800",
+          className: "bg-green-50 border-green-200 text-green-800",
           duration: 3000,
         });
         
@@ -612,12 +601,12 @@ export default function Sales() {
                   setShowSearchDropdown(true);
                 }
               }}
-              className="w-full h-12 pl-10 pr-4 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:border-accent-500 dark:focus:border-purple-400 focus:outline-none bg-white dark:bg-gray-800 text-base transition-all duration-200"
+              className="w-full h-12 pl-10 pr-4 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:border-purple-500 dark:focus:border-purple-400 focus:outline-none bg-white dark:bg-gray-800 text-base transition-all duration-200"
               style={{ minHeight: '48px' }}
             />
             {searchLoading && (
               <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-accent-500"></div>
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-purple-500"></div>
               </div>
             )}
           </div>
@@ -640,7 +629,7 @@ export default function Sales() {
                     }}
                     className={`px-4 py-4 cursor-pointer border-b border-gray-100 dark:border-gray-700 last:border-b-0 transition-all duration-150 ${
                       index === selectedSearchIndex 
-                        ? 'bg-accent-50 dark:bg-purple-900/30 border-l-4 border-l-accent-500' 
+                        ? 'bg-purple-50 dark:bg-purple-900/30 border-l-4 border-l-purple-500' 
                         : 'hover:bg-gray-50 dark:hover:bg-gray-700/50'
                     }`}
                     style={{ minHeight: '60px' }}
@@ -655,7 +644,7 @@ export default function Sales() {
                         </p>
                       </div>
                       <div className="text-right ml-4 flex-shrink-0">
-                        <p className="text-lg font-bold text-accent dark:text-purple-400">
+                        <p className="text-lg font-bold text-purple-600 dark:text-purple-400">
                           {formatCurrency(product.price)}
                         </p>
                         <div className="text-xs bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 px-2 py-1 rounded-full mt-1">
@@ -702,7 +691,7 @@ export default function Sales() {
               <button
                 key={product.id}
                 onClick={() => handleQuickSelectProduct(product.id)}
-                className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg hover:bg-accent-50 dark:hover:bg-purple-900/20 hover:border-purple-200 dark:hover:border-purple-700 border border-transparent transition-all duration-200 text-left focus:outline-none focus:ring-2 focus:ring-accent-500 group"
+                className="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg hover:bg-purple-50 dark:hover:bg-purple-900/20 hover:border-purple-200 dark:hover:border-purple-700 border border-transparent transition-all duration-200 text-left focus:outline-none focus:ring-2 focus:ring-purple-500 group"
                 style={{ minHeight: '60px' }}
               >
                 <div className="flex justify-between items-center">
@@ -715,7 +704,7 @@ export default function Sales() {
                     </div>
                   </div>
                   <div className="text-right ml-2 flex-shrink-0">
-                    <div className="text-sm font-bold text-accent dark:text-purple-400 group-hover:text-purple-700 dark:group-hover:text-purple-300">
+                    <div className="text-sm font-bold text-purple-600 dark:text-purple-400 group-hover:text-purple-700 dark:group-hover:text-purple-300">
                       {formatCurrency(product.price)}
                     </div>
                   </div>
@@ -789,7 +778,7 @@ export default function Sales() {
             <div className="border-t pt-3 mt-4">
               <div className="flex justify-between items-center">
                 <span className="text-xl font-bold">Total</span>
-                <span className="text-2xl font-bold text-brand-600">
+                <span className="text-2xl font-bold text-green-600">
                   {formatCurrency(cartTotal.toFixed(2))}
                 </span>
               </div>
@@ -805,9 +794,9 @@ export default function Sales() {
           <div className="space-y-2">
             <button
               onClick={() => setPaymentMethod('cash')}
-              className={`w-full h-12 rounded-lg font-medium transition-all duration-200 flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-brand ${
+              className={`w-full h-12 rounded-lg font-medium transition-all duration-200 flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-green-600 ${
                 paymentMethod === 'cash'
-                  ? 'bg-brand text-white'
+                  ? 'bg-green-600 text-white'
                   : 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600'
               }`}
             >
@@ -817,9 +806,9 @@ export default function Sales() {
             
             <button
               onClick={() => setPaymentMethod('mobileMoney')}
-              className={`w-full h-12 rounded-lg font-medium transition-all duration-200 flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-brand ${
+              className={`w-full h-12 rounded-lg font-medium transition-all duration-200 flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-green-600 ${
                 paymentMethod === 'mobileMoney'
-                  ? 'bg-brand text-white'
+                  ? 'bg-green-600 text-white'
                   : 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600'
               }`}
             >
@@ -829,9 +818,9 @@ export default function Sales() {
             
             <button
               onClick={() => setPaymentMethod('credit')}
-              className={`w-full h-12 rounded-lg font-medium transition-all duration-200 flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-brand ${
+              className={`w-full h-12 rounded-lg font-medium transition-all duration-200 flex items-center justify-center gap-2 focus:outline-none focus:ring-2 focus:ring-green-600 ${
                 paymentMethod === 'credit'
-                  ? 'bg-brand text-white'
+                  ? 'bg-green-600 text-white'
                   : 'bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 hover:bg-gray-300 dark:hover:bg-gray-600'
               }`}
             >
@@ -848,9 +837,9 @@ export default function Sales() {
           ref={buttonRef}
           onClick={handleSellButtonClick}
           disabled={createSaleMutation.isPending}
-          className={`w-full h-14 text-lg font-semibold rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-brand ${
+          className={`w-full h-14 text-lg font-semibold rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-green-600 ${
             canProceed && !createSaleMutation.isPending
-              ? 'bg-brand hover:bg-brand-700 text-white transform active:scale-95'
+              ? 'bg-green-600 hover:bg-green-700 text-white transform active:scale-95'
               : 'bg-gray-400 text-gray-600 cursor-not-allowed'
           }`}
         >
