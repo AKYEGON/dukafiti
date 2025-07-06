@@ -415,8 +415,13 @@ export default function Sales() {
 
   const createSaleMutation = useMutation({
     mutationFn: async (saleData: any) => {
+      console.log('=== SALES MUTATION START ===');
+      console.log('Sale data:', saleData);
+      console.log('Online status:', isOnline());
+      
       // Check if online
       if (!isOnline()) {
+        console.log('Processing offline sale...');
         // Queue sale for offline processing
         const queuedSaleId = await offlineQueue.queueSale({
           items: saleData.items.map((item: any) => ({
@@ -448,13 +453,19 @@ export default function Sales() {
       }
 
       // Online - proceed with direct Supabase call
-      // Use the data as-is since it's already properly formatted from handleConfirmSale
-      const result = await createSale(saleData);
-      return { 
-        success: true, 
-        status: saleData.paymentMethod === 'credit' ? 'pending' : 'paid', 
-        data: result 
-      };
+      console.log('Processing online sale...');
+      try {
+        const result = await createSale(saleData);
+        console.log('Sale creation result:', result);
+        return { 
+          success: true, 
+          status: saleData.paymentMethod === 'credit' ? 'pending' : 'paid', 
+          data: result 
+        };
+      } catch (error) {
+        console.error('Sale creation failed:', error);
+        throw error;
+      }
     },
     onSuccess: (result: any) => {
       // Close modal and clear cart
