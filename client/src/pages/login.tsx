@@ -71,11 +71,15 @@ export default function Login() {
         
         {/* Logo/App Name - Enterprise Grade */}
         <div className="text-center mb-6">
-          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-primaryPurple shadow-lg">
-            <Store className="h-8 w-8 text-white" />
+          <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center">
+            <img 
+              src="/assets/logo-icon.svg" 
+              alt="DukaFiti" 
+              className="h-16 w-16"
+            />
           </div>
-          <h1 className="text-3xl font-bold text-primaryPurple text-center">DukaFiti</h1>
-          <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">Duka Fiti ni Duka Bora - Welcome back</p>
+          <h1 className="text-3xl font-bold bg-gradient-to-r from-brand-600 to-brand-500 bg-clip-text text-transparent text-center">DukaFiti</h1>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">Duka Bora ni Duka Fiti - Welcome back</p>
         </div>
 
         {/* Login Form */}
@@ -89,7 +93,7 @@ export default function Login() {
               type="email"
               placeholder="Enter your email"
               {...register('email')}
-              className="w-full px-4 py-3 border rounded-md h-12 focus:outline-none focus:ring-2 focus:ring-primaryGreen dark:bg-[#2A2A2A] dark:border-gray-600 dark:text-white transition-all duration-200"
+              className="w-full px-4 py-3 border rounded-md h-12 focus:outline-none focus:ring-2 focus:ring-brand dark:bg-[#2A2A2A] dark:border-gray-600 dark:text-white transition-all duration-200"
               aria-label="Email address"
             />
             {errors.email && (
@@ -109,13 +113,13 @@ export default function Login() {
                 type={showPassword ? 'text' : 'password'}
                 placeholder="Enter your password"
                 {...register('password')}
-                className="w-full px-4 py-3 border rounded-md h-12 focus:outline-none focus:ring-2 focus:ring-primaryGreen dark:bg-[#2A2A2A] dark:border-gray-600 dark:text-white transition-all duration-200 pr-12"
+                className="w-full px-4 py-3 border rounded-md h-12 focus:outline-none focus:ring-2 focus:ring-brand dark:bg-[#2A2A2A] dark:border-gray-600 dark:text-white transition-all duration-200 pr-12"
                 aria-label="Password"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 focus:outline-none focus:ring-2 focus:ring-primaryGreen rounded"
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 focus:outline-none focus:ring-2 focus:ring-brand rounded"
                 aria-label={showPassword ? 'Hide password' : 'Show password'}
               >
                 {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
@@ -131,7 +135,7 @@ export default function Login() {
           <Button 
             type="submit" 
             disabled={isLoading}
-            className="bg-primaryPurple hover:bg-primaryPurple-dark text-white w-full py-3 rounded-md font-semibold h-12 focus:outline-none focus:ring-2 focus:ring-primaryPurple transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="bg-brand hover:bg-brand-700 text-white w-full py-3 rounded-md font-semibold h-12 focus:outline-none focus:ring-2 focus:ring-brand transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
             aria-label="Log in to your account"
           >
             {isLoading ? (

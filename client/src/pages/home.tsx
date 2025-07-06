@@ -13,19 +13,19 @@ export default function Home() {
       icon: Store,
       title: "Smart Inventory",
       description: "Track stock levels, manage products, and never run out of your bestsellers",
-      accentColor: "border-l-green-500"
+      accentColor: "border-l-brand"
     },
     {
       icon: BarChart3,
       title: "Real-time Analytics",
       description: "Get instant insights on sales, profits, and customer behavior to grow faster",
-      accentColor: "border-l-purple-600"
+      accentColor: "border-l-accent"
     },
     {
       icon: Users,
       title: "Customer Management",
       description: "Build stronger relationships with customer profiles and purchase history",
-      accentColor: "border-l-green-500"
+      accentColor: "border-l-brand"
     }
   ];
 
@@ -49,9 +49,14 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
-            <div className="flex-shrink-0">
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-                Duka<span className="text-green-600">Fiti</span>
+            <div className="flex-shrink-0 flex items-center space-x-3">
+              <img 
+                src="/assets/logo-icon.svg" 
+                alt="DukaFiti" 
+                className="h-8 w-8"
+              />
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-brand-600 to-brand-500 bg-clip-text text-transparent">
+                DukaFiti
               </h1>
             </div>
 
@@ -93,19 +98,19 @@ export default function Home() {
       </nav>
 
       {/* Hero Section */}
-      <section className="bg-gradient-to-br from-green-50 to-purple-50 dark:from-gray-900 dark:to-gray-800 py-20 lg:py-32">
+      <section className="bg-gradient-to-br from-brand-50 to-accent-50 dark:from-gray-900 dark:to-gray-800 py-20 lg:py-32">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="lg:grid lg:grid-cols-12 lg:gap-8 items-center">
             <div className="lg:col-span-6">
               <h1 className="text-4xl lg:text-6xl font-bold text-gray-900 dark:text-white leading-tight mb-6">
-                DukaFiti – <span className="text-green-600">Duka Fiti ni Duka Bora</span>
+                DukaFiti – <span className="bg-gradient-to-r from-brand-600 to-brand-500 bg-clip-text text-transparent">Duka Bora ni Duka Fiti</span>
               </h1>
               <p className="text-xl text-gray-600 dark:text-gray-300 leading-relaxed mb-8">
                 Grow your business with intelligent inventory management, real-time sales tracking, and customer insights designed specifically for Kenyan retailers.
               </p>
               <Button
                 onClick={() => setLocation("/register")}
-                className="bg-green-600 hover:bg-green-700 text-white px-8 py-4 text-lg font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 w-full sm:w-auto"
+                className="bg-brand hover:bg-brand-700 text-white px-8 py-4 text-lg font-semibold rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 w-full sm:w-auto"
                 size="lg"
               >
                 Get Started – It's Free <ArrowRight className="ml-2 h-5 w-5" />
@@ -117,19 +122,19 @@ export default function Home() {
                 {/* Hero Graphic - SVG Illustration */}
                 <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-8 border border-gray-200 dark:border-gray-700">
                   <div className="space-y-4">
-                    <div className="flex items-center justify-between bg-green-50 dark:bg-green-900/20 p-4 rounded-lg">
+                    <div className="flex items-center justify-between bg-brand-50 dark:bg-brand-900/20 p-4 rounded-lg">
                       <div className="flex items-center space-x-3">
-                        <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                        <div className="w-3 h-3 bg-brand-500 rounded-full"></div>
                         <span className="text-sm font-medium text-gray-900 dark:text-white">Today's Sales</span>
                       </div>
-                      <span className="text-lg font-bold text-green-600">KES 45,680</span>
+                      <span className="text-lg font-bold text-brand-600">KES 45,680</span>
                     </div>
-                    <div className="flex items-center justify-between bg-purple-50 dark:bg-purple-900/20 p-4 rounded-lg">
+                    <div className="flex items-center justify-between bg-accent-50 dark:bg-accent-900/20 p-4 rounded-lg">
                       <div className="flex items-center space-x-3">
-                        <div className="w-3 h-3 bg-purple-600 rounded-full"></div>
+                        <div className="w-3 h-3 bg-accent-500 rounded-full"></div>
                         <span className="text-sm font-medium text-gray-900 dark:text-white">Products Sold</span>
                       </div>
-                      <span className="text-lg font-bold text-purple-600">127</span>
+                      <span className="text-lg font-bold text-accent-600">127</span>
                     </div>
                     <div className="flex items-center justify-between bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
                       <div className="flex items-center space-x-3">

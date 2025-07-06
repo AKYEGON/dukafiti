@@ -11,32 +11,32 @@ export default {
         sm: "calc(var(--radius) - 4px)",
       },
       colors: {
-        // Research-Based Triadic Color System (WCAG Compliant)
-        emerald: {
-          50: "#ecfdf5",
-          100: "#d1fae5", 
-          200: "#a7f3d0",
-          300: "#6ee7b7",
-          400: "#34d399",
-          500: "#10b981",
-          DEFAULT: "#059669",  // Primary emerald - WCAG AA: 4.52:1
-          700: "#047857",
-          800: "#065f46",
-          900: "#064e3b",
-          950: "#022c22"
+        // DukaFiti Brand Color System (WCAG Compliant)
+        brand: {
+          50: "#f5f3ff",
+          100: "#ede9fe",
+          200: "#ddd6fe",
+          300: "#c4b5fd",
+          400: "#a78bfa",
+          500: "#8b7ff8",  // Light gradient color
+          600: "#6366f1",  // Mid gradient color  
+          DEFAULT: "#4f46e5",  // Primary brand - Dark gradient color
+          800: "#3730a3",
+          900: "#312e81",
+          950: "#1e1b4b"
         },
-        lavender: {
-          50: "#faf5ff",
-          100: "#f3e8ff",
-          200: "#e9d5ff", 
-          300: "#d8b4fe",
-          400: "#c084fc",
-          500: "#a855f7",
-          600: "#9333ea",
-          DEFAULT: "#7c3aed",  // Primary lavender - WCAG AAA: 7.04:1  
-          800: "#6b21a8",
-          900: "#581c87",
-          950: "#3b0764"
+        accent: {
+          50: "#f0f9ff",
+          100: "#e0f2fe",
+          200: "#bae6fd",
+          300: "#7dd3fc",
+          400: "#38bdf8",
+          500: "#0ea5e9",
+          600: "#0284c7",
+          DEFAULT: "#0369a1",  // Accent blue
+          800: "#075985",
+          900: "#0c4a6e",
+          950: "#082f49"
         },
         neutral: {
           50: "#fafafa",

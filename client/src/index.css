@@ -70,16 +70,16 @@
   --muted: hsl(240, 5%, 96%);
   --muted-foreground: hsl(240, 4%, 46%);
   
-  /* Primary = Emerald Green (WCAG AA: 4.52:1) */
-  --primary: hsl(160, 84%, 39%);
+  /* Primary = DukaFiti Brand Purple (WCAG AA) */
+  --primary: hsl(239, 84%, 67%);
   --primary-foreground: hsl(0, 0%, 100%);
   
-  /* Secondary = Light Lavender Background */
-  --secondary: hsl(270, 40%, 95%);
+  /* Secondary = Light Brand Background */
+  --secondary: hsl(244, 100%, 98%);
   --secondary-foreground: hsl(240, 5%, 10%);
   
-  /* Accent = Lavender Purple (WCAG AAA: 7.04:1) */
-  --accent: hsl(258, 90%, 66%);
+  /* Accent = DukaFiti Light Purple */
+  --accent: hsl(245, 92%, 75%);
   --accent-foreground: hsl(0, 0%, 100%);
   
   /* Semantic & UI */
@@ -90,9 +90,9 @@
   --ring: hsl(160, 84%, 39%);
   --radius: 0.5rem;
   
-  /* Chart Colors (Triadic Harmony) */
-  --chart-1: hsl(160, 84%, 39%);
-  --chart-2: hsl(258, 90%, 66%);
+  /* Chart Colors (DukaFiti Brand Palette) */
+  --chart-1: hsl(239, 84%, 67%);
+  --chart-2: hsl(245, 92%, 75%);
   --chart-3: hsl(38, 92%, 50%);
   --chart-4: hsl(0, 84%, 60%);
   --chart-5: hsl(240, 4%, 46%);
@@ -100,12 +100,12 @@
   /* Business Dashboard Sidebar (Light Mode) */
   --sidebar-background: hsl(240, 5%, 10%);
   --sidebar-foreground: hsl(0, 0%, 100%);
-  --sidebar-primary: hsl(160, 84%, 39%);
+  --sidebar-primary: hsl(239, 84%, 67%);
   --sidebar-primary-foreground: hsl(0, 0%, 100%);
-  --sidebar-accent: hsl(258, 90%, 66%);
+  --sidebar-accent: hsl(245, 92%, 75%);
   --sidebar-accent-foreground: hsl(0, 0%, 100%);
   --sidebar-border: hsl(240, 4%, 16%);
-  --sidebar-ring: hsl(160, 84%, 39%);
+  --sidebar-ring: hsl(239, 84%, 67%);
 }
 
 .dark {
@@ -119,16 +119,16 @@
   --muted: hsl(240, 4%, 16%);
   --muted-foreground: hsl(240, 5%, 65%);
   
-  /* Primary = Emerald Green (Consistent in dark mode) */
-  --primary: hsl(160, 84%, 39%);
+  /* Primary = DukaFiti Brand Purple (Dark Mode) */
+  --primary: hsl(245, 92%, 75%);
   --primary-foreground: hsl(240, 10%, 4%);
   
   /* Secondary = Dark Neutral */
   --secondary: hsl(240, 4%, 16%);
   --secondary-foreground: hsl(0, 0%, 98%);
   
-  /* Accent = Brighter Emerald (Dark Mode Switch) */
-  --accent: hsl(160, 84%, 39%);
+  /* Accent = DukaFiti Mid Purple (Dark Mode) */
+  --accent: hsl(242, 86%, 70%);
   --accent-foreground: hsl(0, 0%, 98%);
   
   /* Semantic Colors (Dark Mode Adjusted) */
@@ -139,8 +139,8 @@
   --ring: hsl(160, 84%, 39%);
   
   /* Chart Colors (Dark Mode Optimized) */
-  --chart-1: hsl(160, 84%, 39%);
-  --chart-2: hsl(258, 90%, 66%);
+  --chart-1: hsl(245, 92%, 75%);
+  --chart-2: hsl(239, 84%, 67%);
   --chart-3: hsl(38, 92%, 50%);
   --chart-4: hsl(0, 84%, 60%);
   --chart-5: hsl(0, 0%, 98%);
@@ -148,12 +148,12 @@
   /* Business Dashboard Sidebar (Dark Mode) */
   --sidebar-background: hsl(240, 10%, 4%);
   --sidebar-foreground: hsl(0, 0%, 98%);
-  --sidebar-primary: hsl(160, 84%, 39%);
+  --sidebar-primary: hsl(245, 92%, 75%);
   --sidebar-primary-foreground: hsl(0, 0%, 98%);
-  --sidebar-accent: hsl(160, 84%, 39%);
+  --sidebar-accent: hsl(239, 84%, 67%);
   --sidebar-accent-foreground: hsl(0, 0%, 98%);
   --sidebar-border: hsl(240, 4%, 16%);
-  --sidebar-ring: hsl(160, 84%, 39%);
+  --sidebar-ring: hsl(245, 92%, 75%);
 }
 
 @layer base {
