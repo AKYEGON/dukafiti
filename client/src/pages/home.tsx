@@ -50,11 +50,13 @@ export default function Home() {
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
             <div className="flex-shrink-0 flex items-center">
-              <img 
-                src="/assets/logo-full.png" 
-                alt="DukaFiti - Duka Fiti ni Duka Bora" 
-                className="h-8 w-auto max-w-[120px]"
-              />
+              <div className="px-3 py-2 rounded-lg bg-brand dark:bg-brand-700">
+                <img 
+                  src="/assets/logo-full.png" 
+                  alt="DukaFiti - Duka Fiti ni Duka Bora" 
+                  className="h-6 w-auto max-w-[100px] drop-shadow-md"
+                />
+              </div>
             </div>
 
             {/* Desktop Navigation */}
