@@ -1055,6 +1055,7 @@ export const getNotifications = async (limit = 50) => {
     const { data, error } = await supabase
       .from('notifications')
       .select('*')
+      .eq('user_id', 1) // Filter by current user
       .order('created_at', { ascending: false })
       .limit(limit);
     
@@ -1070,7 +1071,7 @@ export const getNotifications = async (limit = 50) => {
   }
 };
 
-export const markNotificationAsRead = async (notificationId: string) => {
+export const markNotificationAsRead = async (notificationId: number) => {
   try {
     console.log('Marking notification as read:', notificationId);
     
@@ -1078,6 +1079,7 @@ export const markNotificationAsRead = async (notificationId: string) => {
       .from('notifications')
       .update({ is_read: true })
       .eq('id', notificationId)
+      .eq('user_id', 1)
       .select()
       .single();
     
@@ -1101,6 +1103,7 @@ export const markAllNotificationsAsRead = async () => {
     const { data, error } = await supabase
       .from('notifications')
       .update({ is_read: true })
+      .eq('user_id', 1)
       .eq('is_read', false)
       .select();
     

@@ -10,7 +10,7 @@ import {
 } from '@/lib/supabase-data';
 
 export interface Notification {
-  id: string;
+  id: number;
   type: string; // Made more flexible to handle legacy types like 'info', 'success'
   title: string;
   message?: string;
@@ -44,7 +44,7 @@ export function useNotifications() {
   }, [toast]);
 
   // Mark notification as read
-  const markAsRead = useCallback(async (notificationId: string, showToast: boolean = false) => {
+  const markAsRead = useCallback(async (notificationId: number, showToast: boolean = false) => {
     // Optimistic update - update UI immediately
     const previousNotifications = notifications;
     const previousUnreadCount = unreadCount;
@@ -143,7 +143,8 @@ export function useNotifications() {
       .on('postgres_changes', {
         event: 'INSERT',
         schema: 'public',
-        table: 'notifications'
+        table: 'notifications',
+        filter: 'user_id=eq.1'
       }, (payload) => {
         const newNotification = payload.new as Notification;
         
@@ -161,7 +162,8 @@ export function useNotifications() {
       .on('postgres_changes', {
         event: 'UPDATE',
         schema: 'public',
-        table: 'notifications'
+        table: 'notifications',
+        filter: 'user_id=eq.1'
       }, (payload) => {
         const updatedNotification = payload.new as Notification;
         

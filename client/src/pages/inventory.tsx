@@ -102,124 +102,134 @@ export default function Inventory() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Responsive Sticky Top Toolbar */}
-      <div className="sticky top-0 z-10 bg-background border-b border-border px-4 sm:px-6 py-4">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <h1 className="text-xl sm:text-2xl font-semibold">Inventory</h1>
-          
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-4 flex-1 sm:max-w-lg">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-              <Input
-                placeholder="Search products..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="pl-10 min-h-[48px]"
-              />
-            </div>
-            
-            <Button
-              onClick={() => setShowProductForm(true)}
-              className="bg-purple-600 hover:bg-purple-700 text-white min-h-[48px] px-4 whitespace-nowrap"
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Add Product
-            </Button>
-          </div>
+    <div className="min-h-screen bg-gray-50 dark:bg-[#1F1F1F]">
+      {/* Sticky Header */}
+      <div className="sticky top-0 z-10 bg-white/95 dark:bg-[#1F1F1F]/95 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700 px-6 py-4">
+        <div className="flex items-center justify-between">
+          <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">
+            Inventory
+          </h1>
+          <Button 
+            onClick={() => setShowProductForm(true)} 
+            className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white"
+          >
+            <Plus className="w-4 h-4" />
+            Add Product
+          </Button>
         </div>
-        
-        {/* Sort dropdown */}
-        <div className="mt-4 flex justify-start sm:justify-end">
+
+        {/* Search and Sort Bar */}
+        <div className="mt-4 flex flex-col sm:flex-row gap-4">
+          <div className="relative flex-1 max-w-md">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+            <Input
+              placeholder="Search products..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-10 w-full px-4 py-2 border rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
+              aria-label="Search products"
+            />
+          </div>
           <Select value={sortBy} onValueChange={(value: SortOption) => setSortBy(value)}>
-            <SelectTrigger className="w-full sm:w-48 min-h-[48px]">
-              <SelectValue placeholder="Sort by..." />
+            <SelectTrigger className="w-full sm:w-48 ml-4">
+              <SelectValue placeholder="Sort by Name/Qty/Price" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="name-asc">Name ▲</SelectItem>
-              <SelectItem value="name-desc">Name ▼</SelectItem>
-              <SelectItem value="price-asc">Price ▲</SelectItem>
-              <SelectItem value="price-desc">Price ▼</SelectItem>
+              <SelectItem value="name-asc">Name (A-Z)</SelectItem>
+              <SelectItem value="name-desc">Name (Z-A)</SelectItem>
+              <SelectItem value="price-asc">Price (Low to High)</SelectItem>
+              <SelectItem value="price-desc">Price (High to Low)</SelectItem>
             </SelectContent>
           </Select>
         </div>
       </div>
 
-      {/* Main Content with Responsive Container */}
-      <div className="container mx-auto px-4 sm:px-6 py-4 sm:py-6">
+      {/* Main Content with Professional Grid Layout */}
+      <div className="px-6 py-6">
         {isLoading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+          /* Loading Skeleton */
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {[...Array(6)].map((_, i) => (
-              <div key={i} className="bg-white dark:bg-[#1F1F1F] border border-gray-200 dark:border-gray-700 rounded-lg p-4 sm:p-6">
-                <Skeleton className="h-6 w-3/4 mb-3" />
-                <Skeleton className="h-4 w-1/2 mb-2" />
-                <Skeleton className="h-4 w-1/3 mb-2" />
-                <Skeleton className="h-4 w-1/4 mb-4" />
-                <div className="flex gap-2">
-                  <Skeleton className="h-8 w-16" />
-                  <Skeleton className="h-8 w-20" />
-                </div>
-              </div>
+              <div key={i} className="animate-pulse bg-gray-200 dark:bg-gray-700 rounded-lg h-32 border-l-4 border-gray-300"></div>
             ))}
           </div>
         ) : filteredAndSortedProducts.length === 0 ? (
+          /* Empty State */
           <div className="text-center py-12">
-            <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <p className="text-muted-foreground text-lg">
+            <Package className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
               {search ? "No products found" : "No products available"}
+            </h3>
+            <p className="text-gray-500 dark:text-gray-400 mb-6">
+              {search ? "Try adjusting your search terms" : "Add your first product to get started"}
             </p>
+            {!search && (
+              <Button 
+                onClick={() => setShowProductForm(true)}
+                className="bg-green-600 hover:bg-green-700 text-white"
+              >
+                Add your first product
+              </Button>
+            )}
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-            {filteredAndSortedProducts.map((product) => (
-              <div
-                key={product.id}
-                className="bg-white dark:bg-[#1F1F1F] border border-gray-200 dark:border-gray-700 rounded-lg p-4 shadow-md hover:shadow-lg transition-shadow duration-200 dark:shadow-[0_4px_8px_rgba(0,0,0,0.5)]"
-              >
-                {/* Product Name */}
-                <h3 className="text-lg font-bold text-foreground mb-2">{product.name}</h3>
-                
-                {/* Unit Price */}
-                <p className="text-base text-foreground mb-2">
-                  KES {parseFloat(product.price).toLocaleString()}
-                </p>
-                
-                {/* Stock and Threshold */}
-                <div className="space-y-1 mb-4">
-                  <p className="text-sm text-muted-foreground">
-                    <span className="font-medium">Qty:</span> {product.stock === null ? "—" : product.stock}
-                  </p>
-                  {product.stock !== null && (
-                    <p className="text-sm text-muted-foreground">
-                      <span className="font-medium">Low Stock:</span> {product.lowStockThreshold}
+          /* Product Grid - Desktop: 3 columns, Tablet: 2 columns, Mobile: 1 column */
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredAndSortedProducts.map((product) => {
+              const isLowStock = product.stock !== null && product.stock <= (product.lowStockThreshold || 10);
+              
+              return (
+                <div
+                  key={product.id}
+                  tabIndex={0}
+                  className={`bg-white dark:bg-[#1F1F1F] rounded-lg shadow-lg hover:shadow-xl dark:shadow-[0_4px_12px_rgba(0,0,0,0.5)] hover:dark:shadow-[0_6px_16px_rgba(0,0,0,0.7)] transition-shadow duration-200 border-l-4 ${
+                    isLowStock ? 'border-red-500' : 'border-green-500'
+                  } relative focus:outline-none focus:ring-2 focus:ring-purple-500 cursor-pointer`}
+                  aria-label={`Product: ${product.name}`}
+                >
+                  {/* Action Buttons - Top Right Corner */}
+                  <div className="absolute top-4 right-4 flex gap-1">
+                    <button
+                      onClick={() => handleEdit(product)}
+                      className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 hover:text-green-600 transition-colors"
+                      aria-label="Edit product"
+                    >
+                      <Edit className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => handleDelete(product)}
+                      className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 hover:text-red-600 transition-colors"
+                      aria-label="Delete product"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  <div className="p-6 pr-20">
+                    {/* Product Name */}
+                    <h3 className="text-lg font-semibold mb-1 text-gray-900 dark:text-gray-100">
+                      {product.name}
+                    </h3>
+                    
+                    {/* Price */}
+                    <p className="text-base text-gray-700 dark:text-gray-300 mb-3">
+                      KES {parseFloat(product.price).toLocaleString()}
                     </p>
-                  )}
-                  {product.stock === null && (
-                    <p className="text-sm text-amber-600 dark:text-amber-400">
-                      <span className="font-medium">Unknown quantity</span>
-                    </p>
-                  )}
+                    
+                    {/* Quantity and Threshold on same line */}
+                    <div className="text-sm text-gray-500 dark:text-gray-400">
+                      {product.stock !== null ? (
+                        <span>Qty: {product.stock} | Min: {product.lowStockThreshold || 10}</span>
+                      ) : (
+                        <span className="text-amber-600 dark:text-amber-400 font-medium">
+                          Unknown quantity
+                        </span>
+                      )}
+                    </div>
+                  </div>
                 </div>
-                
-                {/* Action Buttons */}
-                <div className="flex gap-2 mt-4">
-                  <Button
-                    onClick={() => handleEdit(product)}
-                    className="flex-1 md:flex-none md:px-4 py-1 bg-green-600 hover:bg-green-700 text-white rounded-md transition-colors duration-200"
-                  >
-                    <Edit className="h-4 w-4 mr-1" />
-                    Edit
-                  </Button>
-                  <Button
-                    onClick={() => handleDelete(product)}
-                    className="flex-1 md:flex-none md:px-4 py-1 bg-red-600 hover:bg-red-700 text-white rounded-md transition-colors duration-200"
-                  >
-                    <Trash2 className="h-4 w-4 mr-1" />
-                    Delete
-                  </Button>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
