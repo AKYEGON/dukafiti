@@ -1030,16 +1030,57 @@ export const updateStoreProfile = async (profileData: {
   }
 };
 
+// Check if notifications table exists and create it if needed
+export const ensureNotificationsTableExists = async () => {
+  try {
+    // Try to query the table to see if it exists
+    const { error } = await supabase
+      .from('notifications')
+      .select('id')
+      .limit(1);
+    
+    if (error && error.code === 'PGRST116') {
+      // Table doesn't exist, create it using RPC call
+      console.log('Notifications table does not exist, creating it...');
+      
+      const { error: createError } = await supabase.rpc('create_notifications_table_if_not_exists');
+      
+      if (createError) {
+        console.error('Error creating notifications table:', createError);
+        throw createError;
+      }
+      
+      console.log('Notifications table created successfully');
+    } else if (error) {
+      throw error;
+    }
+    
+    return true;
+  } catch (error) {
+    console.error('Error checking/creating notifications table:', error);
+    return false;
+  }
+};
+
 // Notifications operations
 export const getNotifications = async (limit = 50) => {
-  const { data, error } = await supabase
-    .from('notifications')
-    .select('*')
-    .order('created_at', { ascending: false })
-    .limit(limit);
-  
-  if (error) throw error;
-  return data;
+  try {
+    const { data, error } = await supabase
+      .from('notifications')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .limit(limit);
+    
+    if (error) {
+      console.error('Error fetching notifications:', error);
+      throw error;
+    }
+    
+    return data || [];
+  } catch (error) {
+    console.error('getNotifications error:', error);
+    throw error;
+  }
 };
 
 export const markNotificationAsRead = async (notificationId: string) => {
@@ -1066,17 +1107,29 @@ export const createNotification = async (notification: {
   message?: string;
   metadata?: Record<string, any>;
 }) => {
-  const { data, error } = await supabase
-    .from('notifications')
-    .insert([{
-      ...notification,
-      user_id: 1 // Default user - adjust as needed
-    }])
-    .select()
-    .single();
-  
-  if (error) throw error;
-  return data;
+  try {
+    console.log('Creating notification:', notification);
+    
+    const { data, error } = await supabase
+      .from('notifications')
+      .insert([{
+        ...notification,
+        user_id: 1 // Default user - adjust as needed
+      }])
+      .select()
+      .single();
+    
+    if (error) {
+      console.error('Supabase notification creation error:', error);
+      throw new Error(`Failed to create notification: ${error.message}`);
+    }
+    
+    console.log('Notification created successfully:', data);
+    return data;
+  } catch (error) {
+    console.error('createNotification error:', error);
+    throw error;
+  }
 };
 
 export const getUnreadNotificationCount = async () => {

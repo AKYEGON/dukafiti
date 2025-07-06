@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { useNotifications } from '@/hooks/useNotifications';
 import { useToast } from '@/hooks/use-toast';
 import { 
@@ -38,11 +39,19 @@ export function NotificationsTester() {
         description: `${title} notification sent successfully`,
         className: 'bg-green-50 border-green-200 text-green-800'
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error creating test notification:', error);
+      
+      let errorMessage = 'Failed to create test notification';
+      if (error?.message?.includes('relation "public.notifications" does not exist')) {
+        errorMessage = 'Notifications table does not exist. Please create it in Supabase first.';
+      } else if (error?.message) {
+        errorMessage = error.message;
+      }
+      
       toast({
         title: 'Error',
-        description: 'Failed to create test notification',
+        description: errorMessage,
         variant: 'destructive'
       });
     } finally {
@@ -134,6 +143,24 @@ export function NotificationsTester() {
         <p className="text-sm text-gray-600 dark:text-gray-400">
           Create test notifications to verify the notifications system is working correctly.
         </p>
+        
+        <Alert className="mt-4 border-blue-200 bg-blue-50 dark:bg-blue-900/10">
+          <AlertDescription className="text-sm">
+            <strong>Setup Required:</strong> If notifications fail, run this SQL in your Supabase SQL editor:
+            <code className="block mt-2 p-2 bg-gray-100 dark:bg-gray-800 rounded text-xs">
+              {`CREATE TABLE IF NOT EXISTS notifications (
+  id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  type text NOT NULL CHECK (type IN ('low_stock', 'payment_received', 'sync_failed', 'sale_completed', 'customer_payment')),
+  title text NOT NULL,
+  message text,
+  is_read boolean DEFAULT false,
+  created_at timestamp with time zone DEFAULT now(),
+  user_id integer DEFAULT 1,
+  metadata jsonb DEFAULT '{}'::jsonb
+);`}
+            </code>
+          </AlertDescription>
+        </Alert>
       </CardHeader>
       
       <CardContent className="space-y-4">

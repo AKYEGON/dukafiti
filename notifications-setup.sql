@@ -1,7 +1,7 @@
 -- DukaFiti Notifications System Setup
 -- Run this in your Supabase SQL editor
 
--- Create notifications table
+-- Create notifications table (simplified structure for compatibility)
 CREATE TABLE IF NOT EXISTS notifications (
   id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
   type text NOT NULL CHECK (type IN ('low_stock', 'payment_received', 'sync_failed', 'sale_completed', 'customer_payment')),
@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS notifications (
   message text,
   is_read boolean DEFAULT false,
   created_at timestamp with time zone DEFAULT now(),
-  user_id integer REFERENCES users(id),
+  user_id integer DEFAULT 1,
   metadata jsonb DEFAULT '{}'::jsonb
 );
 
