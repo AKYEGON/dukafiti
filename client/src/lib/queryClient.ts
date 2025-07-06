@@ -1,6 +1,6 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
 import { offlineCapableFetch } from "./enhanced-offline-queue";
-import { supabase } from "../supabaseClient";
+import { supabase } from "./supabase";
 
 async function throwIfResNotOk(res: Response) {
   // Handle queued responses (status 202)
