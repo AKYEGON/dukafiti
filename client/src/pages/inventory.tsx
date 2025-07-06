@@ -25,6 +25,8 @@ import { Search, Package, Edit, Trash2, Plus } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useNotifications } from "@/hooks/useNotifications";
+import { getProducts, updateProduct, deleteProduct, createProduct } from "@/lib/supabase-data";
 
 type SortOption = "name-asc" | "name-desc" | "price-asc" | "price-desc";
 
@@ -36,6 +38,7 @@ export default function Inventory() {
   const [deleteProduct, setDeleteProduct] = useState<Product | undefined>();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { createNotification } = useNotifications();
 
   const { data: products, isLoading } = useQuery<Product[]>({
     queryKey: ["products"],

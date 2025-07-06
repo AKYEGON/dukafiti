@@ -761,6 +761,24 @@ export const createSale = async (saleData: any) => {
       }
     }
     
+    // Check for low stock and create notifications
+    try {
+      const updatedProducts = saleData.items
+        .filter((item: any) => item.hasStock && item.newStock !== null)
+        .map((item: any) => ({
+          id: item.productId,
+          name: item.productName,
+          stock: item.newStock
+        }));
+      
+      if (updatedProducts.length > 0) {
+        await checkAndNotifyLowStock(updatedProducts);
+      }
+    } catch (lowStockError) {
+      console.error('Error checking low stock:', lowStockError);
+      // Don't throw - low stock notifications are not critical for sale completion
+    }
+    
     // If credit sale, update customer balance
     if (saleData.paymentMethod === 'credit' && saleData.customerId) {
       const { error: balanceError } = await supabase
@@ -1152,6 +1170,30 @@ export const createNotification = async (notification: {
   } catch (error) {
     console.error('createNotification error:', error);
     throw error;
+  }
+};
+
+// Low stock check function - creates notifications for products running low
+export const checkAndNotifyLowStock = async (updatedProducts: Array<{id: number, name: string, stock: number | null}>) => {
+  try {
+    const LOW_STOCK_THRESHOLD = 10;
+    
+    for (const product of updatedProducts) {
+      // Skip products with unknown stock (null)
+      if (product.stock === null) continue;
+      
+      // Check if stock is low
+      if (product.stock <= LOW_STOCK_THRESHOLD) {
+        // Create low stock notification
+        await createNotification({
+          type: 'low_stock',
+          title: 'Low Stock Alert',
+          message: `${product.name} is running low (Stock: ${product.stock})`
+        });
+      }
+    }
+  } catch (error) {
+    console.error('Error checking low stock:', error);
   }
 };
 

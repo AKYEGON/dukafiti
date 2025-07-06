@@ -11,6 +11,7 @@ import { offlineQueue, isOnline } from "@/lib/offline-queue";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SaleConfirmationModal } from "@/components/sales/sale-confirmation-modal";
 import { createSale, getProducts, searchProducts, createCustomer, getCustomers } from "@/lib/supabase-data";
+import { useNotifications } from "@/hooks/useNotifications";
 
 
 
@@ -28,6 +29,7 @@ export default function Sales() {
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { createNotification } = useNotifications();
   const buttonRef = useRef<HTMLButtonElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
@@ -423,6 +425,8 @@ export default function Sales() {
       
       // Show appropriate toast based on status
       const status = result.status;
+      const totalAmount = cartItems.reduce((sum, item) => sum + parseFloat(item.total), 0);
+      
       if (status === 'queued') {
         toast({ 
           title: "Sale queued – offline mode", 
@@ -437,6 +441,14 @@ export default function Sales() {
           className: "bg-green-50 border-green-200 text-green-800",
           duration: 3000,
         });
+        
+        // Create notification for completed sale
+        createNotification({
+          type: 'sale_completed',
+          title: 'Sale Completed',
+          message: `Sale of ${formatCurrency(totalAmount)} completed via ${paymentMethod}`
+        }).catch(err => console.error('Failed to create sale notification:', err));
+        
       } else if (status === 'pending') {
         toast({ 
           title: "Credit sale recorded", 
@@ -444,6 +456,13 @@ export default function Sales() {
           className: "bg-yellow-50 border-yellow-200 text-yellow-800",
           duration: 3000,
         });
+        
+        // Create notification for credit sale
+        createNotification({
+          type: 'customer_payment',
+          title: 'Credit Sale Recorded',
+          message: `Credit sale of ${formatCurrency(totalAmount)} recorded for customer`
+        }).catch(err => console.error('Failed to create credit sale notification:', err));
       }
     },
     onError: (error: any) => {
