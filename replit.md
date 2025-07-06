@@ -443,6 +443,12 @@ Changelog:
 - July 6, 2025. Enhanced TopBar bell icon to automatically mark all notifications as read when dropdown opens
 - July 6, 2025. Added proper real-time subscription cleanup using supabase.removeChannel() to prevent memory leaks
 - July 6, 2025. Updated notification badge count to calculate from local state for immediate UI updates
+- July 6, 2025. Fixed notification system to show only real contextual notifications with proper payload data
+- July 6, 2025. Enhanced notification creation functions across all sales, inventory, and customer operations
+- July 6, 2025. Added notification cleanup functionality to NotificationsTester for managing test notifications
+- July 6, 2025. Verified auto-mark-as-read functionality works when notification bell is clicked
+- July 6, 2025. Enhanced notification panel to render specific contextual messages based on payload data
+- July 6, 2025. Verified real-time inventory updates reflect stock changes immediately after sales
 ```
 
 ## User Preferences
