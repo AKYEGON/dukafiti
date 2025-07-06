@@ -1,12 +1,12 @@
 {
-  "name": "DukaFiti",
+  "name": "DukaFiti - Shop Management",
   "short_name": "DukaFiti",
-  "description": "DukaFiti - Duka Fiti ni Duka Bora. Comprehensive business management platform for inventory, sales, and customer management",
+  "description": "Complete offline shop management solution. Duka Fiti ni Duka Bora - Smart POS for Kenyan Dukawalas",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#000000",
-  "theme_color": "#00AA00",
   "orientation": "portrait-primary",
+  "background_color": "#7C3AED",
+  "theme_color": "#10B981",
   "scope": "/",
   "icons": [
     {
@@ -22,7 +22,22 @@
       "purpose": "maskable any"
     }
   ],
-  "categories": ["business", "productivity", "finance"],
+  "screenshots": [
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "DukaFiti mobile dashboard"
+    }
+  ],
+  "categories": ["business", "productivity", "shopping"],
+  "features": [
+    "offline-support",
+    "background-sync",
+    "push-notifications"
+  ],
+  "prefer_related_applications": false,
   "lang": "en",
   "dir": "ltr"
 }

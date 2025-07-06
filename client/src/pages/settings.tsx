@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Store, RotateCcw, Moon, Sun, Edit2, Check, X } from "lucide-react";
+import { Store, RotateCcw, Moon, Sun, Edit2, Check, X, Wifi } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { useTheme } from "@/contexts/theme-context";
 import { getStoreProfile, updateStoreProfile } from "@/lib/supabase-data";
+import { OfflineSettings } from "@/components/offline/OfflineSettings";
 
 // Form validation schemas
 const storeProfileSchema = z.object({
@@ -321,6 +322,18 @@ export default function SettingsPage() {
               />
             </div>
           </EditableSection>
+
+          {/* Offline & Sync Management Section - Full Width */}
+          <div className="lg:col-span-2">
+            <EditableSection
+              title="Offline & Sync Management"
+              icon={Wifi}
+              isEditing={false}
+              onEditToggle={() => {}}
+            >
+              <OfflineSettings />
+            </EditableSection>
+          </div>
 
           {/* Manual Sync Section - Full Width */}
           <div className="lg:col-span-2">

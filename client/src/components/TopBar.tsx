@@ -3,6 +3,7 @@ import { useLocation } from 'wouter';
 import { useQuery } from '@tanstack/react-query';
 import { formatDistanceToNow } from 'date-fns';
 import { useAuth } from '@/contexts/SupabaseAuth';
+import { OfflineIndicator } from '@/components/offline/OfflineIndicator';
 import { 
   Search, 
   Bell, 
@@ -296,6 +297,9 @@ export function TopBar({ onToggleSidebar, isSidebarCollapsed }: TopBarProps) {
 
         {/* Right Section - Actions */}
         <div className="flex items-center gap-2 ml-4 flex-shrink-0 min-w-[100px] justify-end">
+
+          {/* Offline Status Indicator */}
+          <OfflineIndicator />
 
           {/* Notifications */}
           <div className="relative" ref={notificationRef}>

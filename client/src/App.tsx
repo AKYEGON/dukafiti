@@ -10,12 +10,15 @@ import { TopBar } from "@/components/TopBar";
 import { config } from "./lib/config";
 
 import { AuthProvider, useAuth } from "@/contexts/SupabaseAuth";
+import { OfflineProvider } from "@/contexts/OfflineContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { useWebSocket } from "@/hooks/use-websocket";
 import { useSupabaseRealtime } from "@/hooks/useSupabaseRealtime";
 import { ThemeProvider } from "@/contexts/theme-context";
 import { OfflineBanner } from "@/components/OfflineBanner";
 import { ErrorBoundary } from "@/components/error-boundary";
+import { InstallButton } from "@/components/offline/InstallButton";
+import { registerServiceWorker } from "@/lib/sw-registration";
 
 import Dashboard from "@/pages/dashboard";
 import Inventory from "@/pages/inventory";
@@ -45,6 +48,11 @@ function AuthenticatedApp() {
     console.log('API Base URL:', config.api.baseUrl);
     console.log('Supabase URL:', config.supabase.url);
     console.log('Environment:', config.app.isDevelopment ? 'Development' : 'Production');
+    
+    // Register service worker for offline functionality
+    registerServiceWorker().catch(error => {
+      console.error('Service worker registration failed:', error);
+    });
   }, []);
   
   // Sidebar collapse state
@@ -180,11 +188,14 @@ function App() {
       <QueryClientProvider client={queryClient}>
         <ThemeProvider>
           <AuthProvider>
-            <TooltipProvider>
-              <Router />
-              <OfflineBanner />
-              <Toaster />
-            </TooltipProvider>
+            <OfflineProvider>
+              <TooltipProvider>
+                <Router />
+                <OfflineBanner />
+                <InstallButton />
+                <Toaster />
+              </TooltipProvider>
+            </OfflineProvider>
           </AuthProvider>
         </ThemeProvider>
       </QueryClientProvider>
