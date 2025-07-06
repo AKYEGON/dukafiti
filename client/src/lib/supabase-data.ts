@@ -1091,3 +1091,129 @@ export const getRecentOrders = async () => {
     return [];
   }
 };
+
+// Store Profile operations
+export const getStoreProfile = async () => {
+  try {
+    console.log('Fetching store profile');
+    
+    // First, try to get from users table (current user's profile)
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      throw new Error('User not authenticated');
+    }
+    
+    // Check if we have a separate store_profiles table or use user metadata
+    const { data: storeProfile, error: storeError } = await supabase
+      .from('store_profiles')
+      .select('*')
+      .eq('user_id', user.id)
+      .single();
+    
+    if (storeError && storeError.code !== 'PGRST116') { // PGRST116 = no rows returned
+      console.error('Error fetching store profile:', storeError);
+      
+      // If store_profiles table doesn't exist, return default values
+      if (storeError.message.includes('relation "store_profiles" does not exist')) {
+        console.log('Store profiles table does not exist, returning default values');
+        return {
+          storeName: '',
+          ownerName: '',
+          address: ''
+        };
+      }
+      
+      throw storeError;
+    }
+    
+    if (storeProfile) {
+      return {
+        storeName: storeProfile.store_name || '',
+        ownerName: storeProfile.owner_name || '',
+        address: storeProfile.address || ''
+      };
+    }
+    
+    // If no store profile exists, return empty defaults
+    return {
+      storeName: '',
+      ownerName: '',
+      address: ''
+    };
+  } catch (error) {
+    console.error('Store profile fetch failed:', error);
+    // Return default values instead of throwing
+    return {
+      storeName: '',
+      ownerName: '',
+      address: ''
+    };
+  }
+};
+
+export const updateStoreProfile = async (profileData: {
+  storeName: string;
+  ownerName: string;
+  address: string;
+}) => {
+  try {
+    console.log('Updating store profile:', profileData);
+    
+    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!user) {
+      throw new Error('User not authenticated');
+    }
+    
+    // Try to update existing profile or create new one
+    const { data, error } = await supabase
+      .from('store_profiles')
+      .upsert({
+        user_id: user.id,
+        store_name: profileData.storeName,
+        owner_name: profileData.ownerName,
+        address: profileData.address,
+        updated_at: new Date().toISOString()
+      })
+      .select()
+      .single();
+    
+    if (error) {
+      console.error('Store profile update error:', error);
+      
+      // If table doesn't exist, try to create it or use alternative storage
+      if (error.message.includes('relation "store_profiles" does not exist')) {
+        console.log('Store profiles table does not exist. Creating user settings entry...');
+        
+        // Use user_settings table as fallback
+        const { data: settingsData, error: settingsError } = await supabase
+          .from('user_settings')
+          .upsert({
+            user_id: user.id,
+            store_name: profileData.storeName,
+            owner_name: profileData.ownerName,
+            address: profileData.address,
+            updated_at: new Date().toISOString()
+          })
+          .select()
+          .single();
+        
+        if (settingsError) {
+          console.error('Settings fallback also failed:', settingsError);
+          throw new Error('Unable to save store profile. Please check your database configuration.');
+        }
+        
+        return settingsData;
+      }
+      
+      throw error;
+    }
+    
+    console.log('Store profile updated successfully:', data);
+    return data;
+  } catch (error) {
+    console.error('Store profile update failed:', error);
+    throw error;
+  }
+};

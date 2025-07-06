@@ -11,6 +11,7 @@ import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { useTheme } from "@/contexts/theme-context";
+import { getStoreProfile, updateStoreProfile } from "@/lib/supabase-data";
 
 // Form validation schemas
 const storeProfileSchema = z.object({
@@ -105,9 +106,10 @@ export default function SettingsPage() {
   const [editingStore, setEditingStore] = useState(false);
   const [lastSyncTime, setLastSyncTime] = useState<string | null>(null);
 
-  // Fetch store data
+  // Fetch store data using Supabase
   const { data: storeData, isLoading: storeLoading } = useQuery<StoreData>({
-    queryKey: ['/api/store'],
+    queryKey: ['store-profile'],
+    queryFn: getStoreProfile,
     retry: false,
   });
 
@@ -132,15 +134,12 @@ export default function SettingsPage() {
     }
   }, [storeData, storeForm]);
 
-  // Store profile mutation
+  // Store profile mutation using Supabase
   const storeMutation = useMutation({
-    mutationFn: async (data: StoreProfileData) => {
-      const response = await apiRequest("PUT", "/api/store", data);
-      return response.json();
-    },
+    mutationFn: updateStoreProfile,
     onSuccess: () => {
       toast({ title: "Store profile updated successfully" });
-      queryClient.invalidateQueries({ queryKey: ['/api/store'] });
+      queryClient.invalidateQueries({ queryKey: ['store-profile'] });
       setEditingStore(false);
     },
     onError: (error: any) => {

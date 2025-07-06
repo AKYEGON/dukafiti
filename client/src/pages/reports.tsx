@@ -170,6 +170,8 @@ export default function Reports() {
     queryKey: ['reports-trend', trendPeriod],
     queryFn: () => getReportsTrend(trendPeriod)
   });
+  
+
 
   // Fetch customer credits data
   const { data: customerCreditsData, isLoading: customerCreditsLoading } = useQuery<CustomerCredit[]>({
@@ -311,7 +313,7 @@ export default function Reports() {
       
       // Section 5: Sales Trend Data
       csvContent += '"=== SALES TREND DATA ==="\n';
-      if (trendData && trendData.length > 0) {
+      if (trendData && Array.isArray(trendData) && trendData.length > 0) {
         csvContent += '"Period","Sales Amount (KES)"\n';
         trendData.forEach(trend => {
           csvContent += `"${trend.label}","${trend.value}"\n`;
@@ -429,7 +431,7 @@ export default function Reports() {
               <div className="h-64 flex items-center justify-center">
                 <Skeleton className="h-full w-full" />
               </div>
-            ) : trendData && trendData.length > 0 ? (
+            ) : trendData && Array.isArray(trendData) && trendData.length > 0 ? (
               <div className="h-64">
                 <Suspense fallback={<Skeleton className="h-full w-full" />}>
                   <ResponsiveContainer width="100%" height="100%">
