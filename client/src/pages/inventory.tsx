@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { type Product } from "@shared/schema";
 import { ProductForm } from "@/components/inventory/product-form";
@@ -27,6 +27,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useNotifications } from "@/hooks/useNotifications";
 import { getProducts, updateProduct, deleteProduct, createProduct } from "@/lib/supabase-data";
+import { supabase } from "@/lib/supabase";
 
 type SortOption = "name-asc" | "name-desc" | "price-asc" | "price-desc";
 
@@ -47,6 +48,51 @@ export default function Inventory() {
       return await getProducts();
     },
   });
+
+  // Set up real-time subscription for product updates (stock changes from sales)
+  useEffect(() => {
+    console.log('🔗 Setting up real-time product subscription...');
+    
+    const subscription = supabase
+      .channel('products_realtime_inventory')
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'products'
+      }, (payload) => {
+        console.log('📦 Product updated via realtime:', payload.new);
+        
+        // Update the products query cache with the new data
+        queryClient.setQueryData<Product[]>(['products'], (oldProducts) => {
+          if (!oldProducts) return oldProducts;
+          
+          const updatedProduct = payload.new as Product;
+          return oldProducts.map(product => 
+            product.id === updatedProduct.id ? updatedProduct : product
+          );
+        });
+        
+        // Also update frequent products cache
+        queryClient.setQueryData<Product[]>(['products-frequent'], (oldProducts) => {
+          if (!oldProducts) return oldProducts;
+          
+          const updatedProduct = payload.new as Product;
+          return oldProducts.map(product => 
+            product.id === updatedProduct.id ? updatedProduct : product
+          );
+        });
+        
+        console.log('✅ Product cache updated with real-time data');
+      })
+      .subscribe((status) => {
+        console.log('📊 Products subscription status:', status);
+      });
+
+    return () => {
+      console.log('🔌 Cleaning up products real-time subscription');
+      supabase.removeChannel(subscription);
+    };
+  }, [queryClient]);
 
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {

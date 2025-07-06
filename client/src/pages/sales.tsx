@@ -12,6 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { SaleConfirmationModal } from "@/components/sales/sale-confirmation-modal";
 import { createSale, getProducts, searchProducts, createCustomer, getCustomers } from "@/lib/supabase-data";
 import { useNotifications } from "@/hooks/useNotifications";
+import { supabase } from "@/lib/supabase";
 
 
 
@@ -51,6 +52,65 @@ export default function Sales() {
   const quickSelectProducts = frequentProducts.length > 0 
     ? frequentProducts.slice(0, 6) 
     : products.slice(0, 6);
+
+  // Set up real-time subscription for product updates (stock changes)
+  useEffect(() => {
+    console.log('🔗 Setting up real-time product subscription for Sales page...');
+    
+    const subscription = supabase
+      .channel('products_realtime_sales')
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'products'
+      }, (payload) => {
+        console.log('📦 Product updated via realtime on Sales page:', payload.new);
+        
+        // Update the products query cache with the new data
+        queryClient.setQueryData<Product[]>(['products'], (oldProducts) => {
+          if (!oldProducts) return oldProducts;
+          
+          const updatedProduct = payload.new as Product;
+          return oldProducts.map(product => 
+            product.id === updatedProduct.id ? updatedProduct : product
+          );
+        });
+        
+        // Also update frequent products cache
+        queryClient.setQueryData<Product[]>(['products-frequent'], (oldProducts) => {
+          if (!oldProducts) return oldProducts;
+          
+          const updatedProduct = payload.new as Product;
+          return oldProducts.map(product => 
+            product.id === updatedProduct.id ? updatedProduct : product
+          );
+        });
+        
+        // Update cart items with fresh product data to reflect stock changes
+        setCartItems(prevCart => {
+          return prevCart.map(cartItem => {
+            const updatedProduct = payload.new as Product;
+            if (cartItem.product.id === updatedProduct.id) {
+              return {
+                ...cartItem,
+                product: updatedProduct
+              };
+            }
+            return cartItem;
+          });
+        });
+        
+        console.log('✅ Sales page product cache and cart updated with real-time data');
+      })
+      .subscribe((status) => {
+        console.log('📊 Sales page products subscription status:', status);
+      });
+
+    return () => {
+      console.log('🔌 Cleaning up Sales page products real-time subscription');
+      supabase.removeChannel(subscription);
+    };
+  }, [queryClient]);
 
   // Search function with timeout for debouncing
   const performSearch = useCallback(async (query: string) => {

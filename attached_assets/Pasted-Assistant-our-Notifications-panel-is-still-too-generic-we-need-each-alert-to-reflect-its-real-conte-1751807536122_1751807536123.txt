@@ -1,0 +1,78 @@
+Assistant, our Notifications panel is still too generic—we need each alert to reflect its real context (low stock, sale completed, payment received, sync error, etc.) and the Notifications **page** (the full view at `/notifications`) should show the same detailed items with clear icons, titles, and timestamps. Please update end‑to‑end so:
+
+---
+
+## 1. Notification Schema & Insertion
+
+- **Table**: `notifications` already has `type`, `title`, `message`, `is_read`, `created_at`, `payload` (JSON).  
+- **Populate** `payload` with context details when inserting:
+  - **Low Stock**: `{ productId, productName, currentQty, threshold }`  
+  - **Sale Completed**: `{ saleId, customerName, amount }`  
+  - **Payment Received**: `{ saleId, method, amount }`  
+  - **Sync Error**: `{ errorDetail }`  
+
+Ensure all your server‑side or Edge Functions use this enriched payload.
+
+---
+
+## 2. TopBar Dropdown
+
+- **Render** each notification with:
+  - **Icon** based on `type` (⚠️ low‑stock, ✅ sale, 💰 payment, ⚙️ sync).  
+  - **Title** = `title` field.  
+  - **Message** = `message` or derived from `payload`.  
+  - **Time** = relative (e.g. “5 min ago”).  
+
+Drop the generic “Real‑time Test Notification” and instead show real data when you trigger through the tester or actual events.
+
+---
+
+## 3. Full Notifications Page at `/notifications`
+
+- **List** all notifications in reverse chronological order, same styling as dropdown but full‑width.  
+- **Columns** (desktop table) / **Cards** (mobile):
+  - Icon  
+  - Title  
+  - Message / details  
+  - Timestamp  
+  - “View” link/button that navigates to the relevant page:
+    - Low‑Stock → `/inventory?highlight=…`  
+    - Sale → `/sales?invoice=…`  
+    - Payment → `/sales?invoice=…#payments`  
+    - Sync → `/settings#sync-errors`  
+
+---
+
+## 4. Auto‑Mark Read Behavior
+
+- When a user **expands** the dropdown or **visits** `/notifications`, mark all unread as read in Supabase and update the badge.
+
+---
+
+## 5. Files to Update
+
+- **Server‑side/Edge Functions**: enrich payload on insert  
+- **hooks/useNotifications.js**: ensure you read `payload` and pass it through to the UI  
+- **components/NotificationsDropdown.jsx**  
+- **pages/NotificationsPage.jsx**  
+
+---
+
+### QA Checklist
+
+- [ ] Trigger a low‑stock alert: see “Low Stock: Sukari (Qty 3 vs threshold 5)” in both dropdown and page.  
+- [ ] Complete a sale: see “Sale Completed: KES 500 to John Doe” with a check‑icon.  
+- [ ] Record a payment: see “Payment Received: KES 720 via M‑Pesa” with a money‑icon.  
+- [ ] Force a sync error: see “Sync Error: Network timeout” with gear‑icon.  
+- [ ] Opening dropdown or `/notifications` marks all as read.  
+- [ ] “View” links navigate exactly to the related context page.
+
+Implement these changes so notifications are specific, actionable, and truly reflective of real events.```
+
+
+
+
+
+
+
+Ask ChatGPT
