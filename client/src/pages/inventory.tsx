@@ -25,7 +25,7 @@ import { Search, Package, Edit, Trash2, Plus } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useNotifications } from "@/hooks/useNotifications";
+import useNotifications from "@/hooks/useNotifications";
 import { getProducts, updateProduct, deleteProduct, createProduct } from "@/lib/supabase-data";
 import { supabase } from "@/lib/supabase";
 

@@ -4,8 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { formatDistanceToNow } from 'date-fns';
 import { useAuth } from '@/contexts/SupabaseAuth';
 import { OfflineIndicator } from '@/components/offline/OfflineIndicator';
-import { NotificationsPanel } from '@/components/notifications/NotificationsPanel';
-import { useNotifications } from '@/hooks/useNotifications';
+import NotificationsDropdown from '@/components/notifications/NotificationsDropdown';
 import { supabase } from '@/lib/supabase';
 import { 
   Search, 
@@ -39,9 +38,7 @@ export function TopBar({ onToggleSidebar, isSidebarCollapsed }: TopBarProps) {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
   
-  // Notifications functionality
-  const { unreadCount, markAllAsReadOnOpen } = useNotifications();
-  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
+
   
   // Profile dropdown state
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -58,9 +55,7 @@ export function TopBar({ onToggleSidebar, isSidebarCollapsed }: TopBarProps) {
     setSelectedIndex(-1);
   }, isSearchOpen);
   
-  const notificationRef = useOutsideClick<HTMLDivElement>(() => {
-    setIsNotificationOpen(false);
-  }, isNotificationOpen);
+
   
   const profileRef = useOutsideClick<HTMLDivElement>(() => {
     setIsProfileOpen(false);
@@ -275,28 +270,7 @@ export function TopBar({ onToggleSidebar, isSidebarCollapsed }: TopBarProps) {
           <OfflineIndicator />
 
           {/* Notifications */}
-          <div className="relative" ref={notificationRef}>
-            <button
-              onClick={async () => {
-                // Auto-mark all notifications as read when opening panel
-                if (!isNotificationOpen && unreadCount > 0) {
-                  await markAllAsReadOnOpen();
-                }
-                setIsNotificationOpen(!isNotificationOpen);
-              }}
-              className="relative w-10 h-10 rounded-lg flex items-center justify-center text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-              aria-label={`Notifications ${unreadCount > 0 ? `(${unreadCount} unread)` : ''}`}
-            >
-              <Bell className="w-5 h-5" />
-              {unreadCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                  {unreadCount > 9 ? '9+' : unreadCount}
-                </span>
-              )}
-            </button>
-
-
-          </div>
+          <NotificationsDropdown />
 
           {/* Profile Dropdown */}
           <div className="relative" ref={profileRef}>
@@ -385,11 +359,7 @@ export function TopBar({ onToggleSidebar, isSidebarCollapsed }: TopBarProps) {
         </div>
       )}
 
-      {/* Notifications Panel */}
-      <NotificationsPanel 
-        isOpen={isNotificationOpen} 
-        onClose={() => setIsNotificationOpen(false)} 
-      />
+
     </>
   );
 }

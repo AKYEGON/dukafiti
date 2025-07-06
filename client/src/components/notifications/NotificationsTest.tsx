@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { useNotifications } from '@/hooks/useNotifications';
+import useNotifications from '@/hooks/useNotifications';
 import { Bell, Package, CreditCard, AlertTriangle, CheckCircle, Users } from 'lucide-react';
 
 export function NotificationsTest() {

@@ -468,6 +468,13 @@ Changelog:
 - July 6, 2025. Modified Home page navigation logo to use branded container with drop shadows
 - July 6, 2025. Created Footer component with slogan logo in brand-appropriate container styling
 - July 6, 2025. Applied drop-shadow effects to all logos for enhanced visual depth and professional appearance
+- July 6, 2025. Completely rebuilt notifications system as simple MVP with only Credit Reminders and Low Stock Alerts
+- July 6, 2025. Replaced complex notification system with simplified table structure (type, entity_id, title, message, is_read, created_at)
+- July 6, 2025. Created new useNotifications hook with real-time Supabase subscriptions for instant notification updates
+- July 6, 2025. Built clean NotificationsDropdown component replacing old NotificationsPanel with auto-mark-as-read functionality
+- July 6, 2025. Integrated MVP notification creation functions: createCreditReminderNotification, createLowStockAlertNotification
+- July 6, 2025. Added low stock checking after sales and daily credit reminder checking for customers with 7+ day overdue balances
+- July 6, 2025. Added NotificationsTester component to dashboard for MVP system validation and QA testing
 ```
 
 ## User Preferences

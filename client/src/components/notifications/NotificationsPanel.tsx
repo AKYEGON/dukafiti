@@ -5,17 +5,22 @@ import {
   Bell, 
   Package, 
   CreditCard, 
-  AlertTriangle, 
-  CheckCircle, 
-  Users,
-  Check,
   X 
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Skeleton } from '@/components/ui/skeleton';
-import { useNotifications, type Notification } from '@/hooks/useNotifications';
+import useNotifications from '@/hooks/useNotifications';
+
+interface Notification {
+  id: string;
+  type: 'credit' | 'low_stock';
+  entity_id: string;
+  title: string;
+  message: string;
+  is_read: boolean;
+  created_at: string;
+}
 
 interface NotificationsPanelProps {
   isOpen: boolean;
@@ -24,20 +29,20 @@ interface NotificationsPanelProps {
 
 export function NotificationsPanel({ isOpen, onClose }: NotificationsPanelProps) {
   const [, setLocation] = useLocation();
-  const { notifications, unreadCount, isLoading, markAsRead } = useNotifications();
+  const { list: notifications, unreadCount, markAllRead } = useNotifications();
 
-  // Enhanced keyboard shortcuts
+  // Auto-mark as read when panel opens
+  useEffect(() => {
+    if (isOpen && unreadCount > 0) {
+      markAllRead();
+    }
+  }, [isOpen, unreadCount, markAllRead]);
+
+  // Keyboard shortcuts
   useEffect(() => {
     const handleKeyboard = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         onClose();
-      } else if (e.key === 'r' && (e.ctrlKey || e.metaKey)) {
-        e.preventDefault();
-        // Mark first unread notification as read
-        const firstUnread = notifications.find(n => !n.is_read);
-        if (firstUnread) {
-          markAsRead(firstUnread.id, true);
-        }
       }
     };
 
@@ -45,273 +50,83 @@ export function NotificationsPanel({ isOpen, onClose }: NotificationsPanelProps)
       document.addEventListener('keydown', handleKeyboard);
       return () => document.removeEventListener('keydown', handleKeyboard);
     }
-  }, [isOpen, onClose, markAsRead, notifications]);
+  }, [isOpen, onClose]);
 
-  const handleNotificationClick = async (notification: Notification) => {
-    // Mark as read
-    if (!notification.is_read) {
-      await markAsRead(notification.id);
+  const handleNotificationClick = (notification: Notification) => {
+    // Navigate based on notification type
+    if (notification.type === 'low_stock') {
+      setLocation('/inventory');
+    } else if (notification.type === 'credit') {
+      setLocation('/customers');
     }
-
-    // Navigate based on notification type and payload context
-    switch (notification.type) {
-      case 'low_stock':
-        const productId = notification.payload?.productId;
-        setLocation(productId ? `/inventory?highlight=${productId}` : '/inventory');
-        break;
-      case 'payment_received':
-        const saleId = notification.payload?.saleId;
-        setLocation(saleId ? `/sales?invoice=${saleId}` : '/sales');
-        break;
-      case 'customer_payment':
-        const customerId = notification.payload?.customerId;
-        setLocation(customerId ? `/customers?highlight=${customerId}` : '/customers');
-        break;
-      case 'sale_completed':
-        const completedSaleId = notification.payload?.saleId;
-        setLocation(completedSaleId ? `/sales?invoice=${completedSaleId}` : '/sales');
-        break;
-      case 'sync_failed':
-        setLocation('/settings#sync-errors');
-        break;
-      default:
-        break;
-    }
-
     onClose();
   };
 
   const getNotificationIcon = (type: string) => {
     switch (type) {
       case 'low_stock':
-        return <Package className="w-5 h-5 text-orange-500" />;
-      case 'payment_received':
-      case 'customer_payment':
-        return <CreditCard className="w-5 h-5 text-green-500" />;
-      case 'sync_failed':
-        return <AlertTriangle className="w-5 h-5 text-red-500" />;
-      case 'sale_completed':
-        return <CheckCircle className="w-5 h-5 text-blue-500" />;
-      // Handle legacy notification types
-      case 'success':
-        return <CheckCircle className="w-5 h-5 text-green-500" />;
-      case 'info':
-        return <Bell className="w-5 h-5 text-blue-500" />;
+        return <Package className="h-4 w-4 text-orange-500" />;
+      case 'credit':
+        return <CreditCard className="h-4 w-4 text-blue-500" />;
       default:
-        return <Bell className="w-5 h-5 text-gray-500" />;
+        return <Bell className="h-4 w-4 text-gray-500" />;
     }
-  };
-
-  const getNotificationBorderColor = (type: string) => {
-    switch (type) {
-      case 'low_stock':
-        return 'border-l-orange-500';
-      case 'payment_received':
-      case 'customer_payment':
-        return 'border-l-green-500';
-      case 'sync_failed':
-        return 'border-l-red-500';
-      case 'sale_completed':
-        return 'border-l-blue-500';
-      // Handle legacy notification types
-      case 'success':
-        return 'border-l-green-500';
-      case 'info':
-        return 'border-l-blue-500';
-      default:
-        return 'border-l-gray-500';
-    }
-  };
-
-  const getEnhancedNotificationMessage = (notification: Notification) => {
-    // If no payload, fallback to original message
-    if (!notification.payload) {
-      return notification.message;
-    }
-
-    const payload = notification.payload;
-
-    switch (notification.type) {
-      case 'low_stock':
-        if (payload.productName && payload.currentQty !== undefined && payload.threshold) {
-          return `${payload.productName} is running low (Stock: ${payload.currentQty} vs threshold ${payload.threshold})`;
-        }
-        break;
-      case 'sale_completed':
-        if (payload.amount && payload.customerName) {
-          return `Sale of KES ${payload.amount} to ${payload.customerName} completed successfully`;
-        }
-        break;
-      case 'payment_received':
-        if (payload.amount && payload.method) {
-          return `Payment of KES ${payload.amount} received via ${payload.method}`;
-        }
-        break;
-      case 'customer_payment':
-        if (payload.customerName && payload.amount && payload.paymentMethod) {
-          return `${payload.customerName} made a payment of KES ${payload.amount} via ${payload.paymentMethod}`;
-        }
-        break;
-      case 'sync_failed':
-        if (payload.errorDetail) {
-          const retryText = payload.retryCount ? ` after ${payload.retryCount} retries` : '';
-          return `Sync failed${retryText}: ${payload.errorDetail}`;
-        }
-        break;
-    }
-
-    // Fallback to original message if payload parsing fails
-    return notification.message;
   };
 
   if (!isOpen) return null;
 
   return (
-    <>
-      {/* Backdrop */}
+    <div className="fixed inset-0 z-50 bg-black/20 backdrop-blur-sm" onClick={onClose}>
       <div 
-        className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
-        onClick={onClose}
-      />
-      
-      {/* Panel */}
-      <div className="fixed top-0 right-0 h-full w-full md:w-96 bg-white dark:bg-[#1F1F1F] shadow-xl z-50 transform transition-transform duration-300 ease-in-out">
-        <Card className="h-full rounded-none border-0 shadow-none">
-          <CardHeader className="border-b border-gray-200 dark:border-gray-700 pb-4">
-            <div className="flex items-center justify-between">
-              <CardTitle className="flex items-center gap-2">
-                <Bell className="w-5 h-5 text-green-600" />
-                Notifications
-                {unreadCount > 0 && (
-                  <Badge variant="destructive" className="ml-2">
-                    {unreadCount}
-                  </Badge>
-                )}
-              </CardTitle>
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={onClose}
-                  className="text-gray-500 hover:text-gray-700 hover:bg-gray-100 dark:hover:bg-gray-800"
-                >
-                  <X className="w-4 h-4" />
-                </Button>
-              </div>
-            </div>
-          </CardHeader>
+        className="absolute top-16 right-4 w-80 max-h-96 bg-white dark:bg-[#1F1F1F] border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg overflow-hidden"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+          <h3 className="font-semibold text-gray-900 dark:text-white">Notifications</h3>
+          <Button variant="ghost" size="sm" onClick={onClose}>
+            <X className="h-4 w-4" />
+          </Button>
+        </div>
 
-          <CardContent className="p-0 h-full overflow-y-auto">
-            {isLoading ? (
-              // Loading skeleton
-              <div className="p-4 space-y-4">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <div key={i} className="flex items-start gap-3 p-3">
-                    <Skeleton className="w-10 h-10 rounded-full" />
-                    <div className="flex-1 space-y-2">
-                      <Skeleton className="h-4 w-3/4" />
-                      <Skeleton className="h-3 w-1/2" />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : notifications.length === 0 ? (
-              // Empty state
-              <div className="flex flex-col items-center justify-center h-64 p-6 text-center">
-                <Bell className="w-12 h-12 text-gray-300 mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
-                  No notifications
-                </h3>
-                <p className="text-gray-500 dark:text-gray-400">
-                  You're all caught up! New notifications will appear here.
-                </p>
-              </div>
-            ) : (
-              // Notifications list
-              <div className="divide-y divide-gray-200 dark:divide-gray-700">
-                {notifications.map((notification) => (
-                  <div
-                    key={notification.id}
-                    className={`relative border-l-4 transition-colors ${
-                      !notification.is_read 
-                        ? `${getNotificationBorderColor(notification.type)} bg-green-50/30 dark:bg-green-900/10` 
-                        : 'border-l-transparent'
-                    }`}
-                  >
-                    <div 
-                      onClick={() => handleNotificationClick(notification)}
-                      className="w-full text-left p-4 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors cursor-pointer"
-                    >
-                      <div className="flex items-start gap-3">
-                        <div className="flex-shrink-0 mt-1">
-                          {getNotificationIcon(notification.type)}
-                        </div>
-                        
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-start justify-between gap-2">
-                            <h4 className={`text-sm font-medium truncate ${
-                              !notification.is_read 
-                                ? 'text-gray-900 dark:text-gray-100 font-semibold' 
-                                : 'text-gray-700 dark:text-gray-300'
-                            }`}>
-                              {notification.title}
-                            </h4>
-                            <div className="flex items-center gap-1 flex-shrink-0">
-                              {!notification.is_read && (
-                                <>
-                                  <button
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      markAsRead(notification.id, true);
-                                    }}
-                                    className="p-1 rounded-full hover:bg-green-100 dark:hover:bg-green-900/30 text-green-600 hover:text-green-700 transition-colors"
-                                    title="Mark as read"
-                                  >
-                                    <Check className="w-3 h-3" />
-                                  </button>
-                                  <div className="w-2 h-2 bg-green-500 rounded-full" />
-                                </>
-                              )}
-                            </div>
-                          </div>
-                          
-                          {notification.message && (
-                            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1 line-clamp-2">
-                              {getEnhancedNotificationMessage(notification)}
-                            </p>
-                          )}
-                          
-                          <div className="flex items-center justify-between mt-2">
-                            <p className="text-xs text-gray-500 dark:text-gray-500">
-                              {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
-                            </p>
-                            {!notification.is_read && (
-                              <span className="text-xs font-medium text-green-600 bg-green-100 dark:bg-green-900/30 px-2 py-1 rounded-full">
-                                New
-                              </span>
-                            )}
-                          </div>
-                        </div>
+        <div className="max-h-80 overflow-y-auto">
+          {notifications.length === 0 ? (
+            <div className="p-4 text-center text-gray-500 dark:text-gray-400">
+              <Bell className="h-8 w-8 mx-auto mb-2 opacity-50" />
+              <p>No notifications yet</p>
+            </div>
+          ) : (
+            <div className="divide-y divide-gray-200 dark:divide-gray-700">
+              {notifications.map((notification) => (
+                <div
+                  key={notification.id}
+                  className="p-4 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-colors"
+                  onClick={() => handleNotificationClick(notification)}
+                >
+                  <div className="flex items-start gap-3">
+                    {getNotificationIcon(notification.type)}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <p className="font-medium text-gray-900 dark:text-white text-sm">
+                          {notification.title}
+                        </p>
+                        {!notification.is_read && (
+                          <Badge variant="secondary" className="text-xs">New</Badge>
+                        )}
                       </div>
+                      <p className="text-sm text-gray-600 dark:text-gray-300 mt-1">
+                        {notification.message}
+                      </p>
+                      <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                        {formatDistanceToNow(new Date(notification.created_at))} ago
+                      </p>
                     </div>
                   </div>
-                ))}
-              </div>
-            )}
-            
-            {/* Keyboard shortcuts help */}
-            {notifications.length > 0 && (
-              <div className="border-t border-gray-200 dark:border-gray-700 p-3 bg-gray-50 dark:bg-gray-800/50">
-                <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
-                  <kbd className="px-1.5 py-0.5 text-xs font-mono bg-gray-200 dark:bg-gray-700 rounded">Ctrl+A</kbd> Mark all read • 
-                  <kbd className="px-1.5 py-0.5 text-xs font-mono bg-gray-200 dark:bg-gray-700 rounded ml-1">Ctrl+R</kbd> Mark first unread • 
-                  <kbd className="px-1.5 py-0.5 text-xs font-mono bg-gray-200 dark:bg-gray-700 rounded ml-1">Esc</kbd> Close
-                </p>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
-    </>
+    </div>
   );
 }

@@ -26,6 +26,7 @@ import { formatCurrency } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ProductForm } from "@/components/inventory/product-form";
 import { CustomerForm } from "@/components/customers/customer-form";
+import { NotificationsTester } from "@/components/notifications/NotificationsTester";
 
 import { getDashboardMetrics, getRecentOrders } from "@/lib/supabase-data";
 
@@ -226,6 +227,9 @@ export default function Dashboard() {
               ariaLabel="Generate business reports"
             />
           </section>
+
+          {/* MVP Notifications Testing */}
+          <NotificationsTester />
 
           {/* Recent Orders */}
           <section className="bg-white dark:bg-[#1F1F1F] border border-gray-200 dark:border-gray-700 rounded-lg shadow-md" role="region" aria-label="Recent orders">

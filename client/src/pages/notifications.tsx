@@ -3,7 +3,7 @@ import { useLocation } from 'wouter';
 import { formatDistanceToNow } from 'date-fns';
 import { Bell, AlertTriangle, CheckCircle, Info, Trash2, Package, CreditCard, Users, ExternalLink } from 'lucide-react';
 import { MobilePageWrapper } from '@/components/layout/mobile-page-wrapper';
-import { useNotifications } from '@/hooks/useNotifications';
+import useNotifications from '@/hooks/useNotifications';
 import { Button } from '@/components/ui/button';
 import type { Notification } from '@shared/schema';
 

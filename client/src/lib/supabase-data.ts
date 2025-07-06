@@ -276,17 +276,7 @@ export const recordCustomerRepayment = async (customerId: number, amount: number
       throw paymentError;
     }
     
-    // Create customer payment notification
-    try {
-      await createCustomerPaymentNotification(
-        updatedCustomer.name,
-        amount,
-        method
-      );
-    } catch (notificationError) {
-      console.error('Error creating payment notification:', notificationError);
-      // Don't throw - notifications are not critical
-    }
+    // MVP: Credit reminders are handled daily, not on individual payments
 
     console.log('Repayment recorded successfully:', payment);
     return { customer: updatedCustomer, payment };
@@ -813,21 +803,22 @@ export const createSale = async (saleData: any) => {
       }
     }
     
-    // Check for low stock and create notifications
+    // MVP: Check for low stock and create notifications after sale
     try {
-      const updatedProducts = saleData.items
+      const productUpdates = saleData.items
         .filter((item: any) => item.hasStock && item.newStock !== null)
         .map((item: any) => ({
           id: item.productId,
           name: item.productName,
-          stock: item.newStock
+          stock: item.newStock,
+          threshold: item.lowStockThreshold || 10
         }));
       
-      if (updatedProducts.length > 0) {
-        await checkAndNotifyLowStock(updatedProducts);
+      if (productUpdates.length > 0) {
+        await checkLowStockAfterSale(productUpdates);
       }
     } catch (lowStockError) {
-      console.error('Error checking low stock:', lowStockError);
+      console.error('Error checking low stock after sale:', lowStockError);
       // Don't throw - low stock notifications are not critical for sale completion
     }
     
@@ -1304,18 +1295,104 @@ export const createLowStockNotification = async (productName: string, currentSto
   });
 };
 
-// Helper function to create customer payment notifications
-export const createCustomerPaymentNotification = async (customerId: number, customerName: string, amount: number, paymentMethod: string) => {
-  return await createNotification({
-    type: 'customer_payment',
-    title: 'Customer Payment',
-    message: `${customerName} made a payment of KES ${amount} via ${paymentMethod}`,
-    payload: {
-      customerId: customerId,
-      customerName: customerName,
-      amount: amount,
-      paymentMethod: paymentMethod,
-      timestamp: new Date().toISOString()
+// ===================
+// MVP NOTIFICATIONS SYSTEM - Only Credit Reminders and Low Stock Alerts
+// ===================
+
+// MVP: Create credit reminder notification
+export const createCreditReminderNotification = async (customerId: string, customerName: string, balance: number) => {
+  try {
+    const { data, error } = await supabase
+      .from('notifications')
+      .insert([{
+        type: 'credit',
+        entity_id: customerId,
+        title: 'Payment Reminder',
+        message: `${customerName} owes KES ${balance.toFixed(2)}`,
+        is_read: false
+      }])
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error creating credit reminder notification:', error);
+      throw error;
     }
-  });
+
+    return data;
+  } catch (error) {
+    console.error('createCreditReminderNotification error:', error);
+    throw error;
+  }
+};
+
+// MVP: Create low stock alert notification
+export const createLowStockAlertNotification = async (productId: string, productName: string, quantity: number) => {
+  try {
+    const { data, error } = await supabase
+      .from('notifications')
+      .insert([{
+        type: 'low_stock',
+        entity_id: productId,
+        title: 'Low Stock Alert',
+        message: `${productName} is low: ${quantity} left`,
+        is_read: false
+      }])
+      .select()
+      .single();
+
+    if (error) {
+      console.error('Error creating low stock alert notification:', error);
+      throw error;
+    }
+
+    return data;
+  } catch (error) {
+    console.error('createLowStockAlertNotification error:', error);
+    throw error;
+  }
+};
+
+// MVP: Check for low stock after sale and create notifications
+export const checkLowStockAfterSale = async (productUpdates: Array<{id: string, name: string, stock: number | null, threshold: number | null}>) => {
+  try {
+    for (const product of productUpdates) {
+      // Skip products with unknown quantity
+      if (product.stock === null || product.threshold === null) continue;
+      
+      // Check if stock is below threshold
+      if (product.stock <= product.threshold) {
+        await createLowStockAlertNotification(product.id, product.name, product.stock);
+      }
+    }
+  } catch (error) {
+    console.error('Error checking low stock after sale:', error);
+  }
+};
+
+// MVP: Daily function to check for overdue credit customers (7+ days)
+export const checkOverdueCreditCustomers = async () => {
+  try {
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+
+    const { data: customers, error } = await supabase
+      .from('customers')
+      .select('id, name, balance, updated_at')
+      .gt('balance', 0)
+      .lt('updated_at', sevenDaysAgo.toISOString());
+
+    if (error) {
+      console.error('Error fetching overdue customers:', error);
+      return;
+    }
+
+    for (const customer of customers || []) {
+      await createCreditReminderNotification(customer.id, customer.name, customer.balance);
+    }
+
+    console.log(`Created credit reminders for ${customers?.length || 0} overdue customers`);
+  } catch (error) {
+    console.error('Error checking overdue credit customers:', error);
+  }
 };

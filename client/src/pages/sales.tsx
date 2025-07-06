@@ -11,7 +11,7 @@ import { offlineQueue, isOnline } from "@/lib/offline-queue";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SaleConfirmationModal } from "@/components/sales/sale-confirmation-modal";
 import { createSale, getProducts, searchProducts, createCustomer, getCustomers } from "@/lib/supabase-data";
-import { useNotifications } from "@/hooks/useNotifications";
+import useNotifications from "@/hooks/useNotifications";
 import { supabase } from "@/lib/supabase";
 
 
