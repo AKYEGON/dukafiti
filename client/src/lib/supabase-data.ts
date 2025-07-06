@@ -898,19 +898,33 @@ export const getRecentOrders = async () => {
     
     if (error) throw error;
     
-    // Transform data to ensure consistent format
-    const transformedData = (data || []).map(order => ({
-      id: order.id,
-      total: order.total,
-      status: order.status,
-      customerName: order.customer_name || 'N/A',
-      paymentMethod: order.payment_method,
-      createdAt: new Date(order.created_at),
-      customerId: order.customer_id,
-      reference: order.reference
+    // Get order items for each order
+    const ordersWithItems = await Promise.all((data || []).map(async (order) => {
+      const { data: orderItems } = await supabase
+        .from('order_items')
+        .select(`
+          quantity,
+          product_name
+        `)
+        .eq('order_id', order.id);
+      
+      return {
+        id: order.id,
+        total: order.total,
+        status: order.status,
+        customerName: order.customer_name || 'N/A',
+        paymentMethod: order.payment_method,
+        createdAt: new Date(order.created_at),
+        customerId: order.customer_id,
+        reference: order.reference,
+        products: orderItems?.map(item => ({
+          name: item.product_name || 'Unknown Product',
+          quantity: item.quantity
+        })) || []
+      };
     }));
     
-    return transformedData;
+    return ordersWithItems;
   } catch (error) {
     console.error('Error fetching recent orders:', error);
     return [];
