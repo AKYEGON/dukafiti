@@ -276,6 +276,18 @@ export const recordCustomerRepayment = async (customerId: number, amount: number
       throw paymentError;
     }
     
+    // Create customer payment notification
+    try {
+      await createCustomerPaymentNotification(
+        updatedCustomer.name,
+        amount,
+        method
+      );
+    } catch (notificationError) {
+      console.error('Error creating payment notification:', notificationError);
+      // Don't throw - notifications are not critical
+    }
+
     console.log('Repayment recorded successfully:', payment);
     return { customer: updatedCustomer, payment };
   } catch (error) {
@@ -764,6 +776,40 @@ export const createSale = async (saleData: any) => {
       }
     }
     
+    // Create sale completion notification
+    try {
+      await createNotification({
+        type: 'sale_completed',
+        title: 'Sale Completed',
+        message: `Sale of KES ${saleData.total} to ${saleData.customerName || 'customer'} processed successfully`,
+        metadata: {
+          order_id: order.id,
+          total: saleData.total,
+          customer_name: saleData.customerName,
+          payment_method: saleData.paymentMethod,
+          items_count: saleData.items.length
+        }
+      });
+
+      // Create payment notification for non-credit sales
+      if (saleData.paymentMethod !== 'credit') {
+        await createNotification({
+          type: 'payment_received',
+          title: 'Payment Received',
+          message: `Payment of KES ${saleData.total} received from ${saleData.customerName || 'customer'}`,
+          metadata: {
+            order_id: order.id,
+            amount: saleData.total,
+            customer_name: saleData.customerName,
+            payment_method: saleData.paymentMethod
+          }
+        });
+      }
+    } catch (notificationError) {
+      console.error('Error creating sale notifications:', notificationError);
+      // Don't throw - notifications are not critical for sale completion
+    }
+
     console.log('Sale created successfully:', order);
     return order;
   } catch (error) {
@@ -982,4 +1028,107 @@ export const updateStoreProfile = async (profileData: {
     console.error('Store profile update failed:', error);
     throw error;
   }
+};
+
+// Notifications operations
+export const getNotifications = async (limit = 50) => {
+  const { data, error } = await supabase
+    .from('notifications')
+    .select('*')
+    .order('created_at', { ascending: false })
+    .limit(limit);
+  
+  if (error) throw error;
+  return data;
+};
+
+export const markNotificationAsRead = async (notificationId: string) => {
+  const { error } = await supabase
+    .from('notifications')
+    .update({ is_read: true })
+    .eq('id', notificationId);
+  
+  if (error) throw error;
+};
+
+export const markAllNotificationsAsRead = async () => {
+  const { error } = await supabase
+    .from('notifications')
+    .update({ is_read: true })
+    .eq('is_read', false);
+  
+  if (error) throw error;
+};
+
+export const createNotification = async (notification: {
+  type: 'low_stock' | 'payment_received' | 'sync_failed' | 'sale_completed' | 'customer_payment';
+  title: string;
+  message?: string;
+  metadata?: Record<string, any>;
+}) => {
+  const { data, error } = await supabase
+    .from('notifications')
+    .insert([{
+      ...notification,
+      user_id: 1 // Default user - adjust as needed
+    }])
+    .select()
+    .single();
+  
+  if (error) throw error;
+  return data;
+};
+
+export const getUnreadNotificationCount = async () => {
+  const { count, error } = await supabase
+    .from('notifications')
+    .select('*', { count: 'exact', head: true })
+    .eq('is_read', false);
+  
+  if (error) throw error;
+  return count || 0;
+};
+
+// Helper function to create sync failure notifications
+export const createSyncFailureNotification = async (error: string, retryCount: number = 0) => {
+  return await createNotification({
+    type: 'sync_failed',
+    title: 'Sync Failed',
+    message: `Failed to sync data after ${retryCount} retries: ${error}`,
+    metadata: {
+      error_message: error,
+      retry_count: retryCount,
+      timestamp: new Date().toISOString()
+    }
+  });
+};
+
+// Helper function to create low stock notifications
+export const createLowStockNotification = async (productName: string, currentStock: number, threshold: number) => {
+  return await createNotification({
+    type: 'low_stock',
+    title: 'Low Stock Alert',
+    message: `Product "${productName}" is running low (Stock: ${currentStock}, Threshold: ${threshold})`,
+    metadata: {
+      product_name: productName,
+      current_stock: currentStock,
+      threshold: threshold,
+      timestamp: new Date().toISOString()
+    }
+  });
+};
+
+// Helper function to create customer payment notifications
+export const createCustomerPaymentNotification = async (customerName: string, amount: number, paymentMethod: string) => {
+  return await createNotification({
+    type: 'customer_payment',
+    title: 'Customer Payment',
+    message: `${customerName} made a payment of KES ${amount} via ${paymentMethod}`,
+    metadata: {
+      customer_name: customerName,
+      amount: amount,
+      payment_method: paymentMethod,
+      timestamp: new Date().toISOString()
+    }
+  });
 };

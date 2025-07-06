@@ -4,6 +4,8 @@ import { useQuery } from '@tanstack/react-query';
 import { formatDistanceToNow } from 'date-fns';
 import { useAuth } from '@/contexts/SupabaseAuth';
 import { OfflineIndicator } from '@/components/offline/OfflineIndicator';
+import { NotificationsPanel } from '@/components/notifications/NotificationsPanel';
+import { useNotifications } from '@/hooks/useNotifications';
 import { 
   Search, 
   Bell, 
@@ -19,7 +21,6 @@ import {
 import { useOutsideClick } from '@/hooks/useOutsideClick';
 import { useSmartSearch, type SmartSearchResult } from '@/hooks/useSmartSearch';
 import { SidebarToggleIcon } from '@/components/icons/sidebar-toggle-icon';
-import type { Notification } from '@shared/schema';
 
 
 
@@ -37,7 +38,8 @@ export function TopBar({ onToggleSidebar, isSidebarCollapsed }: TopBarProps) {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
   
-  // Notification state
+  // Notifications functionality
+  const { unreadCount } = useNotifications();
   const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   
   // Profile dropdown state
@@ -68,19 +70,7 @@ export function TopBar({ onToggleSidebar, isSidebarCollapsed }: TopBarProps) {
 
 
 
-  // Fetch notifications
-  const { data: notifications = [] } = useQuery<Notification[]>({
-    queryKey: ['/api/notifications'],
-    enabled: true,
-  });
 
-  // Fetch unread count
-  const { data: unreadData } = useQuery<{ count: number }>({
-    queryKey: ['/api/notifications/unread-count'],
-    enabled: true,
-  });
-
-  const unreadCount = unreadData?.count || 0;
 
   // Update search open state when query changes
   useEffect(() => {
@@ -298,43 +288,7 @@ export function TopBar({ onToggleSidebar, isSidebarCollapsed }: TopBarProps) {
               )}
             </button>
 
-            {/* Notification Dropdown */}
-            {isNotificationOpen && (
-              <div className="absolute right-0 top-full mt-2 w-80 bg-white dark:bg-[#1F1F1F] border border-gray-200 dark:border-gray-700 rounded-lg shadow-lg z-50">
-                <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-                  <div className="flex items-center justify-between">
-                    <h3 className="font-semibold text-gray-900 dark:text-gray-100">Notifications</h3>
-                    <button
-                      onClick={() => setLocation('/notifications')}
-                      className="text-sm text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300"
-                    >
-                      View all
-                    </button>
-                  </div>
-                </div>
-                <div className="max-h-80 overflow-y-auto">
-                  {notifications.length === 0 ? (
-                    <div className="p-4 text-center text-gray-500 dark:text-gray-400">
-                      No notifications
-                    </div>
-                  ) : (
-                    notifications.slice(0, 5).map((notification) => (
-                      <div
-                        key={notification.id}
-                        className="p-4 border-b border-gray-100 dark:border-gray-800 last:border-b-0 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer"
-                      >
-                        <div className="font-medium text-gray-900 dark:text-gray-100 text-sm">
-                          {notification.title}
-                        </div>
-                        <div className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                          {formatDistanceToNow(new Date(notification.createdAt), { addSuffix: true })}
-                        </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </div>
-            )}
+
           </div>
 
           {/* Profile Dropdown */}
@@ -423,6 +377,12 @@ export function TopBar({ onToggleSidebar, isSidebarCollapsed }: TopBarProps) {
           </div>
         </div>
       )}
+
+      {/* Notifications Panel */}
+      <NotificationsPanel 
+        isOpen={isNotificationOpen} 
+        onClose={() => setIsNotificationOpen(false)} 
+      />
     </>
   );
 }

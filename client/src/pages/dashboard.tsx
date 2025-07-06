@@ -26,6 +26,7 @@ import { formatCurrency } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ProductForm } from "@/components/inventory/product-form";
 import { CustomerForm } from "@/components/customers/customer-form";
+import { NotificationsTester } from "@/components/notifications/NotificationsTester";
 import { getDashboardMetrics, getRecentOrders } from "@/lib/supabase-data";
 
 
@@ -345,6 +346,14 @@ export default function Dashboard() {
             </div>
           </section>
         </div>
+      </div>
+
+      {/* Development Testing - Remove in Production */}
+      <div className="mt-8 p-4 border-2 border-dashed border-yellow-200 dark:border-yellow-800 rounded-lg bg-yellow-50 dark:bg-yellow-900/10">
+        <h3 className="text-lg font-medium text-yellow-800 dark:text-yellow-200 mb-4">
+          🧪 Development: Notifications Testing
+        </h3>
+        <NotificationsTester />
       </div>
 
       {/* Modal Components */}
