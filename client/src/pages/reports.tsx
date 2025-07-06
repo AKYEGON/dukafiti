@@ -1,4 +1,4 @@
-import { useState, Suspense, lazy } from 'react';
+import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -14,14 +14,16 @@ import {
   getCustomerCredits 
 } from '@/lib/supabase-data';
 
-// Lazy load recharts to reduce bundle size
-const LineChart = lazy(() => import('recharts').then(module => ({ default: module.LineChart })));
-const Line = lazy(() => import('recharts').then(module => ({ default: module.Line })));
-const XAxis = lazy(() => import('recharts').then(module => ({ default: module.XAxis })));
-const YAxis = lazy(() => import('recharts').then(module => ({ default: module.YAxis })));
-const CartesianGrid = lazy(() => import('recharts').then(module => ({ default: module.CartesianGrid })));
-const Tooltip = lazy(() => import('recharts').then(module => ({ default: module.Tooltip })));
-const ResponsiveContainer = lazy(() => import('recharts').then(module => ({ default: module.ResponsiveContainer })));
+// Import recharts components directly
+import { 
+  LineChart, 
+  Line, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  ResponsiveContainer 
+} from 'recharts';
 
 // Types
 interface SummaryData {
@@ -451,45 +453,47 @@ export default function Reports() {
               </div>
             ) : trendData && Array.isArray(trendData) && trendData.length > 0 ? (
               <div className="h-64">
-                <Suspense fallback={<Skeleton className="h-full w-full" />}>
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={trendData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" className="dark:stroke-[#374151]" />
-                      <XAxis 
-                        dataKey="label" 
-                        stroke="#6B7280" 
-                        fontSize={12}
-                        className="dark:stroke-[#9CA3AF]"
-                      />
-                      <YAxis 
-                        stroke="#6B7280" 
-                        fontSize={12}
-                        className="dark:stroke-[#9CA3AF]"
-                      />
-                      <Tooltip 
-                        contentStyle={{
-                          backgroundColor: 'white',
-                          border: '1px solid #E5E7EB',
-                          borderRadius: '8px',
-                          boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
-                        }}
-                      />
-                      <Line 
-                        type="monotone" 
-                        dataKey="value" 
-                        stroke="#00AA00" 
-                        strokeWidth={3}
-                        dot={{ fill: '#00AA00', strokeWidth: 2, r: 6 }}
-                        activeDot={{ r: 8, fill: '#00AA00', strokeWidth: 0 }}
-                        className="dark:stroke-[#6B46C1]"
-                      />
-                    </LineChart>
-                  </ResponsiveContainer>
-                </Suspense>
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart data={trendData}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" className="dark:stroke-[#374151]" />
+                    <XAxis 
+                      dataKey="label" 
+                      stroke="#6B7280" 
+                      fontSize={12}
+                      className="dark:stroke-[#9CA3AF]"
+                    />
+                    <YAxis 
+                      stroke="#6B7280" 
+                      fontSize={12}
+                      className="dark:stroke-[#9CA3AF]"
+                    />
+                    <Tooltip 
+                      contentStyle={{
+                        backgroundColor: 'white',
+                        border: '1px solid #E5E7EB',
+                        borderRadius: '8px',
+                        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
+                      }}
+                    />
+                    <Line 
+                      type="monotone" 
+                      dataKey="value" 
+                      stroke="#00AA00" 
+                      strokeWidth={3}
+                      dot={{ fill: '#00AA00', strokeWidth: 2, r: 6 }}
+                      activeDot={{ r: 8, fill: '#00AA00', strokeWidth: 0 }}
+                      className="dark:stroke-[#6B46C1]"
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
               </div>
             ) : (
-              <div className="h-64 flex items-center justify-center text-gray-500 dark:text-gray-400">
-                No data available for this period.
+              <div className="h-64 flex items-center justify-center">
+                <div className="text-center text-gray-500 dark:text-gray-400">
+                  <p>No data available for this period.</p>
+                  <p className="text-xs mt-2">Debug: {JSON.stringify(trendData).substring(0, 100)}</p>
+                  <p className="text-xs">Period: {trendPeriod} | Loading: {trendLoading.toString()}</p>
+                </div>
               </div>
             )}
           </div>
