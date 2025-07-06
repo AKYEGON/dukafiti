@@ -88,16 +88,55 @@ const formatCurrency = (amount: string | number): string => {
   }).format(num);
 };
 
-const convertToCSV = (data: any[], headers: string[]): string => {
-  const csvHeaders = headers.join(',');
+const convertToCSV = (data: any[], headers: string[], title?: string): string => {
+  let csvContent = '';
+  
+  // Add title and metadata
+  if (title) {
+    csvContent += `"${title}"\n`;
+    csvContent += `"Generated on: ${new Date().toLocaleDateString('en-KE', { 
+      year: 'numeric', month: 'long', day: 'numeric', 
+      hour: '2-digit', minute: '2-digit' 
+    })}"\n`;
+    csvContent += `"Total Records: ${data.length}"\n`;
+    csvContent += '\n'; // Empty line
+  }
+  
+  // Add headers
+  const csvHeaders = headers.map(h => `"${h}"`).join(',');
+  csvContent += csvHeaders + '\n';
+  
+  // Add data rows
   const csvRows = data.map(row => 
-    headers.map(header => `"${row[header] || ''}"`).join(',')
+    headers.map(header => {
+      const value = row[header] || '';
+      // Format currency values properly
+      if (typeof value === 'string' && value.includes('KES')) {
+        return `"${value}"`;
+      }
+      // Handle numbers
+      if (typeof value === 'number') {
+        return value.toString();
+      }
+      // Handle dates
+      if (value instanceof Date) {
+        return `"${value.toLocaleDateString('en-KE')}"`;
+      }
+      return `"${value}"`;
+    }).join(',')
   );
-  return [csvHeaders, ...csvRows].join('\n');
+  
+  csvContent += csvRows.join('\n');
+  
+  return csvContent;
 };
 
 const downloadCSV = (csvContent: string, filename: string): void => {
-  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+  // Add BOM for proper Excel UTF-8 handling
+  const BOM = '\uFEFF';
+  const blob = new Blob([BOM + csvContent], { 
+    type: 'text/csv;charset=utf-8;' 
+  });
   const link = document.createElement('a');
   const url = URL.createObjectURL(blob);
   link.setAttribute('href', url);
@@ -106,6 +145,7 @@ const downloadCSV = (csvContent: string, filename: string): void => {
   document.body.appendChild(link);
   link.click();
   document.body.removeChild(link);
+  URL.revokeObjectURL(url);
 };
 
 export default function Reports() {
@@ -155,51 +195,136 @@ export default function Reports() {
     queryFn: () => getOrdersData(ordersPeriod, ordersPage, 10)
   });
 
-  // CSV Export Functions
+  // Enhanced CSV Export Functions
   const exportSummaryCSV = async () => {
     if (!summaryData) return;
     
     setExportingCSV('summary');
     try {
+      const reportTitle = `DukaFiti Business Summary Report - ${summaryPeriod.charAt(0).toUpperCase() + summaryPeriod.slice(1)}`;
+      
       const csvData = [
-        { type: 'Total Sales', amount: summaryData.totalSales },
-        { type: 'Cash Sales', amount: summaryData.cashSales },
-        { type: 'Mobile Money Sales', amount: summaryData.mobileMoneySales },
-        { type: 'Credit Sales', amount: summaryData.creditSales }
+        { 
+          'Sales Type': 'Total Sales', 
+          'Amount (KES)': summaryData.totalSales,
+          'Percentage': '100%',
+          'Period': summaryPeriod.charAt(0).toUpperCase() + summaryPeriod.slice(1),
+          'Generated Date': new Date().toLocaleDateString('en-KE')
+        },
+        { 
+          'Sales Type': 'Cash Sales', 
+          'Amount (KES)': summaryData.cashSales,
+          'Percentage': `${Math.round((parseFloat(summaryData.cashSales) / parseFloat(summaryData.totalSales)) * 100)}%`,
+          'Period': summaryPeriod.charAt(0).toUpperCase() + summaryPeriod.slice(1),
+          'Generated Date': new Date().toLocaleDateString('en-KE')
+        },
+        { 
+          'Sales Type': 'Mobile Money Sales', 
+          'Amount (KES)': summaryData.mobileMoneySales,
+          'Percentage': `${Math.round((parseFloat(summaryData.mobileMoneySales) / parseFloat(summaryData.totalSales)) * 100)}%`,
+          'Period': summaryPeriod.charAt(0).toUpperCase() + summaryPeriod.slice(1),
+          'Generated Date': new Date().toLocaleDateString('en-KE')
+        },
+        { 
+          'Sales Type': 'Credit Sales', 
+          'Amount (KES)': summaryData.creditSales,
+          'Percentage': `${Math.round((parseFloat(summaryData.creditSales) / parseFloat(summaryData.totalSales)) * 100)}%`,
+          'Period': summaryPeriod.charAt(0).toUpperCase() + summaryPeriod.slice(1),
+          'Generated Date': new Date().toLocaleDateString('en-KE')
+        }
       ];
       
-      const csv = convertToCSV(csvData, ['type', 'amount']);
-      downloadCSV(csv, `sales-summary-${summaryPeriod}-${new Date().toISOString().split('T')[0]}.csv`);
+      const csv = convertToCSV(
+        csvData, 
+        ['Sales Type', 'Amount (KES)', 'Percentage', 'Period', 'Generated Date'],
+        reportTitle
+      );
+      downloadCSV(csv, `DukaFiti-Sales-Summary-${summaryPeriod}-${new Date().toISOString().split('T')[0]}.csv`);
     } finally {
       setExportingCSV(null);
     }
   };
 
-  // Detailed CSV Export with full order and line item data
+  // Comprehensive Business Report Export
   const exportDetailedCSV = async () => {
     setExportingCSV('detailed');
     try {
-      const response = await fetch(`/api/reports/export-orders?period=${summaryPeriod}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/csv',
-        },
-      });
+      const reportTitle = `DukaFiti Comprehensive Business Report - ${summaryPeriod.charAt(0).toUpperCase() + summaryPeriod.slice(1)}`;
       
-      if (!response.ok) {
-        throw new Error('Failed to export detailed CSV');
+      // Create comprehensive business report with multiple sections
+      let csvContent = '';
+      
+      // Add business report header
+      csvContent += `"${reportTitle}"\n`;
+      csvContent += `"Generated on: ${new Date().toLocaleString('en-KE')}"\n`;
+      csvContent += `"Report Period: ${summaryPeriod.charAt(0).toUpperCase() + summaryPeriod.slice(1)}"\n`;
+      csvContent += `"Business: DukaFiti POS System"\n`;
+      csvContent += '\n';
+      
+      // Section 1: Sales Summary
+      csvContent += '"=== SALES SUMMARY ==="\n';
+      if (summaryData) {
+        csvContent += '"Sales Type","Amount (KES)","Percentage"\n';
+        const total = parseFloat(summaryData.totalSales);
+        csvContent += `"Total Sales","${summaryData.totalSales}","100%"\n`;
+        csvContent += `"Cash Sales","${summaryData.cashSales}","${Math.round((parseFloat(summaryData.cashSales) / total) * 100)}%"\n`;
+        csvContent += `"Mobile Money Sales","${summaryData.mobileMoneySales}","${Math.round((parseFloat(summaryData.mobileMoneySales) / total) * 100)}%"\n`;
+        csvContent += `"Credit Sales","${summaryData.creditSales}","${Math.round((parseFloat(summaryData.creditSales) / total) * 100)}%"\n`;
+      }
+      csvContent += '\n';
+      
+      // Section 2: Top Products
+      csvContent += '"=== TOP-SELLING PRODUCTS ==="\n';
+      if (topProductsData && topProductsData.length > 0) {
+        csvContent += '"Product Name","Units Sold","Total Revenue (KES)"\n';
+        topProductsData.forEach(product => {
+          csvContent += `"${product.productName}","${product.unitsSold}","${product.totalRevenue}"\n`;
+        });
+      } else {
+        csvContent += '"No product sales data available for this period"\n';
+      }
+      csvContent += '\n';
+      
+      // Section 3: Top Customers (Credit)
+      csvContent += '"=== TOP CUSTOMERS WITH CREDIT ==="\n';
+      if (topCustomersData && topCustomersData.length > 0) {
+        csvContent += '"Customer Name","Total Owed (KES)","Outstanding Orders"\n';
+        topCustomersData.forEach(customer => {
+          csvContent += `"${customer.customerName}","${customer.totalOwed}","${customer.outstandingOrders}"\n`;
+        });
+      } else {
+        csvContent += '"No customers with outstanding credit for this period"\n';
+      }
+      csvContent += '\n';
+      
+      // Section 4: Recent Orders
+      csvContent += '"=== RECENT ORDERS ==="\n';
+      if (ordersData && ordersData.orders && ordersData.orders.length > 0) {
+        csvContent += '"Order ID","Customer","Amount (KES)","Payment Method","Status","Date"\n';
+        ordersData.orders.forEach(order => {
+          csvContent += `"#ORD-${order.orderId.toString().padStart(3, '0')}","${order.customerName || 'N/A'}","${order.total}","${order.paymentMethod}","Completed","${order.date}"\n`;
+        });
+      } else {
+        csvContent += '"No recent orders data available"\n';
+      }
+      csvContent += '\n';
+      
+      // Section 5: Sales Trend Data
+      csvContent += '"=== SALES TREND DATA ==="\n';
+      if (trendData && trendData.length > 0) {
+        csvContent += '"Period","Sales Amount (KES)"\n';
+        trendData.forEach(trend => {
+          csvContent += `"${trend.label}","${trend.value}"\n`;
+        });
+      } else {
+        csvContent += '"No trend data available for this period"\n';
       }
       
-      // Get the blob data
-      const blob = await response.blob();
-      const filename = `orders_detailed_${summaryPeriod}_${new Date().toISOString().split('T')[0]}.csv`;
-      
-      // Use downloadjs to prompt download
-      download(blob, filename, 'text/csv');
+      // Download the comprehensive report
+      downloadCSV(csvContent, `DukaFiti-Comprehensive-Report-${summaryPeriod}-${new Date().toISOString().split('T')[0]}.csv`);
       
     } catch (error) {
       console.error('Failed to export detailed CSV:', error);
-      // Could add toast notification here
     } finally {
       setExportingCSV(null);
     }

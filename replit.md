@@ -396,6 +396,15 @@ Changelog:
 - July 3, 2025. Updated server configuration to use environment variables and proper port binding for production deployment
 - July 3, 2025. Added Supabase configuration endpoint and comprehensive deployment documentation (REPLIT_SETUP.md, DEPLOYMENT_FIX.md)
 - July 3, 2025. Created deployment scripts and resolved "No Output Directory named 'build'" error for Replit deployments
+- July 6, 2025. Fixed customer update button functionality by properly handling form data separation between create and update operations
+- July 6, 2025. Enhanced reports page with comprehensive sales trend analysis supporting hourly, daily, and monthly chart views
+- July 6, 2025. Fixed dashboard recent orders display to properly show customer names using stored customer_name field
+- July 6, 2025. Improved top customers data to display customers with highest credit balances and outstanding order counts
+- July 6, 2025. Enhanced top-selling products functionality to properly aggregate sales data from order items
+- July 6, 2025. Created comprehensive CSV export system with Excel-compatible formatting and BOM encoding
+- July 6, 2025. Added detailed business report exports with multiple sections: sales summary, top products, customer credits, recent orders, and trend data
+- July 6, 2025. Implemented sample data generation for trend charts to demonstrate functionality when no real data exists
+- July 6, 2025. Enhanced CSV reports with proper business headers, metadata, percentages, and professional formatting
 ```
 
 ## User Preferences
