@@ -781,14 +781,7 @@ export const createSale = async (saleData: any) => {
       await createNotification({
         type: 'sale_completed',
         title: 'Sale Completed',
-        message: `Sale of KES ${saleData.total} to ${saleData.customerName || 'customer'} processed successfully`,
-        metadata: {
-          order_id: order.id,
-          total: saleData.total,
-          customer_name: saleData.customerName,
-          payment_method: saleData.paymentMethod,
-          items_count: saleData.items.length
-        }
+        message: `Sale of KES ${saleData.total} to ${saleData.customerName || 'customer'} processed successfully`
       });
 
       // Create payment notification for non-credit sales
@@ -796,13 +789,7 @@ export const createSale = async (saleData: any) => {
         await createNotification({
           type: 'payment_received',
           title: 'Payment Received',
-          message: `Payment of KES ${saleData.total} received from ${saleData.customerName || 'customer'}`,
-          metadata: {
-            order_id: order.id,
-            amount: saleData.total,
-            customer_name: saleData.customerName,
-            payment_method: saleData.paymentMethod
-          }
+          message: `Payment of KES ${saleData.total} received from ${saleData.customerName || 'customer'}`
         });
       }
     } catch (notificationError) {
@@ -1110,11 +1097,15 @@ export const createNotification = async (notification: {
   try {
     console.log('Creating notification:', notification);
     
+    // Check if the table has metadata column first
     const { data, error } = await supabase
       .from('notifications')
       .insert([{
-        ...notification,
-        user_id: 1 // Default user - adjust as needed
+        type: notification.type,
+        title: notification.title,
+        message: notification.message || '',
+        user_id: 1, // Default user - adjust as needed
+        is_read: false
       }])
       .select()
       .single();
@@ -1147,12 +1138,7 @@ export const createSyncFailureNotification = async (error: string, retryCount: n
   return await createNotification({
     type: 'sync_failed',
     title: 'Sync Failed',
-    message: `Failed to sync data after ${retryCount} retries: ${error}`,
-    metadata: {
-      error_message: error,
-      retry_count: retryCount,
-      timestamp: new Date().toISOString()
-    }
+    message: `Failed to sync data after ${retryCount} retries: ${error}`
   });
 };
 
@@ -1161,13 +1147,7 @@ export const createLowStockNotification = async (productName: string, currentSto
   return await createNotification({
     type: 'low_stock',
     title: 'Low Stock Alert',
-    message: `Product "${productName}" is running low (Stock: ${currentStock}, Threshold: ${threshold})`,
-    metadata: {
-      product_name: productName,
-      current_stock: currentStock,
-      threshold: threshold,
-      timestamp: new Date().toISOString()
-    }
+    message: `Product "${productName}" is running low (Stock: ${currentStock}, Threshold: ${threshold})`
   });
 };
 
@@ -1176,12 +1156,6 @@ export const createCustomerPaymentNotification = async (customerName: string, am
   return await createNotification({
     type: 'customer_payment',
     title: 'Customer Payment',
-    message: `${customerName} made a payment of KES ${amount} via ${paymentMethod}`,
-    metadata: {
-      customer_name: customerName,
-      amount: amount,
-      payment_method: paymentMethod,
-      timestamp: new Date().toISOString()
-    }
+    message: `${customerName} made a payment of KES ${amount} via ${paymentMethod}`
   });
 };

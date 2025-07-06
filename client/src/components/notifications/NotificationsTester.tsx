@@ -30,9 +30,8 @@ export function NotificationsTester() {
       await createNotification({
         type,
         title,
-        message,
-        is_read: false,
-        metadata
+        message
+        // metadata removed since table doesn't have this column yet
       });
       toast({
         title: 'Test notification created',
