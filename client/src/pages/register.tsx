@@ -161,7 +161,7 @@ export default function Register() {
         </div>
 
         {/* Brand Header - integrated seamlessly */}
-        <div className="bg-gradient-to-r from-brand-50 to-brand-100 dark:from-brand-900/30 dark:to-brand-800/30 px-8 py-12 text-center">
+        <div className="bg-white dark:bg-gray-800 px-8 py-12 text-center">
           <img 
             src={theme === 'dark' ? brandDarkImage : brandLightImage}
             alt="DukaFiti - Duka Bora Ni Duka Fiti" 
