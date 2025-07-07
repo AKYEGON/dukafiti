@@ -296,15 +296,15 @@ export default function Inventory() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleteMutation.isPending}>
+            <AlertDialogCancel disabled={deleteProductMutation.isPending}>
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction
-              onClick={() => deleteProductState && deleteMutation.mutate(deleteProductState.id)}
-              disabled={deleteMutation.isPending}
+              onClick={() => deleteProductState && deleteProductMutation.mutate(deleteProductState.id)}
+              disabled={deleteProductMutation.isPending}
               className="bg-red-600 hover:bg-red-700"
             >
-              {deleteMutation.isPending ? "Deleting..." : "Delete"}
+              {deleteProductMutation.isPending ? "Deleting..." : "Delete"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

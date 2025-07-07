@@ -357,16 +357,16 @@ export default function Customers() {
               <Button
                 variant="outline"
                 onClick={() => setShowDeleteConfirm(false)}
-                disabled={deleteMutation.isPending}
+                disabled={deleteCustomerMutation.isPending}
               >
                 Cancel
               </Button>
               <Button
                 variant="destructive"
                 onClick={confirmDeleteCustomer}
-                disabled={deleteMutation.isPending}
+                disabled={deleteCustomerMutation.isPending}
               >
-                {deleteMutation.isPending ? "Deleting..." : "Delete Customer"}
+                {deleteCustomerMutation.isPending ? "Deleting..." : "Delete Customer"}
               </Button>
             </DialogFooter>
           </DialogContent>
