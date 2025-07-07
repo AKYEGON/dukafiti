@@ -48,10 +48,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     // Listen for auth changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('Auth state changed:', event, session);
       setSession(session);
       setUser(session?.user ?? null);
       setIsLoading(false);
+      
+      // Redirect on logout
+      if (event === 'SIGNED_OUT' && typeof window !== 'undefined') {
+        window.location.href = '/';
+      }
     });
 
     return () => subscription.unsubscribe();

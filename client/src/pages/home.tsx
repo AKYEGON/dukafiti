@@ -74,13 +74,13 @@ export default function Home() {
               <a href="#testimonials" className="text-gray-600 dark:text-gray-300 hover:text-brand-600 dark:hover:text-brand-400 font-medium">Testimonials</a>
               <Button 
                 variant="outline" 
-                onClick={() => setLocation('/login')}
+                onClick={() => setLocation('/auth')}
                 className="h-10 px-6 border-brand-200 text-brand-700 hover:bg-brand-50 dark:border-brand-700 dark:text-brand-300"
               >
                 Log In
               </Button>
               <Button 
-                onClick={() => setLocation('/register')}
+                onClick={() => setLocation('/auth')}
                 className="h-10 px-6 bg-brand hover:bg-brand-700 text-white"
               >
                 Get Started
@@ -108,13 +108,13 @@ export default function Home() {
                 <a href="#testimonials" className="text-gray-600 dark:text-gray-300 hover:text-brand-600 dark:hover:text-brand-400 font-medium">Testimonials</a>
                 <Button 
                   variant="outline" 
-                  onClick={() => setLocation('/login')}
+                  onClick={() => setLocation('/auth')}
                   className="w-full h-12 border-brand-200 text-brand-700 hover:bg-brand-50"
                 >
                   Log In
                 </Button>
                 <Button 
-                  onClick={() => setLocation('/register')}
+                  onClick={() => setLocation('/auth')}
                   className="w-full h-12 bg-brand hover:bg-brand-700 text-white"
                 >
                   Get Started
@@ -142,7 +142,7 @@ export default function Home() {
                 <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
                   <Button 
                     size="lg" 
-                    onClick={() => setLocation('/register')}
+                    onClick={() => setLocation('/auth')}
                     className="h-12 px-8 bg-brand hover:bg-brand-700 text-white font-semibold"
                   >
                     Start Free Trial
@@ -328,7 +328,7 @@ export default function Home() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button 
               size="lg" 
-              onClick={() => setLocation('/register')}
+              onClick={() => setLocation('/auth')}
               className="h-12 px-8 bg-white text-brand-900 hover:bg-gray-100 font-semibold"
             >
               Start Your Free Trial

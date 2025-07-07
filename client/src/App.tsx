@@ -27,18 +27,13 @@ import Customers from "@/pages/customers";
 import Reports from "@/pages/reports";
 import NotificationsPage from "@/pages/notifications";
 import Home from "@/pages/home";
-import Login from "@/pages/login";
-import Register from "@/pages/register";
+import AuthPage from "@/pages/auth";
 import AuthCallback from "@/pages/auth-callback";
 import Onboarding from "@/pages/onboarding";
 import NotFound from "@/pages/not-found";
 import SettingsPage from "@/pages/settings";
 import Debug from "@/pages/debug";
 import DebugAuth from "@/pages/debug-auth";
-import BrandedWebsite from "@/pages/BrandedWebsite";
-import LandingNew from "@/pages/landing-new";
-import SignInNew from "@/pages/signin-new";
-import SignUpNew from "@/pages/signup-new";
 
 function AuthenticatedApp() {
   // Initialize WebSocket connection for real-time notifications
@@ -125,7 +120,7 @@ function Router() {
   }
 
   // Redirect authenticated users from auth pages to dashboard
-  if (user && (location === '/login' || location === '/register')) {
+  if (user && (location === '/login' || location === '/register' || location === '/auth')) {
     setLocation('/dashboard');
     return null;
   }
@@ -134,17 +129,14 @@ function Router() {
   return (
     <Switch>
       {/* Public routes */}
-      <Route path="/" component={user ? () => { setLocation('/dashboard'); return null; } : LandingNew} />
-      <Route path="/login" component={Login} />
-      <Route path="/register" component={Register} />
+      <Route path="/" component={user ? () => { setLocation('/dashboard'); return null; } : Home} />
+      <Route path="/auth" component={AuthPage} />
+      <Route path="/login" component={AuthPage} />
+      <Route path="/register" component={AuthPage} />
       <Route path="/auth/callback" component={AuthCallback} />
       <Route path="/onboarding" component={Onboarding} />
       <Route path="/debug" component={Debug} />
       <Route path="/debug-auth" component={DebugAuth} />
-      <Route path="/website" component={BrandedWebsite} />
-      <Route path="/landing" component={LandingNew} />
-      <Route path="/signin" component={SignInNew} />
-      <Route path="/signup" component={SignUpNew} />
       
       {/* Protected routes */}
       <Route path="/dashboard">
