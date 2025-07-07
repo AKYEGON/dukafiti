@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { type Product } from "@shared/schema";
 import { ProductForm } from "@/components/inventory/product-form";
+import { RestockModal } from "@/components/inventory/restock-modal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -21,7 +22,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Search, Package, Edit, Trash2, Plus } from "lucide-react";
+import { Search, Package, Edit, Trash2, Plus, PackagePlus } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -37,6 +38,7 @@ export default function Inventory() {
   const [showProductForm, setShowProductForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | undefined>();
   const [deleteProduct, setDeleteProduct] = useState<Product | undefined>();
+  const [restockProduct, setRestockProduct] = useState<Product | undefined>();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { createNotification } = useNotifications();
@@ -145,6 +147,10 @@ export default function Inventory() {
     setDeleteProduct(product);
   };
 
+  const handleRestock = (product: Product) => {
+    setRestockProduct(product);
+  };
+
   const handleFormClose = () => {
     setShowProductForm(false);
     setEditingProduct(undefined);
@@ -239,6 +245,13 @@ export default function Inventory() {
                   {/* Action Buttons - Top Right Corner */}
                   <div className="absolute top-4 right-4 flex gap-1">
                     <button
+                      onClick={() => handleRestock(product)}
+                      className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 hover:text-blue-600 transition-colors"
+                      aria-label="Add stock"
+                    >
+                      <PackagePlus className="w-4 h-4" />
+                    </button>
+                    <button
                       onClick={() => handleEdit(product)}
                       className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 hover:text-green-600 transition-colors"
                       aria-label="Edit product"
@@ -288,6 +301,13 @@ export default function Inventory() {
         open={showProductForm}
         onOpenChange={handleFormClose}
         product={editingProduct}
+      />
+
+      {/* Restock Modal */}
+      <RestockModal
+        product={restockProduct || null}
+        open={!!restockProduct}
+        onOpenChange={(open) => !open && setRestockProduct(undefined)}
       />
 
       {/* Delete Confirmation Dialog */}

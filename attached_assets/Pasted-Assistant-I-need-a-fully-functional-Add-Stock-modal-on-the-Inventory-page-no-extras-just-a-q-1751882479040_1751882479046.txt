@@ -1,0 +1,137 @@
+Assistant, I need a fully functional **“Add Stock”** modal on the Inventory page—no extras, just a quick way to restock and capture a buying price for future profit calculations.
+
+---
+
+## 1. Product Card “Add Stock” Button  
+- In `Inventory.jsx` (or wherever you map products), at the end of each product card add a button:
+  ```jsx
+  <button
+    className="ml-2 px-3 py-1 bg-primary text-white rounded hover:bg-primary-dark"
+    onClick={() => openRestockModal(product)}
+  >
+    Add Stock
+  </button>
+Implement openRestockModal(product) to set selectedProduct in local state and show the modal.
+
+2. Restock Modal Component
+Create or update RestockModal.jsx:
+
+jsx
+Copy
+Edit
+import { useState } from 'react';
+import { supabase } from '../supabaseClient';
+
+export default function RestockModal({ product, onClose, onRestocked }) {
+  const [qty, setQty] = useState('');
+  const [buyPrice, setBuyPrice] = useState('');
+  const [loading, setLoading] = useState(false);
+  const handleSubmit = async () => {
+    if (!qty || !buyPrice || qty <= 0 || buyPrice < 0) return alert('Enter valid values');
+    setLoading(true);
+    // Update product quantity and cost_price
+    const { error } = await supabase
+      .from('products')
+      .update({
+        quantity: supabase.raw('quantity + ?', [Number(qty)]),
+        cost_price: Number(buyPrice),
+      })
+      .eq('id', product.id);
+    setLoading(false);
+    if (error) return alert('Restock failed: ' + error.message);
+    onRestocked(); // refresh inventory list
+    onClose();
+  };
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+      <div className="bg-white dark:bg-gray-800 rounded-lg p-6 w-80">
+        <h2 className="text-xl font-semibold mb-4">Restock {product.name}</h2>
+        <label className="block mb-2">
+          Quantity to add
+          <input
+            type="number"
+            className="w-full mt-1 p-2 border rounded"
+            value={qty}
+            onChange={e => setQty(e.target.value)}
+          />
+        </label>
+        <label className="block mb-4">
+          Buying Price (KES)
+          <input
+            type="number"
+            className="w-full mt-1 p-2 border rounded"
+            value={buyPrice}
+            onChange={e => setBuyPrice(e.target.value)}
+          />
+        </label>
+        <div className="flex justify-end space-x-2">
+          <button
+            onClick={onClose}
+            className="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+            disabled={loading}
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleSubmit}
+            className="px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark"
+            disabled={loading}
+          >
+            {loading ? 'Restocking…' : 'Restock'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+3. Inventory Page Integration
+Import and use the modal in Inventory.jsx:
+
+jsx
+Copy
+Edit
+const [selectedProduct, setSelectedProduct] = useState(null);
+const openRestockModal = prod => setSelectedProduct(prod);
+const closeRestockModal = () => setSelectedProduct(null);
+const refreshInventory = () => fetchProducts(); // your existing reload
+
+return (
+  <>
+    {/* your product grid... */}
+    {products.map(product => (
+      <ProductCard key={product.id} product={product}>
+        <button onClick={() => openRestockModal(product)}>Add Stock</button>
+      </ProductCard>
+    ))}
+    {selectedProduct && (
+      <RestockModal
+        product={selectedProduct}
+        onClose={closeRestockModal}
+        onRestocked={refreshInventory}
+      />
+    )}
+  </>
+);
+4. QA Checklist
+ “Add Stock” button appears on every product card.
+
+ Modal opens with correct product name.
+
+ Quantity and Buying Price inputs validate properly.
+
+ On submit, product’s quantity increments and cost_price updates in Supabase.
+
+ Inventory list refreshes immediately.
+
+ Modal closes and shows a success state with no errors.
+
+Please implement these changes so our MVP has a simple, working restock flow with buying price capture.```
+
+
+
+
+
+
+
+
+Ask ChatGPT
