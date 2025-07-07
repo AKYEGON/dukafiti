@@ -11,22 +11,26 @@ import { RecordRepaymentModal } from "@/components/customers/record-repayment-mo
 import { MobilePageWrapper } from "@/components/layout/mobile-page-wrapper";
 import { RefreshButton } from "@/components/ui/refresh-button";
 import { motion, AnimatePresence } from "framer-motion";
-import { useComprehensiveRealtimeFixed } from "@/hooks/useComprehensiveRealtimeFixed";
+import { useRuntimeData } from "@/hooks/useRuntimeData";
+import { useCRUDMutations } from "@/hooks/useCRUDMutations";
 import type { Customer } from "@/types/schema";
 
 export default function Customers() {
-  // Use comprehensive real-time hook for all operations - FIXED VERSION
+  // Use runtime data hook for fresh data fetching with RLS
   const {
     customers,
     customersLoading: isLoading,
     customersError: error,
-    refreshCustomers,
+    refetchCustomers: refreshCustomers,
+    isConnected
+  } = useRuntimeData();
+
+  // Use CRUD mutations for all operations
+  const {
     deleteCustomerMutation,
     updateCustomerMutation,
-    recordRepaymentMutation,
-    pendingOperations,
-    isConnected
-  } = useComprehensiveRealtimeFixed();
+    recordRepaymentMutation
+  } = useCRUDMutations();
 
   const [showNewCustomerForm, setShowNewCustomerForm] = useState(false);
   const [showEditCustomerForm, setShowEditCustomerForm] = useState(false);
@@ -137,8 +141,8 @@ export default function Customers() {
             <div>
               <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                 Customer Management
-                {(isLoading || pendingOperations > 0) && (
-                  <span className="ml-2 text-sm text-orange-600 dark:text-orange-400">• Updating...</span>
+                {isLoading && (
+                  <span className="ml-2 text-sm text-orange-600 dark:text-orange-400">• Loading...</span>
                 )}
                 {!isConnected && (
                   <span className="ml-2 text-sm text-red-600 dark:text-red-400">• Offline</span>
@@ -148,7 +152,7 @@ export default function Customers() {
             <div className="flex items-center gap-3">
               <RefreshButton
                 onRefresh={refreshCustomers}
-                isLoading={isLoading || pendingOperations > 0}
+                isLoading={isLoading}
                 size="sm"
                 variant="outline"
               />

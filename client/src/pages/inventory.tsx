@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { type Product } from "@/types/schema";
 import { ProductForm } from "@/components/inventory/product-form";
 import { RestockModal } from "@/components/inventory/restock-modal";
@@ -25,8 +25,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Search, Package, Edit, Trash2, Plus, PackagePlus } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { RefreshButton } from "@/components/ui/refresh-button";
-import { useComprehensiveRealtimeFixed } from "@/hooks/useComprehensiveRealtimeFixed";
+import { useRuntimeData } from "@/hooks/useRuntimeData";
+import { useCRUDMutations } from "@/hooks/useCRUDMutations";
 
 type SortOption = "name-asc" | "name-desc" | "price-asc" | "price-desc";
 
@@ -38,24 +38,52 @@ export default function Inventory() {
   const [deleteProductState, setDeleteProductState] = useState<Product | undefined>();
   const [restockProduct, setRestockProduct] = useState<Product | undefined>();
 
-  // Use comprehensive real-time hook for all operations - FIXED VERSION
+  // Use runtime data hook for fresh data fetching with RLS
   const {
     products,
     productsLoading: isLoading,
     productsError: error,
-    refreshProducts: refresh,
-    deleteProductMutation,
-    restockProductMutation,
-    pendingOperations,
+    refetchProducts: refresh,
     isConnected
-  } = useComprehensiveRealtimeFixed();
+  } = useRuntimeData();
+
+  // Use CRUD mutations for all operations
+  const {
+    deleteProductMutation,
+    restockProductMutation
+  } = useCRUDMutations();
+
+  // Search and sort functions
+  const searchProducts = useCallback((searchTerm: string) => {
+    if (!searchTerm.trim()) return products;
+    const term = searchTerm.toLowerCase();
+    return products.filter(product =>
+      product.name.toLowerCase().includes(term) ||
+      product.sku.toLowerCase().includes(term) ||
+      product.category?.toLowerCase().includes(term)
+    );
+  }, [products]);
+
+  const sortProducts = useCallback((sortBy: SortOption, productsToSort: Product[]) => {
+    return [...productsToSort].sort((a, b) => {
+      switch (sortBy) {
+        case "name-asc":
+          return a.name.localeCompare(b.name);
+        case "name-desc":
+          return b.name.localeCompare(a.name);
+        case "price-asc":
+          return a.price - b.price;
+        case "price-desc":
+          return b.price - a.price;
+        default:
+          return 0;
+      }
+    });
+  }, []);
 
   const filteredAndSortedProducts = useMemo(() => {
-    // First search, then sort
-    const searchedProducts = searchProducts(search);
-    return sortProducts(sortBy).filter(product => 
-      searchedProducts.some(sp => sp.id === product.id)
-    );
+    const searched = searchProducts(search);
+    return sortProducts(sortBy, searched);
   }, [products, search, sortBy, searchProducts, sortProducts]);
 
   // Enhanced handlers with logging and state management
@@ -86,35 +114,13 @@ export default function Inventory() {
     setRestockProduct(undefined);
   }, []);
 
-  // Real-time subscriptions for inventory changes
-  useEffect(() => {
-    console.log('🔄 Setting up real-time inventory subscriptions');
-    
-    const handleProductChanges = (payload: any) => {
-      console.log('📡 Real-time product change:', payload.eventType, payload.new?.name || payload.old?.name);
-      
-      // Force refresh inventory data
-      setTimeout(() => {
-        refresh();
-        queryClient.invalidateQueries({ queryKey: ["products"] });
-        queryClient.invalidateQueries({ queryKey: ["dashboard-metrics"] });
-      }, 100);
-    };
-
-    const channel = supabase
-      .channel('inventory-changes')
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'products'
-      }, handleProductChanges)
-      .subscribe();
-
-    return () => {
-      console.log('🔄 Cleaning up real-time subscriptions');
-      supabase.removeChannel(channel);
-    };
-  }, [refresh, queryClient]);
+  // Confirm delete handler
+  const confirmDelete = useCallback(() => {
+    if (deleteProductState) {
+      deleteProductMutation.mutate(deleteProductState.id);
+      setDeleteProductState(undefined);
+    }
+  }, [deleteProductState, deleteProductMutation]);
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-[#1F1F1F]">
@@ -127,8 +133,8 @@ export default function Inventory() {
             </h1>
             <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
               Manage your product inventory
-              {(isLoading || pendingOperations > 0) && (
-                <span className="ml-2 text-orange-600 dark:text-orange-400">• Updating...</span>
+              {isLoading && (
+                <span className="ml-2 text-orange-600 dark:text-orange-400">• Loading...</span>
               )}
               {!isConnected && (
                 <span className="ml-2 text-red-600 dark:text-red-400">• Offline</span>
@@ -138,7 +144,7 @@ export default function Inventory() {
           <div className="flex items-center gap-2">
             <RefreshButton
               onRefresh={refresh}
-              isLoading={isLoading || pendingOperations > 0}
+              isLoading={isLoading}
               size="sm"
               variant="outline"
             />
