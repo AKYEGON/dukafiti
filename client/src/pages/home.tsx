@@ -57,13 +57,13 @@ export default function Home() {
                 <img 
                   src="/assets/banner-light.png"
                   alt="DukaFiti" 
-                  className="h-12 w-auto object-contain dark:hidden"
+                  className="h-10 w-auto object-contain dark:hidden"
                 />
                 {/* Dark mode banner */}
                 <img 
                   src="/assets/banner-dark.png"
                   alt="DukaFiti" 
-                  className="h-12 w-auto object-contain hidden dark:block"
+                  className="h-10 w-auto object-contain hidden dark:block"
                 />
               </div>
             </div>
@@ -171,21 +171,17 @@ export default function Home() {
                 <div className="relative overflow-hidden rounded-xl shadow-2xl bg-gradient-to-br from-brand-100 to-accent-blue-100 dark:from-brand-900 dark:to-accent-blue-900">
                   <div className="p-8 text-center">
                     {/* Light mode banner */}
-                    <div className="mb-6 dark:hidden">
-                      <img 
-                        src="/assets/banner-light.png" 
-                        className="w-full max-w-md mx-auto h-auto object-contain" 
-                        alt="DukaFiti Hero Banner" 
-                      />
-                    </div>
+                    <img 
+                      src="/assets/banner-light.png" 
+                      className="h-32 w-auto mx-auto mb-6 dark:hidden" 
+                      alt="DukaFiti Hero Banner" 
+                    />
                     {/* Dark mode banner */}
-                    <div className="mb-6 hidden dark:block">
-                      <img 
-                        src="/assets/banner-dark.png" 
-                        className="w-full max-w-md mx-auto h-auto object-contain" 
-                        alt="DukaFiti Hero Banner" 
-                      />
-                    </div>
+                    <img 
+                      src="/assets/banner-dark.png" 
+                      className="h-32 w-auto mx-auto mb-6 hidden dark:block" 
+                      alt="DukaFiti Hero Banner" 
+                    />
                     
                     <div className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm rounded-lg p-4">
                       <p className="text-sm text-gray-700 dark:text-gray-300 font-medium">

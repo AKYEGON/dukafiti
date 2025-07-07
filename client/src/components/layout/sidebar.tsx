@@ -87,17 +87,17 @@ export function Sidebar({ className, collapsed = false, toggleSidebar }: Sidebar
           ) : (
             <Link href="/" className="flex items-center justify-center hover:opacity-90 transition-opacity duration-200">
               <div className="relative">
-                {/* Light mode banner */}
+                {/* Light mode full logo */}
                 <img 
-                  src="/assets/banner-light.png"
+                  src="/assets/logo-light.png"
                   alt="DukaFiti - Duka Fiti ni Duka Bora" 
-                  className="h-16 w-auto object-contain dark:hidden"
+                  className="h-12 w-auto object-contain dark:hidden"
                 />
-                {/* Dark mode banner */}
+                {/* Dark mode full logo */}
                 <img 
-                  src="/assets/banner-dark.png"
+                  src="/assets/logo-dark.png"
                   alt="DukaFiti - Duka Fiti ni Duka Bora" 
-                  className="h-16 w-auto object-contain hidden dark:block"
+                  className="h-12 w-auto object-contain hidden dark:block"
                 />
               </div>
             </Link>
