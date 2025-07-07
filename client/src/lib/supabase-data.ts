@@ -21,6 +21,7 @@ export const createProduct = async (product: any) => {
       sku: product.sku,
       description: product.description || null,
       price: product.price,
+      cost_price: product.costPrice || (product.price * 0.6), // Default to 60% of selling price
       stock: product.unknownQuantity ? null : product.stock,
       category: product.category || 'General',
       low_stock_threshold: product.unknownQuantity ? null : (product.lowStockThreshold || 10),
@@ -49,17 +50,24 @@ export const createProduct = async (product: any) => {
 };
 
 export const updateProduct = async (id: number, updates: any) => {
+  const updateData: any = {
+    name: updates.name,
+    sku: updates.sku,
+    description: updates.description,
+    price: updates.price,
+    stock: updates.unknownQuantity ? null : updates.stock,
+    category: updates.category,
+    low_stock_threshold: updates.unknownQuantity ? null : updates.lowStockThreshold,
+  };
+  
+  // Include cost_price if provided
+  if (updates.costPrice !== undefined) {
+    updateData.cost_price = updates.costPrice;
+  }
+  
   const { data, error } = await supabase
     .from('products')
-    .update({
-      name: updates.name,
-      sku: updates.sku,
-      description: updates.description,
-      price: updates.price,
-      stock: updates.unknownQuantity ? null : updates.stock,
-      category: updates.category,
-      low_stock_threshold: updates.unknownQuantity ? null : updates.lowStockThreshold,
-    })
+    .update(updateData)
     .eq('id', id)
     .select()
     .single();
@@ -709,6 +717,7 @@ export const createOrderItem = async (orderItem: any) => {
       product_name: orderItem.productName,
       quantity: orderItem.quantity,
       price: orderItem.price,
+      cost_price_at_sale: orderItem.costPriceAtSale || 0,
     }])
     .select()
     .single();
@@ -761,6 +770,7 @@ export const createSale = async (saleData: any) => {
       product_name: item.productName,
       quantity: item.quantity,
       price: item.price,
+      cost_price_at_sale: item.costPrice || 0, // Capture cost at time of sale
     }));
     
     const { error: itemsError } = await supabase
@@ -1414,5 +1424,181 @@ export const checkOverdueCreditCustomers = async () => {
     console.log(`Created credit reminders for ${customers?.length || 0} overdue customers`);
   } catch (error) {
     console.error('Error checking overdue credit customers:', error);
+  }
+};
+
+// Profit tracking functions
+export const getProfitData = async (period: 'daily' | 'weekly' | 'monthly') => {
+  try {
+    let startDate: Date;
+    const endDate = new Date();
+    
+    switch (period) {
+      case 'daily':
+        startDate = new Date();
+        startDate.setHours(0, 0, 0, 0);
+        break;
+      case 'weekly':
+        startDate = new Date();
+        startDate.setDate(startDate.getDate() - 7);
+        break;
+      case 'monthly':
+        startDate = new Date();
+        startDate.setMonth(startDate.getMonth() - 1);
+        break;
+    }
+    
+    // Get order items with profit data
+    const { data: orderItems, error } = await supabase
+      .from('order_items')
+      .select(`
+        *,
+        orders!inner(created_at, total)
+      `)
+      .gte('orders.created_at', startDate.toISOString())
+      .lte('orders.created_at', endDate.toISOString());
+    
+    if (error) throw error;
+    
+    // Calculate profit metrics
+    let totalProfit = 0;
+    let totalRevenue = 0;
+    const productProfits: { [key: string]: { profit: number; quantity: number; name: string } } = {};
+    
+    orderItems.forEach(item => {
+      const profit = (item.price - (item.cost_price_at_sale || 0)) * item.quantity;
+      const revenue = item.price * item.quantity;
+      
+      totalProfit += profit;
+      totalRevenue += revenue;
+      
+      if (!productProfits[item.product_id]) {
+        productProfits[item.product_id] = {
+          profit: 0,
+          quantity: 0,
+          name: item.product_name
+        };
+      }
+      
+      productProfits[item.product_id].profit += profit;
+      productProfits[item.product_id].quantity += item.quantity;
+    });
+    
+    const marginPercent = totalRevenue > 0 ? (totalProfit / totalRevenue) * 100 : 0;
+    
+    // Convert to array and sort by profit
+    const byProduct = Object.entries(productProfits)
+      .map(([id, data]) => ({
+        productId: id,
+        productName: data.name,
+        profit: data.profit,
+        quantity: data.quantity,
+        marginPercent: data.profit > 0 ? ((data.profit / (data.profit + (data.profit / 0.4))) * 100) : 0
+      }))
+      .sort((a, b) => b.profit - a.profit);
+    
+    return {
+      totalProfit,
+      marginPercent,
+      byProduct,
+      period
+    };
+  } catch (error) {
+    console.error('Error fetching profit data:', error);
+    throw error;
+  }
+};
+
+// Restocking functions
+export const restockProduct = async (restockData: {
+  productId: number;
+  quantity: number;
+  supplier?: string;
+  note?: string;
+  userId?: number;
+}) => {
+  try {
+    // Get current product data
+    const { data: product, error: productError } = await supabase
+      .from('products')
+      .select('*')
+      .eq('id', restockData.productId)
+      .single();
+    
+    if (productError) throw productError;
+    
+    // Update product stock
+    const newStock = (product.stock || 0) + restockData.quantity;
+    const { data: updatedProduct, error: updateError } = await supabase
+      .from('products')
+      .update({ stock: newStock })
+      .eq('id', restockData.productId)
+      .select()
+      .single();
+    
+    if (updateError) throw updateError;
+    
+    // Record restock history
+    const { error: historyError } = await supabase
+      .from('restock_history')
+      .insert([{
+        product_id: restockData.productId,
+        product_name: product.name,
+        quantity: restockData.quantity,
+        supplier: restockData.supplier || null,
+        note: restockData.note || null,
+        user_id: restockData.userId || null,
+      }]);
+    
+    if (historyError) {
+      console.error('Failed to record restock history:', historyError);
+      // Don't throw, just log the error
+    }
+    
+    return updatedProduct;
+  } catch (error) {
+    console.error('Error restocking product:', error);
+    throw error;
+  }
+};
+
+export const getRestockHistory = async (period?: 'today' | 'week' | 'month') => {
+  try {
+    let query = supabase
+      .from('restock_history')
+      .select('*')
+      .order('created_at', { ascending: false });
+    
+    if (period) {
+      let startDate: Date;
+      const endDate = new Date();
+      
+      switch (period) {
+        case 'today':
+          startDate = new Date();
+          startDate.setHours(0, 0, 0, 0);
+          break;
+        case 'week':
+          startDate = new Date();
+          startDate.setDate(startDate.getDate() - 7);
+          break;
+        case 'month':
+          startDate = new Date();
+          startDate.setMonth(startDate.getMonth() - 1);
+          break;
+      }
+      
+      query = query
+        .gte('created_at', startDate.toISOString())
+        .lte('created_at', endDate.toISOString());
+    }
+    
+    const { data, error } = await query;
+    
+    if (error) throw error;
+    return data;
+  } catch (error) {
+    console.error('Error fetching restock history:', error);
+    throw error;
   }
 };
