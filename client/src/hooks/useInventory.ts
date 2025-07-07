@@ -3,105 +3,148 @@
  * Provides comprehensive inventory management with optimistic updates
  */
 
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState, useEffect } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { getProducts } from '@/lib/supabase-data';
-import { useEnhancedQuery } from './useEnhancedQuery';
-import { useOptimisticUpdates } from './useOptimisticUpdates';
+import { useDynamicData } from './useDynamicData';
 import type { Product } from '@/types/schema';
 
 export function useInventory() {
-  const { optimisticUpdateStock, optimisticUpdateProduct } = useOptimisticUpdates();
+  const queryClient = useQueryClient();
+  const [localProducts, setLocalProducts] = useState<Product[]>([]);
 
-  // Enhanced query with real-time capabilities
+  // Runtime data fetching with useQuery
   const {
     data: products,
     isLoading,
     error,
-    refresh,
-    forceRefresh,
-    updateData,
-    isStale,
+    refetch,
     isFetching,
-  } = useEnhancedQuery<Product[]>({
+  } = useQuery<Product[]>({
     queryKey: ['products'],
-    queryFn: getProducts,
-    enableRealtime: true,
-    staleTime: 60 * 1000, // 1 minute
+    queryFn: async () => {
+      const data = await getProducts();
+      setLocalProducts(data || []);
+      return data;
+    },
+    staleTime: 0, // Always fetch fresh data
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
   });
+
+  // Real-time subscription with dynamic data hook
+  const { forceRefresh, updateDataOptimistically, isConnected } = useDynamicData({
+    table: 'products',
+    queryKey: ['products'],
+    fetchFunction: getProducts,
+    onInsert: (payload) => {
+      console.log('Product inserted:', payload.new);
+      setLocalProducts(prev => [...(prev || []), payload.new]);
+    },
+    onUpdate: (payload) => {
+      console.log('Product updated:', payload.new);
+      setLocalProducts(prev => 
+        (prev || []).map(p => p.id === payload.new.id ? payload.new : p)
+      );
+    },
+    onDelete: (payload) => {
+      console.log('Product deleted:', payload.old);
+      setLocalProducts(prev => 
+        (prev || []).filter(p => p.id !== payload.old.id)
+      );
+    },
+  });
+
+  // Use local products if available, fallback to query data
+  const currentProducts = localProducts.length > 0 ? localProducts : (products || []);
 
   // Optimistic stock update
   const updateStockOptimistically = useCallback((productId: number, newStock: number) => {
-    optimisticUpdateStock(productId, newStock);
-  }, [optimisticUpdateStock]);
+    setLocalProducts(prev => 
+      prev.map(p => p.id === productId ? { ...p, stock: newStock } : p)
+    );
+    
+    // Update query cache immediately
+    updateDataOptimistically((oldData: Product[]) => 
+      (oldData || []).map(p => p.id === productId ? { ...p, stock: newStock } : p)
+    );
+  }, [updateDataOptimistically]);
 
   // Optimistic product update
   const updateProductOptimistically = useCallback((productId: number, updates: Partial<Product>) => {
-    optimisticUpdateProduct(productId, updates);
-  }, [optimisticUpdateProduct]);
+    setLocalProducts(prev => 
+      prev.map(p => p.id === productId ? { ...p, ...updates } : p)
+    );
+    
+    // Update query cache immediately
+    updateDataOptimistically((oldData: Product[]) => 
+      (oldData || []).map(p => p.id === productId ? { ...p, ...updates } : p)
+    );
+  }, [updateDataOptimistically]);
 
   // Helper functions with proper memoization
   const getProductById = useCallback((id: number): Product | undefined => {
-    return products?.find(product => product.id === id);
-  }, [products]);
+    return currentProducts?.find(product => product.id === id);
+  }, [currentProducts]);
 
   const getLowStockProducts = useCallback((threshold: number = 10): Product[] => {
-    if (!products) return [];
-    return products.filter(product => 
+    if (!currentProducts) return [];
+    return currentProducts.filter(product => 
       product.stock !== null && 
       product.low_stock_threshold !== null &&
       product.stock <= (product.low_stock_threshold || threshold)
     );
-  }, [products]);
+  }, [currentProducts]);
 
   const getOutOfStockProducts = useCallback((): Product[] => {
-    if (!products) return [];
-    return products.filter(product => 
+    if (!currentProducts) return [];
+    return currentProducts.filter(product => 
       product.stock !== null && 
       product.stock === 0
     );
-  }, [products]);
+  }, [currentProducts]);
 
   const getTotalProducts = useMemo((): number => {
-    return products?.length || 0;
-  }, [products]);
+    return currentProducts?.length || 0;
+  }, [currentProducts]);
 
   const getTotalStockValue = useMemo((): number => {
-    if (!products) return 0;
-    return products.reduce((total, product) => {
+    if (!currentProducts) return 0;
+    return currentProducts.reduce((total, product) => {
       const price = parseFloat(product.price?.toString() || '0') || 0;
       const stock = product.stock || 0;
       return total + (price * stock);
     }, 0);
-  }, [products]);
+  }, [currentProducts]);
 
   const getProductsByCategoryCount = useMemo(() => {
-    if (!products) return {};
+    if (!currentProducts) return {};
     
-    return products.reduce((acc, product) => {
+    return currentProducts.reduce((acc, product) => {
       const category = product.category || 'Uncategorized';
       acc[category] = (acc[category] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
-  }, [products]);
+  }, [currentProducts]);
 
   // Enhanced search function
   const searchProducts = useCallback((query: string): Product[] => {
-    if (!products || !query.trim()) return products || [];
+    if (!currentProducts || !query.trim()) return currentProducts || [];
     
     const searchTerm = query.toLowerCase().trim();
-    return products.filter(product => 
+    return currentProducts.filter(product => 
       product.name?.toLowerCase().includes(searchTerm) ||
       product.sku?.toLowerCase().includes(searchTerm) ||
       product.category?.toLowerCase().includes(searchTerm) ||
       product.description?.toLowerCase().includes(searchTerm)
     );
-  }, [products]);
+  }, [currentProducts]);
 
   // Sort products
   const sortProducts = useCallback((sortBy: string): Product[] => {
-    if (!products) return [];
+    if (!currentProducts) return [];
     
-    const sorted = [...products];
+    const sorted = [...currentProducts];
     
     switch (sortBy) {
       case 'name-asc':
@@ -121,18 +164,19 @@ export function useInventory() {
       default:
         return sorted;
     }
-  }, [products]);
+  }, [currentProducts]);
 
   return {
-    // Data
-    products: products || [],
+    // Data - use currentProducts for real-time updates
+    products: currentProducts,
     isLoading,
     error,
-    isStale,
+    isStale: false, // Always fresh with real-time updates
     isFetching,
+    isConnected,
     
     // Actions
-    refresh,
+    refresh: refetch,
     forceRefresh,
     updateStockOptimistically,
     updateProductOptimistically,

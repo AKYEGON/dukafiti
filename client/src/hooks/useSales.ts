@@ -12,17 +12,14 @@ import type { Order } from '@/types/schema';
 export function useSales() {
   const { optimisticProcessSale } = useOptimisticUpdates();
 
-  // Enhanced query for orders/sales
+  // Runtime data fetching with useQuery
   const {
     data: orders,
     isLoading,
     error,
-    refresh,
-    forceRefresh,
-    updateData,
-    isStale,
+    refetch,
     isFetching,
-  } = useEnhancedQuery<Order[]>({
+  } = useQuery<Order[]>({
     queryKey: ['orders'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -37,8 +34,9 @@ export function useSales() {
       
       return data || [];
     },
-    enableRealtime: true,
-    staleTime: 30 * 1000, // 30 seconds
+    staleTime: 0, // Always fetch fresh data
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
   });
 
   // Recent orders query with product details
@@ -232,14 +230,17 @@ export function useSales() {
     isLoading,
     recentOrdersLoading,
     ordersFetching: isFetching, // Add alias for dashboard compatibility
-    ordersStale: isStale, // Add alias for dashboard compatibility
+    ordersStale: false, // Always fresh with real-time updates
     error,
-    isStale,
+    isStale: false,
     isFetching,
     
     // Actions
-    refresh,
-    forceRefresh,
+    refresh: refetch,
+    forceRefresh: () => {
+      refetch();
+      refreshRecentOrders();
+    },
     refreshRecentOrders,
     processSaleOptimistically,
     

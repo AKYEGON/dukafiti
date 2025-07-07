@@ -3,92 +3,136 @@
  * Provides comprehensive customer management with optimistic updates
  */
 
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { getCustomers } from '@/lib/supabase-data';
-import { useEnhancedQuery } from './useEnhancedQuery';
-import { useOptimisticUpdates } from './useOptimisticUpdates';
+import { useDynamicData } from './useDynamicData';
 import type { Customer } from '@/types/schema';
 
 export function useCustomers() {
-  const { optimisticCreateCustomer, optimisticUpdateCustomer } = useOptimisticUpdates();
+  const queryClient = useQueryClient();
+  const [localCustomers, setLocalCustomers] = useState<Customer[]>([]);
 
-  // Enhanced query with real-time capabilities
+  // Runtime data fetching with useQuery
   const {
     data: customers,
     isLoading,
     error,
-    refresh,
-    forceRefresh,
-    updateData,
-    isStale,
+    refetch,
     isFetching,
-  } = useEnhancedQuery<Customer[]>({
+  } = useQuery<Customer[]>({
     queryKey: ['customers'],
-    queryFn: getCustomers,
-    enableRealtime: true,
-    staleTime: 60 * 1000, // 1 minute
+    queryFn: async () => {
+      const data = await getCustomers();
+      setLocalCustomers(data || []);
+      return data;
+    },
+    staleTime: 0, // Always fetch fresh data
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
   });
+
+  // Real-time subscription with dynamic data hook
+  const { forceRefresh, updateDataOptimistically, isConnected } = useDynamicData({
+    table: 'customers',
+    queryKey: ['customers'],
+    fetchFunction: getCustomers,
+    onInsert: (payload) => {
+      console.log('Customer inserted:', payload.new);
+      setLocalCustomers(prev => [...(prev || []), payload.new]);
+    },
+    onUpdate: (payload) => {
+      console.log('Customer updated:', payload.new);
+      setLocalCustomers(prev => 
+        (prev || []).map(c => c.id === payload.new.id ? payload.new : c)
+      );
+    },
+    onDelete: (payload) => {
+      console.log('Customer deleted:', payload.old);
+      setLocalCustomers(prev => 
+        (prev || []).filter(c => c.id !== payload.old.id)
+      );
+    },
+  });
+
+  // Use local customers if available, fallback to query data
+  const currentCustomers = localCustomers.length > 0 ? localCustomers : (customers || []);
 
   // Optimistic customer creation
   const createCustomerOptimistically = useCallback((customer: Partial<Customer>) => {
-    return optimisticCreateCustomer(customer);
-  }, [optimisticCreateCustomer]);
+    const newCustomer = { ...customer, id: Date.now() } as Customer;
+    setLocalCustomers(prev => [...(prev || []), newCustomer]);
+    
+    // Update query cache immediately
+    updateDataOptimistically((oldData: Customer[]) => 
+      [...(oldData || []), newCustomer]
+    );
+    
+    return newCustomer;
+  }, [updateDataOptimistically]);
 
   // Optimistic customer update
   const updateCustomerOptimistically = useCallback((customerId: number, updates: Partial<Customer>) => {
-    optimisticUpdateCustomer(customerId, updates);
-  }, [optimisticUpdateCustomer]);
+    setLocalCustomers(prev => 
+      prev.map(c => c.id === customerId ? { ...c, ...updates } : c)
+    );
+    
+    // Update query cache immediately
+    updateDataOptimistically((oldData: Customer[]) => 
+      (oldData || []).map(c => c.id === customerId ? { ...c, ...updates } : c)
+    );
+  }, [updateDataOptimistically]);
 
   // Helper functions with proper memoization
   const getCustomerById = useCallback((id: number): Customer | undefined => {
-    return customers?.find(customer => customer.id === id);
-  }, [customers]);
+    return currentCustomers?.find(customer => customer.id === id);
+  }, [currentCustomers]);
 
   const getCustomersByBalance = useCallback((hasDebt: boolean = true): Customer[] => {
-    if (!customers) return [];
-    return customers.filter(customer => {
+    if (!currentCustomers) return [];
+    return currentCustomers.filter(customer => {
       const balance = parseFloat(customer.balance?.toString() || '0');
       return hasDebt ? balance > 0 : balance <= 0;
     });
-  }, [customers]);
+  }, [currentCustomers]);
 
   const getTotalCustomers = useMemo((): number => {
-    return customers?.length || 0;
-  }, [customers]);
+    return currentCustomers?.length || 0;
+  }, [currentCustomers]);
 
   const getTotalOutstandingDebt = useMemo((): number => {
-    if (!customers) return 0;
-    return customers.reduce((total, customer) => {
+    if (!currentCustomers) return 0;
+    return currentCustomers.reduce((total, customer) => {
       const balance = parseFloat(customer.balance?.toString() || '0');
       return total + Math.max(0, balance);
     }, 0);
-  }, [customers]);
+  }, [currentCustomers]);
 
   const getCustomersWithHighDebt = useCallback((threshold: number = 1000): Customer[] => {
-    if (!customers) return [];
-    return customers.filter(customer => {
+    if (!currentCustomers) return [];
+    return currentCustomers.filter(customer => {
       const balance = parseFloat(customer.balance?.toString() || '0');
       return balance >= threshold;
     });
-  }, [customers]);
+  }, [currentCustomers]);
 
   // Enhanced search function
   const searchCustomers = useCallback((query: string): Customer[] => {
-    if (!customers || !query.trim()) return customers || [];
+    if (!currentCustomers || !query.trim()) return currentCustomers || [];
     
     const searchTerm = query.toLowerCase().trim();
-    return customers.filter(customer => 
+    return currentCustomers.filter(customer => 
       customer.name?.toLowerCase().includes(searchTerm) ||
       customer.phone?.toLowerCase().includes(searchTerm) ||
       customer.email?.toLowerCase().includes(searchTerm)
     );
-  }, [customers]);
+  }, [currentCustomers]);
 
   // Sort customers
   const sortCustomers = useCallback((sortBy: string): Customer[] => {
-    if (!customers) return [];
+    if (!currentCustomers) return [];
     
-    const sorted = [...customers];
+    const sorted = [...currentCustomers];
     
     switch (sortBy) {
       case 'name-asc':
@@ -106,18 +150,19 @@ export function useCustomers() {
       default:
         return sorted;
     }
-  }, [customers]);
+  }, [currentCustomers]);
 
   return {
-    // Data
-    customers: customers || [],
+    // Data - use currentCustomers for real-time updates
+    customers: currentCustomers,
     isLoading,
     error,
-    isStale,
+    isStale: false, // Always fresh with real-time updates
     isFetching,
+    isConnected,
     
     // Actions
-    refresh,
+    refresh: refetch,
     forceRefresh,
     createCustomerOptimistically,
     updateCustomerOptimistically,

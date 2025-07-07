@@ -1,7 +1,7 @@
 // DukaFiti Service Worker - Comprehensive Offline Support
-const CACHE_NAME = 'dukafiti-v1.0.0';
-const STATIC_CACHE_NAME = 'dukafiti-static-v1.0.0';
-const DYNAMIC_CACHE_NAME = 'dukafiti-dynamic-v1.0.0';
+const CACHE_NAME = 'dukafiti-v1.1.0-dynamic';
+const STATIC_CACHE_NAME = 'dukafiti-static-v1.1.0-dynamic';
+const DYNAMIC_CACHE_NAME = 'dukafiti-dynamic-v1.1.0-dynamic';
 
 // Assets to cache immediately
 const STATIC_ASSETS = [
@@ -77,33 +77,46 @@ self.addEventListener('fetch', event => {
   event.respondWith(handleStaticRequest(request));
 });
 
-// Handle API requests with network-first, cache-fallback strategy
+// Handle API requests with network-first, no cache for mutation strategies
 async function handleApiRequest(request) {
   const url = new URL(request.url);
   const cacheKey = `${request.method}-${url.pathname}${url.search}`;
 
   try {
-    // Try network first
+    // ALWAYS try network first for real-time data
     const networkResponse = await fetch(request);
     
-    // Cache successful GET responses
+    // Only cache GET responses for short periods (5 minutes max)
     if (request.method === 'GET' && networkResponse.ok) {
       const cache = await caches.open(DYNAMIC_CACHE_NAME);
-      cache.put(cacheKey, networkResponse.clone());
+      const response = networkResponse.clone();
+      // Add timestamp to detect stale cache
+      response.headers.set('sw-cached-at', Date.now().toString());
+      cache.put(cacheKey, response);
     }
 
     return networkResponse;
   } catch (error) {
     console.log('[SW] Network failed for API request, trying cache:', cacheKey);
     
-    // Try cache as fallback for GET requests
+    // Only try cache for GET requests and check for staleness
     if (request.method === 'GET') {
       const cache = await caches.open(DYNAMIC_CACHE_NAME);
       const cachedResponse = await cache.match(cacheKey);
       
       if (cachedResponse) {
-        console.log('[SW] Serving cached API response:', cacheKey);
-        return cachedResponse;
+        const cachedAt = cachedResponse.headers.get('sw-cached-at');
+        const now = Date.now();
+        const fiveMinutesAgo = now - (5 * 60 * 1000);
+        
+        // Only use cached data if it's less than 5 minutes old
+        if (cachedAt && parseInt(cachedAt) > fiveMinutesAgo) {
+          console.log('[SW] Serving recent cached API response:', cacheKey);
+          return cachedResponse;
+        } else {
+          console.log('[SW] Cached data too old, removing:', cacheKey);
+          cache.delete(cacheKey);
+        }
       }
     }
 

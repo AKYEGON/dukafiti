@@ -1,0 +1,75 @@
+Assistant, our Dukafiti app on Vercel is completely static—UI only shows data baked at build time—and mutations (add stock, delete customer, record sale, etc.) don’t reflect in the running app until we re‑deploy. We need a **deep, end‑to‑end overhaul** so the frontend always shows live data immediately after any change. Do the following:
+
+---
+
+## 1. Remove Build‑Time Data Baking
+
+- **Audit** the code for any use of SSG/SSP or build‑time data imports (e.g. `import products from './data/products.json'`, `getStaticProps`, or `fetch` calls inside Vite’s build).  
+- **Eliminate** all build‑time data hooks. All lists (products, customers, sales, notifications) must be fetched at **runtime** in the browser.
+
+## 2. Client‑Side Runtime Fetching
+
+- In each page component (`Inventory.jsx`, `Customers.jsx`, `Sales.jsx`, `NotificationsDropdown.jsx`, `Reports.jsx`), wrap data fetching in a `useEffect` that runs on mount and on relevant dependencies (e.g. after adding/editing/deleting).  
+- Use `async/await fetch(…)` or Supabase client calls inside these effects, updating local state immediately upon success.
+
+## 3. Optimistic UI Updates & Refetch
+
+- For every mutation (insert/update/delete):
+  1. **Optimistically update** the React state (e.g. remove the deleted customer from the list, increment stock in the product object).  
+  2. Call Supabase (or your API) to persist the change.  
+  3. On success, **refetch** the full list in the background to ensure state consistency.
+
+## 4. Realtime Subscriptions
+
+- Wire up Supabase realtime listeners in each hook:
+  ```js
+  useEffect(() => {
+    fetchData();  // initial load
+    const channel = supabase
+      .from('products:store_id=eq.' + storeId)
+      .on('INSERT, UPDATE, DELETE', payload => {
+        // update products state according to payload.eventType
+      })
+      .subscribe();
+    return () => supabase.removeChannel(channel);
+  }, [storeId]);
+Do the same for customers, sales, and notifications—so any change anywhere instantly updates every client.
+
+5. Service Worker & API Caching
+If you have a service worker (sw.js), exclude API routes (/api/* or Supabase endpoints) from “cache‑first” strategies.
+
+Use network‑first for data: always try online, fallback to cache only if offline.
+
+6. Clear Cache on Deploy
+Bump your service‑worker cache version on each deploy (e.g. const CACHE_VERSION = 'v2';) so clients fetch fresh assets and don’t serve stale JS that might still bake old data.
+
+7. Testing & Verification
+Manual Test: In two browser tabs, add stock in one; the other should update instantly without reload.
+
+DevTools: Disable cache and simulate offline—mutations queue, UI updates, and sync on reconnect.
+
+Console: No stale fetches or 304 responses blocking updates.
+
+QA Checklist
+ No data is ever imported or baked at build time—everything fetches in the browser.
+
+ Mutations optimistically update UI and trigger background refetch.
+
+ Supabase realtime subscriptions propagate all INSERT/UPDATE/DELETE events live.
+
+ Service worker does not cache API responses permanently—network‑first strategy.
+
+ Clients automatically clear old caches on deploy.
+
+ Frontend always shows the latest data immediately after any change.
+
+Please perform this exhaustive audit and rewrite so Dukafiti is truly dynamic—never requiring a redeploy to see new data.```
+
+
+
+
+
+
+
+
+Ask ChatGPT
