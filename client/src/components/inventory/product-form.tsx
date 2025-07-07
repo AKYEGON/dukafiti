@@ -4,7 +4,7 @@ import { z } from "zod";
 import { useEffect, useState } from "react";
 import { type InsertProduct, type Product } from "@/types/schema";
 import { useToast } from "@/hooks/use-toast";
-import { useProducts } from "@/hooks/useRealtimeData";
+import { useSimpleProducts } from "@/hooks/useSimpleProducts";
 import {
   Dialog,
   DialogContent,
@@ -32,7 +32,7 @@ interface ProductFormProps {
 
 export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
   const { toast } = useToast();
-  const { createProduct, updateProduct, isCreating, isUpdating } = useProducts();
+  const { createProduct, updateProduct, isCreating, isUpdating } = useSimpleProducts();
   const [unknownQuantity, setUnknownQuantity] = useState(false);
 
   const form = useForm<InsertProduct>({
@@ -362,17 +362,17 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
                 type="button"
                 variant="outline"
                 onClick={() => onOpenChange(false)}
-                disabled={createProductMutation.isPending || updateProductMutation.isPending}
+                disabled={isCreating || isUpdating}
                 className="h-10 px-6 text-base"
               >
                 Cancel
               </Button>
               <Button
                 type="submit"
-                disabled={createProductMutation.isPending || updateProductMutation.isPending}
+                disabled={isCreating || isUpdating}
                 className="h-10 px-6 text-base bg-accent hover:bg-purple-700 text-white font-medium shadow-sm"
               >
-                {createProductMutation.isPending || updateProductMutation.isPending
+                {isCreating || isUpdating
                   ? "Saving..."
                   : product
                   ? "Update Product"
