@@ -1,432 +1,462 @@
-/**
- * Runtime Operations Hook - All CRUD operations with immediate refetch
- * Ensures mutations trigger immediate UI updates without caching
- */
-
 import { useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
-import { useAuth } from '@/contexts/SupabaseAuth';
 import { useToast } from '@/hooks/use-toast';
-import { useRuntimeData } from './useRuntimeData';
 
-export function useRuntimeOperations() {
-  const { user } = useAuth();
+interface UseRuntimeOperationsReturn {
+  // Product operations
+  createProduct: (data: any) => Promise<boolean>;
+  updateProduct: (id: string, data: any) => Promise<boolean>;
+  deleteProduct: (id: string) => Promise<boolean>;
+  restockProduct: (id: string, quantity: number, cost?: number) => Promise<boolean>;
+  
+  // Customer operations
+  createCustomer: (data: any) => Promise<boolean>;
+  updateCustomer: (id: string, data: any) => Promise<boolean>;
+  deleteCustomer: (id: string) => Promise<boolean>;
+  recordPayment: (customerId: string, amount: number) => Promise<boolean>;
+  
+  // Order operations
+  createOrder: (data: any) => Promise<boolean>;
+  updateOrder: (id: string, data: any) => Promise<boolean>;
+  deleteOrder: (id: string) => Promise<boolean>;
+  
+  // Processing states
+  isProcessing: boolean;
+}
+
+export function useRuntimeOperations(): UseRuntimeOperationsReturn {
   const { toast } = useToast();
-  const { fetchProducts, fetchCustomers, fetchOrders, fetchNotifications } = useRuntimeData();
 
-  // Product Operations
-  const addProduct = useCallback(async (payload: any) => {
-    if (!user?.id) {
-      toast({ title: "Error", description: "User not authenticated", variant: "destructive" });
-      return;
-    }
-
+  // Get current user
+  const getUser = useCallback(async () => {
     try {
-      console.log('➕ Adding product:', payload.name);
-      
-      const { data, error } = await supabase
+      const { data: { user }, error } = await supabase.auth.getUser();
+      if (error) throw error;
+      return user;
+    } catch (error) {
+      console.error('Error getting user:', error);
+      return null;
+    }
+  }, []);
+
+  // Product operations
+  const createProduct = useCallback(async (productData: any): Promise<boolean> => {
+    try {
+      const user = await getUser();
+      if (!user) throw new Error('No user found');
+
+      const { error } = await supabase
         .from('products')
-        .insert([{ ...payload, store_id: user.id }])
-        .select()
-        .single();
+        .insert([{ ...productData, store_id: user.id }]);
 
       if (error) {
-        console.error('❌ Product creation error:', error);
-        toast({ title: "Error adding product", description: error.message, variant: "destructive" });
-        return;
+        console.error('Create product error:', error);
+        toast({
+          title: "Error creating product",
+          description: error.message,
+          variant: "destructive"
+        });
+        return false;
       }
 
-      console.log('✅ Product added:', data);
-      await fetchProducts(); // Immediate refetch
-      toast({ title: "Product added successfully" });
-      return data;
-    } catch (error: any) {
-      console.error('❌ Product creation failed:', error);
-      toast({ title: "Error adding product", description: error.message, variant: "destructive" });
+      toast({
+        title: "Product created",
+        description: "Product added successfully"
+      });
+      return true;
+    } catch (error) {
+      console.error('Create product error:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create product",
+        variant: "destructive"
+      });
+      return false;
     }
-  }, [user?.id, toast, fetchProducts]);
+  }, [getUser, toast]);
 
-  const updateProduct = useCallback(async (id: number, updates: any) => {
-    if (!user?.id) {
-      toast({ title: "Error", description: "User not authenticated", variant: "destructive" });
-      return;
-    }
-
+  const updateProduct = useCallback(async (id: string, updates: any): Promise<boolean> => {
     try {
-      console.log('✏️ Updating product:', id, updates);
-      
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('products')
         .update(updates)
-        .eq('id', id)
-        .eq('store_id', user.id)
-        .select()
-        .single();
+        .eq('id', id);
 
       if (error) {
-        console.error('❌ Product update error:', error);
-        toast({ title: "Error updating product", description: error.message, variant: "destructive" });
-        return;
+        console.error('Update product error:', error);
+        toast({
+          title: "Error updating product",
+          description: error.message,
+          variant: "destructive"
+        });
+        return false;
       }
 
-      console.log('✅ Product updated:', data);
-      await fetchProducts(); // Immediate refetch
-      toast({ title: "Product updated successfully" });
-      return data;
-    } catch (error: any) {
-      console.error('❌ Product update failed:', error);
-      toast({ title: "Error updating product", description: error.message, variant: "destructive" });
+      toast({
+        title: "Product updated",
+        description: "Product updated successfully"
+      });
+      return true;
+    } catch (error) {
+      console.error('Update product error:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update product",
+        variant: "destructive"
+      });
+      return false;
     }
-  }, [user?.id, toast, fetchProducts]);
+  }, [toast]);
 
-  const deleteProduct = useCallback(async (id: number) => {
-    if (!user?.id) {
-      toast({ title: "Error", description: "User not authenticated", variant: "destructive" });
-      return;
-    }
-
+  const deleteProduct = useCallback(async (id: string): Promise<boolean> => {
     try {
-      console.log('🗑️ Deleting product:', id);
-      
       const { error } = await supabase
         .from('products')
         .delete()
-        .eq('id', id)
-        .eq('store_id', user.id);
+        .eq('id', id);
 
       if (error) {
-        console.error('❌ Product deletion error:', error);
-        toast({ title: "Error deleting product", description: error.message, variant: "destructive" });
-        return;
+        console.error('Delete product error:', error);
+        toast({
+          title: "Error deleting product",
+          description: error.message,
+          variant: "destructive"
+        });
+        return false;
       }
 
-      console.log('✅ Product deleted');
-      await fetchProducts(); // Immediate refetch
-      toast({ title: "Product deleted successfully" });
-    } catch (error: any) {
-      console.error('❌ Product deletion failed:', error);
-      toast({ title: "Error deleting product", description: error.message, variant: "destructive" });
+      toast({
+        title: "Product deleted",
+        description: "Product deleted successfully"
+      });
+      return true;
+    } catch (error) {
+      console.error('Delete product error:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete product",
+        variant: "destructive"
+      });
+      return false;
     }
-  }, [user?.id, toast, fetchProducts]);
+  }, [toast]);
 
-  const restockProduct = useCallback(async (id: number, quantity: number, costPrice?: number) => {
-    if (!user?.id) {
-      toast({ title: "Error", description: "User not authenticated", variant: "destructive" });
-      return;
-    }
-
+  const restockProduct = useCallback(async (id: string, quantity: number, cost?: number): Promise<boolean> => {
     try {
-      console.log('📦 Restocking product:', id, quantity);
-      
       // Get current product
       const { data: product, error: fetchError } = await supabase
         .from('products')
         .select('stock')
         .eq('id', id)
-        .eq('store_id', user.id)
         .single();
 
-      if (fetchError) {
-        console.error('❌ Product fetch error:', fetchError);
-        toast({ title: "Error fetching product", description: fetchError.message, variant: "destructive" });
-        return;
+      if (fetchError) throw fetchError;
+
+      const newStock = (product.stock || 0) + quantity;
+      const updates: any = { stock: newStock };
+      
+      if (cost !== undefined) {
+        updates.cost_price = cost.toString();
       }
 
-      // Update stock
-      const updates: any = { stock: (product.stock || 0) + quantity };
-      if (costPrice !== undefined) {
-        updates.cost_price = costPrice;
-      }
-
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('products')
         .update(updates)
-        .eq('id', id)
-        .eq('store_id', user.id)
-        .select()
-        .single();
+        .eq('id', id);
 
       if (error) {
-        console.error('❌ Product restock error:', error);
-        toast({ title: "Error restocking product", description: error.message, variant: "destructive" });
-        return;
+        console.error('Restock product error:', error);
+        toast({
+          title: "Error restocking product",
+          description: error.message,
+          variant: "destructive"
+        });
+        return false;
       }
 
-      console.log('✅ Product restocked:', data);
-      await fetchProducts(); // Immediate refetch
-      toast({ title: "Product restocked successfully" });
-      return data;
-    } catch (error: any) {
-      console.error('❌ Product restock failed:', error);
-      toast({ title: "Error restocking product", description: error.message, variant: "destructive" });
+      toast({
+        title: "Product restocked",
+        description: `Added ${quantity} units to inventory`
+      });
+      return true;
+    } catch (error) {
+      console.error('Restock product error:', error);
+      toast({
+        title: "Error",
+        description: "Failed to restock product",
+        variant: "destructive"
+      });
+      return false;
     }
-  }, [user?.id, toast, fetchProducts]);
+  }, [toast]);
 
-  // Customer Operations
-  const addCustomer = useCallback(async (payload: any) => {
-    if (!user?.id) {
-      toast({ title: "Error", description: "User not authenticated", variant: "destructive" });
-      return;
-    }
-
+  // Customer operations
+  const createCustomer = useCallback(async (customerData: any): Promise<boolean> => {
     try {
-      console.log('➕ Adding customer:', payload.name);
-      
-      const { data, error } = await supabase
+      const user = await getUser();
+      if (!user) throw new Error('No user found');
+
+      const { error } = await supabase
         .from('customers')
-        .insert([{ ...payload, store_id: user.id }])
-        .select()
-        .single();
+        .insert([{ ...customerData, store_id: user.id }]);
 
       if (error) {
-        console.error('❌ Customer creation error:', error);
-        toast({ title: "Error adding customer", description: error.message, variant: "destructive" });
-        return;
+        console.error('Create customer error:', error);
+        toast({
+          title: "Error creating customer",
+          description: error.message,
+          variant: "destructive"
+        });
+        return false;
       }
 
-      console.log('✅ Customer added:', data);
-      await fetchCustomers(); // Immediate refetch
-      toast({ title: "Customer added successfully" });
-      return data;
-    } catch (error: any) {
-      console.error('❌ Customer creation failed:', error);
-      toast({ title: "Error adding customer", description: error.message, variant: "destructive" });
+      toast({
+        title: "Customer created",
+        description: "Customer added successfully"
+      });
+      return true;
+    } catch (error) {
+      console.error('Create customer error:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create customer",
+        variant: "destructive"
+      });
+      return false;
     }
-  }, [user?.id, toast, fetchCustomers]);
+  }, [getUser, toast]);
 
-  const updateCustomer = useCallback(async (id: number, updates: any) => {
-    if (!user?.id) {
-      toast({ title: "Error", description: "User not authenticated", variant: "destructive" });
-      return;
-    }
-
+  const updateCustomer = useCallback(async (id: string, updates: any): Promise<boolean> => {
     try {
-      console.log('✏️ Updating customer:', id, updates);
-      
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('customers')
         .update(updates)
-        .eq('id', id)
-        .eq('store_id', user.id)
-        .select()
-        .single();
+        .eq('id', id);
 
       if (error) {
-        console.error('❌ Customer update error:', error);
-        toast({ title: "Error updating customer", description: error.message, variant: "destructive" });
-        return;
+        console.error('Update customer error:', error);
+        toast({
+          title: "Error updating customer",
+          description: error.message,
+          variant: "destructive"
+        });
+        return false;
       }
 
-      console.log('✅ Customer updated:', data);
-      await fetchCustomers(); // Immediate refetch
-      toast({ title: "Customer updated successfully" });
-      return data;
-    } catch (error: any) {
-      console.error('❌ Customer update failed:', error);
-      toast({ title: "Error updating customer", description: error.message, variant: "destructive" });
+      toast({
+        title: "Customer updated",
+        description: "Customer updated successfully"
+      });
+      return true;
+    } catch (error) {
+      console.error('Update customer error:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update customer",
+        variant: "destructive"
+      });
+      return false;
     }
-  }, [user?.id, toast, fetchCustomers]);
+  }, [toast]);
 
-  const deleteCustomer = useCallback(async (id: number) => {
-    if (!user?.id) {
-      toast({ title: "Error", description: "User not authenticated", variant: "destructive" });
-      return;
-    }
-
+  const deleteCustomer = useCallback(async (id: string): Promise<boolean> => {
     try {
-      console.log('🗑️ Deleting customer:', id);
-      
       const { error } = await supabase
         .from('customers')
         .delete()
-        .eq('id', id)
-        .eq('store_id', user.id);
+        .eq('id', id);
 
       if (error) {
-        console.error('❌ Customer deletion error:', error);
-        toast({ title: "Error deleting customer", description: error.message, variant: "destructive" });
-        return;
+        console.error('Delete customer error:', error);
+        toast({
+          title: "Error deleting customer",
+          description: error.message,
+          variant: "destructive"
+        });
+        return false;
       }
 
-      console.log('✅ Customer deleted');
-      await fetchCustomers(); // Immediate refetch
-      toast({ title: "Customer deleted successfully" });
-    } catch (error: any) {
-      console.error('❌ Customer deletion failed:', error);
-      toast({ title: "Error deleting customer", description: error.message, variant: "destructive" });
+      toast({
+        title: "Customer deleted",
+        description: "Customer deleted successfully"
+      });
+      return true;
+    } catch (error) {
+      console.error('Delete customer error:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete customer",
+        variant: "destructive"
+      });
+      return false;
     }
-  }, [user?.id, toast, fetchCustomers]);
+  }, [toast]);
 
-  const recordRepayment = useCallback(async (customerId: number, amount: number, method: string = 'cash', note?: string) => {
-    if (!user?.id) {
-      toast({ title: "Error", description: "User not authenticated", variant: "destructive" });
-      return;
-    }
-
+  const recordPayment = useCallback(async (customerId: string, amount: number): Promise<boolean> => {
     try {
-      console.log('💰 Recording repayment:', customerId, amount);
-      
       // Get current customer balance
       const { data: customer, error: fetchError } = await supabase
         .from('customers')
         .select('balance')
         .eq('id', customerId)
-        .eq('store_id', user.id)
         .single();
 
-      if (fetchError) {
-        console.error('❌ Customer fetch error:', fetchError);
-        toast({ title: "Error fetching customer", description: fetchError.message, variant: "destructive" });
-        return;
-      }
+      if (fetchError) throw fetchError;
 
-      // Calculate new balance
-      const currentBalance = parseFloat(customer.balance || '0');
-      const newBalance = Math.max(0, currentBalance - amount);
+      const newBalance = Math.max(0, (customer.balance || 0) - amount);
 
-      // Update customer balance
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('customers')
-        .update({ balance: newBalance.toString() })
-        .eq('id', customerId)
-        .eq('store_id', user.id)
-        .select()
-        .single();
+        .update({ balance: newBalance })
+        .eq('id', customerId);
 
       if (error) {
-        console.error('❌ Repayment error:', error);
-        toast({ title: "Error recording repayment", description: error.message, variant: "destructive" });
-        return;
+        console.error('Record payment error:', error);
+        toast({
+          title: "Error recording payment",
+          description: error.message,
+          variant: "destructive"
+        });
+        return false;
       }
 
-      console.log('✅ Repayment recorded:', data);
-      await fetchCustomers(); // Immediate refetch
-      toast({ title: "Payment recorded successfully" });
-      return data;
-    } catch (error: any) {
-      console.error('❌ Repayment recording failed:', error);
-      toast({ title: "Error recording payment", description: error.message, variant: "destructive" });
+      toast({
+        title: "Payment recorded",
+        description: `Payment of KES ${amount.toLocaleString()} recorded successfully`
+      });
+      return true;
+    } catch (error) {
+      console.error('Record payment error:', error);
+      toast({
+        title: "Error",
+        description: "Failed to record payment",
+        variant: "destructive"
+      });
+      return false;
     }
-  }, [user?.id, toast, fetchCustomers]);
+  }, [toast]);
 
-  // Sales Operations
-  const processSale = useCallback(async (saleData: any) => {
-    if (!user?.id) {
-      toast({ title: "Error", description: "User not authenticated", variant: "destructive" });
-      return;
-    }
-
+  // Order operations
+  const createOrder = useCallback(async (orderData: any): Promise<boolean> => {
     try {
-      console.log('💳 Processing sale:', saleData);
-      
-      const orderData = {
-        customer_name: saleData.customerName || 'Walk-in Customer',
-        customer_phone: saleData.customerPhone || '',
-        total: saleData.total.toString(),
-        payment_method: saleData.paymentMethod,
-        status: 'completed',
-        store_id: user.id
-      };
+      const user = await getUser();
+      if (!user) throw new Error('No user found');
 
-      // Create order
-      const { data: order, error: orderError } = await supabase
+      const { error } = await supabase
         .from('orders')
-        .insert([orderData])
-        .select()
-        .single();
+        .insert([{ ...orderData, store_id: user.id }]);
 
-      if (orderError) {
-        console.error('❌ Order creation error:', orderError);
-        toast({ title: "Error creating order", description: orderError.message, variant: "destructive" });
-        return;
+      if (error) {
+        console.error('Create order error:', error);
+        toast({
+          title: "Error creating order",
+          description: error.message,
+          variant: "destructive"
+        });
+        return false;
       }
 
-      // Create order items and update product stock
-      for (const item of saleData.items) {
-        // Add order item
-        const { error: itemError } = await supabase
-          .from('order_items')
-          .insert([{
-            order_id: order.id,
-            product_id: item.productId,
-            quantity: item.quantity,
-            price: item.price.toString()
-          }]);
-
-        if (itemError) {
-          console.error('❌ Order item creation error:', itemError);
-          continue;
-        }
-
-        // Update product stock (only if not unknown quantity)
-        if (item.hasStock) {
-          const { error: stockError } = await supabase
-            .from('products')
-            .update({ 
-              stock: item.newStock,
-              sales_count: supabase.sql`COALESCE(sales_count, 0) + ${item.quantity}`
-            })
-            .eq('id', item.productId)
-            .eq('store_id', user.id);
-
-          if (stockError) {
-            console.error('❌ Stock update error:', stockError);
-          }
-        }
-      }
-
-      // If credit sale, update customer balance
-      if (saleData.paymentMethod === 'credit' && saleData.customerId) {
-        const { data: customer, error: customerFetchError } = await supabase
-          .from('customers')
-          .select('balance')
-          .eq('id', saleData.customerId)
-          .eq('store_id', user.id)
-          .single();
-
-        if (!customerFetchError && customer) {
-          const currentBalance = parseFloat(customer.balance || '0');
-          const newBalance = currentBalance + saleData.total;
-
-          await supabase
-            .from('customers')
-            .update({ balance: newBalance.toString() })
-            .eq('id', saleData.customerId)
-            .eq('store_id', user.id);
-        }
-      }
-
-      console.log('✅ Sale processed:', order);
-      
-      // Immediate refetch all affected data
-      await Promise.all([
-        fetchProducts(),
-        fetchCustomers(),
-        fetchOrders()
-      ]);
-      
-      toast({ title: "Sale completed successfully" });
-      return order;
-    } catch (error: any) {
-      console.error('❌ Sale processing failed:', error);
-      toast({ title: "Error processing sale", description: error.message, variant: "destructive" });
+      toast({
+        title: "Order created",
+        description: "Order created successfully"
+      });
+      return true;
+    } catch (error) {
+      console.error('Create order error:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create order",
+        variant: "destructive"
+      });
+      return false;
     }
-  }, [user?.id, toast, fetchProducts, fetchCustomers, fetchOrders]);
+  }, [getUser, toast]);
+
+  const updateOrder = useCallback(async (id: string, updates: any): Promise<boolean> => {
+    try {
+      const { error } = await supabase
+        .from('orders')
+        .update(updates)
+        .eq('id', id);
+
+      if (error) {
+        console.error('Update order error:', error);
+        toast({
+          title: "Error updating order",
+          description: error.message,
+          variant: "destructive"
+        });
+        return false;
+      }
+
+      toast({
+        title: "Order updated",
+        description: "Order updated successfully"
+      });
+      return true;
+    } catch (error) {
+      console.error('Update order error:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update order",
+        variant: "destructive"
+      });
+      return false;
+    }
+  }, [toast]);
+
+  const deleteOrder = useCallback(async (id: string): Promise<boolean> => {
+    try {
+      const { error } = await supabase
+        .from('orders')
+        .delete()
+        .eq('id', id);
+
+      if (error) {
+        console.error('Delete order error:', error);
+        toast({
+          title: "Error deleting order",
+          description: error.message,
+          variant: "destructive"
+        });
+        return false;
+      }
+
+      toast({
+        title: "Order deleted",
+        description: "Order deleted successfully"
+      });
+      return true;
+    } catch (error) {
+      console.error('Delete order error:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete order",
+        variant: "destructive"
+      });
+      return false;
+    }
+  }, [toast]);
 
   return {
-    // Products
-    addProduct,
+    // Product operations
+    createProduct,
     updateProduct,
     deleteProduct,
     restockProduct,
     
-    // Customers
-    addCustomer,
+    // Customer operations
+    createCustomer,
     updateCustomer,
     deleteCustomer,
-    recordRepayment,
+    recordPayment,
     
-    // Sales
-    processSale,
+    // Order operations
+    createOrder,
+    updateOrder,
+    deleteOrder,
+    
+    // Processing states
+    isProcessing: false // Can be enhanced to track specific operations
   };
 }

@@ -1,8 +1,8 @@
-// DukaFiti Service Worker - Complete Offline-First Architecture
+// DukaFiti Service Worker - Runtime Data Architecture
 
-const CACHE_NAME = 'dukafiti-v1';
-const STATIC_CACHE_NAME = 'dukafiti-static-v1';
-const DATA_CACHE_NAME = 'dukafiti-data-v1';
+const CACHE_NAME = 'dukafiti-runtime-v1';
+const STATIC_CACHE_NAME = 'dukafiti-static-runtime-v1';
+const DATA_CACHE_NAME = 'dukafiti-data-runtime-v1';
 
 // App Shell Resources
 const STATIC_FILES = [
