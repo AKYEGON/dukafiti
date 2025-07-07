@@ -10,6 +10,7 @@ import { Label } from '@/components/ui/label';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Link } from 'wouter';
 import { Mail, ArrowLeft, Store, Eye, EyeOff } from 'lucide-react';
+import { FcGoogle } from 'react-icons/fc';
 import { useToast } from '@/hooks/use-toast';
 import { useTheme } from '@/contexts/theme-context';
 import brandLightImage from '@assets/slogan and title in white background_1751876041697.png';
@@ -25,7 +26,7 @@ type LoginFormData = z.infer<typeof loginSchema>;
 export default function Login() {
   const [, navigate] = useLocation();
   const { toast } = useToast();
-  const { login } = useAuth();
+  const { login, signInWithGoogle } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const { theme } = useTheme();
@@ -59,6 +60,29 @@ export default function Login() {
     } catch (error) {
       toast({
         title: "Login failed",
+        description: "An unexpected error occurred",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    try {
+      setIsLoading(true);
+      const { error } = await signInWithGoogle();
+      
+      if (error) {
+        toast({
+          title: "Google sign-in failed",
+          description: error.message || "Unable to sign in with Google",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Google sign-in failed",
         description: "An unexpected error occurred",
         variant: "destructive",
       });
@@ -180,6 +204,32 @@ export default function Login() {
             )}
           </Button>
         </form>
+
+        {/* Divider */}
+        <div className="flex items-center my-6">
+          <div className="flex-1 border-t border-gray-200 dark:border-gray-600"></div>
+          <span className="px-4 text-sm text-gray-500 dark:text-gray-400 font-medium">or</span>
+          <div className="flex-1 border-t border-gray-200 dark:border-gray-600"></div>
+        </div>
+
+        {/* Google Sign In Button */}
+        <Button
+          type="button"
+          onClick={handleGoogleSignIn}
+          disabled={isLoading}
+          variant="outline"
+          className="w-full h-12 text-base font-semibold border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 text-gray-900 dark:text-white rounded-md transition-all duration-200 shadow-sm hover:shadow-md flex items-center justify-center gap-3"
+        >
+          <FcGoogle className="h-6 w-6" />
+          Continue with Google
+        </Button>
+
+        {/* OAuth Setup Notice */}
+        <div className="mt-4 p-3 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-700 rounded-md">
+          <p className="text-sm text-blue-800 dark:text-blue-300 text-center">
+            <span className="font-semibold">Note:</span> Google OAuth requires additional setup in Supabase dashboard.
+          </p>
+        </div>
 
         {/* Forgot Password Link */}
         <div className="text-center mt-4">

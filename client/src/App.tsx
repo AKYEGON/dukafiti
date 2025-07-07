@@ -29,6 +29,8 @@ import NotificationsPage from "@/pages/notifications";
 import Home from "@/pages/home";
 import AuthPage from "@/pages/auth";
 import AuthCallback from "@/pages/auth-callback";
+import Login from "@/pages/login";
+import Register from "@/pages/register";
 import Onboarding from "@/pages/onboarding";
 import NotFound from "@/pages/not-found";
 import SettingsPage from "@/pages/settings";

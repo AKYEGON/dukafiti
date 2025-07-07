@@ -528,6 +528,11 @@ Changelog:
 - July 7, 2025. Fixed theme reverting to light mode on logout by implementing proper localStorage theme persistence
 - July 7, 2025. Updated landing page header to use new streamlined DUKAFITI brand images for light and dark modes
 - July 7, 2025. Migrated all pages from next-themes to custom theme context with localStorage support
+- July 7, 2025. Integrated Google OAuth authentication flow on both Login and Sign-Up pages using Supabase Auth
+- July 7, 2025. Added "Continue with Google" buttons with proper error handling and user feedback
+- July 7, 2025. Enhanced signInWithGoogle function with proper OAuth configuration and redirect handling
+- July 7, 2025. Created comprehensive Google OAuth setup documentation (GOOGLE_OAUTH_SETUP.md)
+- July 7, 2025. Applied consistent styling and theming to Google OAuth buttons across authentication pages
 ```
 
 ## User Preferences
