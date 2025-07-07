@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import { type DashboardMetrics, type Order } from "@shared/schema";
-import { formatCurrency as formatCurrencyUtil } from "@shared/utils";
+import { type DashboardMetrics, type Order } from "@/types/schema";
+import { formatCurrency as formatCurrencyUtil } from "@/lib/currency";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {

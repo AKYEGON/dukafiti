@@ -5,7 +5,7 @@ import { Bell, AlertTriangle, CheckCircle, Info, Trash2, Package, CreditCard, Us
 import { MobilePageWrapper } from '@/components/layout/mobile-page-wrapper';
 import useNotifications from '@/hooks/useNotifications';
 import { Button } from '@/components/ui/button';
-import type { Notification } from '@shared/schema';
+import type { Notification } from '@/types/schema';
 
 export function NotificationsPage() {
   const [filter, setFilter] = useState<'all' | 'unread' | 'read'>('all');
