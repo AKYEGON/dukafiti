@@ -15,7 +15,6 @@ import { useToast } from '@/hooks/use-toast';
 import { useTheme } from '@/contexts/theme-context';
 import brandLightImage from '@assets/slogan and title in white background_1751876041697.png';
 import brandDarkImage from '@assets/title and slogan in black backgr_1751876041710.png';
-import newBrandImage from '@assets/image_1751877984800.png';
 
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email'),
@@ -96,51 +95,48 @@ export default function Login() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4 sm:px-6 lg:px-8">
-      <div className="bg-white dark:bg-[#1F1F1F] border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg w-full max-w-md mx-auto my-6 overflow-hidden">
+      <div className="bg-white dark:bg-[#1F1F1F] border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg p-6 sm:p-8 w-full max-w-md mx-auto my-6">
         
         {/* Back Button */}
-        <div className="absolute top-8 left-8 z-10">
-          <button
-            onClick={() => navigate('/')}
-            className="flex items-center text-brand hover:text-brand-700 dark:text-brand-300 dark:hover:text-brand-200 text-lg font-medium p-2 transition-colors duration-200 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm border border-gray-200 dark:border-gray-700 rounded-lg shadow-sm"
-            aria-label="Go back to home page"
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back
-          </button>
-        </div>
+        <button
+          onClick={() => navigate('/')}
+          className="flex items-center text-brand hover:text-brand-700 dark:text-brand-300 dark:hover:text-brand-200 mb-4 text-lg font-medium p-2 transition-colors duration-200"
+          aria-label="Go back to home page"
+        >
+          <ArrowLeft className="h-5 w-5 mr-2" />
+          Back
+        </button>
 
-        {/* Brand Header - integrated seamlessly */}
-        <div className="bg-gradient-to-r from-brand-50 to-brand-100 dark:from-brand-900/30 dark:to-brand-800/30 px-8 py-10 text-center">
-          <img 
-            src={newBrandImage}
-            alt="DukaFiti - Duka Bora Ni Duka Fiti" 
-            className="h-20 w-auto object-contain mx-auto drop-shadow-lg"
-            style={{ minHeight: '70px', maxWidth: '300px' }}
-            onLoad={(e) => {
-              console.log('Brand image loaded successfully:', e.target.src);
-            }}
-            onError={(e) => {
-              console.error('Brand image failed to load:', e.target.src);
-              // Fallback to text if image fails
-              e.target.style.display = 'none';
-              const fallback = document.createElement('div');
-              fallback.className = 'text-center';
-              fallback.innerHTML = `
-                <h2 class="text-2xl font-black bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 dark:from-blue-400 dark:via-purple-400 dark:to-blue-200 bg-clip-text text-transparent tracking-wide">
-                  DUKAFITI
-                </h2>
-                <p class="text-sm font-semibold text-blue-600 dark:text-blue-300 mt-1 tracking-widest">
-                  DUKA BORA NI DUKA FITI
-                </p>
-              `;
-              e.target.parentElement.appendChild(fallback);
-            }}
-          />
+        {/* Logo/App Name - DukaFiti Branding */}
+        <div className="text-center mb-6">
+          <div className="mx-auto mb-4 flex items-center justify-center rounded-xl p-3 bg-white dark:bg-gray-700 shadow-sm border border-gray-100 dark:border-gray-600">
+            <img 
+              src={theme === 'dark' ? brandDarkImage : brandLightImage}
+              alt="DukaFiti - Duka Bora Ni Duka Fiti" 
+              className="h-14 w-auto object-contain block"
+              style={{ minHeight: '45px', maxWidth: '260px' }}
+              onLoad={(e) => {
+                console.log('Brand image loaded successfully:', e.target.src);
+              }}
+              onError={(e) => {
+                console.error('Brand image failed to load:', e.target.src);
+                // Fallback to text if image fails
+                e.target.style.display = 'none';
+                const fallback = document.createElement('div');
+                fallback.className = 'text-center';
+                fallback.innerHTML = `
+                  <h2 class="text-xl font-black bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 dark:from-blue-400 dark:via-purple-400 dark:to-blue-200 bg-clip-text text-transparent tracking-wide">
+                    DUKAFITI
+                  </h2>
+                  <p class="text-xs font-semibold text-blue-600 dark:text-blue-300 mt-1 tracking-widest">
+                    DUKA BORA NI DUKA FITI
+                  </p>
+                `;
+                e.target.parentElement.appendChild(fallback);
+              }}
+            />
+          </div>
         </div>
-
-        {/* Form Content */}
-        <div className="p-6 sm:p-8">
 
         {/* Login Form */}
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
@@ -253,7 +249,6 @@ export default function Login() {
               Create account
             </Link>
           </p>
-        </div>
         </div>
       </div>
     </div>
