@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { CreditCard, Banknote, Smartphone, User, Check, ChevronDown } from "lucide-react";
+import { CreditCard, Banknote, Smartphone, User, Check, ChevronDown, WifiOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { type SaleLineItem } from "@/components/sales/sale-line-item";
 import { type Customer } from "@shared/schema";
 import { getCustomers } from "@/lib/supabase-data";
+import { createSaleOfflineAware } from "@/lib/offline-api";
 
 interface SaleConfirmationModalProps {
   open: boolean;

@@ -520,6 +520,14 @@ Changelog:
 - July 7, 2025. Fixed sales failure by removing non-existent cost_price_at_sale column from order_items schema
 - July 7, 2025. Enhanced RestockModal with proper mutation reset and improved error handling
 - July 7, 2025. Verified both Add Stock and Sales functionality working correctly with direct Supabase integration
+- July 7, 2025. MAJOR FEATURE: Implemented complete offline-first architecture with comprehensive service worker and IndexedDB queue system
+- July 7, 2025. Created advanced offline store (offline-store.ts) with automatic operation queuing, retry logic, and background sync capabilities
+- July 7, 2025. Built robust offline API wrapper (offline-api.ts) for all CRUD operations supporting both online and offline modes
+- July 7, 2025. Integrated service worker (sw.js) with cache-first static assets and network-first API data strategies
+- July 7, 2025. Added comprehensive OfflineManager component with real-time sync status, pending operations counter, and manual sync controls
+- July 7, 2025. Enhanced all key operations (sales, restocking, customer management) with offline-aware functionality and optimistic UI updates
+- July 7, 2025. Created seamless offline/online UI feedback system with banner notifications, sync buttons, and operation status indicators
+- July 7, 2025. Built automatic sync-on-reconnect functionality and background sync registration for seamless data synchronization
 - July 7, 2025. Successfully integrated user-uploaded brand images using @assets import system
 - July 7, 2025. Fixed Vite asset loading by using direct imports instead of public URL references
 - July 7, 2025. Applied dynamic light/dark mode image switching using imported brand assets

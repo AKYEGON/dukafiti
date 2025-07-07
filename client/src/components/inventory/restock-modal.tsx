@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -13,8 +12,9 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
-import { Package } from 'lucide-react';
+import { Package, WifiOff } from 'lucide-react';
 import { type Product } from '@shared/schema';
+import { restockProductOfflineAware } from '@/lib/offline-api';
 
 interface RestockModalProps {
   product: Product | null;
@@ -38,95 +38,63 @@ export function RestockModal({ product, open, onOpenChange }: RestockModalProps)
 
   const restockMutation = useMutation({
     mutationKey: ['restock', product?.id],
-    mutationFn: async ({ productId, qty, costPrice }: { productId: number; qty: number; costPrice: number }) => {
-      console.log(`Starting restock for product ${productId}: adding ${qty} units at cost ${costPrice}`);
+    mutationFn: async ({ productId, qty, costPrice }: { productId: string; qty: number; costPrice?: number }) => {
+      console.log(`Starting restock for product ${productId}: adding ${qty} units at cost ${costPrice || 0}`);
       
-      // First get current stock to calculate new stock
-      const { data: currentProduct, error: fetchError } = await supabase
-        .from('products')
-        .select('*')
-        .eq('id', productId)
-        .single();
-
-      if (fetchError) {
-        console.error('Failed to fetch current product:', fetchError);
-        throw new Error(`Failed to fetch current stock: ${fetchError.message}`);
-      }
-
-      const currentStock = currentProduct.stock || 0;
-      const newStock = currentStock + qty;
-      
-      console.log(`Current stock: ${currentStock}, adding: ${qty}, new stock: ${newStock}`);
-
-      // Update product with new stock and cost price
-      const { data: updatedProduct, error: updateError } = await supabase
-        .from('products')
-        .update({
-          stock: newStock,
-          cost_price: costPrice
-        })
-        .eq('id', productId)
-        .select()
-        .single();
-
-      if (updateError) {
-        // If cost_price column doesn't exist yet, try updating just stock
-        if (updateError.message.includes('cost_price')) {
-          console.warn('cost_price column not found, updating stock only');
-          const { data: stockOnlyUpdate, error: stockOnlyError } = await supabase
-            .from('products')
-            .update({ stock: newStock })
-            .eq('id', productId)
-            .select()
-            .single();
-          
-          if (stockOnlyError) {
-            console.error('Failed to update stock only:', stockOnlyError);
-            throw new Error(`Failed to update product stock: ${stockOnlyError.message}`);
-          }
-          
-          console.log(`Stock updated successfully. Buying price ${costPrice} will be stored once cost_price column is added.`);
-          return { 
-            newStock, 
-            productId, 
-            costPrice, 
-            updatedProduct: stockOnlyUpdate,
-            oldStock: currentStock 
+      try {
+        const result = await restockProductOfflineAware(productId, qty, costPrice);
+        console.log('Restock result:', result);
+        
+        // For offline operations, provide expected return format
+        if (result.offline) {
+          return {
+            newStock: qty, // Optimistic update
+            productId,
+            costPrice: costPrice || 0,
+            oldStock: 0, // We don't know current stock when offline
+            offline: true,
+            operationId: result.operationId
           };
         } else {
-          console.error('Failed to update product:', updateError);
-          throw new Error(`Failed to update product: ${updateError.message}`);
+          // For online operations, calculate from result
+          const newStock = result.data?.newStock || 0;
+          return {
+            newStock,
+            productId,
+            costPrice: costPrice || 0,
+            oldStock: newStock - qty,
+            offline: false
+          };
         }
+      } catch (error) {
+        console.error('Restock failed:', error);
+        throw error;
       }
-
-      console.log('Product updated successfully:', updatedProduct);
-      return { 
-        newStock, 
-        productId, 
-        costPrice, 
-        updatedProduct,
-        oldStock: currentStock 
-      };
     },
-    onSuccess: (data) => {
+    onSuccess: (data: any) => {
       console.log('Restock successful, invalidating queries and updating UI...');
       
-      // Force refresh of all product-related queries
-      queryClient.invalidateQueries({ queryKey: ['products'] });
-      queryClient.invalidateQueries({ queryKey: ['products-frequent'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/dashboard/metrics'] });
+      // Only refresh queries if we're online and not in offline mode
+      if (navigator.onLine && !data.offline) {
+        queryClient.invalidateQueries({ queryKey: ['products'] });
+        queryClient.invalidateQueries({ queryKey: ['products-frequent'] });
+        queryClient.invalidateQueries({ queryKey: ['/api/dashboard/metrics'] });
+        queryClient.refetchQueries({ queryKey: ['products'] });
+      }
       
-      // Force refetch to ensure immediate UI update
-      queryClient.refetchQueries({ queryKey: ['products'] });
+      const message = data.offline 
+        ? `${quantity} units will be added to ${product?.name} when back online`
+        : `${quantity} units added to ${product?.name}. Stock: ${data.oldStock} → ${data.newStock}`;
       
       toast({
-        title: 'Stock Added Successfully',
-        description: `${quantity} units added to ${product?.name}. Stock: ${data.oldStock} → ${data.newStock}`,
+        title: data.offline ? 'Stock Update Queued' : 'Stock Added Successfully',
+        description: message,
+        className: data.offline ? 'bg-orange-50 border-orange-200 text-orange-800' : undefined,
       });
       
-      console.log(`Stock update complete: ${product?.name} stock updated from ${data.oldStock} to ${data.newStock}`);
+      console.log(`Stock update complete: ${product?.name} - ${data.offline ? 'queued for sync' : 'updated immediately'}`);
       
-      // Reset form and close modal immediately
+      // Reset form and close modal
       setTimeout(() => {
         setQuantity('');
         setBuyingPrice('');

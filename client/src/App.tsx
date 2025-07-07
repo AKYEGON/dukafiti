@@ -10,15 +10,12 @@ import { TopBar } from "@/components/TopBar";
 import { config } from "./lib/config";
 
 import { AuthProvider, useAuth } from "@/contexts/SupabaseAuth";
-import { OfflineProvider } from "@/contexts/OfflineContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { useWebSocket } from "@/hooks/use-websocket";
 import { useSupabaseRealtime } from "@/hooks/useSupabaseRealtime";
 import { ThemeProvider } from "@/contexts/theme-context";
-import { OfflineBanner } from "@/components/OfflineBanner";
 import { ErrorBoundary } from "@/components/error-boundary";
-import { InstallButton } from "@/components/offline/InstallButton";
-import { registerServiceWorker } from "@/lib/sw-registration";
+import OfflineManager from "@/components/offline/offline-manager";
 
 import Dashboard from "@/pages/dashboard";
 import Inventory from "@/pages/inventory";
@@ -190,14 +187,12 @@ function App() {
       <QueryClientProvider client={queryClient}>
         <ThemeProvider>
           <AuthProvider>
-            <OfflineProvider>
+            <OfflineManager>
               <TooltipProvider>
                 <Router />
-                <OfflineBanner />
-                <InstallButton />
                 <Toaster />
               </TooltipProvider>
-            </OfflineProvider>
+            </OfflineManager>
           </AuthProvider>
         </ThemeProvider>
       </QueryClientProvider>

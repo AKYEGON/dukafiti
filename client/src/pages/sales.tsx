@@ -10,9 +10,10 @@ import { formatCurrency } from "@/lib/utils";
 import { offlineQueue, isOnline } from "@/lib/offline-queue";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SaleConfirmationModal } from "@/components/sales/sale-confirmation-modal";
-import { createSale, getProducts, searchProducts, createCustomer, getCustomers } from "@/lib/supabase-data";
+import { getProducts, searchProducts, getCustomers } from "@/lib/supabase-data";
 import { triggerSaleCompletedNotification, triggerLowStockNotification } from "@/lib/notification-triggers";
 import { supabase } from "@/lib/supabase";
+import { createSaleOfflineAware, createCustomerOfflineAware } from "@/lib/offline-api";
 
 
 
@@ -313,7 +314,7 @@ export default function Sales() {
     // If this is a new customer, save them to the database first
     if (customer?.isNew && customer.name) {
       try {
-        const newCustomer = await createCustomer({
+        const customerResult = await createCustomerOfflineAware({
           name: customer.name,
           phone: customer.phone || null,
           email: null,
@@ -321,8 +322,8 @@ export default function Sales() {
           balance: 0
         });
         
-        customerId = newCustomer.id;
-        console.log('New customer saved:', newCustomer);
+        customerId = customerResult.offline ? customerResult.operationId : customerResult.data.id;
+        console.log('New customer saved:', customerResult);
         
         // Invalidate customers cache
         queryClient.invalidateQueries({ queryKey: ["customers"] });
@@ -417,51 +418,27 @@ export default function Sales() {
     mutationFn: async (saleData: any) => {
       console.log('=== SALES MUTATION START ===');
       console.log('Sale data:', saleData);
-      console.log('Online status:', isOnline());
+      console.log('Online status:', navigator.onLine);
       
-      // Check if online
-      if (!isOnline()) {
-        console.log('Processing offline sale...');
-        // Queue sale for offline processing
-        const queuedSaleId = await offlineQueue.queueSale({
-          items: saleData.items.map((item: any) => ({
-            productId: item.productId,
-            quantity: item.quantity,
-            price: item.price
-          })),
-          paymentType: saleData.paymentMethod as 'cash' | 'credit' | 'mobileMoney',
-          customerName: saleData.customerName,
-          customerPhone: '',
-        });
-
-        // Register background sync if supported
-        if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
-          navigator.serviceWorker.ready.then(registration => {
-            try {
-              // Use any to bypass TypeScript limitations with experimental API
-              const syncManager = (registration as any).sync;
-              if (syncManager) {
-                syncManager.register('sync-sales');
-              }
-            } catch (error) {
-              console.error('Background sync registration failed:', error);
-            }
-          });
-        }
-
-        return { success: true, status: 'queued', saleId: queuedSaleId };
-      }
-
-      // Online - proceed with direct Supabase call
-      console.log('Processing online sale...');
       try {
-        const result = await createSale(saleData);
+        const result = await createSaleOfflineAware(saleData);
         console.log('Sale creation result:', result);
-        return { 
-          success: true, 
-          status: saleData.paymentMethod === 'credit' ? 'pending' : 'paid', 
-          data: result 
-        };
+        
+        if (result.offline) {
+          return { 
+            success: true, 
+            status: 'queued', 
+            operationId: result.operationId,
+            offline: true 
+          };
+        } else {
+          return { 
+            success: true, 
+            status: saleData.paymentMethod === 'credit' ? 'pending' : 'paid', 
+            data: result.data,
+            offline: false 
+          };
+        }
       } catch (error) {
         console.error('Sale creation failed:', error);
         throw error;
@@ -474,7 +451,7 @@ export default function Sales() {
       setPaymentMethod('');
       
       // Immediately refresh all relevant data if online
-      if (isOnline()) {
+      if (navigator.onLine && !result.offline) {
         // Dashboard metrics
         queryClient.invalidateQueries({ queryKey: ["dashboard-metrics"] });
         queryClient.invalidateQueries({ queryKey: ["orders-recent"] });
