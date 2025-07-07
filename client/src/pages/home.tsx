@@ -132,7 +132,7 @@ export default function Home() {
             <div className="lg:col-span-6">
               <div className="text-center lg:text-left">
                 <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 dark:text-white leading-tight">
-                  Complete Business Management for <span className="text-brand">Kenyan Dukawalas</span>
+                  Complete Business Management for <span className="text-brand">Kenyan Duka</span>
                 </h1>
                 <p className="mt-6 text-xl text-gray-600 dark:text-gray-300 leading-relaxed">
                   Manage your inventory, track sales, handle customer credit, and generate reports. 
@@ -180,7 +180,7 @@ export default function Home() {
                           Complete Inventory, Sales & Customer Management
                         </p>
                         <p className="text-xs text-gray-500 dark:text-gray-400 text-center mt-1">
-                          Built for Kenyan Dukawalas
+                          Built for Kenyan Duka
                         </p>
                       </div>
                     </div>
@@ -282,7 +282,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-4">
-              Trusted by Dukawalas Across Kenya
+              Trusted by Duka Across Kenya
             </h2>
             <p className="text-xl text-gray-600 dark:text-gray-300">
               Real feedback from duka owners using DukaFiti
@@ -343,10 +343,10 @@ export default function Home() {
       <footer className="bg-gray-900 dark:bg-black border-t border-gray-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="text-center">
-            <div className="brand-logo-container mb-6 inline-block">
+            <div className="mb-6">
               <img 
-                src="/assets/slogan_1751824985940.png" 
-                alt="Duka Fiti ni Duka Bora" 
+                src={theme === 'dark' ? "/assets/slogan-only-black.png" : "/assets/slogan-only-white.png"}
+                alt="Duka Bora Ni Duka Fiti" 
                 className="h-8 w-auto opacity-80"
               />
             </div>
