@@ -30,60 +30,92 @@ export function RestockModal({ product, open, onOpenChange }: RestockModalProps)
 
   const restockMutation = useMutation({
     mutationFn: async ({ productId, qty, costPrice }: { productId: number; qty: number; costPrice: number }) => {
+      console.log(`Starting restock for product ${productId}: adding ${qty} units at cost ${costPrice}`);
+      
       // First get current stock to calculate new stock
       const { data: currentProduct, error: fetchError } = await supabase
         .from('products')
-        .select('stock')
+        .select('*')
         .eq('id', productId)
         .single();
 
       if (fetchError) {
+        console.error('Failed to fetch current product:', fetchError);
         throw new Error(`Failed to fetch current stock: ${fetchError.message}`);
       }
 
       const currentStock = currentProduct.stock || 0;
       const newStock = currentStock + qty;
+      
+      console.log(`Current stock: ${currentStock}, adding: ${qty}, new stock: ${newStock}`);
 
       // Update product with new stock and cost price
-      const { error: updateError } = await supabase
+      const { data: updatedProduct, error: updateError } = await supabase
         .from('products')
         .update({
           stock: newStock,
           cost_price: costPrice
         })
-        .eq('id', productId);
+        .eq('id', productId)
+        .select()
+        .single();
 
       if (updateError) {
         // If cost_price column doesn't exist yet, try updating just stock
         if (updateError.message.includes('cost_price')) {
           console.warn('cost_price column not found, updating stock only');
-          const { error: stockOnlyError } = await supabase
+          const { data: stockOnlyUpdate, error: stockOnlyError } = await supabase
             .from('products')
             .update({ stock: newStock })
-            .eq('id', productId);
+            .eq('id', productId)
+            .select()
+            .single();
           
           if (stockOnlyError) {
+            console.error('Failed to update stock only:', stockOnlyError);
             throw new Error(`Failed to update product stock: ${stockOnlyError.message}`);
           }
           
-          console.log(`Stock updated. Buying price ${costPrice} will be stored once cost_price column is added.`);
+          console.log(`Stock updated successfully. Buying price ${costPrice} will be stored once cost_price column is added.`);
+          return { 
+            newStock, 
+            productId, 
+            costPrice, 
+            updatedProduct: stockOnlyUpdate,
+            oldStock: currentStock 
+          };
         } else {
+          console.error('Failed to update product:', updateError);
           throw new Error(`Failed to update product: ${updateError.message}`);
         }
       }
 
-      return { newStock, productId, costPrice };
+      console.log('Product updated successfully:', updatedProduct);
+      return { 
+        newStock, 
+        productId, 
+        costPrice, 
+        updatedProduct,
+        oldStock: currentStock 
+      };
     },
-    onSuccess: (data) => {
-      // Invalidate and refetch products query
-      queryClient.invalidateQueries({ queryKey: ['products'] });
-      queryClient.invalidateQueries({ queryKey: ['products-frequent'] });
-      queryClient.invalidateQueries({ queryKey: ['/api/dashboard/metrics'] });
+    onSuccess: async (data) => {
+      console.log('Restock successful, invalidating queries and updating UI...');
+      
+      // Force refresh of all product-related queries
+      await queryClient.invalidateQueries({ queryKey: ['products'] });
+      await queryClient.invalidateQueries({ queryKey: ['products-frequent'] });
+      await queryClient.invalidateQueries({ queryKey: ['/api/dashboard/metrics'] });
+      
+      // Force refetch to ensure immediate UI update
+      await queryClient.refetchQueries({ queryKey: ['products'] });
       
       toast({
         title: 'Stock Added Successfully',
-        description: `${quantity} units added to ${product?.name}. New stock: ${data.newStock}`,
+        description: `${quantity} units added to ${product?.name}. Stock: ${data.oldStock} → ${data.newStock}`,
       });
+      
+      console.log(`Stock update complete: ${product?.name} stock updated from ${data.oldStock} to ${data.newStock}`);
       
       // Reset form and close modal
       setQuantity('');
@@ -91,6 +123,7 @@ export function RestockModal({ product, open, onOpenChange }: RestockModalProps)
       onOpenChange(false);
     },
     onError: (error: Error) => {
+      console.error('Restock failed:', error);
       toast({
         title: 'Restock Failed',
         description: error.message,
