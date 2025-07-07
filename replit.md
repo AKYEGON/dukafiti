@@ -491,6 +491,7 @@ Changelog:
 - July 7, 2025. Enhanced notification schema to use correct database structure (user_id instead of entity_id) for all notification types
 - July 7, 2025. Updated all notification creation functions across codebase to use proper schema and type mappings
 - July 7, 2025. Verified low stock notifications now work correctly and display in real-time UI notification panel
+- July 7, 2025. Removed MVP Notifications Testing panel from dashboard per user request
 ```
 
 ## User Preferences
