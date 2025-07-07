@@ -486,6 +486,7 @@ Changelog:
 - July 7, 2025. Updated branding assets with new title images for sidebar and navigation
 - July 7, 2025. Updated collapsed sidebar to show dynamic "D" logo in dark mode and standard logo in light mode
 - July 7, 2025. Replaced login and register page logos with new title and slogan images featuring dynamic dark/light mode switching
+- July 7, 2025. Updated sidebar collapsed state with new D logos - purple with white "D" for light mode and purple with black "D" for dark mode
 ```
 
 ## User Preferences

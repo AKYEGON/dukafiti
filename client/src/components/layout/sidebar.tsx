@@ -70,9 +70,9 @@ export function Sidebar({ className, collapsed = false, toggleSidebar }: Sidebar
           {isCollapsed && !isMobile ? (
             <Link href="/">
               <div className="relative">
-                {/* Light mode logo icon */}
+                {/* Light mode D logo icon */}
                 <img 
-                  src="/assets/logo-icon-light.png"
+                  src="/assets/d-logo-light.png"
                   alt="DukaFiti" 
                   className="w-10 h-10 object-contain dark:hidden"
                 />
