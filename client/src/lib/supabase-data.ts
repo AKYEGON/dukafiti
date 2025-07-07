@@ -14,7 +14,7 @@ export const getProducts = async () => {
 
 export const createProduct = async (product: any) => {
   try {
-    console.log('Supabase createProduct called with:', product);
+    
     
     const insertData = {
       name: product.name,
@@ -28,7 +28,7 @@ export const createProduct = async (product: any) => {
       sales_count: 0,
     };
     
-    console.log('Insert data for Supabase:', insertData);
+    
     
     const { data, error } = await supabase
       .from('products')
@@ -37,14 +37,14 @@ export const createProduct = async (product: any) => {
       .single();
     
     if (error) {
-      console.error('Supabase insert error:', error);
+      
       throw new Error(error.message || 'Failed to create product in database');
     }
     
-    console.log('Product created in Supabase:', data);
+    
     return data;
   } catch (error) {
-    console.error('CreateProduct function error:', error);
+    
     throw error;
   }
 };
@@ -98,7 +98,7 @@ export const getCustomers = async () => {
 
 export const createCustomer = async (customer: any) => {
   try {
-    console.log('Creating customer with data:', customer);
+    
     
     const { data, error } = await supabase
       .from('customers')
@@ -112,21 +112,21 @@ export const createCustomer = async (customer: any) => {
       .single();
     
     if (error) {
-      console.error('Supabase customer creation error:', error);
+      
       throw error;
     }
     
-    console.log('Customer created successfully:', data);
+    
     return data;
   } catch (error) {
-    console.error('Customer creation failed:', error);
+    
     throw error;
   }
 };
 
 export const updateCustomer = async (id: number, updates: any) => {
   try {
-    console.log('Updating customer', id, 'with data:', updates);
+    
     
     // Prepare update object with only the fields that should be updated
     const updateObject: any = {
@@ -152,21 +152,21 @@ export const updateCustomer = async (id: number, updates: any) => {
       .single();
     
     if (error) {
-      console.error('Supabase customer update error:', error);
+      
       throw new Error(`Failed to update customer: ${error.message}`);
     }
     
-    console.log('Customer updated successfully:', data);
+    
     return data;
   } catch (error) {
-    console.error('Customer update failed:', error);
+    
     throw error;
   }
 };
 
 export const deleteCustomer = async (id: number) => {
   try {
-    console.log('Deleting customer with ID:', id);
+    
     
     // First delete any related orders and order items
     const { data: orders, error: ordersError } = await supabase
@@ -175,7 +175,7 @@ export const deleteCustomer = async (id: number) => {
       .eq('customer_id', id);
     
     if (ordersError) {
-      console.error('Error fetching customer orders:', ordersError);
+      
       throw ordersError;
     }
     
@@ -188,7 +188,7 @@ export const deleteCustomer = async (id: number) => {
           .eq('order_id', order.id);
         
         if (orderItemsError) {
-          console.error('Error deleting order items:', orderItemsError);
+          
           throw orderItemsError;
         }
       }
@@ -200,7 +200,7 @@ export const deleteCustomer = async (id: number) => {
         .eq('customer_id', id);
       
       if (deleteOrdersError) {
-        console.error('Error deleting customer orders:', deleteOrdersError);
+        
         throw deleteOrdersError;
       }
     }
@@ -212,7 +212,7 @@ export const deleteCustomer = async (id: number) => {
       .eq('customer_id', id);
     
     if (paymentsError) {
-      console.error('Error deleting customer payments:', paymentsError);
+      
       throw paymentsError;
     }
     
@@ -223,20 +223,20 @@ export const deleteCustomer = async (id: number) => {
       .eq('id', id);
     
     if (error) {
-      console.error('Error deleting customer:', error);
+      
       throw error;
     }
     
-    console.log('Customer and all related data deleted successfully');
+    
   } catch (error) {
-    console.error('Customer deletion failed:', error);
+    
     throw error;
   }
 };
 
 export const recordCustomerRepayment = async (customerId: number, amount: number, method: string, note?: string) => {
   try {
-    console.log('Recording repayment for customer', customerId, 'amount:', amount);
+    
     
     // Get current customer balance
     const { data: customer, error: customerError } = await supabase
@@ -246,7 +246,7 @@ export const recordCustomerRepayment = async (customerId: number, amount: number
       .single();
     
     if (customerError) {
-      console.error('Error fetching customer:', customerError);
+      
       throw customerError;
     }
     
@@ -262,7 +262,7 @@ export const recordCustomerRepayment = async (customerId: number, amount: number
       .single();
     
     if (updateError) {
-      console.error('Error updating customer balance:', updateError);
+      
       throw updateError;
     }
     
@@ -280,16 +280,16 @@ export const recordCustomerRepayment = async (customerId: number, amount: number
       .single();
     
     if (paymentError) {
-      console.error('Error recording payment:', paymentError);
+      
       throw paymentError;
     }
     
     // MVP: Credit reminders are handled daily, not on individual payments
 
-    console.log('Repayment recorded successfully:', payment);
+    
     return { customer: updatedCustomer, payment };
   } catch (error) {
-    console.error('Customer repayment failed:', error);
+    
     throw error;
   }
 };
@@ -297,7 +297,7 @@ export const recordCustomerRepayment = async (customerId: number, amount: number
 // Reports functions
 export const getReportsSummary = async (period: 'today' | 'weekly' | 'monthly') => {
   try {
-    console.log('Fetching reports summary for period:', period);
+    
     
     let startDate: Date;
     const endDate = new Date();
@@ -326,7 +326,7 @@ export const getReportsSummary = async (period: 'today' | 'weekly' | 'monthly') 
       .lte('created_at', endDate.toISOString());
     
     if (ordersError) {
-      console.error('Error fetching orders:', ordersError);
+      
       throw ordersError;
     }
     
@@ -343,14 +343,14 @@ export const getReportsSummary = async (period: 'today' | 'weekly' | 'monthly') 
       creditSales: creditSales.toString(),
     };
   } catch (error) {
-    console.error('Reports summary failed:', error);
+    
     throw error;
   }
 };
 
 export const getReportsTrend = async (period: 'hourly' | 'daily' | 'monthly') => {
   try {
-    console.log('getReportsTrend called with period:', period);
+    
     
     let startDate: Date;
     const endDate = new Date();
@@ -377,7 +377,7 @@ export const getReportsTrend = async (period: 'hourly' | 'daily' | 'monthly') =>
       .order('created_at', { ascending: true });
     
     if (error) {
-      console.error('Error fetching orders for trend:', error);
+      
       throw error;
     }
     
@@ -456,18 +456,18 @@ export const getReportsTrend = async (period: 'hourly' | 'daily' | 'monthly') =>
       trendData.push(...buckets);
     }
     
-    console.log(`Fetched real trend data for ${period} with ${trendData.length} data points:`, trendData.slice(0, 3));
+    
     return trendData;
     
   } catch (error) {
-    console.error('Error in getReportsTrend:', error);
+    
     throw error;
   }
 };
 
 export const getTopCustomers = async (period: 'today' | 'weekly' | 'monthly') => {
   try {
-    console.log('Fetching top customers for period:', period);
+    
     
     // Get customers with credit balance (debt) ordered by highest amount
     const { data: customers, error: customersError } = await supabase
@@ -478,7 +478,7 @@ export const getTopCustomers = async (period: 'today' | 'weekly' | 'monthly') =>
       .limit(10);
     
     if (customersError) {
-      console.error('Error fetching top customers:', customersError);
+      
       throw customersError;
     }
     
@@ -499,14 +499,14 @@ export const getTopCustomers = async (period: 'today' | 'weekly' | 'monthly') =>
     
     return topCustomers.filter(c => parseFloat(c.totalOwed) > 0);
   } catch (error) {
-    console.error('Top customers failed:', error);
+    
     return [];
   }
 };
 
 export const getTopProducts = async (period: 'today' | 'weekly' | 'monthly') => {
   try {
-    console.log('Fetching top products for period:', period);
+    
     
     // Get order items with product info (remove date filtering for now to get all data)
     const { data: orderItems, error: orderItemsError } = await supabase
@@ -519,12 +519,12 @@ export const getTopProducts = async (period: 'today' | 'weekly' | 'monthly') => 
       `);
     
     if (orderItemsError) {
-      console.error('Error fetching order items:', orderItemsError);
+      
       throw orderItemsError;
     }
     
     if (!orderItems || orderItems.length === 0) {
-      console.log('No order items found');
+      
       return [];
     }
     
@@ -556,14 +556,14 @@ export const getTopProducts = async (period: 'today' | 'weekly' | 'monthly') => 
     
     return topProducts;
   } catch (error) {
-    console.error('Top products failed:', error);
+    
     throw error;
   }
 };
 
 export const getOrdersData = async (period: 'daily' | 'weekly' | 'monthly', page: number = 1, limit: number = 10) => {
   try {
-    console.log('Fetching orders data for period:', period, 'page:', page);
+    
     
     let startDate: Date;
     const endDate = new Date();
@@ -592,7 +592,7 @@ export const getOrdersData = async (period: 'daily' | 'weekly' | 'monthly', page
       .lte('created_at', endDate.toISOString());
     
     if (countError) {
-      console.error('Error counting orders:', countError);
+      
       throw countError;
     }
     
@@ -612,7 +612,7 @@ export const getOrdersData = async (period: 'daily' | 'weekly' | 'monthly', page
       .range((page - 1) * limit, page * limit - 1);
     
     if (ordersError) {
-      console.error('Error fetching orders:', ordersError);
+      
       throw ordersError;
     }
     
@@ -648,14 +648,14 @@ export const getOrdersData = async (period: 'daily' | 'weekly' | 'monthly', page
       totalPages
     };
   } catch (error) {
-    console.error('Orders data failed:', error);
+    
     throw error;
   }
 };
 
 export const getCustomerCredits = async () => {
   try {
-    console.log('Fetching customer credits');
+    
     
     const { data: customers, error: customersError } = await supabase
       .from('customers')
@@ -665,7 +665,7 @@ export const getCustomerCredits = async () => {
       .limit(10);
     
     if (customersError) {
-      console.error('Error fetching customer credits:', customersError);
+      
       throw customersError;
     }
     
@@ -675,7 +675,7 @@ export const getCustomerCredits = async () => {
       balance: customer.balance
     }));
   } catch (error) {
-    console.error('Customer credits failed:', error);
+    
     throw error;
   }
 };
@@ -729,9 +729,9 @@ export const createOrderItem = async (orderItem: any) => {
 // Complete sales transaction
 export const createSale = async (saleData: any) => {
   try {
-    console.log('=== SUPABASE SALE CREATION START ===');
-    console.log('Sale data received:', JSON.stringify(saleData, null, 2));
-    console.log('Supabase client configured:', !!supabase);
+    
+    
+    
     
     // Create the order first
     const orderData = {
@@ -742,7 +742,7 @@ export const createSale = async (saleData: any) => {
       payment_method: saleData.paymentMethod || 'cash',
     };
     
-    console.log('Creating order with data:', orderData);
+    
     
     const { data: order, error: orderError } = await supabase
       .from('orders')
@@ -751,7 +751,7 @@ export const createSale = async (saleData: any) => {
       .single();
     
     if (orderError) {
-      console.error('❌ ERROR creating order:', orderError);
+      
       console.error('Error details:', {
         code: orderError.code,
         message: orderError.message,
@@ -761,7 +761,7 @@ export const createSale = async (saleData: any) => {
       throw orderError;
     }
     
-    console.log('✅ Order created successfully:', order);
+    
     
     // Create order items
     const orderItems = saleData.items.map((item: any) => ({
@@ -777,7 +777,7 @@ export const createSale = async (saleData: any) => {
       .insert(orderItems);
     
     if (itemsError) {
-      console.error('Error creating order items:', itemsError);
+      
       throw itemsError;
     }
     
@@ -793,7 +793,7 @@ export const createSale = async (saleData: any) => {
           .eq('id', item.productId);
         
         if (stockError) {
-          console.error('Error updating product stock:', stockError);
+          
           // Don't throw here, just log the error
         }
       } else {
@@ -806,7 +806,7 @@ export const createSale = async (saleData: any) => {
           .eq('id', item.productId);
         
         if (salesError) {
-          console.error('Error updating sales count:', salesError);
+          
           // Don't throw here, just log the error
         }
       }
@@ -827,7 +827,7 @@ export const createSale = async (saleData: any) => {
         await checkLowStockAfterSale(productUpdates);
       }
     } catch (lowStockError) {
-      console.error('Error checking low stock after sale:', lowStockError);
+      
       // Don't throw - low stock notifications are not critical for sale completion
     }
     
@@ -841,7 +841,7 @@ export const createSale = async (saleData: any) => {
         .eq('id', saleData.customerId);
       
       if (balanceError) {
-        console.error('Error updating customer balance:', balanceError);
+        
         // Don't throw here, just log the error
       }
     }
@@ -878,14 +878,14 @@ export const createSale = async (saleData: any) => {
         });
       }
     } catch (notificationError) {
-      console.error('Error creating sale notifications:', notificationError);
+      
       // Don't throw - notifications are not critical for sale completion
     }
 
-    console.log('Sale created successfully:', order);
+    
     return order;
   } catch (error) {
-    console.error('Sale creation failed:', error);
+    
     throw error;
   }
 };
@@ -909,7 +909,7 @@ export const searchProducts = async (query: string) => {
 // Recent orders function
 export const getRecentOrders = async () => {
   try {
-    console.log('Fetching recent orders...');
+    
     
     const { data: orders, error } = await supabase
       .from('orders')
@@ -925,10 +925,10 @@ export const getRecentOrders = async () => {
       .limit(5);
     
     if (error) {
-      console.error('Error fetching recent orders:', error);
+      
       // Return empty array if table doesn't exist
       if (error.message.includes('relation "orders" does not exist')) {
-        console.warn('Orders table does not exist, returning empty array');
+        
         return [];
       }
       throw error;
@@ -936,7 +936,7 @@ export const getRecentOrders = async () => {
     
     return orders || [];
   } catch (error) {
-    console.error('Error in getRecentOrders:', error);
+    
     return [];
   }
 };
@@ -944,7 +944,7 @@ export const getRecentOrders = async () => {
 // Dashboard metrics functions
 export const getDashboardMetrics = async () => {
   try {
-    console.log('Fetching dashboard metrics...');
+    
     
     // Get total revenue from orders
     const { data: ordersData, error: ordersError } = await supabase
@@ -952,10 +952,10 @@ export const getDashboardMetrics = async () => {
       .select('total, created_at');
     
     if (ordersError) {
-      console.error('Error fetching orders:', ordersError);
+      
       // If table doesn't exist, return empty metrics instead of throwing
       if (ordersError.message.includes('relation "orders" does not exist')) {
-        console.warn('Orders table does not exist, returning empty metrics');
+        
         return {
           totalRevenue: '0',
           totalOrders: 0,
@@ -1017,7 +1017,7 @@ export const getDashboardMetrics = async () => {
       activeCustomersCount: totalCustomers || 0
     };
   } catch (error) {
-    console.error('Error fetching dashboard metrics:', error);
+    
     // Return default values if there's an error
     return {
       totalRevenue: "0.00",
@@ -1040,33 +1040,33 @@ const STORE_PROFILE_KEY = 'dukafiti_store_profile_v2';
 
 export const getStoreProfile = async () => {
   try {
-    console.log('Fetching store profile...');
+    
     
     // For now, use localStorage as primary storage since settings table doesn't exist
     const localData = localStorage.getItem(STORE_PROFILE_KEY);
     if (localData) {
       try {
         const parsed = JSON.parse(localData);
-        console.log('Retrieved store profile from localStorage:', parsed);
+        
         return {
           storeName: parsed.storeName || '',
           ownerName: parsed.ownerName || '',
           address: parsed.address || ''
         };
       } catch (parseError) {
-        console.error('Error parsing localStorage data:', parseError);
+        
       }
     }
     
     // Return empty profile if no data exists
-    console.log('No store profile found, returning defaults');
+    
     return {
       storeName: '',
       ownerName: '',
       address: ''
     };
   } catch (error) {
-    console.error('Store profile fetch failed:', error);
+    
     
     return {
       storeName: '',
@@ -1082,7 +1082,7 @@ export const updateStoreProfile = async (profileData: {
   address: string;
 }) => {
   try {
-    console.log('Updating store profile:', profileData);
+    
     
     // Save to localStorage as primary storage (since settings table doesn't exist)
     const profileWithTimestamp = {
@@ -1091,7 +1091,7 @@ export const updateStoreProfile = async (profileData: {
     };
     
     localStorage.setItem(STORE_PROFILE_KEY, JSON.stringify(profileWithTimestamp));
-    console.log('Store profile saved to localStorage successfully');
+    
     
     // Return the saved data
     return {
@@ -1100,7 +1100,7 @@ export const updateStoreProfile = async (profileData: {
       address: profileData.address
     };
   } catch (error) {
-    console.error('Store profile update failed:', error);
+    
     throw new Error('Failed to save store profile. Please try again.');
   }
 };
@@ -1116,23 +1116,23 @@ export const ensureNotificationsTableExists = async () => {
     
     if (error && error.code === 'PGRST116') {
       // Table doesn't exist, create it using RPC call
-      console.log('Notifications table does not exist, creating it...');
+      
       
       const { error: createError } = await supabase.rpc('create_notifications_table_if_not_exists');
       
       if (createError) {
-        console.error('Error creating notifications table:', createError);
+        
         throw createError;
       }
       
-      console.log('Notifications table created successfully');
+      
     } else if (error) {
       throw error;
     }
     
     return true;
   } catch (error) {
-    console.error('Error checking/creating notifications table:', error);
+    
     return false;
   }
 };
@@ -1148,20 +1148,20 @@ export const getNotifications = async (limit = 50) => {
       .limit(limit);
     
     if (error) {
-      console.error('Error fetching notifications:', error);
+      
       throw error;
     }
     
     return data || [];
   } catch (error) {
-    console.error('getNotifications error:', error);
+    
     throw error;
   }
 };
 
 export const markNotificationAsRead = async (notificationId: number) => {
   try {
-    console.log('Marking notification as read:', notificationId);
+    
     
     const { data, error } = await supabase
       .from('notifications')
@@ -1172,21 +1172,21 @@ export const markNotificationAsRead = async (notificationId: number) => {
       .single();
     
     if (error) {
-      console.error('Error marking notification as read:', error);
+      
       throw new Error(`Failed to mark notification as read: ${error.message}`);
     }
     
-    console.log('Notification marked as read successfully:', data);
+    
     return data;
   } catch (error) {
-    console.error('markNotificationAsRead error:', error);
+    
     throw error;
   }
 };
 
 export const markAllNotificationsAsRead = async () => {
   try {
-    console.log('Marking all notifications as read...');
+    
     
     const { data, error } = await supabase
       .from('notifications')
@@ -1196,14 +1196,14 @@ export const markAllNotificationsAsRead = async () => {
       .select();
     
     if (error) {
-      console.error('Error marking all notifications as read:', error);
+      
       throw new Error(`Failed to mark all notifications as read: ${error.message}`);
     }
     
-    console.log('All notifications marked as read successfully:', data?.length || 0, 'notifications updated');
+    
     return data;
   } catch (error) {
-    console.error('markAllNotificationsAsRead error:', error);
+    
     throw error;
   }
 };
@@ -1215,7 +1215,7 @@ export const createNotification = async (notification: {
   payload?: Record<string, any>;
 }) => {
   try {
-    console.log('Creating notification with payload:', notification);
+    
     
     // Create notification with payload data
     const { data, error } = await supabase
@@ -1232,14 +1232,14 @@ export const createNotification = async (notification: {
       .single();
     
     if (error) {
-      console.error('Supabase notification creation error:', error);
+      
       throw new Error(`Failed to create notification: ${error.message}`);
     }
     
-    console.log('Notification created successfully:', data);
+    
     return data;
   } catch (error) {
-    console.error('createNotification error:', error);
+    
     throw error;
   }
 };
@@ -1270,7 +1270,7 @@ export const checkAndNotifyLowStock = async (updatedProducts: Array<{id: number,
       }
     }
   } catch (error) {
-    console.error('Error checking low stock:', error);
+    
   }
 };
 
@@ -1327,14 +1327,14 @@ export const createCreditReminderNotification = async (customerId: string, custo
       .single();
 
     if (error) {
-      console.error('Error creating credit reminder notification:', error);
+      
       throw error;
     }
 
-    console.log(`✅ Created payment reminder for ${customerName}: KES ${balance.toFixed(2)}`);
+    
     return data;
   } catch (error) {
-    console.error('createCreditReminderNotification error:', error);
+    
     throw error;
   }
 };
@@ -1355,14 +1355,14 @@ export const createLowStockAlertNotification = async (productId: string, product
       .single();
 
     if (error) {
-      console.error('Error creating low stock alert notification:', error);
+      
       throw error;
     }
 
-    console.log(`✅ Created low stock notification for ${productName}: ${quantity} units remaining`);
+    
     return data;
   } catch (error) {
-    console.error('createLowStockAlertNotification error:', error);
+    
     throw error;
   }
 };
@@ -1380,7 +1380,7 @@ export const checkLowStockAfterSale = async (productUpdates: Array<{id: string, 
       }
     }
   } catch (error) {
-    console.error('Error checking low stock after sale:', error);
+    
   }
 };
 
@@ -1397,7 +1397,7 @@ export const checkOverdueCreditCustomers = async () => {
       .lt('updated_at', sevenDaysAgo.toISOString());
 
     if (error) {
-      console.error('Error fetching overdue customers:', error);
+      
       return;
     }
 
@@ -1405,9 +1405,9 @@ export const checkOverdueCreditCustomers = async () => {
       await createCreditReminderNotification(customer.id, customer.name, customer.balance);
     }
 
-    console.log(`Created credit reminders for ${customers?.length || 0} overdue customers`);
+    
   } catch (error) {
-    console.error('Error checking overdue credit customers:', error);
+    
   }
 };
 
@@ -1488,7 +1488,7 @@ export const getProfitData = async (period: 'daily' | 'weekly' | 'monthly') => {
       period
     };
   } catch (error) {
-    console.error('Error fetching profit data:', error);
+    
     throw error;
   }
 };
@@ -1535,13 +1535,13 @@ export const restockProduct = async (restockData: {
       }]);
     
     if (historyError) {
-      console.error('Failed to record restock history:', historyError);
+      
       // Don't throw, just log the error
     }
     
     return updatedProduct;
   } catch (error) {
-    console.error('Error restocking product:', error);
+    
     throw error;
   }
 };
@@ -1582,7 +1582,7 @@ export const getRestockHistory = async (period?: 'today' | 'week' | 'month') => 
     if (error) throw error;
     return data;
   } catch (error) {
-    console.error('Error fetching restock history:', error);
+    
     throw error;
   }
 };

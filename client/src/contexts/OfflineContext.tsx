@@ -28,7 +28,7 @@ export function OfflineProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const handleOnline = () => {
       setIsOnline(true);
-      console.log('[OfflineContext] Device is online');
+      
       
       // Auto-sync when coming back online
       if (pendingSyncCount > 0) {
@@ -39,13 +39,13 @@ export function OfflineProvider({ children }: { children: ReactNode }) {
     const handleOffline = () => {
       setIsOnline(false);
       setIsOfflineMode(true);
-      console.log('[OfflineContext] Device is offline');
+      
     };
 
     // Service worker message handler
     const handleServiceWorkerMessage = (event: MessageEvent) => {
       if (event.data?.type === 'SYNC_COMPLETE') {
-        console.log('[OfflineContext] Sync completed by service worker');
+        
         updateSyncStatus();
         setLastSyncTime(new Date());
         
@@ -87,7 +87,7 @@ export function OfflineProvider({ children }: { children: ReactNode }) {
       setLastSyncTime(new Date());
       await updateSyncStatus();
     } catch (error) {
-      console.error('[OfflineContext] Auto-sync failed:', error);
+      
       setSyncStatus('error');
     }
   };
@@ -97,7 +97,7 @@ export function OfflineProvider({ children }: { children: ReactNode }) {
       const status = await offlineManager.getSyncQueueStatus();
       setPendingSyncCount(status.pending);
     } catch (error) {
-      console.error('[OfflineContext] Failed to update sync status:', error);
+      
     }
   };
 
@@ -149,7 +149,7 @@ export function OfflineProvider({ children }: { children: ReactNode }) {
       
       return result;
     } catch (error) {
-      console.error('[OfflineContext] Force sync failed:', error);
+      
       setSyncStatus('error');
       
       const errorMsg = error instanceof Error ? error.message : 'Unknown error';

@@ -16,7 +16,9 @@ export const useEnhancedOffline = () => {
 
   useEffect(() => {
     // Initialize the offline queue
-    enhancedOfflineQueue.init().catch(console.error);
+    enhancedOfflineQueue.init().catch((error) => {
+      // Handle initialization error silently
+    });
 
     // Update queued actions count
     const updateQueuedActions = async () => {
@@ -24,7 +26,8 @@ export const useEnhancedOffline = () => {
         const actions = await enhancedOfflineQueue.getQueuedActions();
         setQueuedActions(actions);
       } catch (error) {
-        console.error('Failed to get queued actions:', error);
+        // Handle error silently
+        setQueuedActions([]);
       }
     };
 

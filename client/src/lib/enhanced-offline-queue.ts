@@ -31,13 +31,13 @@ class EnhancedOfflineQueue {
       const request = indexedDB.open(this.dbName, this.dbVersion);
 
       request.onerror = () => {
-        console.error('Enhanced IndexedDB failed to open:', request.error);
+        
         reject(request.error);
       };
 
       request.onsuccess = () => {
         this.db = request.result;
-        console.log('Enhanced IndexedDB opened successfully');
+        
         resolve();
       };
 
@@ -49,14 +49,14 @@ class EnhancedOfflineQueue {
           const store = db.createObjectStore(this.actionStoreName, { keyPath: 'id' });
           store.createIndex('timestamp', 'timestamp', { unique: false });
           store.createIndex('type', 'type', { unique: false });
-          console.log('Enhanced IndexedDB action store created');
+          
         }
 
         // Create object store for cached data
         if (!db.objectStoreNames.contains(this.cacheStoreName)) {
           const store = db.createObjectStore(this.cacheStoreName, { keyPath: 'key' });
           store.createIndex('timestamp', 'timestamp', { unique: false });
-          console.log('Enhanced IndexedDB cache store created');
+          
         }
       };
     });
@@ -93,12 +93,12 @@ class EnhancedOfflineQueue {
       const request = store.add(action);
 
       request.onsuccess = () => {
-        console.log('Action queued offline:', action.id, action.description);
+        
         resolve(action.id);
       };
 
       request.onerror = () => {
-        console.error('Failed to queue action:', request.error);
+        
         reject(request.error);
       };
     });
@@ -120,7 +120,7 @@ class EnhancedOfflineQueue {
       };
 
       request.onerror = () => {
-        console.error('Failed to get queued actions:', request.error);
+        
         reject(request.error);
       };
     });
@@ -137,12 +137,12 @@ class EnhancedOfflineQueue {
       const request = store.delete(actionId);
 
       request.onsuccess = () => {
-        console.log('Action removed from queue:', actionId);
+        
         resolve();
       };
 
       request.onerror = () => {
-        console.error('Failed to remove action:', request.error);
+        
         reject(request.error);
       };
     });
@@ -172,7 +172,7 @@ class EnhancedOfflineQueue {
       };
 
       getRequest.onerror = () => {
-        console.error('Failed to increment retry count:', getRequest.error);
+        
         reject(getRequest.error);
       };
     });
@@ -193,7 +193,7 @@ class EnhancedOfflineQueue {
       };
 
       request.onerror = () => {
-        console.error('Failed to count queued actions:', request.error);
+        
         reject(request.error);
       };
     });
@@ -218,12 +218,12 @@ class EnhancedOfflineQueue {
       const request = store.put(cachedData);
 
       request.onsuccess = () => {
-        console.log('Data cached:', key);
+        
         resolve();
       };
 
       request.onerror = () => {
-        console.error('Failed to cache data:', request.error);
+        
         reject(request.error);
       };
     });
@@ -244,10 +244,10 @@ class EnhancedOfflineQueue {
         if (result) {
           // Check if data has expired
           if (result.expires && Date.now() > result.expires) {
-            console.log('Cached data expired:', key);
+            
             resolve(null);
           } else {
-            console.log('Serving cached data:', key);
+            
             resolve(result.data);
           }
         } else {
@@ -256,7 +256,7 @@ class EnhancedOfflineQueue {
       };
 
       request.onerror = () => {
-        console.error('Failed to get cached data:', request.error);
+        
         reject(request.error);
       };
     });
@@ -273,12 +273,12 @@ class EnhancedOfflineQueue {
       const request = store.clear();
 
       request.onsuccess = () => {
-        console.log('Data cache cleared');
+        
         resolve();
       };
 
       request.onerror = () => {
-        console.error('Failed to clear cache:', request.error);
+        
         reject(request.error);
       };
     });
@@ -295,12 +295,12 @@ class EnhancedOfflineQueue {
       const request = store.clear();
 
       request.onsuccess = () => {
-        console.log('Action queue cleared');
+        
         resolve();
       };
 
       request.onerror = () => {
-        console.error('Failed to clear action queue:', request.error);
+        
         reject(request.error);
       };
     });
@@ -319,13 +319,13 @@ export function setupNetworkListeners(
   onOffline?: () => void
 ): () => void {
   const handleOnline = () => {
-    console.log('Network: Back online - processing queued actions');
+    
     onOnline?.();
     processQueuedActions();
   };
 
   const handleOffline = () => {
-    console.log('Network: Gone offline - future actions will be queued');
+    
     onOffline?.();
   };
 
@@ -341,7 +341,7 @@ export function setupNetworkListeners(
 // Process all queued actions when back online
 export async function processQueuedActions(): Promise<void> {
   if (!isOnline()) {
-    console.log('Cannot process queued actions: still offline');
+    
     return;
   }
 
@@ -349,16 +349,16 @@ export async function processQueuedActions(): Promise<void> {
     const queuedActions = await enhancedOfflineQueue.getQueuedActions();
     
     if (queuedActions.length === 0) {
-      console.log('No queued actions to process');
+      
       return;
     }
 
-    console.log(`Processing ${queuedActions.length} queued actions...`);
+    
 
     for (const action of queuedActions) {
       try {
         if (action.retryCount >= action.maxRetries) {
-          console.warn(`Action ${action.id} exceeded max retries, removing from queue`);
+          
           await enhancedOfflineQueue.removeAction(action.id);
           continue;
         }
@@ -371,7 +371,7 @@ export async function processQueuedActions(): Promise<void> {
 
         if (response.ok) {
           await enhancedOfflineQueue.removeAction(action.id);
-          console.log(`Successfully processed action: ${action.description}`);
+          
           
           // Show success toast
           if (window.dispatchEvent) {
@@ -381,7 +381,7 @@ export async function processQueuedActions(): Promise<void> {
           }
         } else {
           await enhancedOfflineQueue.incrementRetryCount(action.id);
-          console.error(`Failed to process action ${action.description}:`, response.statusText);
+          
           
           // Show error toast
           if (window.dispatchEvent) {
@@ -392,7 +392,7 @@ export async function processQueuedActions(): Promise<void> {
         }
       } catch (error) {
         await enhancedOfflineQueue.incrementRetryCount(action.id);
-        console.error(`Error processing action ${action.description}:`, error);
+        
         
         // Show error toast
         if (window.dispatchEvent) {
@@ -406,12 +406,12 @@ export async function processQueuedActions(): Promise<void> {
 
     const remainingCount = await enhancedOfflineQueue.getQueueCount();
     if (remainingCount > 0) {
-      console.log(`${remainingCount} actions remain in queue after processing`);
+      
     } else {
-      console.log('All queued actions processed successfully');
+      
     }
   } catch (error) {
-    console.error('Error processing queued actions:', error);
+    
   }
 }
 

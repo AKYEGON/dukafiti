@@ -91,7 +91,7 @@ export function CustomerForm({ open, onOpenChange, customer }: CustomerFormProps
       onOpenChange(false);
       form.reset();
     } catch (error: any) {
-      console.error("Form submission error:", error);
+      
       toast({
         title: "Error",
         description: error.message || "Failed to save customer",

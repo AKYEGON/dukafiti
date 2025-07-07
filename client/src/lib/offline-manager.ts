@@ -33,19 +33,19 @@ class OfflineDataManager {
   private async initializeOfflineDB() {
     try {
       await offlineDB.init();
-      console.log('[OfflineManager] IndexedDB initialized successfully');
+      
       
       // Perform initial sync if online
       if (this.isOnline) {
         await this.performInitialSync();
       }
     } catch (error) {
-      console.error('[OfflineManager] Failed to initialize offline DB:', error);
+      
     }
   }
 
   private handleOnline() {
-    console.log('[OfflineManager] Device is now online');
+    
     this.isOnline = true;
     toast({
       title: "Back Online",
@@ -56,7 +56,7 @@ class OfflineDataManager {
   }
 
   private handleOffline() {
-    console.log('[OfflineManager] Device is now offline');
+    
     this.isOnline = false;
     toast({
       title: "Working Offline",
@@ -90,7 +90,7 @@ class OfflineDataManager {
         }
       }
     } catch (error) {
-      console.log('[OfflineManager] Server fetch failed, using offline data:', error);
+      
     }
 
     // Fallback to offline data
@@ -134,7 +134,7 @@ class OfflineDataManager {
           duration: 3000
         });
       } catch (error) {
-        console.error('[OfflineManager] Failed to sync product creation:', error);
+        
         await offlineDB.addToSyncQueue({
           action: 'CREATE',
           entity: 'product',
@@ -177,7 +177,7 @@ class OfflineDataManager {
         updatedProduct.isDirty = false;
         await offlineDB.saveProduct(updatedProduct);
       } catch (error) {
-        console.error('[OfflineManager] Failed to sync product update:', error);
+        
         await offlineDB.addToSyncQueue({
           action: 'UPDATE',
           entity: 'product',
@@ -217,7 +217,7 @@ class OfflineDataManager {
           duration: 3000
         });
       } catch (error) {
-        console.error('[OfflineManager] Failed to sync product deletion:', error);
+        
         await offlineDB.addToSyncQueue({
           action: 'DELETE',
           entity: 'product',
@@ -255,7 +255,7 @@ class OfflineDataManager {
         }
       }
     } catch (error) {
-      console.log('[OfflineManager] Server fetch failed, using offline data:', error);
+      
     }
 
     return await offlineDB.getCustomers();
@@ -283,7 +283,7 @@ class OfflineDataManager {
         newCustomer.isDirty = false;
         await offlineDB.saveCustomer(newCustomer);
       } catch (error) {
-        console.error('[OfflineManager] Failed to sync customer creation:', error);
+        
         await offlineDB.addToSyncQueue({
           action: 'CREATE',
           entity: 'customer',
@@ -396,7 +396,7 @@ class OfflineDataManager {
           duration: 3000
         });
       } catch (error) {
-        console.error('[OfflineManager] Failed to sync order creation:', error);
+        
         await offlineDB.addToSyncQueue({
           action: 'CREATE',
           entity: 'order',
@@ -419,13 +419,13 @@ class OfflineDataManager {
     let syncedItems = 0;
 
     try {
-      console.log('[OfflineManager] Starting sync with server');
+      
       
       // Get pending sync items
       const syncQueue = await offlineDB.getSyncQueue();
       const pendingItems = syncQueue.filter(item => item.status === 'pending');
 
-      console.log(`[OfflineManager] Processing ${pendingItems.length} pending sync items`);
+      
 
       for (const item of pendingItems) {
         try {
@@ -433,7 +433,7 @@ class OfflineDataManager {
           await offlineDB.removeSyncQueueItem(item.id);
           syncedItems++;
         } catch (error) {
-          console.error(`[OfflineManager] Failed to sync item ${item.id}:`, error);
+          
           errors.push(`Failed to sync ${item.entity} ${item.action}: ${error}`);
           
           // Update retry count
@@ -448,7 +448,7 @@ class OfflineDataManager {
       // Perform initial sync to get latest data
       await this.performInitialSync();
 
-      console.log(`[OfflineManager] Sync completed: ${syncedItems} items synced, ${errors.length} errors`);
+      
       
       if (syncedItems > 0) {
         toast({
@@ -459,7 +459,7 @@ class OfflineDataManager {
       }
 
     } catch (error) {
-      console.error('[OfflineManager] Sync failed:', error);
+      
       errors.push(`Sync failed: ${error}`);
     } finally {
       this.syncInProgress = false;
@@ -509,7 +509,7 @@ class OfflineDataManager {
 
   private async performInitialSync(): Promise<void> {
     try {
-      console.log('[OfflineManager] Performing initial sync');
+      
       
       // Sync products
       const products = await supabaseData.getProducts();
@@ -544,9 +544,9 @@ class OfflineDataManager {
         await offlineDB.bulkUpdateCustomers(offlineCustomers);
       }
 
-      console.log('[OfflineManager] Initial sync completed');
+      
     } catch (error) {
-      console.error('[OfflineManager] Initial sync failed:', error);
+      
     }
   }
 

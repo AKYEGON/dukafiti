@@ -14,28 +14,28 @@ export default function Debug() {
   useEffect(() => {
     const checkSession = async () => {
       try {
-        console.log('Checking session...');
+        
         const { data: { session }, error } = await supabase.auth.getSession();
         
         if (error) {
-          console.error('Error getting session:', error);
+          
           setError(error.message);
         } else {
-          console.log('Session data:', session);
+          
           setSessionData(session);
         }
 
         const { data: { user }, error: userError } = await supabase.auth.getUser();
         
         if (userError) {
-          console.error('Error getting user:', userError);
+          
           setError(userError.message);
         } else {
-          console.log('User data:', user);
+          
           setUserInfo(user);
         }
       } catch (err) {
-        console.error('Debug page error:', err);
+        
         setError('Failed to check authentication');
       } finally {
         setLoading(false);
@@ -51,7 +51,7 @@ export default function Debug() {
       password: 'testpassword123'
     });
     
-    console.log('Test signup result:', { data, error });
+    
   };
 
   const testSignIn = async () => {
@@ -60,7 +60,7 @@ export default function Debug() {
       password: 'testpassword123'
     });
     
-    console.log('Test signin result:', { data, error });
+    
   };
 
   if (loading) {

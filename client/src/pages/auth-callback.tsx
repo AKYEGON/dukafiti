@@ -52,7 +52,7 @@ export default function AuthCallback() {
           throw new Error('Failed to establish session');
         }
       } catch (err: any) {
-        console.error('Auth callback error:', err);
+        
         setStatus('error');
         setError(err.message || 'Authentication failed');
         

@@ -49,9 +49,9 @@ export function NotificationsTest() {
         title: notification.title,
         message: notification.message
       });
-      console.log('Test notification created:', notification.title);
+      
     } catch (error) {
-      console.error('Failed to create test notification:', error);
+      
     } finally {
       setIsLoading(null);
     }

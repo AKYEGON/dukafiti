@@ -33,16 +33,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    console.log('AuthProvider initializing...');
+    
     
     // Get initial session
     supabase.auth.getSession().then(({ data: { session }, error }) => {
-      console.log('Initial session check:', { session, error });
+      
       setSession(session);
       setUser(session?.user ?? null);
       setIsLoading(false);
     }).catch((error) => {
-      console.error('Error getting initial session:', error);
+      
       setIsLoading(false);
     });
 
@@ -50,7 +50,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log('Auth state changed:', event, session);
+      
       setSession(session);
       setUser(session?.user ?? null);
       setIsLoading(false);
@@ -72,13 +72,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       });
 
       if (error) {
-        console.error('Login error:', error);
+        
         return { error };
       }
 
       return { error: null };
     } catch (error) {
-      console.error('Login error:', error);
+      
       return { error: { message: 'Login failed' } };
     }
   };
@@ -96,20 +96,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       });
 
       if (error) {
-        console.error('Signup error:', error);
+        
         return { error };
       }
 
       return { error: null };
     } catch (error) {
-      console.error('Signup error:', error);
+      
       return { error: { message: 'Registration failed' } };
     }
   };
 
   const signInWithGoogle = async () => {
     try {
-      console.log('Initiating Google OAuth...');
+      
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
@@ -122,14 +122,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       });
 
       if (error) {
-        console.error('Google sign-in error:', error);
+        
         return { error };
       }
 
-      console.log('Google OAuth initiated successfully');
+      
       return { error: null };
     } catch (error) {
-      console.error('Google sign-in error:', error);
+      
       return { error: { message: 'Google sign-in failed. Please ensure Google OAuth is configured in Supabase dashboard.' } };
     }
   };
@@ -138,7 +138,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     try {
       await supabase.auth.signOut();
     } catch (error) {
-      console.error('Logout error:', error);
+      
     }
   };
 

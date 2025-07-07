@@ -8,19 +8,19 @@ export default function DebugAuth() {
   useEffect(() => {
     const testConnection = async () => {
       try {
-        console.log('Testing Supabase connection...');
+        
         
         // Test basic Supabase connection
         const { data, error } = await supabase.auth.getSession();
         
         if (error) {
-          console.error('Supabase auth error:', error);
+          
           setError(`Auth error: ${error.message}`);
           setStatus('Failed');
           return;
         }
         
-        console.log('Supabase auth session:', data);
+        
         setStatus('Success - Supabase connected');
         
         // Test database connection
@@ -30,14 +30,14 @@ export default function DebugAuth() {
           .limit(1);
           
         if (dbError) {
-          console.error('Database test error:', dbError);
+          
           setError(`Database error: ${dbError.message}`);
         } else {
-          console.log('Database test successful');
+          
         }
         
       } catch (err) {
-        console.error('Connection test failed:', err);
+        
         setError(`Connection failed: ${(err as Error).message}`);
         setStatus('Failed');
       }

@@ -1,114 +1,59 @@
-// DukaFiti Offline API - Wrapper for all data operations
+/**
+ * Offline-aware API wrapper for DukaFiti
+ * Handles offline operations by queuing them automatically
+ */
 
-import { offlineStore } from './offline-store';
-import { supabase } from './supabase';
-import { toast } from '@/hooks/use-toast';
+import { supabase } from '@/lib/supabase';
+import { offlineQueue, isOnline } from '@/lib/offline-queue';
+import type { Product, Customer, InsertOrder } from '@/types/schema';
 
-// Check if we should queue operations
-const shouldQueue = () => !navigator.onLine;
-
-// Sale Operations
-export const createSaleOfflineAware = async (saleData: any) => {
-  if (shouldQueue()) {
-    // Queue for offline processing
-    const operationId = await offlineStore.enqueue({
-      type: 'sale',
-      endpoint: 'sales',
-      payload: saleData,
-      maxRetries: 3
-    });
-    
-    return {
-      success: true,
-      offline: true,
-      operationId,
-      data: { id: operationId }
+// Sale creation with offline support
+export async function createSaleOfflineAware(saleData: any) {
+  if (!isOnline()) {
+    // Queue the sale for later sync
+    const queueId = await offlineQueue.enqueue('sale', 'create', saleData);
+    return { 
+      success: true, 
+      data: { id: queueId, queued: true },
+      message: 'Sale queued for sync when online'
     };
   }
-  
-  // Process immediately when online
+
   try {
-    // Create order
-    const { data: order, error: orderError } = await supabase
-      .from('orders')
-      .insert([{
-        customer_id: saleData.customerId,
-        customer_name: saleData.customerName,
-        total: saleData.total,
-        status: 'completed',
-        payment_method: saleData.paymentMethod,
-      }])
-      .select()
-      .single();
-
-    if (orderError) throw orderError;
-
-    // Create order items
-    const orderItems = saleData.items.map((item: any) => ({
-      order_id: order.id,
-      product_id: item.productId,
-      product_name: item.productName,
-      quantity: item.quantity,
-      price: item.price,
-    }));
-
-    const { error: itemsError } = await supabase
-      .from('order_items')
-      .insert(orderItems);
-
-    if (itemsError) throw itemsError;
-
-    // Update product stock
-    for (const item of saleData.items) {
-      if (item.hasStock) {
-        const { error: stockError } = await supabase
-          .from('products')
-          .update({
-            stock: item.newStock,
-            sales_count: item.newSalesCount
-          })
-          .eq('id', item.productId);
-
-        if (stockError) throw stockError;
-      }
-    }
-
-    return {
-      success: true,
-      offline: false,
-      data: order
-    };
+    const { data, error } = await supabase.rpc('create_sale_with_items', saleData);
+    if (error) throw error;
+    return { success: true, data };
   } catch (error) {
-    throw error;
-  }
-};
-
-// Restock Operations
-export const restockProductOfflineAware = async (productId: string, quantity: number, costPrice?: number) => {
-  if (shouldQueue()) {
-    // Queue for offline processing
-    const operationId = await offlineStore.enqueue({
-      type: 'restock',
-      endpoint: 'products/restock',
-      payload: {
-        productId,
-        quantity,
-        costPrice
-      },
-      maxRetries: 3
-    });
     
-    return {
-      success: true,
-      offline: true,
-      operationId,
-      data: { id: operationId }
+    const queueId = await offlineQueue.enqueue('sale', 'create', saleData);
+    return { 
+      success: true, 
+      data: { id: queueId, queued: true },
+      message: 'Sale queued due to connection issue'
     };
   }
-  
-  // Process immediately when online
+}
+
+// Product restocking with offline support
+export async function restockProductOfflineAware(productId: number, quantity: number, costPrice?: number) {
+  const restockData = {
+    productId,
+    quantity,
+    costPrice,
+    newStock: quantity, // This will be updated to actual new stock amount
+  };
+
+  if (!isOnline()) {
+    const queueId = await offlineQueue.enqueue('restock', 'update', restockData);
+    return { 
+      success: true, 
+      data: { id: queueId, queued: true },
+      message: 'Restock queued for sync when online'
+    };
+  }
+
   try {
-    // Get current stock
+    // Get current stock first
     const { data: product, error: fetchError } = await supabase
       .from('products')
       .select('stock')
@@ -117,241 +62,106 @@ export const restockProductOfflineAware = async (productId: string, quantity: nu
 
     if (fetchError) throw fetchError;
 
-    const currentStock = product.stock || 0;
-    const newStock = currentStock + quantity;
+    const newStock = (product.stock || 0) + quantity;
+    restockData.newStock = newStock;
 
-    // Update product - only stock for now, cost_price column doesn't exist yet
-    const { error: updateError } = await supabase
-      .from('products')
-      .update({ stock: newStock })
-      .eq('id', productId);
-
-    if (updateError) throw updateError;
-
-    return {
-      success: true,
-      offline: false,
-      data: { newStock }
-    };
-  } catch (error) {
-    throw error;
-  }
-};
-
-// Customer Operations
-export const createCustomerOfflineAware = async (customerData: any) => {
-  if (shouldQueue()) {
-    const operationId = await offlineStore.enqueue({
-      type: 'customer_create',
-      endpoint: 'customers',
-      payload: customerData,
-      maxRetries: 3
-    });
-    
-    return {
-      success: true,
-      offline: true,
-      operationId,
-      data: { id: operationId }
-    };
-  }
-  
-  try {
-    const { data, error } = await supabase
-      .from('customers')
-      .insert([customerData])
-      .select()
-      .single();
-
-    if (error) throw error;
-
-    return {
-      success: true,
-      offline: false,
-      data
-    };
-  } catch (error) {
-    throw error;
-  }
-};
-
-export const updateCustomerOfflineAware = async (customerId: string, customerData: any) => {
-  if (shouldQueue()) {
-    const operationId = await offlineStore.enqueue({
-      type: 'customer_update',
-      endpoint: 'customers/update',
-      payload: { id: customerId, data: customerData },
-      maxRetries: 3
-    });
-    
-    return {
-      success: true,
-      offline: true,
-      operationId,
-      data: { id: operationId }
-    };
-  }
-  
-  try {
-    const { data, error } = await supabase
-      .from('customers')
-      .update(customerData)
-      .eq('id', customerId)
-      .select()
-      .single();
-
-    if (error) throw error;
-
-    return {
-      success: true,
-      offline: false,
-      data
-    };
-  } catch (error) {
-    throw error;
-  }
-};
-
-export const deleteCustomerOfflineAware = async (customerId: string) => {
-  if (shouldQueue()) {
-    const operationId = await offlineStore.enqueue({
-      type: 'customer_delete',
-      endpoint: 'customers/delete',
-      payload: { id: customerId },
-      maxRetries: 3
-    });
-    
-    return {
-      success: true,
-      offline: true,
-      operationId,
-      data: { id: operationId }
-    };
-  }
-  
-  try {
-    const { error } = await supabase
-      .from('customers')
-      .delete()
-      .eq('id', customerId);
-
-    if (error) throw error;
-
-    return {
-      success: true,
-      offline: false,
-      data: { id: customerId }
-    };
-  } catch (error) {
-    throw error;
-  }
-};
-
-// Product Operations
-export const createProductOfflineAware = async (productData: any) => {
-  if (shouldQueue()) {
-    const operationId = await offlineStore.enqueue({
-      type: 'product_create',
-      endpoint: 'products',
-      payload: productData,
-      maxRetries: 3
-    });
-    
-    return {
-      success: true,
-      offline: true,
-      operationId,
-      data: { id: operationId }
-    };
-  }
-  
-  try {
     const { data, error } = await supabase
       .from('products')
-      .insert([productData])
-      .select()
-      .single();
-
-    if (error) throw error;
-
-    return {
-      success: true,
-      offline: false,
-      data
-    };
-  } catch (error) {
-    throw error;
-  }
-};
-
-export const updateProductOfflineAware = async (productId: string, productData: any) => {
-  if (shouldQueue()) {
-    const operationId = await offlineStore.enqueue({
-      type: 'product_update',
-      endpoint: 'products/update',
-      payload: { id: productId, data: productData },
-      maxRetries: 3
-    });
-    
-    return {
-      success: true,
-      offline: true,
-      operationId,
-      data: { id: operationId }
-    };
-  }
-  
-  try {
-    const { data, error } = await supabase
-      .from('products')
-      .update(productData)
+      .update({ 
+        stock: newStock,
+        ...(costPrice && { cost_price: costPrice })
+      })
       .eq('id', productId)
       .select()
       .single();
 
     if (error) throw error;
-
-    return {
-      success: true,
-      offline: false,
-      data
-    };
+    return { success: true, data };
   } catch (error) {
-    throw error;
-  }
-};
-
-export const deleteProductOfflineAware = async (productId: string) => {
-  if (shouldQueue()) {
-    const operationId = await offlineStore.enqueue({
-      type: 'product_delete',
-      endpoint: 'products/delete',
-      payload: { id: productId },
-      maxRetries: 3
-    });
     
-    return {
-      success: true,
-      offline: true,
-      operationId,
-      data: { id: operationId }
+    const queueId = await offlineQueue.enqueue('restock', 'update', restockData);
+    return { 
+      success: true, 
+      data: { id: queueId, queued: true },
+      message: 'Restock queued due to connection issue'
     };
   }
-  
+}
+
+// Customer creation with offline support
+export async function createCustomerOfflineAware(customerData: any) {
+  if (!isOnline()) {
+    const queueId = await offlineQueue.enqueue('customer', 'create', customerData);
+    return { 
+      success: true, 
+      data: { id: queueId, queued: true },
+      message: 'Customer queued for sync when online'
+    };
+  }
+
   try {
-    const { error } = await supabase
-      .from('products')
-      .delete()
-      .eq('id', productId);
+    const { data, error } = await supabase
+      .from('customers')
+      .insert(customerData)
+      .select()
+      .single();
 
     if (error) throw error;
-
-    return {
-      success: true,
-      offline: false,
-      data: { id: productId }
-    };
+    return { success: true, data };
   } catch (error) {
-    throw error;
+    
+    const queueId = await offlineQueue.enqueue('customer', 'create', customerData);
+    return { 
+      success: true, 
+      data: { id: queueId, queued: true },
+      message: 'Customer queued due to connection issue'
+    };
   }
-};
+}
+
+// Customer payment with offline support
+export async function recordPaymentOfflineAware(customerId: number, amount: number, newBalance: number) {
+  const paymentData = {
+    customerId,
+    amount,
+    newBalance,
+  };
+
+  if (!isOnline()) {
+    const queueId = await offlineQueue.enqueue('payment', 'update', paymentData);
+    return { 
+      success: true, 
+      data: { id: queueId, queued: true },
+      message: 'Payment queued for sync when online'
+    };
+  }
+
+  try {
+    const { data, error } = await supabase
+      .from('customers')
+      .update({ balance: newBalance })
+      .eq('id', customerId)
+      .select()
+      .single();
+
+    if (error) throw error;
+    return { success: true, data };
+  } catch (error) {
+    
+    const queueId = await offlineQueue.enqueue('payment', 'update', paymentData);
+    return { 
+      success: true, 
+      data: { id: queueId, queued: true },
+      message: 'Payment queued due to connection issue'
+    };
+  }
+}
+
+// Check online status
+export function getConnectionStatus() {
+  return {
+    isOnline: isOnline(),
+    queueLength: offlineQueue.getQueueLength(),
+    hasQueuedOperations: offlineQueue.getQueueLength() > 0
+  };
+}

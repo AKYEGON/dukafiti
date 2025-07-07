@@ -3,7 +3,7 @@ import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { ShoppingCart, CreditCard, Smartphone, Banknote, Search, ChevronDown, ChevronUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
-import { type Product } from "@shared/schema";
+import { type Product } from "@/types/schema";
 import { apiRequest } from "@/lib/queryClient";
 import { type SaleLineItem } from "@/components/sales/sale-line-item";
 import { formatCurrency } from "@/lib/utils";
@@ -56,7 +56,7 @@ export default function Sales() {
 
   // Set up real-time subscription for product updates (stock changes)
   useEffect(() => {
-    console.log('🔗 Setting up real-time product subscription for Sales page...');
+    
     
     const subscription = supabase
       .channel('products_realtime_sales')
@@ -65,7 +65,7 @@ export default function Sales() {
         schema: 'public',
         table: 'products'
       }, (payload) => {
-        console.log('📦 Product updated via realtime on Sales page:', payload.new);
+        
         
         // Update the products query cache with the new data
         queryClient.setQueryData<Product[]>(['products'], (oldProducts) => {
@@ -101,14 +101,14 @@ export default function Sales() {
           });
         });
         
-        console.log('✅ Sales page product cache and cart updated with real-time data');
+        
       })
       .subscribe((status) => {
-        console.log('📊 Sales page products subscription status:', status);
+        
       });
 
     return () => {
-      console.log('🔌 Cleaning up Sales page products real-time subscription');
+      
       supabase.removeChannel(subscription);
     };
   }, [queryClient]);
@@ -129,7 +129,7 @@ export default function Sales() {
       setShowSearchDropdown(true);
       setSelectedSearchIndex(-1);
     } catch (error) {
-      console.error('Search error:', error);
+      
       setSearchResults([]);
       setShowSearchDropdown(false);
     } finally {
@@ -207,11 +207,11 @@ export default function Sales() {
     const existingItem = cartItems.find(item => item.product.id === product.id);
     
     if (existingItem) {
-      console.log('Product exists, incrementing quantity');
+      
       // Increment quantity of existing item
       handleQuantityChange(existingItem.id, existingItem.quantity + 1);
     } else {
-      console.log('Adding new product to cart');
+      
       // Add new item to cart
       const newItem: SaleLineItem = {
         id: `${product.id}-${Date.now()}`,
@@ -220,10 +220,10 @@ export default function Sales() {
         unitPrice: product.price,
         total: product.price,
       };
-      console.log('New item created:', newItem);
+      
       setCartItems(prev => {
         const updated = [...prev, newItem];
-        console.log('Updated cart items:', updated);
+        
         return updated;
       });
     }
@@ -323,7 +323,7 @@ export default function Sales() {
         });
         
         customerId = customerResult.offline ? customerResult.operationId : customerResult.data.id;
-        console.log('New customer saved:', customerResult);
+        
         
         // Invalidate customers cache
         queryClient.invalidateQueries({ queryKey: ["customers"] });
@@ -335,7 +335,7 @@ export default function Sales() {
           duration: 3000,
         });
       } catch (error) {
-        console.error('Error saving new customer:', error);
+        
         toast({
           title: "Warning",
           description: "Customer couldn't be saved, but sale will proceed",
@@ -352,7 +352,7 @@ export default function Sales() {
           customerId = existingCustomer.id;
         }
       } catch (error) {
-        console.error('Error finding existing customer:', error);
+        
       }
     }
     
@@ -366,7 +366,7 @@ export default function Sales() {
         const saleTotal = cartItems.reduce((sum, item) => sum + parseFloat(item.total), 0);
         newCustomerBalance = currentBalance + saleTotal;
       } catch (error) {
-        console.error('Error calculating customer balance:', error);
+        
       }
     }
     
@@ -388,13 +388,13 @@ export default function Sales() {
       newCustomerBalance: paymentMethod === 'credit' ? newCustomerBalance : null
     };
 
-    console.log('Sale data being sent:', saleData);
+    
     createSaleMutation.mutate(saleData);
   };
 
   // Handle search result selection
   const handleSearchResultSelect = (product: Product) => {
-    console.log('Search result selected:', product);
+    
     handleProductSelect(product);
     setSearchQuery('');
     setShowSearchDropdown(false);
@@ -416,13 +416,13 @@ export default function Sales() {
 
   const createSaleMutation = useMutation({
     mutationFn: async (saleData: any) => {
-      console.log('=== SALES MUTATION START ===');
-      console.log('Sale data:', saleData);
-      console.log('Online status:', navigator.onLine);
+      
+      
+      
       
       try {
         const result = await createSaleOfflineAware(saleData);
-        console.log('Sale creation result:', result);
+        
         
         if (result.offline) {
           return { 
@@ -440,7 +440,7 @@ export default function Sales() {
           };
         }
       } catch (error) {
-        console.error('Sale creation failed:', error);
+        
         throw error;
       }
     },
@@ -498,7 +498,9 @@ export default function Sales() {
           totalAmount,
           paymentMethod,
           customerName || undefined
-        ).catch((err: any) => console.error('Failed to create sale notification:', err));
+        ).catch((err: any) => {
+          // Silent error for notifications
+        });
         
         // Check for low stock after sale
         saleData.items.forEach(async (item: any) => {
@@ -512,10 +514,12 @@ export default function Sales() {
                   product.id.toString(),
                   product.name,
                   product.stock
-                ).catch((err: any) => console.error('Failed to create low stock notification:', err));
+                ).catch((err: any) => {
+                  // Silent error for notifications
+                });
               }
             } catch (error) {
-              console.error('Error checking stock levels:', error);
+              // Handle error silently
             }
           }
         });
@@ -535,11 +539,13 @@ export default function Sales() {
           totalAmount,
           paymentMethod,
           customerName || "Credit Customer"
-        ).catch((err: any) => console.error('Failed to create credit sale notification:', err));
+        ).catch((err: any) => {
+          // Silent error for notifications
+        });
       }
     },
     onError: (error: any) => {
-      console.error('Sale error:', error);
+      
       toast({ 
         title: "Sale failed", 
         description: "Please try again or contact support",

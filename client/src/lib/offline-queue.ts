@@ -1,255 +1,270 @@
-// Offline sales queue management using IndexedDB
-export interface PendingSale {
+/**
+ * Robust Offline Queue System
+ * Handles offline operations using IndexedDB with automatic sync
+ */
+
+import localforage from 'localforage';
+
+interface QueuedOperation {
   id: string;
+  type: 'sale' | 'restock' | 'customer' | 'payment';
+  operation: string; // 'create', 'update', 'delete'
+  data: any;
   timestamp: number;
-  items: Array<{
-    productId: number;
-    quantity: number;
-    price: string;
-  }>;
-  paymentType: 'cash' | 'credit' | 'mobileMoney';
-  reference?: string;
-  customerName?: string;
-  customerPhone?: string;
+  retryCount: number;
+  maxRetries: number;
 }
+
+const QUEUE_KEY = 'dukafiti_offline_queue';
+const MAX_RETRIES = 3;
+
+// Configure localforage for offline queue
+const offlineStore = localforage.createInstance({
+  name: 'DukaFiti',
+  storeName: 'offline_queue'
+});
 
 class OfflineQueue {
-  private dbName = 'DukaFitiOffline';
-  private dbVersion = 1;
-  private storeName = 'pendingSales';
-  private db: IDBDatabase | null = null;
+  private queue: QueuedOperation[] = [];
+  private isProcessing = false;
+  private listeners: Array<(queue: QueuedOperation[]) => void> = [];
 
-  async init(): Promise<void> {
-    return new Promise((resolve, reject) => {
-      const request = indexedDB.open(this.dbName, this.dbVersion);
-
-      request.onerror = () => {
-        // IndexedDB failed to open
-        reject(request.error);
-      };
-
-      request.onsuccess = () => {
-        this.db = request.result;
-        // IndexedDB opened successfully
-        resolve();
-      };
-
-      request.onupgradeneeded = (event) => {
-        const db = (event.target as IDBOpenDBRequest).result;
-        
-        // Create object store for pending sales
-        if (!db.objectStoreNames.contains(this.storeName)) {
-          const store = db.createObjectStore(this.storeName, { keyPath: 'id' });
-          store.createIndex('timestamp', 'timestamp', { unique: false });
-          // IndexedDB object store created
-        }
-      };
-    });
+  constructor() {
+    this.loadQueue();
+    this.setupOnlineListener();
   }
 
-  async queueSale(sale: Omit<PendingSale, 'id' | 'timestamp'>): Promise<string> {
-    if (!this.db) {
-      await this.init();
+  // Load queue from IndexedDB on initialization
+  private async loadQueue() {
+    try {
+      const stored = await offlineStore.getItem<QueuedOperation[]>(QUEUE_KEY);
+      this.queue = stored || [];
+      this.notifyListeners();
+    } catch (error) {
+      
+      this.queue = [];
     }
+  }
 
-    const pendingSale: PendingSale = {
-      ...sale,
-      id: `sale_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+  // Save queue to IndexedDB
+  private async saveQueue() {
+    try {
+      await offlineStore.setItem(QUEUE_KEY, this.queue);
+      this.notifyListeners();
+    } catch (error) {
+      
+    }
+  }
+
+  // Add operation to queue
+  async enqueue(
+    type: QueuedOperation['type'],
+    operation: QueuedOperation['operation'],
+    data: any
+  ): Promise<string> {
+    const id = `${type}_${operation}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    
+    const queuedOp: QueuedOperation = {
+      id,
+      type,
+      operation,
+      data,
       timestamp: Date.now(),
+      retryCount: 0,
+      maxRetries: MAX_RETRIES
     };
 
-    return new Promise((resolve, reject) => {
-      const transaction = this.db!.transaction([this.storeName], 'readwrite');
-      const store = transaction.objectStore(this.storeName);
-      const request = store.add(pendingSale);
-
-      request.onsuccess = () => {
-        console.log('Sale queued offline:', pendingSale.id);
-        resolve(pendingSale.id);
-      };
-
-      request.onerror = () => {
-        console.error('Failed to queue sale:', request.error);
-        reject(request.error);
-      };
-    });
+    this.queue.push(queuedOp);
+    await this.saveQueue();
+    
+    
+    return id;
   }
 
-  async getPendingSales(): Promise<PendingSale[]> {
-    if (!this.db) {
-      await this.init();
-    }
-
-    return new Promise((resolve, reject) => {
-      const transaction = this.db!.transaction([this.storeName], 'readonly');
-      const store = transaction.objectStore(this.storeName);
-      const request = store.getAll();
-
-      request.onsuccess = () => {
-        const sales = request.result.sort((a, b) => a.timestamp - b.timestamp);
-        resolve(sales);
-      };
-
-      request.onerror = () => {
-        console.error('Failed to get pending sales:', request.error);
-        reject(request.error);
-      };
-    });
+  // Get current queue
+  getQueue(): QueuedOperation[] {
+    return [...this.queue];
   }
 
-  async removeSale(saleId: string): Promise<void> {
-    if (!this.db) {
-      await this.init();
-    }
-
-    return new Promise((resolve, reject) => {
-      const transaction = this.db!.transaction([this.storeName], 'readwrite');
-      const store = transaction.objectStore(this.storeName);
-      const request = store.delete(saleId);
-
-      request.onsuccess = () => {
-        console.log('Sale removed from queue:', saleId);
-        resolve();
-      };
-
-      request.onerror = () => {
-        console.error('Failed to remove sale:', request.error);
-        reject(request.error);
-      };
-    });
+  // Get queue length
+  getQueueLength(): number {
+    return this.queue.length;
   }
 
-  async getQueueCount(): Promise<number> {
-    if (!this.db) {
-      await this.init();
-    }
-
-    return new Promise((resolve, reject) => {
-      const transaction = this.db!.transaction([this.storeName], 'readonly');
-      const store = transaction.objectStore(this.storeName);
-      const request = store.count();
-
-      request.onsuccess = () => {
-        resolve(request.result);
-      };
-
-      request.onerror = () => {
-        console.error('Failed to count pending sales:', request.error);
-        reject(request.error);
-      };
-    });
-  }
-
+  // Clear entire queue
   async clearQueue(): Promise<void> {
-    if (!this.db) {
-      await this.init();
+    this.queue = [];
+    await this.saveQueue();
+    
+  }
+
+  // Remove specific operation from queue
+  async removeFromQueue(id: string): Promise<void> {
+    this.queue = this.queue.filter(op => op.id !== id);
+    await this.saveQueue();
+  }
+
+  // Process queue when online
+  async processQueue(): Promise<void> {
+    if (this.isProcessing || !navigator.onLine || this.queue.length === 0) {
+      return;
     }
 
-    return new Promise((resolve, reject) => {
-      const transaction = this.db!.transaction([this.storeName], 'readwrite');
-      const store = transaction.objectStore(this.storeName);
-      const request = store.clear();
+    this.isProcessing = true;
+    
 
-      request.onsuccess = () => {
-        console.log('Offline queue cleared');
-        resolve();
-      };
+    const operations = [...this.queue];
+    let successCount = 0;
+    let failureCount = 0;
 
-      request.onerror = () => {
-        console.error('Failed to clear queue:', request.error);
-        reject(request.error);
-      };
+    for (const operation of operations) {
+      try {
+        const success = await this.executeOperation(operation);
+        
+        if (success) {
+          await this.removeFromQueue(operation.id);
+          successCount++;
+        } else {
+          operation.retryCount++;
+          if (operation.retryCount >= operation.maxRetries) {
+            
+            await this.removeFromQueue(operation.id);
+            failureCount++;
+          }
+        }
+      } catch (error) {
+        
+        operation.retryCount++;
+        if (operation.retryCount >= operation.maxRetries) {
+          await this.removeFromQueue(operation.id);
+          failureCount++;
+        }
+      }
+    }
+
+    this.isProcessing = false;
+    await this.saveQueue();
+
+    
+    
+    // Emit sync completion event
+    window.dispatchEvent(new CustomEvent('offline-sync-complete', {
+      detail: { successCount, failureCount, remainingCount: this.queue.length }
+    }));
+  }
+
+  // Execute a specific operation
+  private async executeOperation(operation: QueuedOperation): Promise<boolean> {
+    const { supabase } = await import('@/lib/supabase');
+
+    try {
+      switch (operation.type) {
+        case 'sale':
+          return await this.executeSaleOperation(operation);
+        case 'restock':
+          return await this.executeRestockOperation(operation);
+        case 'customer':
+          return await this.executeCustomerOperation(operation);
+        case 'payment':
+          return await this.executePaymentOperation(operation);
+        default:
+          
+          return false;
+      }
+    } catch (error) {
+      
+      return false;
+    }
+  }
+
+  private async executeSaleOperation(operation: QueuedOperation): Promise<boolean> {
+    const { supabase } = await import('@/lib/supabase');
+    const { data, error } = await supabase.rpc('create_sale_with_items', operation.data);
+    return !error;
+  }
+
+  private async executeRestockOperation(operation: QueuedOperation): Promise<boolean> {
+    const { supabase } = await import('@/lib/supabase');
+    const { data, error } = await supabase
+      .from('products')
+      .update({ 
+        stock: operation.data.newStock,
+        cost_price: operation.data.costPrice 
+      })
+      .eq('id', operation.data.productId);
+    return !error;
+  }
+
+  private async executeCustomerOperation(operation: QueuedOperation): Promise<boolean> {
+    const { supabase } = await import('@/lib/supabase');
+    
+    if (operation.operation === 'create') {
+      const { data, error } = await supabase
+        .from('customers')
+        .insert(operation.data);
+      return !error;
+    } else if (operation.operation === 'update') {
+      const { data, error } = await supabase
+        .from('customers')
+        .update(operation.data.updates)
+        .eq('id', operation.data.id);
+      return !error;
+    }
+    
+    return false;
+  }
+
+  private async executePaymentOperation(operation: QueuedOperation): Promise<boolean> {
+    const { supabase } = await import('@/lib/supabase');
+    const { data, error } = await supabase
+      .from('customers')
+      .update({ balance: operation.data.newBalance })
+      .eq('id', operation.data.customerId);
+    return !error;
+  }
+
+  // Set up automatic processing when online
+  private setupOnlineListener() {
+    window.addEventListener('online', () => {
+      
+      setTimeout(() => this.processQueue(), 1000); // Small delay to ensure connection is stable
     });
+  }
+
+  // Subscribe to queue changes
+  subscribe(listener: (queue: QueuedOperation[]) => void): () => void {
+    this.listeners.push(listener);
+    return () => {
+      this.listeners = this.listeners.filter(l => l !== listener);
+    };
+  }
+
+  // Notify all listeners of queue changes
+  private notifyListeners() {
+    this.listeners.forEach(listener => listener([...this.queue]));
   }
 }
 
+// Export singleton instance
 export const offlineQueue = new OfflineQueue();
 
-// Network status utilities
+// Utility functions
 export function isOnline(): boolean {
   return navigator.onLine;
 }
 
-export function setupNetworkListeners(
-  onOnline?: () => void,
-  onOffline?: () => void
-): () => void {
-  const handleOnline = () => {
-    console.log('Network: Back online');
-    onOnline?.();
-  };
-
-  const handleOffline = () => {
-    console.log('Network: Gone offline');
-    onOffline?.();
-  };
-
-  window.addEventListener('online', handleOnline);
-  window.addEventListener('offline', handleOffline);
-
-  // Return cleanup function
-  return () => {
-    window.removeEventListener('online', handleOnline);
-    window.removeEventListener('offline', handleOffline);
-  };
+export async function enqueueOperation(
+  type: QueuedOperation['type'],
+  operation: QueuedOperation['operation'],
+  data: any
+): Promise<string> {
+  return offlineQueue.enqueue(type, operation, data);
 }
 
-// Process pending sales when back online
-export async function processPendingSales(): Promise<void> {
-  if (!isOnline()) {
-    console.log('Cannot process pending sales: still offline');
-    return;
-  }
+export function getQueueLength(): number {
+  return offlineQueue.getQueueLength();
+}
 
-  try {
-    const pendingSales = await offlineQueue.getPendingSales();
-    
-    if (pendingSales.length === 0) {
-      console.log('No pending sales to process');
-      return;
-    }
-
-    console.log(`Processing ${pendingSales.length} pending sales...`);
-
-    for (const sale of pendingSales) {
-      try {
-        // Convert to API format
-        const apiPayload = {
-          items: sale.items,
-          paymentType: sale.paymentType,
-          reference: sale.reference,
-          customerName: sale.customerName,
-          customerPhone: sale.customerPhone,
-        };
-
-        const response = await fetch('/api/sales', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify(apiPayload),
-        });
-
-        if (response.ok) {
-          await offlineQueue.removeSale(sale.id);
-          console.log(`Successfully processed sale: ${sale.id}`);
-        } else {
-          console.error(`Failed to process sale ${sale.id}:`, response.statusText);
-          // Leave the sale in the queue for retry
-        }
-      } catch (error) {
-        console.error(`Error processing sale ${sale.id}:`, error);
-        // Leave the sale in the queue for retry
-      }
-    }
-
-    const remainingCount = await offlineQueue.getQueueCount();
-    if (remainingCount > 0) {
-      console.log(`${remainingCount} sales remain in queue after processing`);
-    } else {
-      console.log('All pending sales processed successfully');
-    }
-  } catch (error) {
-    console.error('Error processing pending sales:', error);
-  }
+export async function syncOfflineQueue(): Promise<void> {
+  return offlineQueue.processQueue();
 }

@@ -43,7 +43,7 @@ export const authFallback = {
             return data.user;
           }
         } catch (e) {
-          console.warn('Invalid fallback auth data');
+          
         }
       }
     }

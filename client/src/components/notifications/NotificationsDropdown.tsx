@@ -1,114 +1,178 @@
-import { useState } from 'react';
+import { useEffect } from 'react';
+import { formatDistanceToNow } from 'date-fns';
+import { Bell, AlertTriangle, CreditCard, Package, Info, Check } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+  DropdownMenuItem,
+} from '@/components/ui/dropdown-menu';
+import { Badge } from '@/components/ui/badge';
+import useNotifications from '@/hooks/useNotifications';
 import { useLocation } from 'wouter';
-import useNotifications from '../../hooks/useNotifications';
 
-export default function NotificationsDropdown() {
-  const { list, markAllRead, unreadCount } = useNotifications();
-  const [open, setOpen] = useState(false);
+interface NotificationsDropdownProps {
+  isOpen: boolean;
+  setIsOpen: (open: boolean) => void;
+}
+
+const getNotificationIcon = (type: string) => {
+  switch (type.toLowerCase()) {
+    case 'low_stock':
+    case 'lowstock':
+      return Package;
+    case 'credit_reminder':
+    case 'credit':
+      return CreditCard;
+    case 'payment':
+      return Check;
+    case 'alert':
+      return AlertTriangle;
+    default:
+      return Info;
+  }
+};
+
+const getNotificationColor = (type: string) => {
+  switch (type.toLowerCase()) {
+    case 'low_stock':
+    case 'lowstock':
+      return 'text-orange-500';
+    case 'credit_reminder':
+    case 'credit':
+      return 'text-blue-500';
+    case 'payment':
+      return 'text-green-500';
+    case 'alert':
+      return 'text-red-500';
+    default:
+      return 'text-gray-500';
+  }
+};
+
+const getNotificationRoute = (type: string) => {
+  switch (type.toLowerCase()) {
+    case 'low_stock':
+    case 'lowstock':
+      return '/inventory';
+    case 'credit_reminder':
+    case 'credit':
+      return '/customers';
+    default:
+      return null;
+  }
+};
+
+export function NotificationsDropdown({ isOpen, setIsOpen }: NotificationsDropdownProps) {
+  const { list: notifications, unreadCount, markAllRead } = useNotifications();
   const [, setLocation] = useLocation();
 
-  const handleToggle = () => {
-    if (!open) {
+  // Auto-mark as read when dropdown opens
+  useEffect(() => {
+    if (isOpen && unreadCount > 0) {
       markAllRead();
     }
-    setOpen(!open);
-  };
+  }, [isOpen, unreadCount, markAllRead]);
 
-  const handleNotificationClick = (notification: any) => {
-    if (notification.type === 'credit') {
-      // Navigate to customers page and highlight the customer
-      setLocation(`/customers`);
-    } else if (notification.type === 'low_stock') {
-      // Navigate to inventory page and highlight the product
-      setLocation(`/inventory`);
+  const handleNotificationClick = (type: string) => {
+    const route = getNotificationRoute(type);
+    if (route) {
+      setLocation(route);
+      setIsOpen(false);
     }
-    setOpen(false);
   };
 
   return (
-    <div className="relative">
-      <button 
-        onClick={handleToggle} 
-        aria-label="Notifications"
-        className="relative p-2 text-gray-600 dark:text-gray-300 hover:text-brand-600 dark:hover:text-brand-400 transition-colors"
-      >
-        <svg 
-          className="w-6 h-6" 
-          fill="none" 
-          stroke="currentColor" 
-          viewBox="0 0 24 24"
+    <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>
+      <DropdownMenuTrigger asChild>
+        <Button
+          variant="ghost"
+          size="sm"
+          className="relative p-2 hover:bg-gray-100 dark:hover:bg-gray-800"
         >
-          <path 
-            strokeLinecap="round" 
-            strokeLinejoin="round" 
-            strokeWidth={2} 
-            d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" 
-          />
-        </svg>
+          <Bell className="h-5 w-5" />
+          {unreadCount > 0 && (
+            <Badge
+              variant="destructive"
+              className="absolute -top-1 -right-1 h-5 w-5 p-0 text-xs flex items-center justify-center"
+            >
+              {unreadCount > 9 ? '9+' : unreadCount}
+            </Badge>
+          )}
+        </Button>
+      </DropdownMenuTrigger>
+      
+      <DropdownMenuContent 
+        align="end" 
+        className="w-80 max-h-96 overflow-y-auto"
+        sideOffset={8}
+      >
+        <div className="px-3 py-2 border-b">
+          <h3 className="font-semibold text-sm">Notifications</h3>
+          {unreadCount > 0 && (
+            <p className="text-xs text-muted-foreground">
+              {unreadCount} unread notification{unreadCount > 1 ? 's' : ''}
+            </p>
+          )}
+        </div>
         
-        {unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1 h-5 w-5 bg-red-500 text-white text-xs rounded-full flex items-center justify-center">
-            {unreadCount > 9 ? '9+' : unreadCount}
-          </span>
-        )}
-      </button>
-
-      {open && (
-        <>
-          {/* Backdrop */}
-          <div 
-            className="fixed inset-0 z-40" 
-            onClick={() => setOpen(false)}
-          />
-          
-          {/* Dropdown */}
-          <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-50 max-h-96 overflow-hidden">
-            <div className="p-3 border-b border-gray-200 dark:border-gray-700">
-              <h3 className="font-semibold text-gray-900 dark:text-white">
-                Notifications
-              </h3>
-            </div>
-            
-            <div className="max-h-80 overflow-y-auto">
-              {list.length === 0 ? (
-                <div className="p-4 text-center text-gray-500 dark:text-gray-400">
-                  No notifications
-                </div>
-              ) : (
-                list.map(notification => (
-                  <div
-                    key={notification.id}
-                    className="p-3 border-b last:border-none hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer transition-colors"
-                    onClick={() => handleNotificationClick(notification)}
-                  >
-                    <div className="flex items-start gap-3">
-                      <div className="flex-shrink-0 mt-1">
-                        {notification.type === 'credit' ? (
-                          <span className="text-xl">💳</span>
-                        ) : (
-                          <span className="text-xl">⚠️</span>
-                        )}
-                      </div>
-                      
-                      <div className="flex-1 min-w-0">
-                        <div className="font-semibold text-gray-900 dark:text-white text-sm">
-                          {notification.title}
-                        </div>
-                        <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                          {notification.message}
-                        </div>
-                        <div className="text-xs text-gray-400 dark:text-gray-500 mt-2">
-                          {new Date(notification.created_at).toLocaleString()}
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                ))
-              )}
-            </div>
+        {notifications.length === 0 ? (
+          <div className="px-3 py-6 text-center text-sm text-muted-foreground">
+            No notifications yet
           </div>
-        </>
-      )}
-    </div>
+        ) : (
+          <div className="max-h-80 overflow-y-auto">
+            {notifications.slice(0, 10).map((notification) => {
+              const Icon = getNotificationIcon(notification.type);
+              const colorClass = getNotificationColor(notification.type);
+              const hasRoute = getNotificationRoute(notification.type);
+              
+              return (
+                <DropdownMenuItem
+                  key={notification.id}
+                  className={`px-3 py-3 cursor-pointer ${hasRoute ? 'hover:bg-muted/50' : ''}`}
+                  onClick={() => hasRoute && handleNotificationClick(notification.type)}
+                >
+                  <div className="flex items-start gap-3 w-full">
+                    <Icon className={`h-4 w-4 mt-0.5 flex-shrink-0 ${colorClass}`} />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">
+                        {notification.title}
+                      </p>
+                      <p className="text-xs text-muted-foreground line-clamp-2">
+                        {notification.message}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {formatDistanceToNow(new Date(notification.created_at), { addSuffix: true })}
+                      </p>
+                    </div>
+                    {!notification.is_read && (
+                      <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0 mt-2" />
+                    )}
+                  </div>
+                </DropdownMenuItem>
+              );
+            })}
+          </div>
+        )}
+        
+        {notifications.length > 10 && (
+          <div className="px-3 py-2 border-t">
+            <Button
+              variant="ghost"
+              size="sm"
+              className="w-full text-xs"
+              onClick={() => {
+                setLocation('/notifications');
+                setIsOpen(false);
+              }}
+            >
+              View all notifications
+            </Button>
+          </div>
+        )}
+      </DropdownMenuContent>
+    </DropdownMenu>
   );
 }

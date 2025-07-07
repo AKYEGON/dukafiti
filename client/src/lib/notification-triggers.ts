@@ -19,7 +19,7 @@ export const triggerSaleCompletedNotification = async (
     }]);
 
   if (error) {
-    console.error('Error creating sale notification:', error);
+    
   }
 };
 
@@ -39,7 +39,7 @@ export const triggerPaymentReceivedNotification = async (
     }]);
 
   if (error) {
-    console.error('Error creating payment notification:', error);
+    
   }
 };
 
@@ -59,7 +59,7 @@ export const triggerLowStockNotification = async (
     }]);
 
   if (error) {
-    console.error('Error creating low stock notification:', error);
+    
   }
 };
 
@@ -80,7 +80,7 @@ export const triggerCreditReminderNotification = async (
     }]);
 
   if (error) {
-    console.error('Error creating credit reminder notification:', error);
+    
   }
 };
 
@@ -99,7 +99,7 @@ export const triggerCustomerRegisteredNotification = async (
     }]);
 
   if (error) {
-    console.error('Error creating customer notification:', error);
+    
   }
 };
 
@@ -119,6 +119,6 @@ export const triggerInventoryUpdatedNotification = async (
     }]);
 
   if (error) {
-    console.error('Error creating inventory notification:', error);
+    
   }
 };

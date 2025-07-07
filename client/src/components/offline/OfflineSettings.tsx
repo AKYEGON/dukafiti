@@ -49,7 +49,7 @@ export function OfflineSettings() {
       const stats = await offlineManager.getOfflineStats();
       setOfflineStats(stats);
     } catch (error) {
-      console.error('Failed to load offline stats:', error);
+      
     } finally {
       setIsLoadingStats(false);
     }
@@ -60,7 +60,7 @@ export function OfflineSettings() {
       const details = await getSyncQueueStatus();
       setSyncQueueDetails(details);
     } catch (error) {
-      console.error('Failed to load sync queue details:', error);
+      
     }
   };
 

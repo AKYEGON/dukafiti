@@ -342,7 +342,7 @@ export default function Reports() {
       downloadCSV(csvContent, `DukaFiti-Comprehensive-Report-${summaryPeriod}-${new Date().toISOString().split('T')[0]}.csv`);
       
     } catch (error) {
-      console.error('Failed to export detailed CSV:', error);
+      
     } finally {
       setExportingCSV(null);
     }

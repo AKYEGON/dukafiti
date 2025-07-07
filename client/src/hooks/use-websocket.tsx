@@ -90,16 +90,16 @@ export function useWebSocket() {
           queryClient.invalidateQueries({ queryKey: ["/api/customers"] });
         }
       } catch (error) {
-        console.error("Error parsing WebSocket message:", error);
+        
       }
     };
 
     ws.onclose = () => {
-      console.log("WebSocket disconnected");
+      
     };
 
     ws.onerror = (error) => {
-      console.error("WebSocket error:", error);
+      
     };
 
     // Cleanup on unmount

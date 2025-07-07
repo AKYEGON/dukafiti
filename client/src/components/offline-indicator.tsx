@@ -16,7 +16,7 @@ export function OfflineIndicator() {
         const count = await offlineQueue.getQueueCount();
         setPendingCount(count);
       } catch (error) {
-        console.error('Failed to get pending count:', error);
+        
       }
     };
 
@@ -92,7 +92,7 @@ export function useOfflineStatus() {
         const count = await offlineQueue.getQueueCount();
         setPendingCount(count);
       } catch (error) {
-        console.error('Failed to get pending count:', error);
+        
       }
     };
 

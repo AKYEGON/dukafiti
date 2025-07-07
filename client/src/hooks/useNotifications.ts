@@ -23,7 +23,7 @@ export default function useNotifications() {
         .order('created_at', { ascending: false });
       
       if (error) {
-        console.error('Error fetching notifications:', error);
+        
         return;
       }
       
@@ -78,7 +78,7 @@ export default function useNotifications() {
       .eq('is_read', false);
 
     if (error) {
-      console.error('Error marking notifications as read:', error);
+      
       return;
     }
 
@@ -105,7 +105,7 @@ export default function useNotifications() {
       .single();
 
     if (error) {
-      console.error('Error creating notification:', error);
+      
       return;
     }
 
@@ -114,6 +114,7 @@ export default function useNotifications() {
   };
 
   return { 
+    notifications: list,
     list, 
     markAllRead,
     createNotification,

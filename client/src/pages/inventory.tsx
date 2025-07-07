@@ -1,6 +1,6 @@
 import { useState, useMemo, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { type Product } from "@shared/schema";
+import { type Product } from "@/types/schema";
 import { ProductForm } from "@/components/inventory/product-form";
 import { RestockModal } from "@/components/inventory/restock-modal";
 
@@ -48,10 +48,10 @@ export default function Inventory() {
   const { data: products, isLoading, refetch } = useQuery<Product[]>({
     queryKey: ["products"],
     queryFn: async () => {
-      console.log('Fetching products from database...');
+      
       const { getProducts } = await import("@/lib/supabase-data");
       const products = await getProducts();
-      console.log(`Fetched ${products.length} products from database`);
+      
       return products;
     },
     staleTime: 0, // Always consider data stale to ensure fresh data
@@ -60,7 +60,7 @@ export default function Inventory() {
 
   // Set up real-time subscription for product updates (stock changes from sales)
   useEffect(() => {
-    console.log('🔗 Setting up real-time product subscription...');
+    
     
     const subscription = supabase
       .channel('products_realtime_inventory')
@@ -69,7 +69,7 @@ export default function Inventory() {
         schema: 'public',
         table: 'products'
       }, (payload) => {
-        console.log('📦 Product updated via realtime:', payload.new);
+        
         
         // Update the products query cache with the new data
         queryClient.setQueryData<Product[]>(['products'], (oldProducts) => {
@@ -91,14 +91,14 @@ export default function Inventory() {
           );
         });
         
-        console.log('✅ Product cache updated with real-time data');
+        
       })
       .subscribe((status) => {
-        console.log('📊 Products subscription status:', status);
+        
       });
 
     return () => {
-      console.log('🔌 Cleaning up products real-time subscription');
+      
       supabase.removeChannel(subscription);
     };
   }, [queryClient]);
@@ -155,7 +155,7 @@ export default function Inventory() {
   };
 
   const handleRestock = (product: Product) => {
-    console.log(`Opening restock modal for product: ${product.name} (ID: ${product.id}, Current Stock: ${product.stock})`);
+    
     setRestockProduct(product);
   };
 

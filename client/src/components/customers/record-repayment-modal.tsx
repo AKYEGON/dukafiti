@@ -82,7 +82,9 @@ export function RecordRepaymentModal({ isOpen, onClose, customer, previousPaymen
         customer.name,
         paymentAmount,
         method as 'cash' | 'mobileMoney'
-      ).catch((err: any) => console.error('Failed to create payment notification:', err));
+      ).catch((err: any) => {
+        // Silent error for notifications
+      });
       
       onClose();
       resetForm();

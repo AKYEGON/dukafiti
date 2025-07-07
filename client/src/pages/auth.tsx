@@ -55,7 +55,7 @@ export default function AuthPage() {
         }
       }
     } catch (error) {
-      console.error("Auth error:", error);
+      
       toast({
         title: "Error",
         description: "An unexpected error occurred. Please try again.",
@@ -85,7 +85,7 @@ export default function AuthPage() {
         });
       }
     } catch (error) {
-      console.error("Google sign-in error:", error);
+      
       toast({
         title: "Error",
         description: "An unexpected error occurred. Please try again.",
@@ -123,10 +123,10 @@ export default function AuthPage() {
               className="h-28 w-auto object-contain mx-auto drop-shadow-lg"
               style={{ minHeight: '100px', maxWidth: '380px' }}
               onLoad={(e) => {
-                console.log('Brand image loaded successfully:', e.target.src);
+                
               }}
               onError={(e) => {
-                console.error('Brand image failed to load:', e.target.src);
+                
                 // Fallback to text if image fails
                 e.target.style.display = 'none';
                 const fallback = document.createElement('div');

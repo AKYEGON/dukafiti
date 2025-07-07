@@ -17,7 +17,7 @@ export function NotificationsTester() {
         message: 'Coca Cola 500ml is running low (Stock: 3)',
       });
     } catch (error) {
-      console.error('Error creating low stock notification:', error);
+      
     } finally {
       setIsLoading(null);
     }
@@ -32,7 +32,7 @@ export function NotificationsTester() {
         message: 'John Doe owes KES 1,200 (7 days overdue)',
       });
     } catch (error) {
-      console.error('Error creating credit notification:', error);
+      
     } finally {
       setIsLoading(null);
     }
@@ -58,7 +58,7 @@ export function NotificationsTester() {
         await new Promise(resolve => setTimeout(resolve, 500));
       }
     } catch (error) {
-      console.error('Error running credit check:', error);
+      
     } finally {
       setIsLoading(null);
     }

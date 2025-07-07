@@ -28,14 +28,14 @@ export const OfflineManager: React.FC<OfflineManagerProps> = ({ children }) => {
       const count = await offlineStore.getPendingCount();
       setPendingCount(count);
     } catch (error) {
-      console.error('Failed to get pending count:', error);
+      
     }
   }, []);
 
   // Auto-sync when coming back online
   const handleOnlineSync = useCallback(async () => {
     if (navigator.onLine && pendingCount > 0) {
-      console.log('🔄 Auto-syncing on reconnect...');
+      
       await handleManualSync();
     }
   }, [pendingCount]);
@@ -57,7 +57,7 @@ export const OfflineManager: React.FC<OfflineManagerProps> = ({ children }) => {
         });
       }
     } catch (error) {
-      console.error('Sync failed:', error);
+      
       toast({
         title: 'Sync Failed',
         description: 'Failed to sync offline changes',

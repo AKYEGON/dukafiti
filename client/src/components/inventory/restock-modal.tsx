@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { Package, WifiOff } from 'lucide-react';
-import { type Product } from '@shared/schema';
+import { type Product } from '@/types/schema';
 import { restockProductOfflineAware } from '@/lib/offline-api';
 
 interface RestockModalProps {
@@ -39,11 +39,11 @@ export function RestockModal({ product, open, onOpenChange }: RestockModalProps)
   const restockMutation = useMutation({
     mutationKey: ['restock', product?.id],
     mutationFn: async ({ productId, qty, costPrice }: { productId: string; qty: number; costPrice?: number }) => {
-      console.log(`Starting restock for product ${productId}: adding ${qty} units at cost ${costPrice || 0}`);
+      
       
       try {
         const result = await restockProductOfflineAware(productId, qty, costPrice);
-        console.log('Restock result:', result);
+        
         
         // For offline operations, provide expected return format
         if (result.offline) {
@@ -67,12 +67,12 @@ export function RestockModal({ product, open, onOpenChange }: RestockModalProps)
           };
         }
       } catch (error) {
-        console.error('Restock failed:', error);
+        
         throw error;
       }
     },
     onSuccess: (data: any) => {
-      console.log('Restock successful, invalidating queries and updating UI...');
+      
       
       // Only refresh queries if we're online and not in offline mode
       if (navigator.onLine && !data.offline) {
@@ -92,7 +92,7 @@ export function RestockModal({ product, open, onOpenChange }: RestockModalProps)
         className: data.offline ? 'bg-orange-50 border-orange-200 text-orange-800' : undefined,
       });
       
-      console.log(`Stock update complete: ${product?.name} - ${data.offline ? 'queued for sync' : 'updated immediately'}`);
+      
       
       // Reset form and close modal
       setTimeout(() => {
@@ -102,7 +102,7 @@ export function RestockModal({ product, open, onOpenChange }: RestockModalProps)
       }, 100);
     },
     onError: (error: Error) => {
-      console.error('Restock failed:', error);
+      
       toast({
         title: 'Restock Failed',
         description: error.message,

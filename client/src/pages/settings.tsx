@@ -11,7 +11,8 @@ import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 import { useTheme } from "@/contexts/theme-context";
-import { getStoreProfile, updateStoreProfile } from "@/lib/supabase-data";
+import { getStoreProfile as getSupabaseStoreProfile, updateStoreProfile as updateSupabaseStoreProfile } from "@/lib/supabase-data";
+import { getStoreProfile, saveStoreProfile } from "@/lib/settings-storage";
 import { OfflineSettings } from "@/components/offline/OfflineSettings";
 
 // Form validation schemas
@@ -107,12 +108,37 @@ export default function SettingsPage() {
   const [editingStore, setEditingStore] = useState(false);
   const [lastSyncTime, setLastSyncTime] = useState<string | null>(null);
 
-  // Fetch store data using Supabase
-  const { data: storeData, isLoading: storeLoading } = useQuery<StoreData>({
-    queryKey: ['store-profile'],
-    queryFn: getStoreProfile,
-    retry: false,
-  });
+  // Load store data from localStorage first, fallback to Supabase
+  const [storeData, setStoreData] = useState<StoreData | null>(null);
+  const [storeLoading, setStoreLoading] = useState(true);
+
+  useEffect(() => {
+    const loadStoreProfile = async () => {
+      // Try localStorage first
+      const localProfile = getStoreProfile();
+      if (localProfile) {
+        setStoreData(localProfile);
+        setStoreLoading(false);
+        return;
+      }
+      
+      // Fallback to Supabase
+      try {
+        const supabaseProfile = await getSupabaseStoreProfile();
+        if (supabaseProfile) {
+          setStoreData(supabaseProfile);
+          // Save to localStorage for future use
+          saveStoreProfile(supabaseProfile);
+        }
+      } catch (error) {
+        
+      } finally {
+        setStoreLoading(false);
+      }
+    };
+
+    loadStoreProfile();
+  }, []);
 
   // Store profile form
   const storeForm = useForm<StoreProfileData>({
@@ -135,12 +161,34 @@ export default function SettingsPage() {
     }
   }, [storeData, storeForm]);
 
-  // Store profile mutation using Supabase
+  // Store profile mutation with localStorage persistence
   const storeMutation = useMutation({
-    mutationFn: updateStoreProfile,
+    mutationFn: async (data: StoreProfileData) => {
+      // Save to localStorage immediately
+      const profileData = {
+        storeName: data.storeName,
+        ownerName: data.ownerName,
+        storeType: 'retail',
+        location: data.address,
+        phone: '',
+        email: '',
+        description: ''
+      };
+      
+      saveStoreProfile(profileData);
+      setStoreData(profileData);
+      
+      // Try to save to Supabase as backup
+      try {
+        await updateSupabaseStoreProfile(data);
+      } catch (error) {
+        
+      }
+      
+      return profileData;
+    },
     onSuccess: () => {
       toast({ title: "Store profile updated successfully" });
-      queryClient.invalidateQueries({ queryKey: ['store-profile'] });
       setEditingStore(false);
     },
     onError: (error: any) => {

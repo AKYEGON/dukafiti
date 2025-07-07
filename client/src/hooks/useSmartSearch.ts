@@ -34,7 +34,7 @@ export function useSmartSearch() {
       .limit(5);
     
     if (error) {
-      console.error('Product search error:', error);
+      
       return [];
     }
     
@@ -57,7 +57,7 @@ export function useSmartSearch() {
       .limit(5);
     
     if (error) {
-      console.error('Customer search error:', error);
+      
       return [];
     }
     
@@ -80,7 +80,7 @@ export function useSmartSearch() {
       .limit(5);
     
     if (error) {
-      console.error('Order search error:', error);
+      
       return [];
     }
     
@@ -112,7 +112,7 @@ export function useSmartSearch() {
       const allResults = [...products, ...customers, ...orders];
       setResults(allResults);
     } catch (err) {
-      console.error('Search error:', err);
+      
       setError(err instanceof Error ? err.message : 'Search failed');
       setResults([]);
     } finally {

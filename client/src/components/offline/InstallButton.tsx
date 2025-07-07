@@ -55,7 +55,7 @@ export function InstallButton() {
         });
       }
     } catch (error) {
-      console.error('Installation failed:', error);
+      
       toast({
         title: "Installation Failed",
         description: "Please try installing manually from your browser menu",

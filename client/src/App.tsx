@@ -41,13 +41,13 @@ function AuthenticatedApp() {
   
   // Console log environment variables for debugging
   useEffect(() => {
-    console.log('API Base URL:', config.api.baseUrl);
-    console.log('Supabase URL:', config.supabase.url);
-    console.log('Environment:', config.app.isDevelopment ? 'Development' : 'Production');
+    
+    
+    
     
     // Register service worker for offline functionality
     registerServiceWorker().catch(error => {
-      console.error('Service worker registration failed:', error);
+      
     });
   }, []);
   
@@ -178,7 +178,7 @@ function Router() {
 }
 
 function App() {
-  console.log('App component rendering...');
+  
   
   return (
     <ErrorBoundary>

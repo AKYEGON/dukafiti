@@ -90,7 +90,7 @@ export const useOffline = () => {
       registration.active?.postMessage({ type: 'TRIGGER_SYNC' });
       return true;
     } catch (error) {
-      console.error('Failed to trigger sync:', error);
+      
       return false;
     }
   };

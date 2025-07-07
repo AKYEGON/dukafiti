@@ -3,8 +3,8 @@ import { useLocation } from 'wouter';
 import { useQuery } from '@tanstack/react-query';
 import { formatDistanceToNow } from 'date-fns';
 import { useAuth } from '@/contexts/SupabaseAuth';
-import { OfflineIndicator } from '@/components/offline/OfflineIndicator';
-import NotificationsDropdown from '@/components/notifications/NotificationsDropdown';
+import { EnhancedOfflineIndicator } from '@/components/offline/EnhancedOfflineIndicator';
+import { NotificationsDropdown } from '@/components/notifications/NotificationsDropdown';
 import { supabase } from '@/lib/supabase';
 import { 
   Search, 
@@ -48,6 +48,9 @@ export function TopBar({ onToggleSidebar, isSidebarCollapsed }: TopBarProps) {
   
   // Mobile search state
   const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
+  
+  // Notifications dropdown state
+  const [isNotificationsOpen, setIsNotificationsOpen] = useState(false);
   
   // Refs for outside click detection
   const searchRef = useOutsideClick<HTMLDivElement>(() => {
@@ -283,10 +286,13 @@ export function TopBar({ onToggleSidebar, isSidebarCollapsed }: TopBarProps) {
         <div className="flex items-center gap-2 ml-4 flex-shrink-0 min-w-[100px] justify-end">
 
           {/* Offline Status Indicator */}
-          <OfflineIndicator />
+          <EnhancedOfflineIndicator />
 
           {/* Notifications */}
-          <NotificationsDropdown />
+          <NotificationsDropdown 
+            isOpen={isNotificationsOpen}
+            setIsOpen={setIsNotificationsOpen}
+          />
 
           {/* Profile Dropdown */}
           <div className="relative" ref={profileRef}>

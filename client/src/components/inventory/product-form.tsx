@@ -86,14 +86,14 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
   const createMutation = useMutation({
     mutationFn: async (data: InsertProduct) => {
       try {
-        console.log('Creating product with data:', data);
+        
         // Use direct Supabase function for Vercel deployment
         const { createProduct } = await import("@/lib/supabase-data");
         const result = await createProduct(data);
-        console.log('Product created successfully:', result);
+        
         return result;
       } catch (error) {
-        console.error('Error in createProduct mutation:', error);
+        
         throw error;
       }
     },
@@ -106,7 +106,7 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
       setUnknownQuantity(false);
     },
     onError: (error: any) => {
-      console.error('Product creation failed:', error);
+      
       let errorMessage = "Failed to create product";
       
       if (error?.message) {
@@ -168,7 +168,7 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
       unknownQuantity: unknownQuantity,
     };
     
-    console.log('Submitting product data:', processedData);
+    
     
     if (product) {
       updateMutation.mutate(processedData);

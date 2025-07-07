@@ -46,7 +46,7 @@ class OfflineStore {
       queue.push(op);
       await localforage.setItem(this.queueKey, queue);
       
-      console.log('📦 Operation queued:', op.type, op.id);
+      
       
       // Show user feedback
       toast({
@@ -57,7 +57,7 @@ class OfflineStore {
       
       return op.id;
     } catch (error) {
-      console.error('❌ Failed to enqueue operation:', error);
+      
       throw error;
     }
   }
@@ -68,7 +68,7 @@ class OfflineStore {
       const queue = await localforage.getItem<OfflineOperation[]>(this.queueKey);
       return queue || [];
     } catch (error) {
-      console.error('❌ Failed to get queue:', error);
+      
       return [];
     }
   }
@@ -94,12 +94,12 @@ class OfflineStore {
   // Sync queue with server
   async syncQueue(): Promise<{ success: number; failed: number; errors: string[] }> {
     if (this.syncInProgress) {
-      console.log('⏳ Sync already in progress');
+      
       return { success: 0, failed: 0, errors: ['Sync already in progress'] };
     }
 
     if (!navigator.onLine) {
-      console.log('📴 Cannot sync - offline');
+      
       return { success: 0, failed: 0, errors: ['No internet connection'] };
     }
 
@@ -112,7 +112,7 @@ class OfflineStore {
       return { success: 0, failed: 0, errors: [] };
     }
 
-    console.log(`🔄 Syncing ${pendingOps.length} operations...`);
+    
     
     let successCount = 0;
     let failedCount = 0;
@@ -130,7 +130,7 @@ class OfflineStore {
         if (result.success) {
           op.status = 'completed';
           successCount++;
-          console.log(`✅ Operation ${op.id} synced successfully`);
+          
         } else {
           throw new Error(result.error || 'Operation failed');
         }
@@ -143,10 +143,10 @@ class OfflineStore {
           op.status = 'failed';
           failedCount++;
           errors.push(`${this.getOperationLabel(op.type)}: ${op.error}`);
-          console.error(`❌ Operation ${op.id} failed after ${op.retries} retries:`, op.error);
+          
         } else {
           op.status = 'pending';
-          console.log(`⚠️ Operation ${op.id} failed, will retry (${op.retries}/${this.maxRetries})`);
+          
         }
       }
       
@@ -159,7 +159,7 @@ class OfflineStore {
     this.syncInProgress = false;
     
     // Sync results logged - UI notifications handled by OfflineManager
-    console.log(`🔄 Sync complete: ${successCount} success, ${failedCount} failed`);
+    
 
     return { success: successCount, failed: failedCount, errors };
   }
