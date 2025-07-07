@@ -11,8 +11,7 @@ import { config } from "./lib/config";
 
 import { AuthProvider, useAuth } from "@/contexts/SupabaseAuth";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
-// Removed WebSocket import - using Supabase-only architecture
-import { useSupabaseRealtime } from "@/hooks/useSupabaseRealtime";
+import { useRealtimeData } from "@/hooks/useRealtimeData";
 import { ThemeProvider } from "@/contexts/theme-context";
 import { ErrorBoundary } from "@/components/error-boundary";
 import OfflineManager from "@/components/offline/offline-manager";
@@ -36,8 +35,8 @@ import Debug from "@/pages/debug";
 import DebugAuth from "@/pages/debug-auth";
 
 function AuthenticatedApp() {
-  // Initialize Supabase real-time subscriptions
-  useSupabaseRealtime();
+  // Initialize unified real-time subscriptions
+  const { refreshAll } = useRealtimeData();
   
   // Console log environment variables for debugging
   useEffect(() => {

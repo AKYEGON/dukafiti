@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
 import { type DashboardMetrics, type Order } from "@/types/schema";
 import { formatCurrency as formatCurrencyUtil } from "@/lib/currency";
@@ -26,9 +25,10 @@ import { formatCurrency } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ProductForm } from "@/components/inventory/product-form";
 import { CustomerForm } from "@/components/customers/customer-form";
-
-
-import { getDashboardMetrics, getRecentOrders } from "@/lib/supabase-data";
+import { RefreshButton } from "@/components/ui/refresh-button";
+import { useEnhancedQuery } from "@/hooks/useEnhancedQuery";
+import { useSales } from "@/hooks/useSales";
+import { getDashboardMetrics } from "@/lib/supabase-data";
 
 
 
@@ -37,15 +37,28 @@ export default function Dashboard() {
   const [showProductForm, setShowProductForm] = useState(false);
   const [showCustomerForm, setShowCustomerForm] = useState(false);
 
-  const { data: metrics, isLoading: metricsLoading } = useQuery<DashboardMetrics>({
+  // Enhanced dashboard metrics query
+  const { 
+    data: metrics, 
+    isLoading: metricsLoading, 
+    refresh: refreshMetrics,
+    isStale: metricsStale,
+    isFetching: metricsFetching
+  } = useEnhancedQuery<DashboardMetrics>({
     queryKey: ["dashboard-metrics"],
     queryFn: getDashboardMetrics,
+    enableRealtime: true,
+    staleTime: 30 * 1000, // 30 seconds
   });
 
-  const { data: recentOrders, isLoading: ordersLoading } = useQuery<Order[]>({
-    queryKey: ["recent-orders"],
-    queryFn: getRecentOrders,
-  });
+  // Enhanced recent orders query using the new sales hook
+  const { 
+    recentOrders, 
+    recentOrdersLoading, 
+    refreshRecentOrders,
+    isStale: ordersStale,
+    isFetching: ordersFetching
+  } = useSales();
 
   // Quick Actions handlers
   const handleAddProduct = () => {
@@ -163,8 +176,41 @@ export default function Dashboard() {
     return <DashboardSkeleton />;
   }
 
+  // Refresh all dashboard data
+  const handleRefreshAll = async () => {
+    await Promise.all([
+      refreshMetrics(),
+      refreshRecentOrders()
+    ]);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
+      {/* Header with refresh button */}
+      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+        <div className="container mx-auto px-4 sm:px-6 md:px-8 py-4">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Dashboard</h1>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                Business overview and key metrics
+                {(metricsStale || ordersStale) && (
+                  <span className="ml-2 text-orange-600 dark:text-orange-400">• Updating...</span>
+                )}
+              </p>
+            </div>
+            <RefreshButton
+              onRefresh={handleRefreshAll}
+              isLoading={metricsFetching || ordersFetching}
+              size="sm"
+              variant="outline"
+              showLabel={true}
+              label="Refresh All"
+            />
+          </div>
+        </div>
+      </div>
+
       {/* Responsive Container */}
       <div className="container mx-auto px-4 sm:px-6 md:px-8 py-4 sm:py-6">
         <div className="grid grid-cols-1 gap-4 sm:gap-6 md:gap-8">

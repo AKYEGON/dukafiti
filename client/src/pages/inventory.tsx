@@ -1,8 +1,9 @@
-import { useState, useMemo, useEffect } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useState, useMemo } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { type Product } from "@/types/schema";
 import { ProductForm } from "@/components/inventory/product-form";
 import { RestockModal } from "@/components/inventory/restock-modal";
+import { RefreshButton } from "@/components/ui/refresh-button";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,12 +25,11 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Search, Package, Edit, Trash2, Plus, PackagePlus } from "lucide-react";
-import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import useNotifications from "@/hooks/useNotifications";
-import { getProducts, updateProduct, deleteProduct, createProduct } from "@/lib/supabase-data";
-import { supabase } from "@/lib/supabase";
+import { updateProduct, deleteProduct, createProduct } from "@/lib/supabase-data";
+import { useInventory } from "@/hooks/useInventory";
 
 type SortOption = "name-asc" | "name-desc" | "price-asc" | "price-desc";
 
@@ -38,81 +38,36 @@ export default function Inventory() {
   const [sortBy, setSortBy] = useState<SortOption>("name-asc");
   const [showProductForm, setShowProductForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | undefined>();
-  const [deleteProduct, setDeleteProduct] = useState<Product | undefined>();
+  const [deleteProductState, setDeleteProductState] = useState<Product | undefined>();
   const [restockProduct, setRestockProduct] = useState<Product | undefined>();
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { createNotification } = useNotifications();
 
-  const { data: products, isLoading, refetch } = useQuery<Product[]>({
-    queryKey: ["products"],
-    queryFn: async () => {
-      
-      const { getProducts } = await import("@/lib/supabase-data");
-      const products = await getProducts();
-      
-      return products;
-    },
-    staleTime: 0, // Always consider data stale to ensure fresh data
-    cacheTime: 1000 * 60 * 5, // Keep in cache for 5 minutes
-  });
-
-  // Set up real-time subscription for product updates (stock changes from sales)
-  useEffect(() => {
-    
-    
-    const subscription = supabase
-      .channel('products_realtime_inventory')
-      .on('postgres_changes', {
-        event: 'UPDATE',
-        schema: 'public',
-        table: 'products'
-      }, (payload) => {
-        
-        
-        // Update the products query cache with the new data
-        queryClient.setQueryData<Product[]>(['products'], (oldProducts) => {
-          if (!oldProducts) return oldProducts;
-          
-          const updatedProduct = payload.new as Product;
-          return oldProducts.map(product => 
-            product.id === updatedProduct.id ? updatedProduct : product
-          );
-        });
-        
-        // Also update frequent products cache
-        queryClient.setQueryData<Product[]>(['products-frequent'], (oldProducts) => {
-          if (!oldProducts) return oldProducts;
-          
-          const updatedProduct = payload.new as Product;
-          return oldProducts.map(product => 
-            product.id === updatedProduct.id ? updatedProduct : product
-          );
-        });
-        
-        
-      })
-      .subscribe((status) => {
-        
-      });
-
-    return () => {
-      
-      supabase.removeChannel(subscription);
-    };
-  }, [queryClient]);
+  // Use enhanced inventory hook
+  const {
+    products,
+    isLoading,
+    error,
+    refresh,
+    forceRefresh,
+    isStale,
+    isFetching,
+    searchProducts,
+    sortProducts,
+    updateStockOptimistically,
+  } = useInventory();
 
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
-      const { deleteProduct } = await import("@/lib/supabase-data");
       await deleteProduct(id);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["products"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/dashboard/metrics"] });
+      queryClient.invalidateQueries({ queryKey: ["dashboard-metrics"] });
       toast({ title: "Product deleted successfully" });
-      setDeleteProduct(undefined);
+      setDeleteProductState(undefined);
     },
     onError: () => {
       toast({ title: "Failed to delete product", variant: "destructive" });
@@ -120,30 +75,12 @@ export default function Inventory() {
   });
 
   const filteredAndSortedProducts = useMemo(() => {
-    let result = products?.filter(product =>
-      product.name.toLowerCase().includes(search.toLowerCase()) ||
-      product.sku.toLowerCase().includes(search.toLowerCase()) ||
-      product.category.toLowerCase().includes(search.toLowerCase())
-    ) || [];
-
-    // Sort products
-    result.sort((a, b) => {
-      switch (sortBy) {
-        case "name-asc":
-          return a.name.localeCompare(b.name);
-        case "name-desc":
-          return b.name.localeCompare(a.name);
-        case "price-asc":
-          return parseFloat(a.price) - parseFloat(b.price);
-        case "price-desc":
-          return parseFloat(b.price) - parseFloat(a.price);
-        default:
-          return 0;
-      }
-    });
-
-    return result;
-  }, [products, search, sortBy]);
+    // First search, then sort
+    const searchedProducts = searchProducts(search);
+    return sortProducts(sortBy).filter(product => 
+      searchedProducts.some(sp => sp.id === product.id)
+    );
+  }, [products, search, sortBy, searchProducts, sortProducts]);
 
   const handleEdit = (product: Product) => {
     setEditingProduct(product);
@@ -151,7 +88,7 @@ export default function Inventory() {
   };
 
   const handleDelete = (product: Product) => {
-    setDeleteProduct(product);
+    setDeleteProductState(product);
   };
 
   const handleRestock = (product: Product) => {
@@ -169,16 +106,32 @@ export default function Inventory() {
       {/* Sticky Header */}
       <div className="sticky top-0 z-10 bg-white/95 dark:bg-[#1F1F1F]/95 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700 px-6 py-4">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">
-            Inventory
-          </h1>
-          <Button 
-            onClick={() => setShowProductForm(true)} 
-            className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white"
-          >
-            <Plus className="w-4 h-4" />
-            Add Product
-          </Button>
+          <div>
+            <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">
+              Inventory
+            </h1>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+              Manage your product inventory
+              {isStale && (
+                <span className="ml-2 text-orange-600 dark:text-orange-400">• Updating...</span>
+              )}
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <RefreshButton
+              onRefresh={refresh}
+              isLoading={isFetching}
+              size="sm"
+              variant="outline"
+            />
+            <Button 
+              onClick={() => setShowProductForm(true)} 
+              className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white"
+            >
+              <Plus className="w-4 h-4" />
+              Add Product
+            </Button>
+          </div>
         </div>
 
         {/* Search and Sort Bar */}
@@ -321,18 +274,18 @@ export default function Inventory() {
       />
 
       {/* Delete Confirmation Dialog */}
-      <AlertDialog open={!!deleteProduct} onOpenChange={() => setDeleteProduct(undefined)}>
+      <AlertDialog open={!!deleteProductState} onOpenChange={() => setDeleteProductState(undefined)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Product</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete "{deleteProduct?.name}"? This action cannot be undone.
+              Are you sure you want to delete "{deleteProductState?.name}"? This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
-              onClick={() => deleteProduct && deleteMutation.mutate(deleteProduct.id)}
+              onClick={() => deleteProductState && deleteMutation.mutate(deleteProductState.id)}
               className="bg-red-600 hover:bg-red-700"
             >
               Delete

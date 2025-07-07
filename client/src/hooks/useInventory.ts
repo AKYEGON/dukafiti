@@ -1,158 +1,152 @@
 /**
- * Real-time Inventory Hook with Supabase subscriptions
- * Provides automatic updates for inventory across all pages
+ * Enhanced Inventory Hook with Real-time Updates
+ * Provides comprehensive inventory management with optimistic updates
  */
 
-import { useState, useEffect } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/lib/supabase';
+import { useCallback, useMemo } from 'react';
 import { getProducts } from '@/lib/supabase-data';
+import { useEnhancedQuery } from './useEnhancedQuery';
+import { useOptimisticUpdates } from './useOptimisticUpdates';
 import type { Product } from '@/types/schema';
 
 export function useInventory() {
-  const queryClient = useQueryClient();
-  const [isSubscribed, setIsSubscribed] = useState(false);
+  const { optimisticUpdateStock, optimisticUpdateProduct } = useOptimisticUpdates();
 
-  // Main products query
-  const { data: products, isLoading, error } = useQuery<Product[]>({
+  // Enhanced query with real-time capabilities
+  const {
+    data: products,
+    isLoading,
+    error,
+    refresh,
+    forceRefresh,
+    updateData,
+    isStale,
+    isFetching,
+  } = useEnhancedQuery<Product[]>({
     queryKey: ['products'],
     queryFn: getProducts,
+    enableRealtime: true,
+    staleTime: 60 * 1000, // 1 minute
   });
 
-  // Set up real-time subscription
-  useEffect(() => {
-    if (isSubscribed) return;
+  // Optimistic stock update
+  const updateStockOptimistically = useCallback((productId: number, newStock: number) => {
+    optimisticUpdateStock(productId, newStock);
+  }, [optimisticUpdateStock]);
 
-    const channel = supabase
-      .channel('products-changes')
-      .on('postgres_changes', 
-        { 
-          event: 'INSERT', 
-          schema: 'public', 
-          table: 'products' 
-        }, 
-        (payload) => {
-          
-          queryClient.setQueryData(['products'], (old: Product[] | undefined) => {
-            if (!old) return [payload.new as Product];
-            return [payload.new as Product, ...old];
-          });
-          
-          // Invalidate related queries
-          queryClient.invalidateQueries({ queryKey: ['dashboard-metrics'] });
-        }
-      )
-      .on('postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'products'
-        },
-        (payload) => {
-          
-          queryClient.setQueryData(['products'], (old: Product[] | undefined) => {
-            if (!old) return [payload.new as Product];
-            return old.map(product => 
-              product.id === payload.new.id ? payload.new as Product : product
-            );
-          });
-          
-          // Invalidate related queries
-          queryClient.invalidateQueries({ queryKey: ['dashboard-metrics'] });
-        }
-      )
-      .on('postgres_changes',
-        {
-          event: 'DELETE',
-          schema: 'public',
-          table: 'products'
-        },
-        (payload) => {
-          
-          queryClient.setQueryData(['products'], (old: Product[] | undefined) => {
-            if (!old) return [];
-            return old.filter(product => product.id !== payload.old.id);
-          });
-          
-          // Invalidate related queries
-          queryClient.invalidateQueries({ queryKey: ['dashboard-metrics'] });
-        }
-      )
-      .subscribe();
+  // Optimistic product update
+  const updateProductOptimistically = useCallback((productId: number, updates: Partial<Product>) => {
+    optimisticUpdateProduct(productId, updates);
+  }, [optimisticUpdateProduct]);
 
-    setIsSubscribed(true);
-
-    return () => {
-      supabase.removeChannel(channel);
-      setIsSubscribed(false);
-    };
-  }, [queryClient, isSubscribed]);
-
-  // Helper functions
-  const getProductById = (id: number): Product | undefined => {
+  // Helper functions with proper memoization
+  const getProductById = useCallback((id: number): Product | undefined => {
     return products?.find(product => product.id === id);
-  };
+  }, [products]);
 
-  const getLowStockProducts = (threshold: number = 10): Product[] => {
+  const getLowStockProducts = useCallback((threshold: number = 10): Product[] => {
     if (!products) return [];
     return products.filter(product => 
       product.stock !== null && 
-      product.stock <= threshold
+      product.low_stock_threshold !== null &&
+      product.stock <= (product.low_stock_threshold || threshold)
     );
-  };
+  }, [products]);
 
-  const getOutOfStockProducts = (): Product[] => {
+  const getOutOfStockProducts = useCallback((): Product[] => {
     if (!products) return [];
     return products.filter(product => 
       product.stock !== null && 
       product.stock === 0
     );
-  };
+  }, [products]);
 
-  const getTotalProducts = (): number => {
+  const getTotalProducts = useMemo((): number => {
     return products?.length || 0;
-  };
+  }, [products]);
 
-  const getTotalStockValue = (): number => {
+  const getTotalStockValue = useMemo((): number => {
     if (!products) return 0;
     return products.reduce((total, product) => {
-      const price = parseFloat(product.price) || 0;
+      const price = parseFloat(product.price?.toString() || '0') || 0;
       const stock = product.stock || 0;
       return total + (price * stock);
     }, 0);
-  };
+  }, [products]);
 
-  // Trigger low stock notifications
-  const checkLowStockNotifications = async () => {
-    const lowStockProducts = getLowStockProducts();
+  const getProductsByCategoryCount = useMemo(() => {
+    if (!products) return {};
     
-    for (const product of lowStockProducts) {
-      try {
-        const { createNotification } = await import('@/hooks/useNotifications');
-        const notificationHook = createNotification;
-        
-        if (notificationHook) {
-          await notificationHook({
-            type: 'low_stock',
-            title: 'Low Stock Alert',
-            message: `${product.name} is running low (${product.stock || 0} remaining)`,
-          });
-        }
-      } catch (error) {
-        
-      }
+    return products.reduce((acc, product) => {
+      const category = product.category || 'Uncategorized';
+      acc[category] = (acc[category] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+  }, [products]);
+
+  // Enhanced search function
+  const searchProducts = useCallback((query: string): Product[] => {
+    if (!products || !query.trim()) return products || [];
+    
+    const searchTerm = query.toLowerCase().trim();
+    return products.filter(product => 
+      product.name?.toLowerCase().includes(searchTerm) ||
+      product.sku?.toLowerCase().includes(searchTerm) ||
+      product.category?.toLowerCase().includes(searchTerm) ||
+      product.description?.toLowerCase().includes(searchTerm)
+    );
+  }, [products]);
+
+  // Sort products
+  const sortProducts = useCallback((sortBy: string): Product[] => {
+    if (!products) return [];
+    
+    const sorted = [...products];
+    
+    switch (sortBy) {
+      case 'name-asc':
+        return sorted.sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+      case 'name-desc':
+        return sorted.sort((a, b) => (b.name || '').localeCompare(a.name || ''));
+      case 'price-asc':
+        return sorted.sort((a, b) => parseFloat(a.price?.toString() || '0') - parseFloat(b.price?.toString() || '0'));
+      case 'price-desc':
+        return sorted.sort((a, b) => parseFloat(b.price?.toString() || '0') - parseFloat(a.price?.toString() || '0'));
+      case 'stock-asc':
+        return sorted.sort((a, b) => (a.stock || 0) - (b.stock || 0));
+      case 'stock-desc':
+        return sorted.sort((a, b) => (b.stock || 0) - (a.stock || 0));
+      case 'sales-desc':
+        return sorted.sort((a, b) => (b.sales_count || 0) - (a.sales_count || 0));
+      default:
+        return sorted;
     }
-  };
+  }, [products]);
 
   return {
+    // Data
     products: products || [],
     isLoading,
     error,
+    isStale,
+    isFetching,
+    
+    // Actions
+    refresh,
+    forceRefresh,
+    updateStockOptimistically,
+    updateProductOptimistically,
+    
+    // Helper functions
     getProductById,
     getLowStockProducts,
     getOutOfStockProducts,
     getTotalProducts,
     getTotalStockValue,
-    checkLowStockNotifications,
+    getProductsByCategoryCount,
+    searchProducts,
+    sortProducts,
   };
 }
+
+export default useInventory;

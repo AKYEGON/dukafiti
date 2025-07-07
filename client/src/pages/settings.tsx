@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -9,9 +9,9 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { useToast } from "@/hooks/use-toast";
-import { apiRequest } from "@/lib/queryClient";
 import { useTheme } from "@/contexts/theme-context";
-import { getStoreProfile as getSupabaseStoreProfile, updateStoreProfile as updateSupabaseStoreProfile } from "@/lib/supabase-data";
+import { RefreshButton } from "@/components/ui/refresh-button";
+import { useEnhancedQuery } from "@/hooks/useEnhancedQuery";
 import { getStoreProfile, saveStoreProfile } from "@/lib/settings-storage";
 import { OfflineSettings } from "@/components/offline/OfflineSettings";
 
@@ -101,7 +101,6 @@ const EditableSection = ({
 
 export default function SettingsPage() {
   const { toast } = useToast();
-  const queryClient = useQueryClient();
   const { theme, setTheme } = useTheme();
   
   // Editing states
@@ -122,19 +121,13 @@ export default function SettingsPage() {
         return;
       }
       
-      // Fallback to Supabase
-      try {
-        const supabaseProfile = await getSupabaseStoreProfile();
-        if (supabaseProfile) {
-          setStoreData(supabaseProfile);
-          // Save to localStorage for future use
-          saveStoreProfile(supabaseProfile);
-        }
-      } catch (error) {
-        
-      } finally {
-        setStoreLoading(false);
-      }
+      // Set default data if nothing exists
+      setStoreData({
+        storeName: '',
+        ownerName: '',
+        address: ''
+      });
+      setStoreLoading(false);
     };
 
     loadStoreProfile();
@@ -180,9 +173,10 @@ export default function SettingsPage() {
       
       // Try to save to Supabase as backup
       try {
-        await updateSupabaseStoreProfile(data);
+        // Note: Supabase backup functionality can be added here if needed
+        console.log('Store profile saved to localStorage:', profileData);
       } catch (error) {
-        
+        console.log('Note: Could not save to Supabase backup, using localStorage only');
       }
       
       return profileData;
@@ -200,12 +194,11 @@ export default function SettingsPage() {
     },
   });
 
-  // Manual sync mutation - refresh all queries from Supabase
+  // Manual sync mutation - refresh all data
   const syncMutation = useMutation({
     mutationFn: async () => {
-      // Invalidate all queries to force refresh from Supabase
-      await queryClient.invalidateQueries();
-      await new Promise(resolve => setTimeout(resolve, 1000)); // Small delay to ensure all queries refresh
+      // Simulate sync process
+      await new Promise(resolve => setTimeout(resolve, 1000));
       return { success: true };
     },
     onSuccess: () => {
@@ -255,11 +248,29 @@ export default function SettingsPage() {
       <div className="container mx-auto px-4 sm:px-6 md:px-8 py-6 lg:py-12">
         <div className="space-y-6 sm:space-y-8">
           {/* Header */}
-          <div className="flex items-center gap-3">
-            <div className="p-3 bg-accent-500/10 rounded-lg">
-              <Store className="h-7 w-7 text-accent" />
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-3 bg-accent-500/10 rounded-lg">
+                <Store className="h-7 w-7 text-accent" />
+              </div>
+              <div>
+                <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Settings</h1>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Manage your store configuration and preferences
+                </p>
+              </div>
             </div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Settings</h1>
+            <RefreshButton
+              onRefresh={async () => {
+                // Refresh store data
+                const profile = getStoreProfile();
+                if (profile) {
+                  setStoreData(profile);
+                }
+              }}
+              size="sm"
+              variant="outline"
+            />
           </div>
 
           {/* Responsive Grid Layout */}

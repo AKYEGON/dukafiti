@@ -1,123 +1,211 @@
-import { useState, useEffect } from 'react';
-import { supabase } from '../lib/supabase';
+/**
+ * Enhanced Notifications Hook with Real-time Updates
+ * Provides comprehensive notification management with optimistic updates
+ */
 
-interface Notification {
-  id: number;
-  user_id?: number;
-  type: string;
-  title: string;
-  message: string;
-  is_read: boolean;
-  created_at: string;
-}
+import { useCallback, useMemo } from 'react';
+import { useAuth } from '@/contexts/SupabaseAuth';
+import { supabase } from '@/lib/supabase';
+import { useEnhancedQuery } from './useEnhancedQuery';
+import { useOptimisticUpdates } from './useOptimisticUpdates';
+import type { Notification } from '@/types/schema';
 
-export default function useNotifications() {
-  const [list, setList] = useState<Notification[]>([]);
+export function useNotifications() {
+  const { user } = useAuth();
 
-  // 1. Initial fetch
-  useEffect(() => {
-    const fetchNotifications = async () => {
+  // Enhanced query for notifications
+  const {
+    data: notifications,
+    isLoading,
+    error,
+    refresh,
+    forceRefresh,
+    updateData,
+    isStale,
+    isFetching,
+  } = useEnhancedQuery<Notification[]>({
+    queryKey: ['notifications'],
+    queryFn: async () => {
       const { data, error } = await supabase
         .from('notifications')
         .select('*')
         .order('created_at', { ascending: false });
       
       if (error) {
-        
-        return;
+        console.error('Failed to fetch notifications:', error);
+        throw error;
       }
       
-      setList(data || []);
-    };
+      return data || [];
+    },
+    enableRealtime: true,
+    staleTime: 30 * 1000, // 30 seconds
+  });
 
-    fetchNotifications();
-  }, []);
+  // Unread count with memoization
+  const unreadCount = useMemo(() => {
+    return notifications?.filter(n => !n.is_read).length || 0;
+  }, [notifications]);
 
-  // 2. Real-time subscription
-  useEffect(() => {
-    const channel = supabase
-      .channel('notifications-changes')
-      .on('postgres_changes', 
-        { 
-          event: 'INSERT', 
-          schema: 'public', 
-          table: 'notifications' 
-        }, 
-        (payload) => {
-          setList(prev => [payload.new as Notification, ...prev]);
-        }
-      )
-      .on('postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'notifications'
-        },
-        (payload) => {
-          setList(prev => prev.map(n => 
-            n.id === payload.new.id ? payload.new as Notification : n
-          ));
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, []);
-
-  // 3. Mark all read on panel open
-  const markAllRead = async () => {
-    const unreadNotifications = list.filter(n => !n.is_read);
+  // Mark all as read
+  const markAllRead = useCallback(async () => {
+    const unreadNotifications = notifications?.filter(n => !n.is_read) || [];
     
     if (unreadNotifications.length === 0) return;
 
-    const { error } = await supabase
-      .from('notifications')
-      .update({ is_read: true })
-      .eq('is_read', false);
+    // Optimistic update
+    updateData((old: Notification[] | undefined) => {
+      if (!old) return old;
+      return old.map(n => ({ ...n, is_read: true }));
+    });
 
-    if (error) {
-      
-      return;
+    try {
+      const { error } = await supabase
+        .from('notifications')
+        .update({ is_read: true })
+        .eq('is_read', false);
+
+      if (error) {
+        console.error('Failed to mark notifications as read:', error);
+        // Rollback optimistic update
+        refresh();
+        throw error;
+      }
+    } catch (error) {
+      console.error('Error marking notifications as read:', error);
+      throw error;
     }
+  }, [notifications, updateData, refresh]);
 
-    setList(prev => prev.map(n => ({ ...n, is_read: true })));
-  };
+  // Mark single notification as read
+  const markAsRead = useCallback(async (notificationId: number) => {
+    // Optimistic update
+    updateData((old: Notification[] | undefined) => {
+      if (!old) return old;
+      return old.map(n => 
+        n.id === notificationId ? { ...n, is_read: true } : n
+      );
+    });
 
-  // 4. Create new notification
-  const createNotification = async (notification: {
+    try {
+      const { error } = await supabase
+        .from('notifications')
+        .update({ is_read: true })
+        .eq('id', notificationId);
+
+      if (error) {
+        console.error('Failed to mark notification as read:', error);
+        // Rollback optimistic update
+        refresh();
+        throw error;
+      }
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
+      throw error;
+    }
+  }, [updateData, refresh]);
+
+  // Create new notification
+  const createNotification = useCallback(async (notification: {
     type: string;
     title: string;
     message: string;
     user_id?: number;
   }) => {
-    const { data, error } = await supabase
-      .from('notifications')
-      .insert([{
-        type: notification.type,
-        title: notification.title,
-        message: notification.message,
-        user_id: notification.user_id || 1, // Default user_id to 1 if not provided
-        is_read: false
-      }])
-      .select()
-      .single();
+    const newNotification = {
+      type: notification.type,
+      title: notification.title,
+      message: notification.message,
+      user_id: notification.user_id || user?.id || 1,
+      is_read: false,
+      created_at: new Date().toISOString(),
+    };
 
-    if (error) {
-      
-      return;
+    try {
+      const { data, error } = await supabase
+        .from('notifications')
+        .insert([newNotification])
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Failed to create notification:', error);
+        throw error;
+      }
+
+      // Real-time subscription will handle adding to cache
+      return data;
+    } catch (error) {
+      console.error('Error creating notification:', error);
+      throw error;
     }
+  }, [user?.id]);
 
-    // Note: The real-time subscription will automatically add this to the list
-    return data;
-  };
+  // Delete notification
+  const deleteNotification = useCallback(async (notificationId: number) => {
+    // Optimistic update
+    updateData((old: Notification[] | undefined) => {
+      if (!old) return old;
+      return old.filter(n => n.id !== notificationId);
+    });
 
-  return { 
-    notifications: list,
-    list, 
+    try {
+      const { error } = await supabase
+        .from('notifications')
+        .delete()
+        .eq('id', notificationId);
+
+      if (error) {
+        console.error('Failed to delete notification:', error);
+        // Rollback optimistic update
+        refresh();
+        throw error;
+      }
+    } catch (error) {
+      console.error('Error deleting notification:', error);
+      throw error;
+    }
+  }, [updateData, refresh]);
+
+  // Get notifications by type
+  const getNotificationsByType = useCallback((type: string): Notification[] => {
+    return notifications?.filter(n => n.type === type) || [];
+  }, [notifications]);
+
+  // Get recent notifications (last 24 hours)
+  const getRecentNotifications = useCallback((hours: number = 24): Notification[] => {
+    if (!notifications) return [];
+    
+    const cutoff = new Date();
+    cutoff.setHours(cutoff.getHours() - hours);
+    
+    return notifications.filter(n => 
+      new Date(n.created_at) >= cutoff
+    );
+  }, [notifications]);
+
+  return {
+    // Data
+    notifications: notifications || [],
+    list: notifications || [], // Legacy compatibility
+    isLoading,
+    error,
+    unreadCount,
+    isStale,
+    isFetching,
+    
+    // Actions
+    refresh,
+    forceRefresh,
     markAllRead,
+    markAsRead,
     createNotification,
-    unreadCount: list.filter(n => !n.is_read).length
+    deleteNotification,
+    
+    // Helper functions
+    getNotificationsByType,
+    getRecentNotifications,
   };
 }
+
+export default useNotifications;
