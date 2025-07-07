@@ -18,11 +18,11 @@ import { OfflineProvider } from "@/contexts/OfflineContext";
 import OfflineManager from "@/components/offline/offline-manager";
 import { registerServiceWorker } from "@/lib/sw-registration";
 
-import Dashboard from "@/pages/dashboard-runtime";
-import Inventory from "@/pages/inventory-runtime";
-import Sales from "@/pages/sales-runtime";
-import Customers from "@/pages/customers-runtime";
-import Reports from "@/pages/reports-runtime";
+import Dashboard from "@/pages/dashboard";
+import Inventory from "@/pages/inventory-new";
+import Sales from "@/pages/sales";
+import Customers from "@/pages/customers";
+import Reports from "@/pages/reports";
 import NotificationsPage from "@/pages/notifications";
 import Home from "@/pages/home";
 import AuthPage from "@/pages/auth";

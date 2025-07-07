@@ -1,219 +1,223 @@
-import { useState, useEffect, useCallback } from 'react';
+/**
+ * Runtime Data Hook - Forces All Data to be Fetched at Runtime with Real-time Updates
+ * Eliminates all build-time data and ensures immediate UI updates
+ */
+
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/lib/supabase';
+import { useAuth } from '@/contexts/SupabaseAuth';
 import { useToast } from '@/hooks/use-toast';
+import type { Product, Customer, Order, Notification } from '@/types/schema';
 
 interface UseRuntimeDataReturn {
   // Products
-  products: any[] | null;
+  products: Product[];
   productsLoading: boolean;
-  productsError: string | null;
+  productsError: any;
   fetchProducts: () => Promise<void>;
   
-  // Customers  
-  customers: any[] | null;
+  // Customers
+  customers: Customer[];
   customersLoading: boolean;
-  customersError: string | null;
+  customersError: any;
   fetchCustomers: () => Promise<void>;
   
   // Orders
-  orders: any[] | null;
+  orders: Order[];
   ordersLoading: boolean;
-  ordersError: string | null;
+  ordersError: any;
   fetchOrders: () => Promise<void>;
   
   // Notifications
-  notifications: any[] | null;
+  notifications: Notification[];
   notificationsLoading: boolean;
-  notificationsError: string | null;
+  notificationsError: any;
   fetchNotifications: () => Promise<void>;
   
-  // Global state
+  // Global refresh
+  forceRefreshAll: () => Promise<void>;
   isConnected: boolean;
-  refreshAll: () => Promise<void>;
 }
 
 export function useRuntimeData(): UseRuntimeDataReturn {
-  const [products, setProducts] = useState<any[] | null>(null);
-  const [productsLoading, setProductsLoading] = useState(true);
-  const [productsError, setProductsError] = useState<string | null>(null);
-
-  const [customers, setCustomers] = useState<any[] | null>(null);
-  const [customersLoading, setCustomersLoading] = useState(true);
-  const [customersError, setCustomersError] = useState<string | null>(null);
-
-  const [orders, setOrders] = useState<any[] | null>(null);
-  const [ordersLoading, setOrdersLoading] = useState(true);
-  const [ordersError, setOrdersError] = useState<string | null>(null);
-
-  const [notifications, setNotifications] = useState<any[] | null>(null);
-  const [notificationsLoading, setNotificationsLoading] = useState(true);
-  const [notificationsError, setNotificationsError] = useState<string | null>(null);
-
-  const [isConnected, setIsConnected] = useState(navigator.onLine);
-
+  const { user, isAuthenticated } = useAuth();
   const { toast } = useToast();
+  const subscriptionsRef = useRef<any[]>([]);
+  const [isConnected, setIsConnected] = useState(true);
 
-  // Network status monitoring
-  useEffect(() => {
-    const handleOnline = () => setIsConnected(true);
-    const handleOffline = () => setIsConnected(false);
-    
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
-    
-    return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
-    };
-  }, []);
+  // State for each entity - starts empty, no initial data
+  const [products, setProducts] = useState<Product[]>([]);
+  const [productsLoading, setProductsLoading] = useState(false);
+  const [productsError, setProductsError] = useState<any>(null);
 
-  // Get current user
-  const getUser = useCallback(async () => {
-    try {
-      const { data: { user }, error } = await supabase.auth.getUser();
-      if (error) throw error;
-      return user;
-    } catch (error) {
-      console.error('Error getting user:', error);
-      return null;
-    }
-  }, []);
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [customersLoading, setCustomersLoading] = useState(false);
+  const [customersError, setCustomersError] = useState<any>(null);
 
-  // Fetch products with runtime data
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [ordersLoading, setOrdersLoading] = useState(false);
+  const [ordersError, setOrdersError] = useState<any>(null);
+
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [notificationsLoading, setNotificationsLoading] = useState(false);
+  const [notificationsError, setNotificationsError] = useState<any>(null);
+
+  // Runtime fetch functions - no caching, always fresh from database
   const fetchProducts = useCallback(async () => {
+    if (!user?.id) return;
+    
+    setProductsLoading(true);
+    setProductsError(null);
+    
     try {
-      setProductsLoading(true);
-      setProductsError(null);
+      console.log('🔄 Runtime fetch: Products for store:', user.id);
       
-      const user = await getUser();
-      if (!user) {
-        setProducts([]);
-        return;
-      }
-
       const { data, error } = await supabase
         .from('products')
         .select('*')
         .eq('store_id', user.id)
-        .order('name', { ascending: true });
-
+        .order('created_at', { ascending: false });
+      
       if (error) {
-        console.error('Products fetch error:', error);
-        setProductsError(error.message);
-      } else {
-        console.log('Products fetched:', data?.length || 0);
-        setProducts(data || []);
+        console.error('❌ Products fetch error:', error);
+        setProductsError(error);
+        toast({
+          title: "Error fetching products",
+          description: error.message,
+          variant: "destructive"
+        });
+        return;
       }
+      
+      console.log('✅ Products fetched:', data?.length || 0);
+      setProducts(data || []);
     } catch (error) {
-      console.error('Products fetch error:', error);
-      setProductsError('Failed to fetch products');
+      console.error('❌ Products fetch failed:', error);
+      setProductsError(error);
     } finally {
       setProductsLoading(false);
     }
-  }, [getUser]);
+  }, [user?.id, toast]);
 
-  // Fetch customers with runtime data
   const fetchCustomers = useCallback(async () => {
+    if (!user?.id) return;
+    
+    setCustomersLoading(true);
+    setCustomersError(null);
+    
     try {
-      setCustomersLoading(true);
-      setCustomersError(null);
+      console.log('🔄 Runtime fetch: Customers for store:', user.id);
       
-      const user = await getUser();
-      if (!user) {
-        setCustomers([]);
-        return;
-      }
-
       const { data, error } = await supabase
         .from('customers')
         .select('*')
         .eq('store_id', user.id)
-        .order('name', { ascending: true });
-
+        .order('created_at', { ascending: false });
+      
       if (error) {
-        console.error('Customers fetch error:', error);
-        setCustomersError(error.message);
-      } else {
-        console.log('Customers fetched:', data?.length || 0);
-        setCustomers(data || []);
+        console.error('❌ Customers fetch error:', error);
+        setCustomersError(error);
+        toast({
+          title: "Error fetching customers",
+          description: error.message,
+          variant: "destructive"
+        });
+        return;
       }
+      
+      console.log('✅ Customers fetched:', data?.length || 0);
+      setCustomers(data || []);
     } catch (error) {
-      console.error('Customers fetch error:', error);
-      setCustomersError('Failed to fetch customers');
+      console.error('❌ Customers fetch failed:', error);
+      setCustomersError(error);
     } finally {
       setCustomersLoading(false);
     }
-  }, [getUser]);
+  }, [user?.id, toast]);
 
-  // Fetch orders with runtime data
   const fetchOrders = useCallback(async () => {
+    if (!user?.id) return;
+    
+    setOrdersLoading(true);
+    setOrdersError(null);
+    
     try {
-      setOrdersLoading(true);
-      setOrdersError(null);
+      console.log('🔄 Runtime fetch: Orders for store:', user.id);
       
-      const user = await getUser();
-      if (!user) {
-        setOrders([]);
-        return;
-      }
-
       const { data, error } = await supabase
         .from('orders')
-        .select('*')
+        .select(`
+          *,
+          order_items (
+            id,
+            quantity,
+            price,
+            product:products (
+              id,
+              name,
+              sku
+            )
+          )
+        `)
         .eq('store_id', user.id)
         .order('created_at', { ascending: false });
-
+      
       if (error) {
-        console.error('Orders fetch error:', error);
-        setOrdersError(error.message);
-      } else {
-        console.log('Orders fetched:', data?.length || 0);
-        setOrders(data || []);
+        console.error('❌ Orders fetch error:', error);
+        setOrdersError(error);
+        toast({
+          title: "Error fetching orders",
+          description: error.message,
+          variant: "destructive"
+        });
+        return;
       }
+      
+      console.log('✅ Orders fetched:', data?.length || 0);
+      setOrders(data || []);
     } catch (error) {
-      console.error('Orders fetch error:', error);
-      setOrdersError('Failed to fetch orders');
+      console.error('❌ Orders fetch failed:', error);
+      setOrdersError(error);
     } finally {
       setOrdersLoading(false);
     }
-  }, [getUser]);
+  }, [user?.id, toast]);
 
-  // Fetch notifications with runtime data
   const fetchNotifications = useCallback(async () => {
+    if (!user?.id) return;
+    
+    setNotificationsLoading(true);
+    setNotificationsError(null);
+    
     try {
-      setNotificationsLoading(true);
-      setNotificationsError(null);
+      console.log('🔄 Runtime fetch: Notifications for user:', user.id);
       
-      const user = await getUser();
-      if (!user) {
-        setNotifications([]);
-        return;
-      }
-
       const { data, error } = await supabase
         .from('notifications')
         .select('*')
         .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
-
+        .order('created_at', { ascending: false })
+        .limit(50);
+      
       if (error) {
-        console.error('Notifications fetch error:', error);
-        setNotificationsError(error.message);
-      } else {
-        console.log('Notifications fetched:', data?.length || 0);
-        setNotifications(data || []);
+        console.error('❌ Notifications fetch error:', error);
+        setNotificationsError(error);
+        return;
       }
+      
+      console.log('✅ Notifications fetched:', data?.length || 0);
+      setNotifications(data || []);
     } catch (error) {
-      console.error('Notifications fetch error:', error);
-      setNotificationsError('Failed to fetch notifications');
+      console.error('❌ Notifications fetch failed:', error);
+      setNotificationsError(error);
     } finally {
       setNotificationsLoading(false);
     }
-  }, [getUser]);
+  }, [user?.id]);
 
-  // Refresh all data
-  const refreshAll = useCallback(async () => {
-    console.log('Refreshing all runtime data...');
+  // Force refresh all data
+  const forceRefreshAll = useCallback(async () => {
+    console.log('🔄 Force refreshing all data');
     await Promise.all([
       fetchProducts(),
       fetchCustomers(),
@@ -222,112 +226,149 @@ export function useRuntimeData(): UseRuntimeDataReturn {
     ]);
   }, [fetchProducts, fetchCustomers, fetchOrders, fetchNotifications]);
 
-  // Initial data fetch and real-time subscriptions
+  // Setup real-time subscriptions for immediate updates
   useEffect(() => {
-    let mounted = true;
-    let channels: any[] = [];
+    if (!isAuthenticated || !user?.id) return;
 
-    const setupDataAndSubscriptions = async () => {
-      const user = await getUser();
-      if (!user || !mounted) return;
+    console.log('📡 Setting up real-time subscriptions for store:', user.id);
 
-      // Initial fetch
-      await refreshAll();
+    // Clean up existing subscriptions
+    subscriptionsRef.current.forEach(channel => {
+      supabase.removeChannel(channel);
+    });
+    subscriptionsRef.current = [];
 
-      // Real-time subscriptions
-      const productsChannel = supabase
-        .channel('products-changes')
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'products',
-            filter: `store_id=eq.${user.id}`
-          },
-          (payload) => {
-            console.log('Products real-time change:', payload);
-            fetchProducts(); // Refetch to ensure consistency
-          }
-        )
-        .subscribe();
+    // Products subscription
+    const productsChannel = supabase
+      .channel(`products-runtime-${user.id}`)
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'products',
+        filter: `store_id=eq.${user.id}`
+      }, (payload) => {
+        console.log('📡 Products real-time update:', payload.eventType, payload.new?.name || payload.old?.name);
+        
+        switch (payload.eventType) {
+          case 'INSERT':
+            setProducts(prev => [payload.new as Product, ...prev]);
+            break;
+          case 'UPDATE':
+            setProducts(prev => prev.map(p => p.id === payload.new.id ? payload.new as Product : p));
+            break;
+          case 'DELETE':
+            setProducts(prev => prev.filter(p => p.id !== payload.old.id));
+            break;
+        }
+      })
+      .subscribe();
 
-      const customersChannel = supabase
-        .channel('customers-changes')
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'customers',
-            filter: `store_id=eq.${user.id}`
-          },
-          (payload) => {
-            console.log('Customers real-time change:', payload);
-            fetchCustomers(); // Refetch to ensure consistency
-          }
-        )
-        .subscribe();
+    // Customers subscription
+    const customersChannel = supabase
+      .channel(`customers-runtime-${user.id}`)
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'customers',
+        filter: `store_id=eq.${user.id}`
+      }, (payload) => {
+        console.log('📡 Customers real-time update:', payload.eventType, payload.new?.name || payload.old?.name);
+        
+        switch (payload.eventType) {
+          case 'INSERT':
+            setCustomers(prev => [payload.new as Customer, ...prev]);
+            break;
+          case 'UPDATE':
+            setCustomers(prev => prev.map(c => c.id === payload.new.id ? payload.new as Customer : c));
+            break;
+          case 'DELETE':
+            setCustomers(prev => prev.filter(c => c.id !== payload.old.id));
+            break;
+        }
+      })
+      .subscribe();
 
-      const ordersChannel = supabase
-        .channel('orders-changes')
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'orders',
-            filter: `store_id=eq.${user.id}`
-          },
-          (payload) => {
-            console.log('Orders real-time change:', payload);
-            fetchOrders(); // Refetch to ensure consistency
-          }
-        )
-        .subscribe();
+    // Orders subscription
+    const ordersChannel = supabase
+      .channel(`orders-runtime-${user.id}`)
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'orders',
+        filter: `store_id=eq.${user.id}`
+      }, (payload) => {
+        console.log('📡 Orders real-time update:', payload.eventType);
+        
+        // Refetch orders to get full data with relations
+        fetchOrders();
+      })
+      .subscribe();
 
-      const notificationsChannel = supabase
-        .channel('notifications-changes')
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'notifications',
-            filter: `user_id=eq.${user.id}`
-          },
-          (payload) => {
-            console.log('Notifications real-time change:', payload);
-            fetchNotifications(); // Refetch to ensure consistency
-          }
-        )
-        .subscribe();
+    // Notifications subscription
+    const notificationsChannel = supabase
+      .channel(`notifications-runtime-${user.id}`)
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'notifications',
+        filter: `user_id=eq.${user.id}`
+      }, (payload) => {
+        console.log('📡 Notifications real-time update:', payload.eventType);
+        
+        switch (payload.eventType) {
+          case 'INSERT':
+            setNotifications(prev => [payload.new as Notification, ...prev.slice(0, 49)]);
+            break;
+          case 'UPDATE':
+            setNotifications(prev => prev.map(n => n.id === payload.new.id ? payload.new as Notification : n));
+            break;
+          case 'DELETE':
+            setNotifications(prev => prev.filter(n => n.id !== payload.old.id));
+            break;
+        }
+      })
+      .subscribe();
 
-      channels = [productsChannel, customersChannel, ordersChannel, notificationsChannel];
-    };
-
-    setupDataAndSubscriptions();
-
-    // Page visibility API - refetch when user returns to tab
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === 'visible' && isConnected) {
-        console.log('Tab became visible, refreshing data...');
-        refreshAll();
-      }
-    };
-    
-    document.addEventListener('visibilitychange', handleVisibilityChange);
+    subscriptionsRef.current = [productsChannel, customersChannel, ordersChannel, notificationsChannel];
 
     return () => {
-      mounted = false;
-      channels.forEach(channel => {
-        if (channel) {
-          supabase.removeChannel(channel);
-        }
+      console.log('🧹 Cleaning up real-time subscriptions');
+      subscriptionsRef.current.forEach(channel => {
+        supabase.removeChannel(channel);
       });
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      subscriptionsRef.current = [];
     };
-  }, [getUser, refreshAll, fetchProducts, fetchCustomers, fetchOrders, fetchNotifications, isConnected]);
+  }, [isAuthenticated, user?.id, fetchOrders]);
+
+  // Initial data fetch on mount
+  useEffect(() => {
+    if (!user?.id) return;
+    
+    console.log('🚀 Initial runtime data fetch for store:', user.id);
+    forceRefreshAll();
+  }, [user?.id, forceRefreshAll]);
+
+  // Monitor connectivity
+  useEffect(() => {
+    const handleOnline = () => {
+      console.log('🌐 Connection restored');
+      setIsConnected(true);
+      forceRefreshAll();
+    };
+
+    const handleOffline = () => {
+      console.log('📵 Connection lost');
+      setIsConnected(false);
+    };
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, [forceRefreshAll]);
 
   return {
     // Products
@@ -355,7 +396,7 @@ export function useRuntimeData(): UseRuntimeDataReturn {
     fetchNotifications,
     
     // Global
+    forceRefreshAll,
     isConnected,
-    refreshAll
   };
 }
