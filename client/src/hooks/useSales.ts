@@ -4,13 +4,12 @@
  */
 
 import { useCallback, useMemo } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
-import { useEnhancedQuery } from './useEnhancedQuery';
-import { useOptimisticUpdates } from './useOptimisticUpdates';
 import type { Order } from '@/types/schema';
 
 export function useSales() {
-  const { optimisticProcessSale } = useOptimisticUpdates();
+  const queryClient = useQueryClient();
 
   // Runtime data fetching with useQuery
   const {
@@ -43,8 +42,8 @@ export function useSales() {
   const {
     data: recentOrders,
     isLoading: recentOrdersLoading,
-    refresh: refreshRecentOrders,
-  } = useEnhancedQuery<Order[]>({
+    refetch: refreshRecentOrders,
+  } = useQuery<Order[]>({
     queryKey: ['recent-orders'],
     queryFn: async () => {
       // First get the orders
@@ -111,8 +110,9 @@ export function useSales() {
       
       return ordersWithProducts;
     },
-    enableRealtime: true,
-    staleTime: 15 * 1000, // 15 seconds
+    staleTime: 0, // Always fetch fresh data
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
   });
 
   // Process sale optimistically

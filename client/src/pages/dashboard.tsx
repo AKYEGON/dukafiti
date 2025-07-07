@@ -26,7 +26,7 @@ import { ProductForm } from "@/components/inventory/product-form";
 import { CustomerForm } from "@/components/customers/customer-form";
 import { RefreshButton } from "@/components/ui/refresh-button";
 import { useEnhancedQuery } from "@/hooks/useEnhancedQuery";
-import { useSales } from "@/hooks/useSales";
+import { useSalesSimple as useSales } from "@/hooks/useSalesSimple";
 import { useComprehensiveRealtime, useVisibilityRefresh } from "@/hooks/useComprehensiveRealtime";
 import { getDashboardMetrics } from "@/lib/supabase-data";
 import { DashboardMonitor } from "@/components/debug/dashboard-monitor";
