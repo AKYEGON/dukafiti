@@ -7,7 +7,7 @@ import { useAuth } from "@/contexts/SupabaseAuth";
 import { useLocation } from "wouter";
 import { Eye, EyeOff, ArrowLeft } from "lucide-react";
 import { FcGoogle } from "react-icons/fc";
-import { useTheme } from "next-themes";
+import { useTheme } from "@/contexts/theme-context";
 import brandLightImage from '@assets/slogan and title in white background_1751876041697.png';
 import brandDarkImage from '@assets/title and slogan in black backgr_1751876041710.png';
 

@@ -11,7 +11,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Link } from 'wouter';
 import { Mail, ArrowLeft, Store, Eye, EyeOff } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { useTheme } from 'next-themes';
+import { useTheme } from '@/contexts/theme-context';
 import brandLightImage from '@assets/slogan and title in white background_1751876041697.png';
 import brandDarkImage from '@assets/title and slogan in black backgr_1751876041710.png';
 

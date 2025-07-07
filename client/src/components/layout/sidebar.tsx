@@ -3,7 +3,7 @@ import { Store, BarChart3, Package, Users, FileText, Settings, Menu, X, PanelLef
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { useTheme } from "next-themes";
+import { useTheme } from "@/contexts/theme-context";
 
 const navigation = [
   { name: "Dashboard", href: "/", icon: BarChart3 },

@@ -524,6 +524,10 @@ Changelog:
 - July 7, 2025. Added theme toggle buttons to both desktop and mobile navigation menus
 - July 7, 2025. Fixed logout behavior to preserve theme state when navigating back to landing page
 - July 7, 2025. Integrated proper brand images in landing page header with mounted state checking
+- July 7, 2025. CRITICAL FIX: Replaced API-based theme system with localStorage-based persistence for consistent theme behavior
+- July 7, 2025. Fixed theme reverting to light mode on logout by implementing proper localStorage theme persistence
+- July 7, 2025. Updated landing page header to use new streamlined DUKAFITI brand images for light and dark modes
+- July 7, 2025. Migrated all pages from next-themes to custom theme context with localStorage support
 ```
 
 ## User Preferences

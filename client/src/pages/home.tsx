@@ -3,9 +3,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Store, BarChart3, Users, Shield, Zap, Globe, ArrowRight, CheckCircle, Star, Menu, X, Sun, Moon } from "lucide-react";
 import { useLocation } from "wouter";
 import { useState, useEffect } from "react";
-import { useTheme } from "next-themes";
-import brandLightImage from '@assets/slogan and title in white background_1751876041697.png';
-import brandDarkImage from '@assets/title and slogan in black backgr_1751876041710.png';
+import { useTheme } from "@/contexts/theme-context";
+import headerLightImage from '@assets/with white background3_1751876872063.png';
+import headerDarkImage from '@assets/with blackm1_1751876872059.png';
 
 export default function Home() {
   const [, setLocation] = useLocation();
@@ -62,10 +62,10 @@ export default function Home() {
               <div className="mr-4 relative">
                 {mounted && (
                   <img 
-                    src={theme === 'dark' ? brandDarkImage : brandLightImage}
-                    alt="DukaFiti - Duka Bora Ni Duka Fiti" 
-                    className="h-10 w-auto object-contain"
-                    style={{ maxWidth: '200px' }}
+                    src={theme === 'dark' ? headerDarkImage : headerLightImage}
+                    alt="DukaFiti" 
+                    className="h-8 w-auto object-contain"
+                    style={{ maxWidth: '150px' }}
                   />
                 )}
               </div>
