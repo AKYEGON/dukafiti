@@ -134,7 +134,7 @@ function Router() {
   return (
     <Switch>
       {/* Public routes */}
-      <Route path="/" component={user ? () => { setLocation('/dashboard'); return null; } : Home} />
+      <Route path="/" component={user ? () => { setLocation('/dashboard'); return null; } : LandingNew} />
       <Route path="/login" component={Login} />
       <Route path="/register" component={Register} />
       <Route path="/auth/callback" component={AuthCallback} />

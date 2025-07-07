@@ -206,17 +206,16 @@ function LandingNew() {
               <div className="text-center lg:text-left">
                 <Badge className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-brand/10 text-brand-700 dark:bg-brand/20 dark:text-brand-300 mb-6">
                   <Smartphone className="h-4 w-4 mr-2" />
-                  Startup 3 • Now Available
+                  Free 30-day trial • No credit card required
                 </Badge>
                 
                 <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 dark:text-white leading-tight">
-                  You have the <br />
-                  <span className="text-brand">design</span>, you have <br />
-                  the <span className="text-brand">code</span>
+                  Smart POS for <br />
+                  <span className="text-brand">Kenyan Duka</span>
                 </h1>
                 
                 <p className="mt-6 text-xl text-gray-600 dark:text-gray-300 leading-relaxed">
-                  DukaFiti – Simplify Your Duka Operations. Inventory, Sales, and Credit Management—all in one sleek POS.
+                  Transform your duka with intelligent inventory management, real-time analytics, and customer insights. Built for Kenyan businesses, works offline.
                 </p>
                 
                 <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
@@ -234,7 +233,7 @@ function LandingNew() {
                     onClick={() => scrollToSection('features')}
                     className="h-12 px-8 border-brand-200 text-brand-700 hover:bg-brand-50 dark:border-brand-700 dark:text-brand-300"
                   >
-                    Learn More
+                    Watch Demo
                   </Button>
                 </div>
               </div>
@@ -343,7 +342,7 @@ function LandingNew() {
               onClick={() => setLocation('/signup')}
               className="bg-teal-500 hover:bg-teal-600 text-white px-8 py-3 rounded-full font-semibold"
             >
-              Learn More
+              Get Started
             </Button>
           </div>
         </div>
@@ -357,7 +356,7 @@ function LandingNew() {
               Trusted by Kenyan Business Owners
             </h2>
             <p className="text-xl text-gray-600 dark:text-gray-300">
-              Join thousands of dukawalas who are growing their business with DukaFiti
+              Join thousands of duka owners who are growing their business with DukaFiti
             </p>
           </div>
 
