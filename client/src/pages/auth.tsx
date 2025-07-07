@@ -8,8 +8,8 @@ import { useLocation } from "wouter";
 import { Eye, EyeOff, ArrowLeft } from "lucide-react";
 import { FcGoogle } from "react-icons/fc";
 import { useTheme } from "@/contexts/theme-context";
-import brandLightImage from '@assets/slogan and title in white background_1751876041697.png';
-import brandDarkImage from '@assets/title and slogan in black backgr_1751876041710.png';
+import brandLightImage from '@assets/slogan and title in white background_1751878651581.png';
+import brandDarkImage from '@assets/title and slogan in black backgr_1751878651610.png';
 
 export default function AuthPage() {
   const [, setLocation] = useLocation();
@@ -114,48 +114,49 @@ export default function AuthPage() {
         </div>
 
         {/* Single unified card */}
-        <div className="max-w-lg w-full bg-white dark:bg-gray-800 p-8 rounded-3xl shadow-2xl border border-gray-200 dark:border-gray-700">
-          {/* Logo inside card - Brand images */}
-          <div className="mb-6 flex justify-center">
-            <div className="p-3 rounded-xl bg-white dark:bg-gray-700 shadow-sm border border-gray-100 dark:border-gray-600">
-              <img 
-                src={theme === 'dark' ? brandDarkImage : brandLightImage}
-                alt="DukaFiti - Duka Bora Ni Duka Fiti" 
-                className="h-16 w-auto object-contain block"
-                style={{ minHeight: '50px', maxWidth: '280px' }}
-                onLoad={(e) => {
-                  console.log('Brand image loaded successfully:', e.target.src);
-                }}
-                onError={(e) => {
-                  console.error('Brand image failed to load:', e.target.src);
-                  // Fallback to text if image fails
-                  e.target.style.display = 'none';
-                  const fallback = document.createElement('div');
-                  fallback.className = 'text-center';
-                  fallback.innerHTML = `
-                    <h2 class="text-2xl font-black bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 dark:from-blue-400 dark:via-purple-400 dark:to-blue-200 bg-clip-text text-transparent tracking-wide">
-                      DUKAFITI
-                    </h2>
-                    <p class="text-sm font-semibold text-blue-600 dark:text-blue-300 mt-1 tracking-widest">
-                      DUKA BORA NI DUKA FITI
-                    </p>
-                  `;
-                  e.target.parentElement.appendChild(fallback);
-                }}
-              />
+        <div className="max-w-lg w-full bg-white dark:bg-gray-800 rounded-3xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+          {/* Brand image header - seamlessly integrated */}
+          <div className="bg-gradient-to-r from-brand-50 to-brand-100 dark:from-brand-900/30 dark:to-brand-800/30 px-8 py-12 text-center">
+            <img 
+              src={theme === 'dark' ? brandDarkImage : brandLightImage}
+              alt="DukaFiti - Duka Bora Ni Duka Fiti" 
+              className="h-28 w-auto object-contain mx-auto drop-shadow-lg"
+              style={{ minHeight: '100px', maxWidth: '380px' }}
+              onLoad={(e) => {
+                console.log('Brand image loaded successfully:', e.target.src);
+              }}
+              onError={(e) => {
+                console.error('Brand image failed to load:', e.target.src);
+                // Fallback to text if image fails
+                e.target.style.display = 'none';
+                const fallback = document.createElement('div');
+                fallback.className = 'text-center';
+                fallback.innerHTML = `
+                  <h2 class="text-3xl font-black bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 dark:from-blue-400 dark:via-purple-400 dark:to-blue-200 bg-clip-text text-transparent tracking-wide">
+                    DUKAFITI
+                  </h2>
+                  <p class="text-base font-semibold text-blue-600 dark:text-blue-300 mt-2 tracking-widest">
+                    DUKA BORA NI DUKA FITI
+                  </p>
+                `;
+                e.target.parentElement.appendChild(fallback);
+              }}
+            />
+          </div>
+          
+          {/* Form content */}
+          <div className="px-8 py-6">
+            {/* Form header */}
+            <div className="mb-6 text-center">
+              <h1 className="text-3xl font-bold bg-gradient-to-r from-brand-600 to-brand-700 bg-clip-text text-transparent mb-2">
+                {isLogin ? "Welcome Back" : "Create Account"}
+              </h1>
+              <p className="text-gray-600 dark:text-gray-400 text-base">
+                {isLogin ? "Sign in to your DukaFiti account" : "Start your journey with DukaFiti"}
+              </p>
             </div>
-          </div>
-          {/* Form header */}
-          <div className="mb-6 text-center">
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-brand-600 to-brand-700 bg-clip-text text-transparent mb-2">
-              {isLogin ? "Welcome Back" : "Create Account"}
-            </h1>
-            <p className="text-gray-600 dark:text-gray-400 text-base">
-              {isLogin ? "Sign in to your DukaFiti account" : "Start your journey with DukaFiti"}
-            </p>
-          </div>
 
-          <form onSubmit={handleSubmit} className="space-y-5">
+            <form onSubmit={handleSubmit} className="space-y-5">
             {!isLogin && (
               <div className="space-y-2">
                 <Label htmlFor="name" className="text-sm font-semibold text-gray-700 dark:text-gray-300 tracking-wide">
@@ -281,6 +282,7 @@ export default function AuthPage() {
               </p>
             </div>
           )}
+          </div>
         </div>
       </div>
 
