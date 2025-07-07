@@ -338,7 +338,14 @@ export const recordCustomerRepayment = async (customerId: number, amount: number
 // Reports functions
 export const getReportsSummary = async (period: 'today' | 'weekly' | 'monthly') => {
   try {
-    
+    // Get current user for store isolation
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      console.error('❌ User not authenticated for reports summary');
+      throw new Error('User not authenticated');
+    }
+
+    console.log('🔍 Fetching reports summary for store:', user.id);
     
     let startDate: Date;
     const endDate = new Date();
@@ -359,10 +366,11 @@ export const getReportsSummary = async (period: 'today' | 'weekly' | 'monthly') 
         break;
     }
     
-    // Get orders within the date range (all orders, not just completed)
+    // Get orders within the date range for this store only
     const { data: orders, error: ordersError } = await supabase
       .from('orders')
       .select('total, payment_method, status')
+      .eq('store_id', user.id)
       .gte('created_at', startDate.toISOString())
       .lte('created_at', endDate.toISOString());
     
@@ -391,7 +399,14 @@ export const getReportsSummary = async (period: 'today' | 'weekly' | 'monthly') 
 
 export const getReportsTrend = async (period: 'hourly' | 'daily' | 'monthly') => {
   try {
-    
+    // Get current user for store isolation
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      console.error('❌ User not authenticated for reports trend');
+      throw new Error('User not authenticated');
+    }
+
+    console.log('🔍 Fetching reports trend for store:', user.id);
     
     let startDate: Date;
     const endDate = new Date();
@@ -409,10 +424,11 @@ export const getReportsTrend = async (period: 'hourly' | 'daily' | 'monthly') =>
       startDate.setFullYear(startDate.getFullYear() - 1);
     }
     
-    // Fetch orders from Supabase
+    // Fetch orders from Supabase for this store only
     const { data: orders, error } = await supabase
       .from('orders')
       .select('created_at, total')
+      .eq('store_id', user.id)
       .gte('created_at', startDate.toISOString())
       .lte('created_at', endDate.toISOString())
       .order('created_at', { ascending: true });
@@ -508,12 +524,20 @@ export const getReportsTrend = async (period: 'hourly' | 'daily' | 'monthly') =>
 
 export const getTopCustomers = async (period: 'today' | 'weekly' | 'monthly') => {
   try {
+    // Get current user for store isolation
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      console.error('❌ User not authenticated for top customers');
+      throw new Error('User not authenticated');
+    }
+
+    console.log('🔍 Fetching top customers for store:', user.id);
     
-    
-    // Get customers with credit balance (debt) ordered by highest amount
+    // Get customers with credit balance (debt) ordered by highest amount for this store only
     const { data: customers, error: customersError } = await supabase
       .from('customers')
       .select('id, name, balance')
+      .eq('store_id', user.id)
       .gt('balance', 0)
       .order('balance', { ascending: false })
       .limit(10);
@@ -528,6 +552,7 @@ export const getTopCustomers = async (period: 'today' | 'weekly' | 'monthly') =>
       const { data: orders } = await supabase
         .from('orders')
         .select('id')
+        .eq('store_id', user.id)
         .eq('customer_id', customer.id)
         .eq('payment_method', 'credit');
       
@@ -547,6 +572,14 @@ export const getTopCustomers = async (period: 'today' | 'weekly' | 'monthly') =>
 
 export const getTopProducts = async (period: 'today' | 'weekly' | 'monthly') => {
   try {
+    // Get current user for store isolation
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      console.error('❌ User not authenticated for top products');
+      throw new Error('User not authenticated');
+    }
+
+    console.log('🔍 Fetching top products for store:', user.id);
     
     
     // Get order items with product info (remove date filtering for now to get all data)
@@ -985,15 +1018,23 @@ export const getRecentOrders = async () => {
 // Dashboard metrics functions
 export const getDashboardMetrics = async () => {
   try {
-    console.log('🔍 Fetching dashboard metrics...');
+    // Get current user for store isolation
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      console.error('❌ User not authenticated for dashboard metrics');
+      throw new Error('User not authenticated');
+    }
+
+    console.log('🔍 Fetching dashboard metrics for store:', user.id);
     
-    // Get total revenue from orders
+    // Get total revenue from orders for this store only
     const { data: ordersData, error: ordersError } = await supabase
       .from('orders')
-      .select('total, created_at');
+      .select('total, created_at')
+      .eq('store_id', user.id);
     
     if (ordersError) {
-      console.error('Orders query error:', ordersError);
+      console.error('❌ Orders query error:', ordersError);
       // If table doesn't exist, return default metrics with correct field names
       if (ordersError.message.includes('relation "orders" does not exist')) {
         console.log('Orders table not found, returning defaults');
@@ -1011,43 +1052,55 @@ export const getDashboardMetrics = async () => {
       throw ordersError;
     }
 
-    // Get total products count
+    // Get total products count for this store only
     const { count: totalProducts, error: productsError } = await supabase
       .from('products')
-      .select('*', { count: 'exact', head: true });
+      .select('*', { count: 'exact', head: true })
+      .eq('store_id', user.id);
     
-    if (productsError) throw productsError;
+    if (productsError) {
+      console.error('❌ Products count error:', productsError);
+      throw productsError;
+    }
 
-    // Get total customers count
+    // Get total customers count for this store only
     const { count: totalCustomers, error: customersError } = await supabase
       .from('customers')
-      .select('*', { count: 'exact', head: true });
+      .select('*', { count: 'exact', head: true })
+      .eq('store_id', user.id);
     
-    if (customersError) throw customersError;
+    if (customersError) {
+      console.error('❌ Customers count error:', customersError);
+      throw customersError;
+    }
 
-    // Get low stock count
+    // Get low stock count for this store only
     const { data: lowStockData, error: lowStockError } = await supabase
       .from('products')
       .select('id, stock, low_stock_threshold')
+      .eq('store_id', user.id)
       .not('stock', 'is', null);
     
-    if (lowStockError) throw lowStockError;
+    if (lowStockError) {
+      console.error('❌ Low stock query error:', lowStockError);
+      throw lowStockError;
+    }
 
     // Calculate metrics
-    const totalRevenue = ordersData?.reduce((sum, order) => sum + (order.total || 0), 0) || 0;
+    const totalRevenue = ordersData?.reduce((sum, order) => sum + (parseFloat(order.total) || 0), 0) || 0;
     const totalOrders = ordersData?.length || 0;
     const lowStockCount = lowStockData?.filter(product => 
       product.stock !== null && 
       product.stock <= (product.low_stock_threshold || 10)
     ).length || 0;
 
-    // Calculate today's data for growth
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const todaysOrders = ordersData?.filter(order => {
-      const orderDate = new Date(order.created_at);
-      return orderDate >= today;
-    }) || [];
+    console.log('✅ Dashboard metrics calculated:', {
+      totalRevenue: totalRevenue.toFixed(2),
+      totalOrders,
+      totalProducts: totalProducts || 0,
+      totalCustomers: totalCustomers || 0,
+      lowStockCount
+    });
 
     return {
       totalRevenue: totalRevenue.toFixed(2),

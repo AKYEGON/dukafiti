@@ -18,7 +18,19 @@ import type { Customer } from "@/types/schema";
 export default function Customers() {
   const { data: customers, isLoading } = useQuery<Customer[]>({
     queryKey: ["customers"],
-    queryFn: getCustomers,
+    queryFn: async () => {
+      // Get current user for store isolation
+      const { data: { user }, error: authError } = await import('@/lib/supabase').then(m => m.supabase.auth.getUser());
+      if (authError || !user) {
+        console.error('❌ User not authenticated for customers fetch');
+        throw new Error('User not authenticated');
+      }
+      
+      console.log('🔍 Fetching customers for store:', user.id);
+      const data = await getCustomers(user.id);
+      console.log('✅ Customers fetched:', data?.length || 0);
+      return data;
+    },
   });
 
   const queryClient = useQueryClient();

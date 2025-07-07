@@ -13,7 +13,7 @@ export function useCustomers() {
   const queryClient = useQueryClient();
   const [localCustomers, setLocalCustomers] = useState<Customer[]>([]);
 
-  // Runtime data fetching with useQuery
+  // Runtime data fetching with useQuery - RLS compatible
   const {
     data: customers,
     isLoading,
@@ -23,7 +23,16 @@ export function useCustomers() {
   } = useQuery<Customer[]>({
     queryKey: ['customers'],
     queryFn: async () => {
-      const data = await getCustomers();
+      // Get current user for store isolation
+      const { data: { user }, error: authError } = await import('@/lib/supabase').then(m => m.supabase.auth.getUser());
+      if (authError || !user) {
+        console.error('❌ User not authenticated for customers fetch');
+        throw new Error('User not authenticated');
+      }
+      
+      console.log('🔍 Fetching customers for store:', user.id);
+      const data = await getCustomers(user.id);
+      console.log('✅ Customers fetched:', data?.length || 0);
       setLocalCustomers(data || []);
       return data;
     },
@@ -36,7 +45,11 @@ export function useCustomers() {
   const { forceRefresh, updateDataOptimistically, isConnected } = useDynamicData({
     table: 'customers',
     queryKey: ['customers'],
-    fetchFunction: getCustomers,
+    fetchFunction: async () => {
+      const { data: { user }, error: authError } = await import('@/lib/supabase').then(m => m.supabase.auth.getUser());
+      if (authError || !user) throw new Error('User not authenticated');
+      return getCustomers(user.id);
+    },
     onInsert: (payload) => {
       console.log('Customer inserted:', payload.new);
       setLocalCustomers(prev => [...(prev || []), payload.new]);
