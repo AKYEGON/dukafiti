@@ -770,7 +770,6 @@ export const createSale = async (saleData: any) => {
       product_name: item.productName,
       quantity: item.quantity,
       price: item.price,
-      cost_price_at_sale: item.costPrice || 0, // Capture cost at time of sale
     }));
     
     const { error: itemsError } = await supabase

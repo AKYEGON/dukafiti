@@ -516,6 +516,10 @@ Changelog:
 - July 7, 2025. Applied consistent DukaFiti branding across login, register, and auth pages
 - July 7, 2025. Enhanced branding visibility with gradient backgrounds and proper contrast ratios
 - July 7, 2025. Created reliable fallback branding system that works regardless of image loading issues
+- July 7, 2025. CRITICAL FIX: Resolved Add Stock button loading state issue by removing async callback causing mutation hang
+- July 7, 2025. Fixed sales failure by removing non-existent cost_price_at_sale column from order_items schema
+- July 7, 2025. Enhanced RestockModal with proper mutation reset and improved error handling
+- July 7, 2025. Verified both Add Stock and Sales functionality working correctly with direct Supabase integration
 - July 7, 2025. Successfully integrated user-uploaded brand images using @assets import system
 - July 7, 2025. Fixed Vite asset loading by using direct imports instead of public URL references
 - July 7, 2025. Applied dynamic light/dark mode image switching using imported brand assets
