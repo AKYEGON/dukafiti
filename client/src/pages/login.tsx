@@ -88,6 +88,10 @@ export default function Login() {
               src={theme === 'dark' ? '/assets/banner-dark.png' : '/assets/banner-light.png'}
               alt="DukaFiti" 
               className="h-16 w-auto object-contain"
+              onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                target.src = '/assets/logo-full.png';
+              }}
             />
           </div>
           <div className="mt-3 mb-4 flex items-center justify-center">

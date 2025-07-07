@@ -74,6 +74,10 @@ export function Sidebar({ className, collapsed = false, toggleSidebar }: Sidebar
                   src={theme === 'dark' ? '/assets/logo-dark.png' : '/assets/logo-light.png'}
                   alt="DukaFiti" 
                   className="w-8 h-8 object-contain"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.src = '/assets/logo-icon.png';
+                  }}
                 />
               </div>
             </Link>
@@ -84,6 +88,10 @@ export function Sidebar({ className, collapsed = false, toggleSidebar }: Sidebar
                   src={theme === 'dark' ? '/assets/banner-dark.png' : '/assets/banner-light.png'}
                   alt="DukaFiti - Duka Fiti ni Duka Bora" 
                   className="h-10 w-auto object-contain"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.src = '/assets/logo-full.png';
+                  }}
                 />
               </div>
             </Link>

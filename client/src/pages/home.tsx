@@ -57,6 +57,10 @@ export default function Home() {
                   src={theme === 'dark' ? '/assets/banner-dark.png' : '/assets/banner-light.png'}
                   alt="DukaFiti" 
                   className="h-8 w-auto object-contain"
+                  onError={(e) => {
+                    const target = e.target as HTMLImageElement;
+                    target.src = '/assets/logo-full.png';
+                  }}
                 />
               </div>
             </div>
