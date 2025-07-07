@@ -8,7 +8,8 @@ import { useLocation } from "wouter";
 import { Eye, EyeOff, ArrowLeft } from "lucide-react";
 import { FcGoogle } from "react-icons/fc";
 import { useTheme } from "next-themes";
-// Logo imports will be handled via public assets
+import brandLightImage from '@assets/slogan and title in white background_1751876041697.png';
+import brandDarkImage from '@assets/title and slogan in black backgr_1751876041710.png';
 
 export default function AuthPage() {
   const [, setLocation] = useLocation();
@@ -114,17 +115,34 @@ export default function AuthPage() {
 
         {/* Single unified card */}
         <div className="max-w-lg w-full bg-white dark:bg-gray-800 p-8 rounded-3xl shadow-2xl border border-gray-200 dark:border-gray-700">
-          {/* Logo inside card - Text-based branding with gradient */}
+          {/* Logo inside card - Brand images */}
           <div className="mb-6 flex justify-center">
-            <div className="p-4 rounded-xl bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 shadow-sm border border-blue-100 dark:border-blue-800">
-              <div className="text-center">
-                <h2 className="text-3xl font-black bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 dark:from-blue-400 dark:via-purple-400 dark:to-blue-200 bg-clip-text text-transparent tracking-wide">
-                  DUKAFITI
-                </h2>
-                <p className="text-base font-semibold text-blue-600 dark:text-blue-300 mt-1 tracking-widest">
-                  DUKA BORA NI DUKA FITI
-                </p>
-              </div>
+            <div className="p-3 rounded-xl bg-white dark:bg-gray-700 shadow-sm border border-gray-100 dark:border-gray-600">
+              <img 
+                src={theme === 'dark' ? brandDarkImage : brandLightImage}
+                alt="DukaFiti - Duka Bora Ni Duka Fiti" 
+                className="h-16 w-auto object-contain block"
+                style={{ minHeight: '50px', maxWidth: '280px' }}
+                onLoad={(e) => {
+                  console.log('Brand image loaded successfully:', e.target.src);
+                }}
+                onError={(e) => {
+                  console.error('Brand image failed to load:', e.target.src);
+                  // Fallback to text if image fails
+                  e.target.style.display = 'none';
+                  const fallback = document.createElement('div');
+                  fallback.className = 'text-center';
+                  fallback.innerHTML = `
+                    <h2 class="text-2xl font-black bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 dark:from-blue-400 dark:via-purple-400 dark:to-blue-200 bg-clip-text text-transparent tracking-wide">
+                      DUKAFITI
+                    </h2>
+                    <p class="text-sm font-semibold text-blue-600 dark:text-blue-300 mt-1 tracking-widest">
+                      DUKA BORA NI DUKA FITI
+                    </p>
+                  `;
+                  e.target.parentElement.appendChild(fallback);
+                }}
+              />
             </div>
           </div>
           {/* Form header */}

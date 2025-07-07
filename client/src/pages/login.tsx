@@ -12,6 +12,8 @@ import { Link } from 'wouter';
 import { Mail, ArrowLeft, Store, Eye, EyeOff } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { useTheme } from 'next-themes';
+import brandLightImage from '@assets/slogan and title in white background_1751876041697.png';
+import brandDarkImage from '@assets/title and slogan in black backgr_1751876041710.png';
 
 const loginSchema = z.object({
   email: z.string().email('Please enter a valid email'),
@@ -83,15 +85,32 @@ export default function Login() {
 
         {/* Logo/App Name - DukaFiti Branding */}
         <div className="text-center mb-6">
-          <div className="mx-auto mb-4 flex items-center justify-center rounded-xl p-4 bg-gradient-to-r from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 shadow-sm border border-blue-100 dark:border-blue-800">
-            <div className="text-center">
-              <h2 className="text-2xl font-black bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 dark:from-blue-400 dark:via-purple-400 dark:to-blue-200 bg-clip-text text-transparent tracking-wide">
-                DUKAFITI
-              </h2>
-              <p className="text-sm font-semibold text-blue-600 dark:text-blue-300 mt-1 tracking-widest">
-                DUKA BORA NI DUKA FITI
-              </p>
-            </div>
+          <div className="mx-auto mb-4 flex items-center justify-center rounded-xl p-3 bg-white dark:bg-gray-700 shadow-sm border border-gray-100 dark:border-gray-600">
+            <img 
+              src={theme === 'dark' ? brandDarkImage : brandLightImage}
+              alt="DukaFiti - Duka Bora Ni Duka Fiti" 
+              className="h-14 w-auto object-contain block"
+              style={{ minHeight: '45px', maxWidth: '260px' }}
+              onLoad={(e) => {
+                console.log('Brand image loaded successfully:', e.target.src);
+              }}
+              onError={(e) => {
+                console.error('Brand image failed to load:', e.target.src);
+                // Fallback to text if image fails
+                e.target.style.display = 'none';
+                const fallback = document.createElement('div');
+                fallback.className = 'text-center';
+                fallback.innerHTML = `
+                  <h2 class="text-xl font-black bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 dark:from-blue-400 dark:via-purple-400 dark:to-blue-200 bg-clip-text text-transparent tracking-wide">
+                    DUKAFITI
+                  </h2>
+                  <p class="text-xs font-semibold text-blue-600 dark:text-blue-300 mt-1 tracking-widest">
+                    DUKA BORA NI DUKA FITI
+                  </p>
+                `;
+                e.target.parentElement.appendChild(fallback);
+              }}
+            />
           </div>
         </div>
 
