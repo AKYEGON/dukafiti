@@ -36,6 +36,9 @@ import SettingsPage from "@/pages/settings";
 import Debug from "@/pages/debug";
 import DebugAuth from "@/pages/debug-auth";
 import BrandedWebsite from "@/pages/BrandedWebsite";
+import LandingNew from "@/pages/landing-new";
+import SignInNew from "@/pages/signin-new";
+import SignUpNew from "@/pages/signup-new";
 
 function AuthenticatedApp() {
   // Initialize WebSocket connection for real-time notifications
@@ -139,6 +142,9 @@ function Router() {
       <Route path="/debug" component={Debug} />
       <Route path="/debug-auth" component={DebugAuth} />
       <Route path="/website" component={BrandedWebsite} />
+      <Route path="/landing" component={LandingNew} />
+      <Route path="/signin" component={SignInNew} />
+      <Route path="/signup" component={SignUpNew} />
       
       {/* Protected routes */}
       <Route path="/dashboard">
