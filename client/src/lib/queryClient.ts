@@ -97,8 +97,9 @@ export const queryClient = new QueryClient({
     queries: {
       queryFn: getQueryFn({ on401: "returnNull" }),
       refetchInterval: false,
-      refetchOnWindowFocus: false,
-      staleTime: 5 * 60 * 1000, // 5 minutes
+      refetchOnWindowFocus: true, // Enable automatic refetch on focus
+      staleTime: 0, // No stale time - always consider data fresh
+      cacheTime: 0, // No cache time - always refetch
       retry: (failureCount, error) => {
         // Don't retry on 401, 403, or 404 errors
         if (error instanceof Error && error.message.includes('401')) return false;

@@ -25,7 +25,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ProductForm } from "@/components/inventory/product-form";
 import { CustomerForm } from "@/components/customers/customer-form";
 import { RefreshButton } from "@/components/ui/refresh-button";
-import { useRuntimeData } from "@/hooks/useRuntimeData";
+import { useProductsRuntime, useCustomersRuntime, useOrdersRuntime } from "@/hooks/useRuntimeDataNew";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/SupabaseAuth";
@@ -41,21 +41,25 @@ export default function Dashboard() {
   const { user } = useAuth();
   const { isOnline, pendingSyncCount } = useOffline();
   
-  // Use runtime data hook for all dashboard data
-  const {
-    products,
-    customers,
-    orders,
-    productsLoading,
-    customersLoading,
-    ordersLoading,
-    forceRefreshAll,
-    isConnected
-  } = useRuntimeData();
+  // Use runtime data hooks for all dashboard data
+  const { products, productsLoading, fetchProducts } = useProductsRuntime();
+  const { customers, customersLoading, fetchCustomers } = useCustomersRuntime();
+  const { orders, ordersLoading, fetchOrders } = useOrdersRuntime();
   
-  // Refresh all data function  
-  const refreshAll = async () => {
-    await forceRefreshAll();
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  
+  // Manual refresh function
+  const handleRefreshAll = async () => {
+    setIsRefreshing(true);
+    try {
+      await Promise.all([
+        fetchProducts(),
+        fetchCustomers(),
+        fetchOrders()
+      ]);
+    } finally {
+      setIsRefreshing(false);
+    }
   };
 
   // Enhanced dashboard metrics query with runtime Supabase calls
@@ -246,13 +250,7 @@ export default function Dashboard() {
     return <DashboardSkeleton />;
   }
 
-  // Refresh all dashboard data
-  const handleRefreshAll = async () => {
-    await Promise.all([
-      refreshMetrics(),
-      refreshRecentOrders()
-    ]);
-  };
+
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -276,8 +274,8 @@ export default function Dashboard() {
               </p>
             </div>
             <RefreshButton
-              onRefresh={forceRefreshAll}
-              isLoading={metricsLoading || recentOrdersLoading}
+              onRefresh={handleRefreshAll}
+              isLoading={isRefreshing || metricsLoading || recentOrdersLoading}
               size="sm"
               variant="outline"
               showLabel={true}

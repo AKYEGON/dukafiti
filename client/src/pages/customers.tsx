@@ -11,31 +11,22 @@ import { RecordRepaymentModal } from "@/components/customers/record-repayment-mo
 import { MobilePageWrapper } from "@/components/layout/mobile-page-wrapper";
 import { RefreshButton } from "@/components/ui/refresh-button";
 import { motion, AnimatePresence } from "framer-motion";
-import { useRuntimeData } from "@/hooks/useRuntimeData";
-import { useRuntimeOperations } from "@/hooks/useRuntimeOperations";
+import { useCustomersRuntime } from "@/hooks/useRuntimeDataNew";
 import type { Customer } from "@/types/schema";
 
 export default function Customers() {
-  // Use runtime data and operations hooks
+  // Use runtime data hook with zero caching
   const {
     customers,
-    customersLoading: isLoading,
-    customersError: error,
+    isLoading,
+    error,
     fetchCustomers: refreshCustomers,
-    isConnected
-  } = useRuntimeData();
-
-  const {
     addCustomer: createCustomer,
     updateCustomer,
-    deleteCustomer,
-    recordRepayment
-  } = useRuntimeOperations();
+    deleteCustomer
+  } = useCustomersRuntime();
 
-  const [isCreating, setIsCreating] = useState(false);
-  const [isUpdating, setIsUpdating] = useState(false);
-  const [isDeleting, setIsDeleting] = useState(false);
-  const [isRecordingRepayment, setIsRecordingRepayment] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const [showNewCustomerForm, setShowNewCustomerForm] = useState(false);
   const [showEditCustomerForm, setShowEditCustomerForm] = useState(false);
@@ -108,7 +99,15 @@ export default function Customers() {
     setSelectedCustomer(null);
   }, []);
 
-  // Real-time updates handled by useSimpleCustomers hook
+  // Manual refresh function
+  const handleRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    try {
+      await refreshCustomers();
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [refreshCustomers]);
 
   if (isLoading) {
     return (

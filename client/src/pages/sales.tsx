@@ -10,12 +10,8 @@ import { formatCurrency } from "@/lib/utils";
 import { offlineQueue, isOnline } from "@/lib/offline-queue";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SaleConfirmationModal } from "@/components/sales/sale-confirmation-modal";
-import { useRuntimeData } from "@/hooks/useRuntimeData";
-import { useRuntimeOperations } from "@/hooks/useRuntimeOperations";
-import { getProducts, searchProducts, getCustomers } from "@/lib/supabase-data";
-import { triggerSaleCompletedNotification, triggerLowStockNotification } from "@/lib/notification-triggers";
+import { useProductsRuntime, useCustomersRuntime, useOrdersRuntime } from "@/hooks/useRuntimeDataNew";
 import { supabase } from "@/lib/supabase";
-import { createSaleOfflineAware, createCustomerOfflineAware } from "@/lib/offline-api";
 import { RefreshButton } from "@/components/ui/refresh-button";
 
 
@@ -39,18 +35,22 @@ export default function Sales() {
   const buttonRef = useRef<HTMLButtonElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
-  // Use runtime data and operations hooks
+  // Use runtime data hooks with zero caching
   const { 
     products,
-    productsLoading,
-    fetchProducts: refreshProducts,
-    customers,
-    isConnected
-  } = useRuntimeData();
+    isLoading: productsLoading,
+    fetchProducts: refreshProducts
+  } = useProductsRuntime();
 
   const {
-    processSale
-  } = useRuntimeOperations();
+    customers,
+    isLoading: customersLoading,
+    fetchCustomers: refreshCustomers
+  } = useCustomersRuntime();
+
+  const {
+    createSale: processSale
+  } = useOrdersRuntime();
 
   // Get frequent products for quick select (first 6, sorted by sales)
   const quickSelectProducts = (products || [])
@@ -60,7 +60,7 @@ export default function Sales() {
 
   // Real-time updates now handled by comprehensive hook
 
-  // Search function with timeout for debouncing
+  // Runtime search function with no caching
   const performSearch = useCallback(async (query: string) => {
     if (query.length < 1) {
       setSearchResults([]);
@@ -71,18 +71,23 @@ export default function Sales() {
 
     setSearchLoading(true);
     try {
-      const data = await searchProducts(query);
-      setSearchResults(data || []);
+      // Search directly from runtime data
+      const filtered = products.filter(product => 
+        product.name.toLowerCase().includes(query.toLowerCase()) ||
+        product.sku.toLowerCase().includes(query.toLowerCase()) ||
+        product.category?.toLowerCase().includes(query.toLowerCase())
+      );
+      setSearchResults(filtered || []);
       setShowSearchDropdown(true);
       setSelectedSearchIndex(-1);
     } catch (error) {
-      
+      console.error('Search error:', error);
       setSearchResults([]);
       setShowSearchDropdown(false);
     } finally {
       setSearchLoading(false);
     }
-  }, []);
+  }, [products]);
 
   // Trigger search when query changes with debouncing
   useEffect(() => {

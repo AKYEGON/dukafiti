@@ -22,9 +22,9 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Search, Package, Edit, Trash2, Plus, PackagePlus } from "lucide-react";
+import { Search, Package, Edit, Trash2, Plus, PackagePlus, RefreshCw } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useProducts } from "@/hooks/useRealtimeData";
+import { useProductsRuntime } from "@/hooks/useRuntimeDataNew";
 
 type SortOption = "name-asc" | "name-desc" | "price-asc" | "price-desc";
 
@@ -36,20 +36,18 @@ export default function Inventory() {
   const [deleteProductState, setDeleteProductState] = useState<Product | undefined>();
   const [restockProduct, setRestockProduct] = useState<Product | undefined>();
 
-  // Use real-time data hook for instant updates
+  // Use runtime data hook for instant updates with zero caching
   const {
     products,
     isLoading,
-    isRefreshing,
     error,
-    refreshData: refresh,
-    createProduct,
+    fetchProducts: refresh,
+    addProduct: createProduct,
     updateProduct,
-    deleteProduct,
-    isCreating,
-    isUpdating,
-    isDeleting
-  } = useProducts();
+    deleteProduct
+  } = useProductsRuntime();
+  
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Search and sort functions
   const searchProducts = useCallback((searchTerm: string) => {
@@ -112,11 +110,25 @@ export default function Inventory() {
     setRestockProduct(undefined);
   }, []);
 
+  // Enhanced refresh with manual loading state
+  const handleRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    try {
+      await refresh();
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [refresh]);
+
   // Confirm delete handler
-  const confirmDelete = useCallback(() => {
+  const confirmDelete = useCallback(async () => {
     if (deleteProductState) {
-      deleteProduct(deleteProductState.id);
-      setDeleteProductState(undefined);
+      try {
+        await deleteProduct(deleteProductState.id);
+        setDeleteProductState(undefined);
+      } catch (error) {
+        // Error already handled in hook
+      }
     }
   }, [deleteProductState, deleteProduct]);
 
@@ -141,11 +153,13 @@ export default function Inventory() {
           </div>
           <div className="flex items-center gap-2">
             <Button
-              onClick={refresh}
+              onClick={handleRefresh}
               disabled={isRefreshing}
               size="sm"
               variant="outline"
+              className="flex items-center gap-2"
             >
+              <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
               {isRefreshing ? "Refreshing..." : "Refresh"}
             </Button>
             <Button 
@@ -307,15 +321,14 @@ export default function Inventory() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleteProductMutation.isPending}>
+            <AlertDialogCancel>
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction
-              onClick={() => deleteProductState && deleteProductMutation.mutate(deleteProductState.id)}
-              disabled={deleteProductMutation.isPending}
+              onClick={confirmDelete}
               className="bg-red-600 hover:bg-red-700"
             >
-              {deleteProductMutation.isPending ? "Deleting..." : "Delete"}
+              Delete
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

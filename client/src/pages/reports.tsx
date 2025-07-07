@@ -1,20 +1,14 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { useRuntimeData } from '@/hooks/useRuntimeData';
+import { useProductsRuntime, useCustomersRuntime, useOrdersRuntime } from '@/hooks/useRuntimeDataNew';
 import { RefreshButton } from '@/components/ui/refresh-button';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Download, FileSpreadsheet } from 'lucide-react';
+import { Download, FileSpreadsheet, RefreshCw } from 'lucide-react';
 import download from 'downloadjs';
-import { 
-  getReportsSummary, 
-  getReportsTrend, 
-  getTopCustomers, 
-  getTopProducts, 
-  getOrdersData, 
-  getCustomerCredits 
-} from '@/lib/supabase-data';
+import { useAuth } from '@/contexts/SupabaseAuth';
+import { supabase } from '@/lib/supabase';
 
 // Import recharts components directly
 import { 
@@ -153,8 +147,12 @@ const downloadCSV = (csvContent: string, filename: string): void => {
 };
 
 export default function Reports() {
-  // Use comprehensive real-time hook for connected status and manual refresh
-  const { isConnected, forceRefreshAll } = useRuntimeData();
+  const { user } = useAuth();
+  
+  // Use runtime data hooks with zero caching
+  const { orders, fetchOrders } = useOrdersRuntime();
+  const { customers, fetchCustomers } = useCustomersRuntime();
+  const { products, fetchProducts } = useProductsRuntime();
   
   // State for timeframe selectors
   const [summaryPeriod, setSummaryPeriod] = useState<'today' | 'weekly' | 'monthly'>('today');
@@ -165,56 +163,149 @@ export default function Reports() {
   const [ordersPage, setOrdersPage] = useState(1);
   
   const [exportingCSV, setExportingCSV] = useState<string | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  // Runtime summary data calculation - no caching
+  const getSummaryData = async (): Promise<SummaryData> => {
+    if (!user?.id) throw new Error('User not authenticated');
+    
+    console.log('🔄 Runtime fetch: Reports summary');
+    
+    let startDate: Date;
+    const now = new Date();
+    
+    switch (summaryPeriod) {
+      case 'today':
+        startDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        break;
+      case 'weekly':
+        startDate = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        break;
+      case 'monthly':
+        startDate = new Date(now.getFullYear(), now.getMonth(), 1);
+        break;
+    }
+    
+    const { data, error } = await supabase
+      .from('orders')
+      .select('total, payment_method')
+      .eq('store_id', user.id)
+      .gte('created_at', startDate.toISOString());
+    
+    if (error) throw error;
+    
+    const totalSales = data.reduce((sum, order) => sum + parseFloat(order.total), 0);
+    const cashSales = data.filter(o => o.payment_method === 'cash').reduce((sum, order) => sum + parseFloat(order.total), 0);
+    const mobileMoneySales = data.filter(o => o.payment_method === 'mobileMoney').reduce((sum, order) => sum + parseFloat(order.total), 0);
+    const creditSales = data.filter(o => o.payment_method === 'credit').reduce((sum, order) => sum + parseFloat(order.total), 0);
+    
+    return {
+      totalSales: totalSales.toString(),
+      cashSales: cashSales.toString(),
+      mobileMoneySales: mobileMoneySales.toString(),
+      creditSales: creditSales.toString()
+    };
+  };
+
+  // Runtime trend data calculation - no caching
+  const getTrendData = async (): Promise<TrendData[]> => {
+    if (!user?.id) throw new Error('User not authenticated');
+    
+    console.log('🔄 Runtime fetch: Reports trend');
+    
+    const { data, error } = await supabase
+      .from('orders')
+      .select('created_at, total')
+      .eq('store_id', user.id)
+      .order('created_at', { ascending: true });
+    
+    if (error) throw error;
+    
+    // Group by time period
+    const grouped: { [key: string]: number } = {};
+    
+    data.forEach(order => {
+      const date = new Date(order.created_at);
+      let key: string;
+      
+      switch (trendPeriod) {
+        case 'hourly':
+          key = `${date.getHours()}:00`;
+          break;
+        case 'daily':
+          key = date.toLocaleDateString('en-KE', { month: 'short', day: 'numeric' });
+          break;
+        case 'monthly':
+          key = date.toLocaleDateString('en-KE', { month: 'short', year: 'numeric' });
+          break;
+      }
+      
+      grouped[key] = (grouped[key] || 0) + parseFloat(order.total);
+    });
+    
+    return Object.entries(grouped).map(([label, value]) => ({ label, value }));
+  };
 
   // Fetch summary data with runtime Supabase calls
   const { data: summaryData, isLoading: summaryLoading, error: summaryError, refetch: refreshSummary } = useQuery<SummaryData>({
-    queryKey: ['reports-summary', summaryPeriod],
-    queryFn: () => getReportsSummary(summaryPeriod),
+    queryKey: ['reports-summary', summaryPeriod, user?.id],
+    queryFn: getSummaryData,
+    enabled: !!user?.id,
     staleTime: 0, // Always fetch fresh
+    cacheTime: 0, // No caching
     refetchOnWindowFocus: true,
-    refetchOnMount: true,
   });
 
   // Fetch trend data with runtime Supabase calls
   const { data: trendData, isLoading: trendLoading, error: trendError, refetch: refreshTrend } = useQuery<TrendData[]>({
-    queryKey: ['reports-trend', trendPeriod],
-    queryFn: () => getReportsTrend(trendPeriod),
+    queryKey: ['reports-trend', trendPeriod, user?.id],
+    queryFn: getTrendData,
+    enabled: !!user?.id,
     staleTime: 0, // Always fetch fresh
+    cacheTime: 0, // No caching
     refetchOnWindowFocus: true,
-    refetchOnMount: true,
   });
 
-  // Debug trend data
-  console.log('Trend Data Debug:', {
-    trendData,
-    isLoading: trendLoading,
-    error: trendError,
-    period: trendPeriod,
-    dataLength: trendData?.length,
-    sampleData: trendData?.[0],
-    isArray: Array.isArray(trendData),
-    hasData: trendData && Array.isArray(trendData) && trendData.length > 0
-  });
-  
+  // Manual refresh function for all reports data
+  const handleRefreshAll = async () => {
+    setIsRefreshing(true);
+    try {
+      await Promise.all([
+        refreshSummary(),
+        refreshTrend(),
+        fetchOrders(),
+        fetchCustomers(),
+        fetchProducts()
+      ]);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
+  // Calculate top customers from runtime data
+  const topCustomersData = customers
+    .filter(customer => parseFloat(customer.balance || '0') > 0)
+    .sort((a, b) => parseFloat(b.balance || '0') - parseFloat(a.balance || '0'))
+    .slice(0, 5)
+    .map(customer => ({
+      customerName: customer.name,
+      totalOwed: formatCurrency(customer.balance || '0'),
+      outstandingOrders: orders.filter(order => 
+        order.customer_name === customer.name && 
+        order.payment_method === 'credit'
+      ).length
+    }));
 
-  // Fetch customer credits data
-  const { data: customerCreditsData, isLoading: customerCreditsLoading } = useQuery<CustomerCredit[]>({
-    queryKey: ['customer-credits'],
-    queryFn: () => getCustomerCredits()
-  });
-
-  // Fetch top customers data
-  const { data: topCustomersData, isLoading: topCustomersLoading } = useQuery<TopCustomer[]>({
-    queryKey: ['top-customers', summaryPeriod],
-    queryFn: () => getTopCustomers(summaryPeriod)
-  });
-
-  // Fetch top products data
-  const { data: topProductsData, isLoading: topProductsLoading } = useQuery<TopProduct[]>({
-    queryKey: ['top-products', summaryPeriod],
-    queryFn: () => getTopProducts(summaryPeriod)
-  });
+  // Calculate top products from runtime data  
+  const topProductsData = products
+    .filter(product => product.sales_count && product.sales_count > 0)
+    .sort((a, b) => (b.sales_count || 0) - (a.sales_count || 0))
+    .slice(0, 5)
+    .map(product => ({
+      productName: product.name,
+      quantitySold: product.sales_count || 0,
+      revenue: formatCurrency((product.sales_count || 0) * product.price)
+    }));
 
   // Fetch orders data
   const { data: ordersData, isLoading: ordersLoading, error: ordersError } = useQuery<OrdersResponse>({
@@ -367,24 +458,14 @@ export default function Reports() {
               <h1 className="text-2xl font-bold text-neutral-900 dark:text-neutral-100 mb-2">Reports</h1>
               <p className="text-neutral-600 dark:text-neutral-400">
                 View your business analytics and performance
-                {(summaryLoading || trendLoading || ordersLoading || topCustomersLoading || topProductsLoading) && (
+                {(summaryLoading || trendLoading || isRefreshing) && (
                   <span className="ml-2 text-orange-600 dark:text-orange-400">• Updating...</span>
-                )}
-                {!isConnected && (
-                  <span className="ml-2 text-red-600 dark:text-red-400">• Offline</span>
                 )}
               </p>
             </div>
             <RefreshButton
-              onRefresh={async () => {
-                await Promise.all([
-                  refreshProducts(),
-                  refreshCustomers(),
-                  refreshSummary(),
-                  refreshTrend()
-                ]);
-              }}
-              isLoading={summaryLoading || trendLoading || ordersLoading || topCustomersLoading || topProductsLoading}
+              onRefresh={handleRefreshAll}
+              isLoading={isRefreshing || summaryLoading || trendLoading}
               size="sm"
               variant="outline"
               showLabel={true}

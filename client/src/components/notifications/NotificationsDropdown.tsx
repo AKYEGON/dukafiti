@@ -9,7 +9,7 @@ import {
   DropdownMenuItem,
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
-import useNotifications from '@/hooks/useNotifications';
+import { useNotificationsRuntime } from '@/hooks/useRuntimeDataNew';
 import { useLocation } from 'wouter';
 
 interface NotificationsDropdownProps {
@@ -65,15 +65,19 @@ const getNotificationRoute = (type: string) => {
 };
 
 export function NotificationsDropdown({ isOpen, setIsOpen }: NotificationsDropdownProps) {
-  const { list: notifications, unreadCount, markAllRead } = useNotifications();
+  const { notifications, markAsRead } = useNotificationsRuntime();
   const [, setLocation] = useLocation();
+
+  // Calculate unread count from runtime data
+  const unreadCount = notifications.filter(n => !n.is_read).length;
 
   // Auto-mark as read when dropdown opens
   useEffect(() => {
     if (isOpen && unreadCount > 0) {
-      markAllRead();
+      const unreadIds = notifications.filter(n => !n.is_read).map(n => n.id);
+      markAsRead(unreadIds);
     }
-  }, [isOpen, unreadCount, markAllRead]);
+  }, [isOpen, unreadCount, notifications, markAsRead]);
 
   const handleNotificationClick = (type: string) => {
     const route = getNotificationRoute(type);
