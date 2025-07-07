@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "buildCommand": "vite build --config vite.config.vercel.ts",
+  "buildCommand": "node deploy-config.js && vite build --config vite.config.vercel.ts",
   "outputDirectory": "dist/public",
   "installCommand": "npm install",
   "framework": null,
