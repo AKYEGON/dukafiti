@@ -957,12 +957,12 @@ export const getDashboardMetrics = async () => {
       if (ordersError.message.includes('relation "orders" does not exist')) {
         console.log('Orders table not found, returning defaults');
         return {
-          totalRevenue: '0',
+          totalRevenue: '0.00',
           totalOrders: 0,
           totalProducts: 0,
           totalCustomers: 0,
-          revenueGrowth: '0',
-          ordersGrowth: '0',
+          revenueGrowth: '0.0',
+          ordersGrowth: '0.0',
           lowStockCount: 0,
           activeCustomersCount: 0,
         };

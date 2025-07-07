@@ -180,6 +180,8 @@ export function useSales() {
     recentOrders: recentOrders || [],
     isLoading,
     recentOrdersLoading,
+    ordersFetching: isFetching, // Add alias for dashboard compatibility
+    ordersStale: isStale, // Add alias for dashboard compatibility
     error,
     isStale,
     isFetching,
