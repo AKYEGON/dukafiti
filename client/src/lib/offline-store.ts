@@ -2,7 +2,7 @@
 
 import localforage from 'localforage';
 import { supabase } from './supabase';
-import { toast } from '@/hooks/use-toast';
+// Note: toast notifications are handled by the OfflineManager component
 
 // Configure localforage
 localforage.config({
@@ -100,11 +100,6 @@ class OfflineStore {
 
     if (!navigator.onLine) {
       console.log('📴 Cannot sync - offline');
-      toast({
-        title: 'Sync Failed',
-        description: 'No internet connection available',
-        variant: 'destructive',
-      });
       return { success: 0, failed: 0, errors: ['No internet connection'] };
     }
 
@@ -163,21 +158,8 @@ class OfflineStore {
     
     this.syncInProgress = false;
     
-    // Show sync results
-    if (successCount > 0) {
-      toast({
-        title: 'Sync Successful',
-        description: `${successCount} operation${successCount > 1 ? 's' : ''} synced successfully`,
-      });
-    }
-    
-    if (failedCount > 0) {
-      toast({
-        title: 'Sync Issues',
-        description: `${failedCount} operation${failedCount > 1 ? 's' : ''} failed to sync`,
-        variant: 'destructive',
-      });
-    }
+    // Sync results logged - UI notifications handled by OfflineManager
+    console.log(`🔄 Sync complete: ${successCount} success, ${failedCount} failed`);
 
     return { success: successCount, failed: failedCount, errors };
   }

@@ -11,11 +11,12 @@ import { config } from "./lib/config";
 
 import { AuthProvider, useAuth } from "@/contexts/SupabaseAuth";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
-import { useWebSocket } from "@/hooks/use-websocket";
+// Removed WebSocket import - using Supabase-only architecture
 import { useSupabaseRealtime } from "@/hooks/useSupabaseRealtime";
 import { ThemeProvider } from "@/contexts/theme-context";
 import { ErrorBoundary } from "@/components/error-boundary";
 import OfflineManager from "@/components/offline/offline-manager";
+import { registerServiceWorker } from "@/lib/sw-registration";
 
 import Dashboard from "@/pages/dashboard";
 import Inventory from "@/pages/inventory";
@@ -35,9 +36,6 @@ import Debug from "@/pages/debug";
 import DebugAuth from "@/pages/debug-auth";
 
 function AuthenticatedApp() {
-  // Initialize WebSocket connection for real-time notifications
-  useWebSocket();
-  
   // Initialize Supabase real-time subscriptions
   useSupabaseRealtime();
   

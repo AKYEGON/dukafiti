@@ -151,7 +151,14 @@ export function RestockModal({ product, open, onOpenChange }: RestockModalProps)
 
   if (!product) return null;
 
-
+  // Debug logging for button state
+  console.log('RestockModal render:', {
+    productId: product.id,
+    isPending: restockMutation.isPending,
+    isSuccess: restockMutation.isSuccess,
+    isError: restockMutation.isError,
+    open
+  });
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
