@@ -122,12 +122,12 @@ export default function Register() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4 sm:px-6 lg:px-8">
-      <div className="bg-white dark:bg-[#1F1F1F] border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg p-6 sm:p-8 w-full max-w-md mx-auto my-12">
+      <div className="bg-white dark:bg-[#1F1F1F] border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg p-6 sm:p-8 w-full max-w-md mx-auto my-6">
         
         {/* Back Button */}
         <button
           onClick={() => navigate('/')}
-          className="flex items-center text-brand hover:text-brand-700 dark:text-brand-300 dark:hover:text-brand-200 mb-6 text-lg font-medium p-2 transition-colors duration-200"
+          className="flex items-center text-brand hover:text-brand-700 dark:text-brand-300 dark:hover:text-brand-200 mb-4 text-lg font-medium p-2 transition-colors duration-200"
           aria-label="Go back to home page"
         >
           <ArrowLeft className="h-5 w-5 mr-2" />
@@ -135,19 +135,19 @@ export default function Register() {
         </button>
 
         {/* Logo/App Name - DukaFiti Branding */}
-        <div className="text-center mb-8">
-          <div className="mx-auto mb-6 flex items-center justify-center rounded-xl p-6">
+        <div className="text-center mb-6">
+          <div className="mx-auto mb-4 flex items-center justify-center rounded-xl p-4">
             {/* Light mode title and slogan */}
             <img 
-              src="/assets/auth-logo-light.png"
+              src="/assets/dukafiti-title-slogan-light.png"
               alt="DukaFiti - Duka Bora Ni Duka Fiti" 
-              className="h-24 w-auto object-contain dark:hidden"
+              className="h-16 w-auto object-contain dark:hidden"
             />
             {/* Dark mode title and slogan */}
             <img 
-              src="/assets/auth-logo-dark.png"
+              src="/assets/dukafiti-title-slogan-dark.png"
               alt="DukaFiti - Duka Bora Ni Duka Fiti" 
-              className="h-24 w-auto object-contain hidden dark:block"
+              className="h-16 w-auto object-contain hidden dark:block"
             />
           </div>
         </div>

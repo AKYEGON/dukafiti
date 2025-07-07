@@ -113,30 +113,30 @@ export default function AuthPage() {
         </div>
 
         {/* Single unified card */}
-        <div className="max-w-lg w-full bg-white dark:bg-gray-800 p-12 rounded-3xl shadow-2xl border border-gray-200 dark:border-gray-700">
+        <div className="max-w-lg w-full bg-white dark:bg-gray-800 p-8 rounded-3xl shadow-2xl border border-gray-200 dark:border-gray-700">
           {/* Logo inside card */}
-          <div className="mb-10 flex justify-center">
-            <div className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-600 p-6 rounded-2xl">
+          <div className="mb-6 flex justify-center">
+            <div className="p-4 rounded-2xl">
               <img 
-                src={theme === 'dark' ? "/assets/banner-dark.png" : "/assets/banner-light.png"}
+                src={theme === 'dark' ? "/assets/dukafiti-title-slogan-dark.png" : "/assets/dukafiti-title-slogan-light.png"}
                 alt="DukaFiti - Duka Bora Ni Duka Fiti" 
-                className="h-20 w-auto object-contain"
+                className="h-14 w-auto object-contain"
               />
             </div>
           </div>
           {/* Form header */}
-          <div className="mb-10 text-center">
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-brand-600 to-brand-700 bg-clip-text text-transparent mb-3">
+          <div className="mb-6 text-center">
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-brand-600 to-brand-700 bg-clip-text text-transparent mb-2">
               {isLogin ? "Welcome Back" : "Create Account"}
             </h1>
-            <p className="text-gray-600 dark:text-gray-400 text-lg">
+            <p className="text-gray-600 dark:text-gray-400 text-base">
               {isLogin ? "Sign in to your DukaFiti account" : "Start your journey with DukaFiti"}
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-8">
+          <form onSubmit={handleSubmit} className="space-y-5">
             {!isLogin && (
-              <div className="space-y-3">
+              <div className="space-y-2">
                 <Label htmlFor="name" className="text-sm font-semibold text-gray-700 dark:text-gray-300 tracking-wide">
                   FULL NAME
                 </Label>
@@ -148,12 +148,12 @@ export default function AuthPage() {
                   value={formData.name}
                   onChange={handleInputChange}
                   required={!isLogin}
-                  className="h-16 px-6 rounded-2xl border-2 border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:border-brand focus:ring-brand focus:ring-2 focus:ring-brand/20 transition-all duration-200 text-lg"
+                  className="h-12 px-4 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:border-brand focus:ring-brand focus:ring-2 focus:ring-brand/20 transition-all duration-200 text-base"
                 />
               </div>
             )}
             
-            <div className="space-y-3">
+            <div className="space-y-2">
               <Label htmlFor="email" className="text-sm font-semibold text-gray-700 dark:text-gray-300 tracking-wide">
                 EMAIL ADDRESS
               </Label>
@@ -165,11 +165,11 @@ export default function AuthPage() {
                 value={formData.email}
                 onChange={handleInputChange}
                 required
-                className="h-16 px-6 rounded-2xl border-2 border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:border-brand focus:ring-brand focus:ring-2 focus:ring-brand/20 transition-all duration-200 text-lg"
+                className="h-12 px-4 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:border-brand focus:ring-brand focus:ring-2 focus:ring-brand/20 transition-all duration-200 text-base"
               />
             </div>
             
-            <div className="space-y-3">
+            <div className="space-y-2">
               <Label htmlFor="password" className="text-sm font-semibold text-gray-700 dark:text-gray-300 tracking-wide">
                 PASSWORD
               </Label>
@@ -182,13 +182,13 @@ export default function AuthPage() {
                   value={formData.password}
                   onChange={handleInputChange}
                   required
-                  className="h-16 px-6 pr-16 rounded-2xl border-2 border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:border-brand focus:ring-brand focus:ring-2 focus:ring-brand/20 transition-all duration-200 text-lg"
+                  className="h-12 px-4 pr-12 rounded-xl border-2 border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:border-brand focus:ring-brand focus:ring-2 focus:ring-brand/20 transition-all duration-200 text-base"
                 />
                 <Button
                   type="button"
                   variant="ghost"
                   size="sm"
-                  className="absolute right-4 top-1/2 -translate-y-1/2 h-8 w-8 p-0 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-full text-gray-500 dark:text-gray-400"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 h-6 w-6 p-0 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-full text-gray-500 dark:text-gray-400"
                   onClick={() => setShowPassword(!showPassword)}
                 >
                   {showPassword ? (
@@ -202,16 +202,16 @@ export default function AuthPage() {
 
             <Button 
               type="submit" 
-              className="w-full h-16 rounded-2xl bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700 text-white font-bold text-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02] mt-8"
+              className="w-full h-12 rounded-xl bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700 text-white font-bold text-lg shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02] mt-6"
               disabled={isLoading}
             >
               {isLoading ? "Please wait..." : (isLogin ? "Sign In" : "Create Account")}
             </Button>
             
             {/* Divider */}
-            <div className="flex items-center my-8">
+            <div className="flex items-center my-4">
               <div className="flex-1 border-t border-gray-200 dark:border-gray-600"></div>
-              <span className="px-6 text-sm text-gray-500 dark:text-gray-400 font-medium">or</span>
+              <span className="px-4 text-sm text-gray-500 dark:text-gray-400 font-medium">or</span>
               <div className="flex-1 border-t border-gray-200 dark:border-gray-600"></div>
             </div>
             
@@ -221,26 +221,26 @@ export default function AuthPage() {
               onClick={handleGoogleSignIn}
               disabled={isLoading}
               variant="outline"
-              className="w-full h-16 text-lg font-semibold border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 text-gray-900 dark:text-white rounded-2xl transition-all duration-200 shadow-sm hover:shadow-md flex items-center justify-center gap-4"
+              className="w-full h-12 text-base font-semibold border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 text-gray-900 dark:text-white rounded-xl transition-all duration-200 shadow-sm hover:shadow-md flex items-center justify-center gap-3"
             >
               <FcGoogle className="h-7 w-7" />
               {isLogin ? "Sign in with Google" : "Sign up with Google"}
             </Button>
             
-            <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-700 rounded-2xl">
+            <div className="mt-4 p-3 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-700 rounded-xl">
               <p className="text-sm text-blue-800 dark:text-blue-300 text-center">
                 <span className="font-semibold">Note:</span> Google OAuth requires additional setup. Use email/password authentication for immediate access.
               </p>
             </div>
           </form>
 
-          <div className="mt-8 text-center">
-            <p className="text-base text-gray-600 dark:text-gray-400 mb-2">
+          <div className="mt-5 text-center">
+            <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
               {isLogin ? "Don't have an account?" : "Already have an account?"}
             </p>
             <Button
               variant="link"
-              className="text-brand hover:text-brand-700 font-bold text-lg transition-colors duration-200"
+              className="text-brand hover:text-brand-700 font-bold text-base transition-colors duration-200"
               onClick={() => {
                 setIsLogin(!isLogin);
                 setFormData({ email: "", password: "", name: "" });
@@ -251,11 +251,11 @@ export default function AuthPage() {
           </div>
 
           {!isLogin && (
-            <div className="mt-4 text-center">
+            <div className="mt-3 text-center">
               <p className="text-xs text-gray-500 dark:text-gray-400">
                 By signing up you agree to Our Terms and Privacy Policy
               </p>
-              <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                 Free 14-day trial • No credit card required
               </p>
             </div>
