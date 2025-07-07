@@ -1,73 +1,48 @@
 /**
- * Refresh Button Component
- * Provides manual refresh functionality with loading states
+ * Manual Refresh Button Component
+ * Provides manual data refresh functionality with loading states
  */
 
 import { useState } from 'react';
 import { Button } from './button';
 import { RefreshCw } from 'lucide-react';
-import { cn } from '@/lib/utils';
 
 interface RefreshButtonProps {
-  onRefresh: () => Promise<void> | void;
+  onRefresh: () => Promise<void>;
   isLoading?: boolean;
-  disabled?: boolean;
   size?: 'sm' | 'md' | 'lg';
   variant?: 'default' | 'outline' | 'ghost';
   className?: string;
-  label?: string;
-  showLabel?: boolean;
 }
 
-export function RefreshButton({
-  onRefresh,
-  isLoading = false,
-  disabled = false,
+export function RefreshButton({ 
+  onRefresh, 
+  isLoading = false, 
   size = 'sm',
   variant = 'outline',
-  className,
-  label = 'Refresh',
-  showLabel = false,
+  className = '' 
 }: RefreshButtonProps) {
-  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   const handleRefresh = async () => {
-    if (isRefreshing || disabled) return;
-
-    setIsRefreshing(true);
+    setRefreshing(true);
     try {
       await onRefresh();
-    } catch (error) {
-      console.error('Refresh failed:', error);
     } finally {
-      setIsRefreshing(false);
+      setRefreshing(false);
     }
   };
 
-  const isSpinning = isLoading || isRefreshing;
-
   return (
     <Button
-      onClick={handleRefresh}
-      disabled={disabled || isSpinning}
-      size={size}
       variant={variant}
-      className={cn(
-        "min-w-[40px]",
-        showLabel && "gap-2",
-        className
-      )}
-      title={label}
+      size={size}
+      onClick={handleRefresh}
+      disabled={isLoading || refreshing}
+      className={className}
     >
-      <RefreshCw 
-        className={cn(
-          "h-4 w-4",
-          isSpinning && "animate-spin"
-        )} 
-      />
-      {showLabel && <span className="hidden sm:inline">{label}</span>}
+      <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
+      {refreshing ? 'Refreshing...' : 'Refresh'}
     </Button>
   );
 }
-
-export default RefreshButton;

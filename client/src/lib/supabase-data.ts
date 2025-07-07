@@ -22,9 +22,25 @@ export const createProduct = async (product: any) => {
       throw new Error('User not authenticated');
     }
 
+    // Generate unique SKU if duplicate
+    let finalSku = product.sku;
+    
+    // Check for existing SKU
+    const { data: existing } = await supabase
+      .from('products')
+      .select('sku')
+      .eq('sku', product.sku)
+      .single();
+    
+    if (existing) {
+      // Generate unique SKU with timestamp
+      finalSku = `${product.sku}-${Date.now()}`;
+      console.log(`⚠️ SKU already exists, using: ${finalSku}`);
+    }
+
     const insertData = {
       name: product.name,
-      sku: product.sku,
+      sku: finalSku,
       description: product.description || null,
       price: product.price,
       cost_price: product.costPrice || (product.price * 0.6), // Default to 60% of selling price
@@ -45,6 +61,12 @@ export const createProduct = async (product: any) => {
       console.error('❌ Product creation error:', error);
       if (error.details) console.error('Details:', error.details);
       if (error.hint) console.error('Hint:', error.hint);
+      
+      // Handle duplicate key error specifically
+      if (error.message.includes('duplicate key') || error.message.includes('unique constraint')) {
+        throw new Error(`A product with SKU "${finalSku}" already exists. Please use a different SKU.`);
+      }
+      
       throw new Error(error.message || 'Failed to create product in database');
     }
     

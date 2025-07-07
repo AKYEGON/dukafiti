@@ -25,7 +25,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Search, Package, Edit, Trash2, Plus, PackagePlus } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useComprehensiveRealtime } from "@/hooks/useComprehensiveRealtime";
+import { useRealtimeData } from "@/hooks/useRealtimeData";
 
 type SortOption = "name-asc" | "name-desc" | "price-asc" | "price-desc";
 
@@ -37,7 +37,7 @@ export default function Inventory() {
   const [deleteProductState, setDeleteProductState] = useState<Product | undefined>();
   const [restockProduct, setRestockProduct] = useState<Product | undefined>();
 
-  // Use comprehensive real-time hook for all operations
+  // Use enhanced real-time hook for all operations
   const {
     products,
     productsLoading: isLoading,
@@ -46,7 +46,7 @@ export default function Inventory() {
     deleteProductMutation,
     restockProductMutation,
     pendingOperations
-  } = useComprehensiveRealtime();
+  } = useRealtimeData();
 
   const filteredAndSortedProducts = useMemo(() => {
     // First search, then sort

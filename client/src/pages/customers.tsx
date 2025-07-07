@@ -10,11 +10,11 @@ import { CustomerForm } from "@/components/customers/customer-form";
 import { RecordRepaymentModal } from "@/components/customers/record-repayment-modal";
 import { MobilePageWrapper } from "@/components/layout/mobile-page-wrapper";
 import { motion, AnimatePresence } from "framer-motion";
-import { useComprehensiveRealtime } from "@/hooks/useComprehensiveRealtime";
+import { useRealtimeData } from "@/hooks/useRealtimeData";
 import type { Customer } from "@/types/schema";
 
 export default function Customers() {
-  // Use comprehensive real-time hook for all operations
+  // Use enhanced real-time hook for all operations
   const {
     customers,
     customersLoading: isLoading,
@@ -24,7 +24,7 @@ export default function Customers() {
     updateCustomerMutation,
     recordRepaymentMutation,
     pendingOperations
-  } = useComprehensiveRealtime();
+  } = useRealtimeData();
 
   const [showNewCustomerForm, setShowNewCustomerForm] = useState(false);
   const [showEditCustomerForm, setShowEditCustomerForm] = useState(false);

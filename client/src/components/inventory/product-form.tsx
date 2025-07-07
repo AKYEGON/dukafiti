@@ -1,11 +1,11 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { type InsertProduct, type Product } from "@/types/schema";
-import { apiRequest } from "@/lib/queryClient";
+import { createProduct, updateProduct } from "@/lib/supabase-data";
 import { useToast } from "@/hooks/use-toast";
+import { useRealtimeData } from "@/hooks/useRealtimeData";
 import {
   Dialog,
   DialogContent,
@@ -33,7 +33,7 @@ interface ProductFormProps {
 
 export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
   const { toast } = useToast();
-  const queryClient = useQueryClient();
+  const { createProductMutation, updateProductMutation } = useRealtimeData();
   const [unknownQuantity, setUnknownQuantity] = useState(false);
 
   const form = useForm<InsertProduct>({
@@ -83,97 +83,48 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
     }
   }, [product, form]);
 
-  const createMutation = useMutation({
-    mutationFn: async (data: InsertProduct) => {
-      try {
-        
-        // Use direct Supabase function for Vercel deployment
-        const { createProduct } = await import("@/lib/supabase-data");
-        const result = await createProduct(data);
-        
-        return result;
-      } catch (error) {
-        
-        throw error;
+  // Handle form submission
+  const onSubmit = async (data: InsertProduct) => {
+    try {
+      if (product) {
+        // Editing existing product
+        await updateProductMutation.mutateAsync({
+          id: product.id,
+          updates: {
+            name: data.name,
+            sku: data.sku,
+            description: data.description,
+            price: parseFloat(data.price),
+            costPrice: parseFloat(data.costPrice),
+            stock: unknownQuantity ? null : data.stock,
+            category: data.category,
+            lowStockThreshold: unknownQuantity ? null : data.lowStockThreshold,
+            unknownQuantity: unknownQuantity
+          }
+        });
+      } else {
+        // Creating new product
+        await createProductMutation.mutateAsync({
+          name: data.name,
+          sku: data.sku,
+          description: data.description,
+          price: parseFloat(data.price),
+          costPrice: parseFloat(data.costPrice),
+          stock: unknownQuantity ? null : data.stock,
+          category: data.category,
+          lowStockThreshold: unknownQuantity ? null : data.lowStockThreshold,
+          unknownQuantity: unknownQuantity
+        });
       }
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["products"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/dashboard/metrics"] });
-      toast({ title: "Product created successfully", variant: "default" });
+      
+      // Reset form and close dialog on success
       onOpenChange(false);
       form.reset();
       setUnknownQuantity(false);
-    },
-    onError: (error: any) => {
       
-      let errorMessage = "Failed to create product";
-      
-      if (error?.message) {
-        errorMessage = error.message;
-      } else if (error?.details) {
-        errorMessage = error.details;
-      } else if (error?.hint) {
-        errorMessage = error.hint;
-      }
-      
-      toast({ title: errorMessage, variant: "destructive" });
-    },
-  });
-
-  const updateMutation = useMutation({
-    mutationFn: async (data: InsertProduct) => {
-      // Use direct Supabase function for Vercel deployment
-      const { updateProduct } = await import("@/lib/supabase-data");
-      return await updateProduct(product!.id, data);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["products"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/dashboard/metrics"] });
-      toast({ title: "Product updated successfully" });
-      onOpenChange(false);
-    },
-    onError: (error: any) => {
-      const errorMessage = error?.message || "Failed to update product";
-      toast({ title: errorMessage, variant: "destructive" });
-    },
-  });
-
-  const onSubmit = (data: InsertProduct) => {
-    // Basic validation
-    if (!data.name?.trim()) {
-      toast({ title: "Product name is required", variant: "destructive" });
-      return;
-    }
-    
-    if (!data.sku?.trim()) {
-      toast({ title: "SKU is required", variant: "destructive" });
-      return;
-    }
-    
-    if (!data.price || parseFloat(data.price) <= 0) {
-      toast({ title: "Price must be greater than 0", variant: "destructive" });
-      return;
-    }
-    
-    if (!unknownQuantity && (typeof data.stock !== 'number' || data.stock < 0)) {
-      toast({ title: "Stock quantity must be 0 or greater", variant: "destructive" });
-      return;
-    }
-    
-    // Handle unknown quantity logic
-    const processedData = {
-      ...data,
-      stock: unknownQuantity ? null : data.stock,
-      unknownQuantity: unknownQuantity,
-    };
-    
-    
-    
-    if (product) {
-      updateMutation.mutate(processedData);
-    } else {
-      createMutation.mutate(processedData);
+    } catch (error) {
+      console.error('Form submission error:', error);
+      // Error is already handled by the mutation's onError
     }
   };
 
@@ -420,17 +371,17 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
                 type="button"
                 variant="outline"
                 onClick={() => onOpenChange(false)}
-                disabled={createMutation.isPending || updateMutation.isPending}
+                disabled={createProductMutation.isPending || updateProductMutation.isPending}
                 className="h-10 px-6 text-base"
               >
                 Cancel
               </Button>
               <Button
                 type="submit"
-                disabled={createMutation.isPending || updateMutation.isPending}
+                disabled={createProductMutation.isPending || updateProductMutation.isPending}
                 className="h-10 px-6 text-base bg-accent hover:bg-purple-700 text-white font-medium shadow-sm"
               >
-                {createMutation.isPending || updateMutation.isPending
+                {createProductMutation.isPending || updateProductMutation.isPending
                   ? "Saving..."
                   : product
                   ? "Update Product"
