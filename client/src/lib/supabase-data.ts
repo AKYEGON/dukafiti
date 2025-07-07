@@ -944,7 +944,7 @@ export const getRecentOrders = async () => {
 // Dashboard metrics functions
 export const getDashboardMetrics = async () => {
   try {
-    
+    console.log('🔍 Fetching dashboard metrics...');
     
     // Get total revenue from orders
     const { data: ordersData, error: ordersError } = await supabase
@@ -952,16 +952,18 @@ export const getDashboardMetrics = async () => {
       .select('total, created_at');
     
     if (ordersError) {
-      
-      // If table doesn't exist, return empty metrics instead of throwing
+      console.error('Orders query error:', ordersError);
+      // If table doesn't exist, return default metrics with correct field names
       if (ordersError.message.includes('relation "orders" does not exist')) {
-        
+        console.log('Orders table not found, returning defaults');
         return {
           totalRevenue: '0',
           totalOrders: 0,
           totalProducts: 0,
           totalCustomers: 0,
-          lowStockItems: 0,
+          revenueGrowth: '0',
+          ordersGrowth: '0',
+          lowStockCount: 0,
           activeCustomersCount: 0,
         };
       }

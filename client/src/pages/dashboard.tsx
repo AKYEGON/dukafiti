@@ -29,6 +29,7 @@ import { useEnhancedQuery } from "@/hooks/useEnhancedQuery";
 import { useSales } from "@/hooks/useSales";
 import { useComprehensiveRealtime, useVisibilityRefresh } from "@/hooks/useComprehensiveRealtime";
 import { getDashboardMetrics } from "@/lib/supabase-data";
+import { DashboardMonitor } from "@/components/debug/dashboard-monitor";
 
 
 
@@ -406,10 +407,15 @@ export default function Dashboard() {
               )}
             </div>
           </section>
+
+          {/* Debug Monitor - Remove after testing */}
+          {process.env.NODE_ENV === 'development' && (
+            <div className="container mx-auto px-4 sm:px-6 md:px-8 py-4">
+              <DashboardMonitor />
+            </div>
+          )}
         </div>
       </div>
-
-
 
       {/* Modal Components */}
       <ProductForm 

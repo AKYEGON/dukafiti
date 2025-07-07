@@ -38,68 +38,53 @@ export function RestockModal({ product, open, onOpenChange }: RestockModalProps)
 
   const restockMutation = useMutation({
     mutationKey: ['restock', product?.id],
-    mutationFn: async ({ productId, qty, costPrice }: { productId: string; qty: number; costPrice?: number }) => {
-      
+    mutationFn: async ({ productId, qty, costPrice }: { productId: number; qty: number; costPrice?: number }) => {
+      console.log('🔄 Starting restock mutation:', { productId, qty, costPrice });
       
       try {
-        const result = await restockProductOfflineAware(productId, qty, costPrice);
+        // Call updateProduct to add stock directly
+        const { updateProduct } = await import('@/lib/supabase-data');
+        const result = await updateProduct(productId, { 
+          stock: (product?.stock || 0) + qty,
+          cost_price: costPrice 
+        });
         
-        
-        // For offline operations, provide expected return format
-        if (result.offline) {
-          return {
-            newStock: qty, // Optimistic update
-            productId,
-            costPrice: costPrice || 0,
-            oldStock: 0, // We don't know current stock when offline
-            offline: true,
-            operationId: result.operationId
-          };
-        } else {
-          // For online operations, calculate from result
-          const newStock = result.data?.newStock || 0;
-          return {
-            newStock,
-            productId,
-            costPrice: costPrice || 0,
-            oldStock: newStock - qty,
-            offline: false
-          };
-        }
+        console.log('✅ Restock result:', result);
+        return result;
       } catch (error) {
-        
+        console.error('❌ Restock error:', error);
         throw error;
       }
     },
     onSuccess: (data: any) => {
+      console.log('🎉 Restock success, forcing immediate data refresh');
       
-      
-      // Only refresh queries if we're online and not in offline mode
-      if (navigator.onLine && !data.offline) {
-        queryClient.invalidateQueries({ queryKey: ['products'] });
-        queryClient.invalidateQueries({ queryKey: ['products-frequent'] });
-        queryClient.invalidateQueries({ queryKey: ['/api/dashboard/metrics'] });
-        queryClient.refetchQueries({ queryKey: ['products'] });
-      }
-      
-      const message = data.offline 
-        ? `${quantity} units will be added to ${product?.name} when back online`
-        : `${quantity} units added to ${product?.name}. Stock: ${data.oldStock} → ${data.newStock}`;
-      
-      toast({
-        title: data.offline ? 'Stock Update Queued' : 'Stock Added Successfully',
-        description: message,
-        className: data.offline ? 'bg-orange-50 border-orange-200 text-orange-800' : undefined,
+      // Immediate optimistic update of the cache
+      queryClient.setQueryData(['products'], (oldData: any) => {
+        if (!oldData || !Array.isArray(oldData)) return oldData;
+        
+        return oldData.map((p: any) => 
+          p.id === product?.id 
+            ? { ...p, stock: data.stock || (p.stock + parseInt(quantity)) }
+            : p
+        );
       });
       
+      // Force immediate refresh of all related queries
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-metrics'] });
+      queryClient.refetchQueries({ queryKey: ['products'] });
+      queryClient.refetchQueries({ queryKey: ['dashboard-metrics'] });
       
+      toast({
+        title: 'Stock Added Successfully',
+        description: `${quantity} units added to ${product?.name}. New stock: ${data.stock || 'updated'}`,
+      });
       
-      // Reset form and close modal
-      setTimeout(() => {
-        setQuantity('');
-        setBuyingPrice('');
-        onOpenChange(false);
-      }, 100);
+      // Reset form and close modal immediately
+      setQuantity('');
+      setBuyingPrice('');
+      onOpenChange(false);
     },
     onError: (error: Error) => {
       
@@ -133,7 +118,7 @@ export function RestockModal({ product, open, onOpenChange }: RestockModalProps)
     }
     
     restockMutation.mutate({
-      productId: product.id,
+      productId: Number(product.id),
       qty,
       costPrice
     });

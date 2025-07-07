@@ -13,7 +13,7 @@ import { AuthProvider, useAuth } from "@/contexts/SupabaseAuth";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { useRealtimeData } from "@/hooks/useRealtimeData";
 import { ThemeProvider } from "@/contexts/theme-context";
-import { ErrorBoundary } from "@/components/error-boundary";
+import { EnhancedErrorBoundary } from "@/components/debug/error-boundary";
 import { OfflineProvider } from "@/contexts/OfflineContext";
 import OfflineManager from "@/components/offline/offline-manager";
 import { registerServiceWorker } from "@/lib/sw-registration";
@@ -181,7 +181,7 @@ function App() {
   
   
   return (
-    <ErrorBoundary>
+    <EnhancedErrorBoundary showDetails={true}>
       <QueryClientProvider client={queryClient}>
         <ThemeProvider>
           <AuthProvider>
@@ -196,7 +196,7 @@ function App() {
           </AuthProvider>
         </ThemeProvider>
       </QueryClientProvider>
-    </ErrorBoundary>
+    </EnhancedErrorBoundary>
   );
 }
 
