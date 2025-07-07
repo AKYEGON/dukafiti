@@ -492,6 +492,14 @@ Changelog:
 - July 7, 2025. Updated all notification creation functions across codebase to use proper schema and type mappings
 - July 7, 2025. Verified low stock notifications now work correctly and display in real-time UI notification panel
 - July 7, 2025. Removed MVP Notifications Testing panel from dashboard per user request
+- July 7, 2025. Updated landing page with accurate business descriptions and professional UX/UI enhancements
+- July 7, 2025. Changed free trial period from 30 days to 14 days per user request
+- July 7, 2025. Replaced dashboard preview image with user-provided screenshot featuring professional backlighting and hover effects
+- July 7, 2025. Removed "Watch Demo" button and updated all text to accurately reflect DukaFiti's actual functionality
+- July 7, 2025. Enhanced feature descriptions to accurately describe inventory management, sales tracking, and customer credit functionality
+- July 7, 2025. Updated testimonials to reflect real use cases: inventory tracking, low-stock alerts, credit management, and offline functionality
+- July 7, 2025. Added professional CSS classes for dashboard preview hover effects with smooth animations and backlighting
+- July 7, 2025. Improved landing page accuracy: focused on inventory, sales, reports, and customer credit management as core features
 ```
 
 ## User Preferences

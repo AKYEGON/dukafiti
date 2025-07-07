@@ -13,32 +13,32 @@ export default function Home() {
   const features = [
     {
       icon: Store,
-      title: "Smart Inventory",
-      description: "Track stock levels, manage products, and never run out of your bestsellers",
+      title: "Inventory Management",
+      description: "Track stock levels, manage products with SKU codes, set low-stock alerts, and handle unknown quantities for items sold by measurement",
       accentColor: "border-l-brand"
     },
     {
       icon: BarChart3,
-      title: "Real-time Analytics", 
-      description: "Get instant insights on sales, profits, and customer behavior to grow faster",
+      title: "Sales & Reports", 
+      description: "Process cash, mobile money, and credit sales. Generate detailed reports with trends, top products, and customer analytics",
       accentColor: "border-l-accent-blue"
     },
     {
       icon: Users,
-      title: "Customer Management",
-      description: "Build stronger relationships with customer profiles and purchase history",
+      title: "Customer Credit Management",
+      description: "Track customer credit balances, record repayments, and manage customer information with automatic notifications",
       accentColor: "border-l-brand"
     }
   ];
 
   const testimonials = [
     {
-      quote: "DukaFiti helped me increase my profits by 40% in just 3 months. The inventory alerts saved me from stockouts during peak season.",
+      quote: "DukaFiti helps me track my inventory perfectly. The low-stock alerts prevent me from running out of popular items, and the sales reports show exactly which products are making money.",
       author: "Mary Wanjiku",
       business: "Wanjiku General Store, Nairobi"
     },
     {
-      quote: "Finally, a POS system built for Kenyan businesses. Easy to use, works offline, and the customer support understands our needs.",
+      quote: "Managing customer credit was a nightmare before DukaFiti. Now I can easily track who owes what, send reminders, and record payments. The offline feature is perfect for our location.",
       author: "John Kamau",
       business: "Kamau Electronics, Nakuru"
     }
@@ -132,11 +132,11 @@ export default function Home() {
             <div className="lg:col-span-6">
               <div className="text-center lg:text-left">
                 <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-gray-900 dark:text-white leading-tight">
-                  Smart POS for <span className="text-brand">Kenyan Dukawalas</span>
+                  Complete Business Management for <span className="text-brand">Kenyan Dukawalas</span>
                 </h1>
                 <p className="mt-6 text-xl text-gray-600 dark:text-gray-300 leading-relaxed">
-                  Transform your duka with intelligent inventory management, real-time analytics, and customer insights. 
-                  Built for Kenyan businesses, works offline.
+                  Manage your inventory, track sales, handle customer credit, and generate reports. 
+                  Built for Kenyan businesses with offline capabilities and real-time notifications.
                 </p>
                 
                 <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
@@ -148,58 +148,54 @@ export default function Home() {
                     Start Free Trial
                     <ArrowRight className="ml-2 h-5 w-5" />
                   </Button>
-                  <Button 
-                    size="lg" 
-                    variant="outline"
-                    onClick={() => setLocation('/login')}
-                    className="h-12 px-8 border-brand-200 text-brand-700 hover:bg-brand-50"
-                  >
-                    See Demo
-                  </Button>
+
                 </div>
 
                 <div className="mt-8 flex items-center justify-center lg:justify-start text-sm text-gray-500 dark:text-gray-400">
                   <CheckCircle className="h-4 w-4 text-brand-500 mr-2" />
-                  <span>Free 30-day trial • No credit card required</span>
+                  <span>Free 14-day trial • No credit card required</span>
                 </div>
               </div>
             </div>
 
             <div className="lg:col-span-6 mt-12 lg:mt-0">
               <div className="relative">
-                {/* Hero Banner with Dark/Light Mode Switching */}
-                <div className="relative overflow-hidden rounded-xl shadow-2xl bg-gradient-to-br from-brand-100 to-accent-blue-100 dark:from-brand-900 dark:to-accent-blue-900">
-                  <div className="p-8 text-center">
-                    {/* Light mode banner */}
+                {/* Dashboard Preview with Professional Backlighting and Hover Effects */}
+                <div className="dashboard-preview-container group cursor-pointer bg-gradient-to-br from-brand-100 to-accent-blue-100 dark:from-brand-900 dark:to-accent-blue-900 p-3">
+                  {/* Professional backlighting glow */}
+                  <div className="dashboard-preview-glow"></div>
+                  
+                  {/* Dashboard Preview Image Container */}
+                  <div className="dashboard-preview-image dark:bg-gray-900">
                     <img 
-                      src="/assets/banner-light.png" 
-                      className="h-32 w-auto mx-auto mb-6 dark:hidden" 
-                      alt="DukaFiti Hero Banner" 
-                    />
-                    {/* Dark mode banner */}
-                    <img 
-                      src="/assets/banner-dark.png" 
-                      className="h-32 w-auto mx-auto mb-6 hidden dark:block" 
-                      alt="DukaFiti Hero Banner" 
+                      src="/assets/dashboard-preview.png" 
+                      alt="DukaFiti Dashboard - Complete Business Management Interface" 
+                      className="w-full h-auto object-cover"
                     />
                     
-                    <div className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm rounded-lg p-4">
-                      <p className="text-sm text-gray-700 dark:text-gray-300 font-medium">
-                        Modern POS • Real-time Analytics • Offline Ready
-                      </p>
+                    {/* Professional overlay on hover */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-brand-600/20 to-transparent opacity-0 group-hover:opacity-100 transition-all duration-500 flex items-end justify-center pb-6">
+                      <div className="bg-white/95 dark:bg-gray-900/95 backdrop-blur-md rounded-xl px-6 py-3 shadow-lg transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
+                        <p className="text-sm text-gray-700 dark:text-gray-300 font-semibold text-center">
+                          Complete Inventory, Sales & Customer Management
+                        </p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400 text-center mt-1">
+                          Built for Kenyan Dukawalas
+                        </p>
+                      </div>
                     </div>
                   </div>
                 </div>
                 
-                {/* Dashboard Preview Cards */}
+                {/* Feature Highlights */}
                 <div className="mt-6 grid grid-cols-2 gap-4">
                   <div className="bg-brand-50 dark:bg-brand-900/20 p-4 rounded-lg">
-                    <div className="text-xs text-brand-600 dark:text-brand-400 font-medium">Today's Sales</div>
-                    <div className="text-lg font-bold text-brand-700 dark:text-brand-300">KES 45,680</div>
+                    <div className="text-xs text-brand-600 dark:text-brand-400 font-medium">Revenue Tracking</div>
+                    <div className="text-lg font-bold text-brand-700 dark:text-brand-300">KES 4,680</div>
                   </div>
                   <div className="bg-accent-blue-50 dark:bg-accent-blue-900/20 p-4 rounded-lg">
-                    <div className="text-xs text-accent-blue-600 dark:text-accent-blue-400 font-medium">Products Sold</div>
-                    <div className="text-lg font-bold text-accent-blue-700 dark:text-accent-blue-300">127</div>
+                    <div className="text-xs text-accent-blue-600 dark:text-accent-blue-400 font-medium">Active Customers</div>
+                    <div className="text-lg font-bold text-accent-blue-700 dark:text-accent-blue-300">9</div>
                   </div>
                 </div>
               </div>
@@ -213,10 +209,10 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
             <h2 className="text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-4">
-              Everything Your Duka Needs
+              Complete Business Management Suite
             </h2>
             <p className="text-xl text-gray-600 dark:text-gray-300 max-w-3xl mx-auto">
-              Powerful tools designed specifically for Kenyan small businesses
+              All the tools you need to run your duka efficiently, from inventory to customer management
             </p>
           </div>
 
@@ -274,8 +270,8 @@ export default function Home() {
               <div className="flex items-center justify-center mb-2">
                 <Users className="h-8 w-8 text-brand-500" />
               </div>
-              <div className="text-2xl font-bold text-gray-900 dark:text-white">1000+</div>
-              <div className="text-sm text-gray-600 dark:text-gray-400">Happy Dukas</div>
+              <div className="text-2xl font-bold text-gray-900 dark:text-white">24/7</div>
+              <div className="text-sm text-gray-600 dark:text-gray-400">Support</div>
             </div>
           </div>
         </div>
@@ -289,7 +285,7 @@ export default function Home() {
               Trusted by Dukawalas Across Kenya
             </h2>
             <p className="text-xl text-gray-600 dark:text-gray-300">
-              See how DukaFiti is transforming small businesses
+              Real feedback from duka owners using DukaFiti
             </p>
           </div>
 
@@ -327,7 +323,7 @@ export default function Home() {
             Ready to Transform Your Duka?
           </h2>
           <p className="text-xl text-brand-200 mb-8 max-w-2xl mx-auto">
-            Join thousands of successful dukawalas who've modernized their business with DukaFiti.
+            Start managing your inventory, sales, and customer credit efficiently with DukaFiti.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button 
@@ -338,14 +334,7 @@ export default function Home() {
               Start Your Free Trial
               <ArrowRight className="ml-2 h-5 w-5" />
             </Button>
-            <Button 
-              size="lg" 
-              variant="outline"
-              onClick={() => setLocation('/login')}
-              className="h-12 px-8 border-white text-white hover:bg-white hover:text-brand-900"
-            >
-              Schedule Demo
-            </Button>
+
           </div>
         </div>
       </section>
