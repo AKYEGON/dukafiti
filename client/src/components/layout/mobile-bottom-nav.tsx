@@ -3,8 +3,7 @@ import {
   LayoutDashboard, 
   Package, 
   ShoppingCart, 
-  Users,
-  TrendingUp
+  Users 
 } from 'lucide-react';
 
 interface NavItem {
@@ -28,11 +27,6 @@ const navItems: NavItem[] = [
     icon: ShoppingCart,
     label: 'Sales',
     path: '/sales'
-  },
-  {
-    icon: TrendingUp,
-    label: 'Profits',
-    path: '/profits'
   },
   {
     icon: Users,
