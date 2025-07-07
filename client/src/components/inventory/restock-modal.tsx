@@ -13,7 +13,7 @@ import {
 import { Package } from 'lucide-react';
 import { type Product } from '@/types/schema';
 import { useToast } from '@/hooks/use-toast';
-import { useSimpleProducts } from '@/hooks/useSimpleProducts';
+import { useRuntimeOperations } from '@/hooks/useRuntimeOperations';
 
 interface RestockModalProps {
   product: Product | null;
@@ -25,7 +25,8 @@ export function RestockModal({ product, open, onOpenChange }: RestockModalProps)
   const [quantity, setQuantity] = useState('');
   const [buyingPrice, setBuyingPrice] = useState('');
   const { toast } = useToast();
-  const { updateProduct, isUpdating } = useSimpleProducts();
+  const { restockProduct } = useRuntimeOperations();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     if (open && product) {
@@ -34,13 +35,8 @@ export function RestockModal({ product, open, onOpenChange }: RestockModalProps)
     }
   }, [open, product]);
 
-  const handleRestock = () => {
-    if (!product) {
-      toast({
-        title: "Error",
-        description: "No product selected",
-        variant: "destructive",
-      });
+  const handleRestock = async () => {
+    if (!product || isSubmitting) {
       return;
     }
 
@@ -54,32 +50,30 @@ export function RestockModal({ product, open, onOpenChange }: RestockModalProps)
       return;
     }
 
-    const newStockLevel = (product.stock_quantity || 0) + addedQuantity;
+    try {
+      setIsSubmitting(true);
 
-    // Build update data - only include cost_price if provided
-    const updateData: any = {
-      stock_quantity: newStockLevel
-    };
-
-    // Only add cost_price if buyingPrice is provided and not empty
-    if (buyingPrice && buyingPrice.trim() !== '') {
-      const costPrice = parseFloat(buyingPrice);
-      if (!isNaN(costPrice) && costPrice > 0) {
-        updateData.cost_price = costPrice;
+      // Get cost price if provided
+      let costPrice: number | undefined;
+      if (buyingPrice && buyingPrice.trim() !== '') {
+        const parsed = parseFloat(buyingPrice);
+        if (!isNaN(parsed) && parsed > 0) {
+          costPrice = parsed;
+        }
       }
-    }
 
-    updateProduct({ id: product.id, ...updateData });
-    
-    // Reset form and close modal
-    setQuantity('');
-    setBuyingPrice('');
-    onOpenChange(false);
-    
-    toast({
-      title: "Stock Updated",
-      description: `Added ${quantity} units to ${product.name}`,
-    });
+      await restockProduct(product.id, addedQuantity, costPrice);
+      
+      // Reset form and close modal
+      setQuantity('');
+      setBuyingPrice('');
+      onOpenChange(false);
+      
+    } catch (error) {
+      console.error('Restock error:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (!product) return null;
@@ -140,15 +134,15 @@ export function RestockModal({ product, open, onOpenChange }: RestockModalProps)
           <Button 
             variant="outline" 
             onClick={() => onOpenChange(false)}
-            disabled={isUpdating}
+            disabled={isSubmitting}
           >
             Cancel
           </Button>
           <Button 
             onClick={handleRestock}
-            disabled={isUpdating || !quantity || parseInt(quantity) <= 0}
+            disabled={isSubmitting || !quantity || parseInt(quantity) <= 0}
           >
-            {isUpdating ? "Adding..." : "Add Stock"}
+            {isSubmitting ? "Adding..." : "Add Stock"}
           </Button>
         </DialogFooter>
       </DialogContent>

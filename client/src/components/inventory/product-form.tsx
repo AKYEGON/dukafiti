@@ -4,7 +4,7 @@ import { z } from "zod";
 import { useEffect, useState } from "react";
 import { type InsertProduct, type Product } from "@/types/schema";
 import { useToast } from "@/hooks/use-toast";
-import { useSimpleProducts } from "@/hooks/useSimpleProducts";
+import { useRuntimeOperations } from "@/hooks/useRuntimeOperations";
 import {
   Dialog,
   DialogContent,
@@ -32,7 +32,8 @@ interface ProductFormProps {
 
 export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
   const { toast } = useToast();
-  const { createProduct, updateProduct, isCreating, isUpdating } = useSimpleProducts();
+  const { addProduct, updateProduct } = useRuntimeOperations();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [unknownQuantity, setUnknownQuantity] = useState(false);
 
   const form = useForm<InsertProduct>({
@@ -84,7 +85,11 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
 
   // Handle form submission
   const onSubmit = async (data: InsertProduct) => {
+    if (isSubmitting) return;
+    
     try {
+      setIsSubmitting(true);
+      
       const productData = {
         name: data.name,
         sku: data.sku,
@@ -98,10 +103,10 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
 
       if (product) {
         // Editing existing product
-        updateProduct({ id: product.id, ...productData });
+        await updateProduct(product.id, productData);
       } else {
         // Creating new product
-        createProduct({ ...productData, sales_count: 0 });
+        await addProduct({ ...productData, sales_count: 0 });
       }
       
       // Reset form and close dialog
@@ -116,6 +121,8 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
         description: `Failed to ${product ? 'update' : 'create'} product: ${error instanceof Error ? error.message : 'Unknown error'}`,
         variant: "destructive",
       });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -393,17 +400,17 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
                 type="button"
                 variant="outline"
                 onClick={() => onOpenChange(false)}
-                disabled={isCreating || isUpdating}
+                disabled={isSubmitting}
                 className="h-10 px-6 text-base"
               >
                 Cancel
               </Button>
               <Button
                 type="submit"
-                disabled={isCreating || isUpdating}
+                disabled={isSubmitting}
                 className="h-10 px-6 text-base bg-accent hover:bg-purple-700 text-white font-medium shadow-sm"
               >
-                {isCreating || isUpdating
+                {isSubmitting
                   ? "Saving..."
                   : product
                   ? "Update Product"

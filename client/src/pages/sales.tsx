@@ -10,7 +10,8 @@ import { formatCurrency } from "@/lib/utils";
 import { offlineQueue, isOnline } from "@/lib/offline-queue";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SaleConfirmationModal } from "@/components/sales/sale-confirmation-modal";
-import { useProducts } from "@/hooks/useRealtimeData";
+import { useRuntimeData } from "@/hooks/useRuntimeData";
+import { useRuntimeOperations } from "@/hooks/useRuntimeOperations";
 import { getProducts, searchProducts, getCustomers } from "@/lib/supabase-data";
 import { triggerSaleCompletedNotification, triggerLowStockNotification } from "@/lib/notification-triggers";
 import { supabase } from "@/lib/supabase";
@@ -30,6 +31,7 @@ export default function Sales() {
   const [showSearchDropdown, setShowSearchDropdown] = useState(false);
   const [selectedSearchIndex, setSelectedSearchIndex] = useState(-1);
   const [searchLoading, setSearchLoading] = useState(false);
+  const [isProcessingSale, setIsProcessingSale] = useState(false);
   
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -37,16 +39,21 @@ export default function Sales() {
   const buttonRef = useRef<HTMLButtonElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
-  // Use real-time hook for products data
+  // Use runtime data and operations hooks
   const { 
     products,
-    isLoading: productsLoading,
-    refreshData: refreshProducts,
-    isRefreshing
-  } = useProducts();
+    productsLoading,
+    fetchProducts: refreshProducts,
+    customers,
+    isConnected
+  } = useRuntimeData();
+
+  const {
+    processSale
+  } = useRuntimeOperations();
 
   // Get frequent products for quick select (first 6, sorted by sales)
-  const quickSelectProducts = products
+  const quickSelectProducts = (products || [])
     .slice()
     .sort((a: any, b: any) => (b.sales_count || 0) - (a.sales_count || 0))
     .slice(0, 6);
@@ -329,7 +336,18 @@ export default function Sales() {
     };
 
     
-    createSaleMutation.mutate(saleData);
+    // Use runtime operations for processing sale
+    setIsProcessingSale(true);
+    processSale(saleData).then(() => {
+      // Close modal and clear cart on success
+      setShowConfirmationModal(false);
+      setCartItems([]);
+      setPaymentMethod('');
+    }).catch((error) => {
+      console.error('Sale processing failed:', error);
+    }).finally(() => {
+      setIsProcessingSale(false);
+    });
   };
 
   // Handle search result selection
@@ -354,145 +372,7 @@ export default function Sales() {
     });
   };
 
-  const createSaleMutation = useMutation({
-    mutationFn: async (saleData: any) => {
-      
-      
-      
-      
-      try {
-        const result = await createSaleOfflineAware(saleData);
-        
-        
-        if (result.offline) {
-          return { 
-            success: true, 
-            status: 'queued', 
-            operationId: result.operationId,
-            offline: true 
-          };
-        } else {
-          return { 
-            success: true, 
-            status: saleData.paymentMethod === 'credit' ? 'pending' : 'paid', 
-            data: result.data,
-            offline: false 
-          };
-        }
-      } catch (error) {
-        
-        throw error;
-      }
-    },
-    onSuccess: (result: any, saleData: any) => {
-      // Close modal and clear cart
-      setShowConfirmationModal(false);
-      setCartItems([]);
-      setPaymentMethod('');
-      
-      // Immediately refresh all relevant data if online
-      if (navigator.onLine && !result.offline) {
-        // Dashboard metrics
-        queryClient.invalidateQueries({ queryKey: ["dashboard-metrics"] });
-        queryClient.invalidateQueries({ queryKey: ["orders-recent"] });
-        
-        // Reports data  
-        queryClient.invalidateQueries({ queryKey: ["reports-summary"] });
-        queryClient.invalidateQueries({ queryKey: ["reports-trend"] });
-        queryClient.invalidateQueries({ queryKey: ["orders"] });
-        
-        // Inventory data
-        queryClient.invalidateQueries({ queryKey: ["products"] });
-        queryClient.invalidateQueries({ queryKey: ["products-frequent"] });
-        
-        // Customer data for credit sales
-        if (result.status === 'pending') {
-          queryClient.invalidateQueries({ queryKey: ["customers"] });
-        }
-      }
-      
-      // Show appropriate toast based on status
-      const status = result.status;
-      const totalAmount = cartItems.reduce((sum, item) => sum + parseFloat(item.total), 0);
-      const customerName = saleData.customerName;
-      
-      if (status === 'queued') {
-        toast({ 
-          title: "Sale queued – offline mode", 
-          description: "Sale will be processed when connection is restored",
-          className: "bg-blue-50 border-blue-200 text-blue-800",
-          duration: 5000,
-        });
-      } else if (status === 'paid') {
-        toast({ 
-          title: "Sale completed successfully!", 
-          description: `Payment received via ${paymentMethod}`,
-          className: "bg-brand-50 border-brand-200 text-brand-800",
-          duration: 3000,
-        });
-        
-        // Create notification for completed sale
-        const saleId = result.data?.id || result.id || 'unknown';
-        triggerSaleCompletedNotification(
-          saleId.toString(),
-          totalAmount,
-          paymentMethod,
-          customerName || undefined
-        ).catch((err: any) => {
-          // Silent error for notifications
-        });
-        
-        // Check for low stock after sale
-        saleData.items.forEach(async (item: any) => {
-          if (item.hasStock) {
-            try {
-              const { getProducts } = await import("@/lib/supabase-data");
-              const products = await getProducts();
-              const product = products.find(p => p.id === item.productId);
-              if (product && product.stock !== null && product.stock <= 5) {
-                triggerLowStockNotification(
-                  product.id.toString(),
-                  product.name,
-                  product.stock
-                ).catch((err: any) => {
-                  // Silent error for notifications
-                });
-              }
-            } catch (error) {
-              // Handle error silently
-            }
-          }
-        });
-        
-      } else if (status === 'pending') {
-        toast({ 
-          title: "Credit sale recorded", 
-          description: "Customer payment is pending",
-          className: "bg-yellow-50 border-yellow-200 text-yellow-800",
-          duration: 3000,
-        });
-        
-        // Create notification for credit sale
-        const saleId = result.data?.id || result.id || 'unknown';
-        triggerSaleCompletedNotification(
-          saleId.toString(),
-          totalAmount,
-          paymentMethod,
-          customerName || "Credit Customer"
-        ).catch((err: any) => {
-          // Silent error for notifications
-        });
-      }
-    },
-    onError: (error: any) => {
-      
-      toast({ 
-        title: "Sale failed", 
-        description: "Please try again or contact support",
-        variant: "destructive" 
-      });
-    }
-  });
+  // Removed old createSaleMutation - now using runtime operations
 
   const cartTotal = cartItems.reduce((sum, item) => sum + parseFloat(item.total), 0);
   const isCartEmpty = cartItems.length === 0;
@@ -795,14 +675,14 @@ export default function Sales() {
         <button
           ref={buttonRef}
           onClick={handleSellButtonClick}
-          disabled={createSaleMutation.isPending}
+          disabled={isProcessingSale}
           className={`w-full h-14 text-lg font-semibold rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-brand ${
-            canProceed && !createSaleMutation.isPending
+            canProceed && !isProcessingSale
               ? 'bg-brand hover:bg-brand-700 text-white transform active:scale-95'
               : 'bg-gray-400 text-gray-600 cursor-not-allowed'
           }`}
         >
-          {createSaleMutation.isPending ? 'Processing...' : 'Complete Sale'}
+          {isProcessingSale ? 'Processing...' : 'Complete Sale'}
         </button>
       </div>
 
@@ -813,7 +693,7 @@ export default function Sales() {
         items={cartItems}
         paymentMethod={paymentMethod as 'cash' | 'credit' | 'mobileMoney'}
         onConfirm={handleConfirmSale}
-        isProcessing={createSaleMutation.isPending}
+        isProcessing={isProcessingSale}
       />
     </div>
   );

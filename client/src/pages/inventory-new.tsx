@@ -25,7 +25,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Search, Package, Edit, Trash2, Plus, PackagePlus } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useComprehensiveRealtime } from "@/hooks/useComprehensiveRealtime";
+import { useRuntimeData } from "@/hooks/useRuntimeData";
+import { useRuntimeOperations } from "@/hooks/useRuntimeOperations";
 
 type SortOption = "name-asc" | "name-desc" | "price-asc" | "price-desc";
 
@@ -37,16 +38,19 @@ export default function Inventory() {
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState<SortOption>("name-asc");
 
-  // Use comprehensive real-time hook for all operations
+  // Use runtime data and operations hooks
   const {
     products,
     productsLoading: isLoading,
     productsError: error,
-    refreshProducts: refresh,
-    deleteProductMutation,
-    restockProductMutation,
-    pendingOperations
-  } = useComprehensiveRealtime();
+    fetchProducts: refresh,
+    isConnected
+  } = useRuntimeData();
+
+  const {
+    deleteProduct,
+    restockProduct: restockProductOperation
+  } = useRuntimeOperations();
 
   // Search and sort logic
   const filteredAndSortedProducts = useMemo(() => {
@@ -107,13 +111,13 @@ export default function Inventory() {
     setRestockProduct(undefined);
   }, []);
 
-  // Confirm delete with comprehensive mutation
-  const confirmDelete = useCallback(() => {
+  // Confirm delete with runtime operation
+  const confirmDelete = useCallback(async () => {
     if (deleteProductState) {
-      deleteProductMutation.mutate(deleteProductState.id);
+      await deleteProduct(deleteProductState.id);
       setDeleteProductState(undefined);
     }
-  }, [deleteProductState, deleteProductMutation]);
+  }, [deleteProductState, deleteProduct]);
 
   if (isLoading) {
     return (
@@ -171,9 +175,14 @@ export default function Inventory() {
           </h1>
           <p className="text-gray-600 dark:text-gray-400 mt-1">
             Manage your products and stock levels
-            {pendingOperations > 0 && (
+            {isLoading && (
               <span className="ml-2 text-sm text-blue-600 dark:text-blue-400">
-                ({pendingOperations} operations in progress...)
+                • Updating...
+              </span>
+            )}
+            {!isConnected && (
+              <span className="ml-2 text-sm text-red-600 dark:text-red-400">
+                • Offline
               </span>
             )}
           </p>

@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { useOrders } from '@/hooks/useRealtimeData';
-import { useComprehensiveRealtime } from '@/hooks/useComprehensiveRealtime';
+import { useRuntimeData } from '@/hooks/useRuntimeData';
 import { RefreshButton } from '@/components/ui/refresh-button';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -155,7 +154,7 @@ const downloadCSV = (csvContent: string, filename: string): void => {
 
 export default function Reports() {
   // Use comprehensive real-time hook for connected status and manual refresh
-  const { isConnected, refreshProducts, refreshCustomers } = useComprehensiveRealtime();
+  const { isConnected, forceRefreshAll } = useRuntimeData();
   
   // State for timeframe selectors
   const [summaryPeriod, setSummaryPeriod] = useState<'today' | 'weekly' | 'monthly'>('today');

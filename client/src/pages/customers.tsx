@@ -11,25 +11,31 @@ import { RecordRepaymentModal } from "@/components/customers/record-repayment-mo
 import { MobilePageWrapper } from "@/components/layout/mobile-page-wrapper";
 import { RefreshButton } from "@/components/ui/refresh-button";
 import { motion, AnimatePresence } from "framer-motion";
-import { useSimpleCustomers } from "@/hooks/useSimpleCustomers";
+import { useRuntimeData } from "@/hooks/useRuntimeData";
+import { useRuntimeOperations } from "@/hooks/useRuntimeOperations";
 import type { Customer } from "@/types/schema";
 
 export default function Customers() {
-  // Use clean simple customers hook without naming conflicts
+  // Use runtime data and operations hooks
   const {
     customers,
-    isLoading,
-    error,
-    refetch: refreshCustomers,
-    createCustomer,
+    customersLoading: isLoading,
+    customersError: error,
+    fetchCustomers: refreshCustomers,
+    isConnected
+  } = useRuntimeData();
+
+  const {
+    addCustomer: createCustomer,
     updateCustomer,
     deleteCustomer,
-    recordRepayment,
-    isCreating,
-    isUpdating,
-    isDeleting,
-    isRecordingRepayment
-  } = useSimpleCustomers();
+    recordRepayment
+  } = useRuntimeOperations();
+
+  const [isCreating, setIsCreating] = useState(false);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [isRecordingRepayment, setIsRecordingRepayment] = useState(false);
 
   const [showNewCustomerForm, setShowNewCustomerForm] = useState(false);
   const [showEditCustomerForm, setShowEditCustomerForm] = useState(false);

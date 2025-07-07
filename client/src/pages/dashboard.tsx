@@ -25,7 +25,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ProductForm } from "@/components/inventory/product-form";
 import { CustomerForm } from "@/components/customers/customer-form";
 import { RefreshButton } from "@/components/ui/refresh-button";
-import { useProducts, useCustomers, useOrders } from "@/hooks/useRealtimeData";
+import { useRuntimeData } from "@/hooks/useRuntimeData";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/SupabaseAuth";
@@ -41,14 +41,21 @@ export default function Dashboard() {
   const { user } = useAuth();
   const { isOnline, pendingSyncCount } = useOffline();
   
-  // Use individual real-time hooks for dashboard data
-  const { products, isLoading: productsLoading, refreshData: refreshProducts } = useProducts();
-  const { customers, isLoading: customersLoading, refreshData: refreshCustomers } = useCustomers();
-  const { orders, isLoading: ordersLoading, refreshData: refreshOrders } = useOrders();
+  // Use runtime data hook for all dashboard data
+  const {
+    products,
+    customers,
+    orders,
+    productsLoading,
+    customersLoading,
+    ordersLoading,
+    forceRefreshAll,
+    isConnected
+  } = useRuntimeData();
   
-  // Refresh all data function
-  const forceRefreshAll = async () => {
-    await Promise.all([refreshProducts(), refreshCustomers(), refreshOrders(), refreshMetrics(), refreshRecentOrders()]);
+  // Refresh all data function  
+  const refreshAll = async () => {
+    await forceRefreshAll();
   };
 
   // Enhanced dashboard metrics query with runtime Supabase calls

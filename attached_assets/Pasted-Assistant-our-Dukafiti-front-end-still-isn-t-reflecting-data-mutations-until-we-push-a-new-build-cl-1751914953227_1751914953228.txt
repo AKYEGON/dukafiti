@@ -1,0 +1,109 @@
+Assistant, our Dukafiti front‑end still isn’t reflecting data mutations until we push a new build—clearly we’ve got build‑time or cache‑only logic lurking. Please perform a **line‑by‑line refactor** of our React code to guarantee **runtime data** and **immediate updates**. Overwrite files as necessary to do the following:
+
+---
+
+### 1. Strip Out Build‑Time Data
+
+- **Search for** any imports of `.json` files or use of `getStaticProps`/`getServerSideProps` (even Vite SSR). **Delete** them.
+- **Ensure** no API or Supabase calls remain in `vite.config.js` or any build script.
+
+### 2. Enforce Runtime Fetching
+
+For **every** data list (Inventory, Customers, Sales, Reports, Notifications):
+
+1. **useEffect Hook**  
+   ```js
+   useEffect(() => {
+     if (!user) return;
+     fetchData();
+   }, [user]);
+fetchData Function
+
+js
+Copy
+Edit
+async function fetchData() {
+  const { data, error } = await supabase
+    .from('<table>')
+    .select('*')
+    .eq('store_id', user.id)
+    .order('created_at', { ascending: false });
+  if (error) console.error('Fetch error:', error);
+  else setItems(data);
+}
+Remove any initialData props or static defaults—state must start empty and fill on mount.
+
+3. Mutation Handlers + Immediate Refetch
+Wrap all create/update/delete handlers:
+
+js
+Copy
+Edit
+// Example: addCustomer
+async function addCustomer(payload) {
+  // include store_id
+  const { error } = await supabase.from('customers').insert([{ ...payload, store_id: user.id }]);
+  if (error) {
+    console.error('Mutation error:', error);
+    return toast.error(error.message);
+  }
+  await fetchData();           // immediate refetch
+  toast.success('Customer added');
+}
+Do the same for products, sales, credit, etc.
+
+Remove any optimistic‑only updates that aren’t followed by a fetch.
+
+4. Real‑Time Subscriptions
+In each list‑fetching hook:
+
+js
+Copy
+Edit
+useEffect(() => {
+  if (!user) return;
+  fetchData();
+
+  const channel = supabase
+    .from(`<table>:store_id=eq.${user.id}`)
+    .on('*', payload => {
+      switch (payload.eventType) {
+        case 'INSERT': setItems(prev => [payload.new, ...prev]); break;
+        case 'UPDATE': setItems(prev => prev.map(i => i.id === payload.new.id ? payload.new : i)); break;
+        case 'DELETE': setItems(prev => prev.filter(i => i.id !== payload.old.id)); break;
+      }
+    })
+    .subscribe();
+  return () => supabase.removeChannel(channel);
+}, [user]);
+5. Bypass Any Caching Layers
+Service Worker: in sw.js, ensure you never cache API routes—only static assets.
+
+Fetch Options: where you use fetch, add { cache: 'no-store' }.
+
+Supabase Client: confirm no localStorage or cache plugin is enabled.
+
+6. Add Manual Refresh Buttons
+On each page header, add a “🔄 Refresh” button that calls fetchData() so users can force a reload.
+
+QA Checklist
+✅ No deploy needed: add/edit/delete data and see it instantly in the UI.
+
+✅ Real‑time sync: open two tabs—mutate in one, update appears in the other automatically.
+
+✅ No static or build‑time code remains—fresh fetches only occur in the browser.
+
+✅ Error logging: any Supabase errors show up in console and toast.
+
+✅ No cached API responses block the UI—always network‑first.
+
+Please apply these changes via Replit AI Agent so our app finally reflects all data mutations without any redeploys.```
+
+
+
+
+
+
+
+
+Ask ChatGPT
