@@ -34,10 +34,10 @@ export function useCRUDMutations() {
         sku: productData.sku,
         description: productData.description || null,
         price: productData.price,
-        cost_price: productData.costPrice || (productData.price * 0.6),
+        cost_price: productData.cost_price || productData.costPrice || (productData.price * 0.6),
         stock: productData.unknownQuantity ? null : productData.stock,
         category: productData.category || 'General',
-        low_stock_threshold: productData.unknownQuantity ? null : (productData.lowStockThreshold || 10),
+        low_stock_threshold: productData.unknownQuantity ? null : (productData.low_stock_threshold || productData.lowStockThreshold || 10),
         sales_count: 0,
         store_id: userId // Essential for RLS
       };

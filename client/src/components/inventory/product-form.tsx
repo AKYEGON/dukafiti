@@ -3,9 +3,9 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useEffect, useState } from "react";
 import { type InsertProduct, type Product } from "@/types/schema";
-import { createProduct, updateProduct } from "@/lib/supabase-data";
 import { useToast } from "@/hooks/use-toast";
-import { useComprehensiveRealtimeFixed } from "@/hooks/useComprehensiveRealtimeFixed";
+import { useRuntimeData } from "@/hooks/useRuntimeData";
+import { useCRUDMutations } from "@/hooks/useCRUDMutations";
 import {
   Dialog,
   DialogContent,
@@ -33,7 +33,8 @@ interface ProductFormProps {
 
 export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
   const { toast } = useToast();
-  const { createProductMutation, updateProductMutation } = useComprehensiveRealtimeFixed();
+  const { refetchProducts } = useRuntimeData();
+  const { createProductMutation, updateProductMutation } = useCRUDMutations();
   const [unknownQuantity, setUnknownQuantity] = useState(false);
 
   const form = useForm<InsertProduct>({
@@ -95,11 +96,10 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
             sku: data.sku,
             description: data.description,
             price: parseFloat(data.price),
-            costPrice: parseFloat(data.costPrice),
+            cost_price: parseFloat(data.costPrice),
             stock: unknownQuantity ? null : data.stock,
-            category: data.category,
-            lowStockThreshold: unknownQuantity ? null : data.lowStockThreshold,
-            unknownQuantity: unknownQuantity
+            category: data.category || 'General',
+            low_stock_threshold: data.lowStockThreshold,
           }
         });
       } else {
@@ -109,13 +109,22 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
           sku: data.sku,
           description: data.description,
           price: parseFloat(data.price),
-          costPrice: parseFloat(data.costPrice),
+          cost_price: parseFloat(data.costPrice),
           stock: unknownQuantity ? null : data.stock,
-          category: data.category,
-          lowStockThreshold: unknownQuantity ? null : data.lowStockThreshold,
-          unknownQuantity: unknownQuantity
+          category: data.category || 'General',
+          low_stock_threshold: data.lowStockThreshold,
+          sales_count: 0,
         });
       }
+      
+      // Force refresh the products data to ensure UI shows the new/updated product
+      await refetchProducts();
+      
+      // Show success message
+      toast({
+        title: "Success",
+        description: `Product ${product ? 'updated' : 'created'} successfully`,
+      });
       
       // Reset form and close dialog on success
       onOpenChange(false);
@@ -124,7 +133,11 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
       
     } catch (error) {
       console.error('Form submission error:', error);
-      // Error is already handled by the mutation's onError
+      toast({
+        title: "Error",
+        description: `Failed to ${product ? 'update' : 'create'} product: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        variant: "destructive",
+      });
     }
   };
 
