@@ -19,7 +19,7 @@ import OfflineManager from "@/components/offline/offline-manager";
 import { registerServiceWorker } from "@/lib/sw-registration";
 
 import Dashboard from "@/pages/dashboard";
-import Inventory from "@/pages/inventory";
+import Inventory from "@/pages/inventory-new";
 import Sales from "@/pages/sales";
 import Customers from "@/pages/customers";
 import Reports from "@/pages/reports";

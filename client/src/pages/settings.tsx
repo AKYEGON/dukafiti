@@ -12,7 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useTheme } from "@/contexts/theme-context";
 import { RefreshButton } from "@/components/ui/refresh-button";
 import { useEnhancedQuery } from "@/hooks/useEnhancedQuery";
-import { useComprehensiveRealtime, useVisibilityRefresh } from "@/hooks/useComprehensiveRealtime";
+import { useComprehensiveRealtime } from "@/hooks/useComprehensiveRealtime";
 import { getStoreProfile, saveStoreProfile } from "@/lib/settings-storage";
 import { OfflineSettings } from "@/components/offline/OfflineSettings";
 
@@ -117,7 +117,7 @@ export default function SettingsPage() {
   });
 
   // Auto-refresh when page becomes visible
-  useVisibilityRefresh();
+
 
   // Load store data from localStorage first, fallback to Supabase
   const [storeData, setStoreData] = useState<StoreData | null>(null);

@@ -1,5 +1,4 @@
-import { useState, useMemo, useEffect, useCallback } from "react";
-import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
+import { useState, useMemo, useCallback } from "react";
 import { Plus, User, Phone, Search, Filter, CreditCard, Eye, AlertCircle, Trash2, Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,31 +10,21 @@ import { CustomerForm } from "@/components/customers/customer-form";
 import { RecordRepaymentModal } from "@/components/customers/record-repayment-modal";
 import { MobilePageWrapper } from "@/components/layout/mobile-page-wrapper";
 import { motion, AnimatePresence } from "framer-motion";
-import { getCustomers, deleteCustomer, updateCustomer, recordCustomerRepayment } from "@/lib/supabase-data";
-import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/lib/supabase";
+import { useComprehensiveRealtime } from "@/hooks/useComprehensiveRealtime";
 import type { Customer } from "@/types/schema";
 
 export default function Customers() {
-  const { data: customers, isLoading, refetch: refreshCustomers } = useQuery<Customer[]>({
-    queryKey: ["customers"],
-    queryFn: async () => {
-      // Get current user for store isolation
-      const { data: { user }, error: authError } = await import('@/lib/supabase').then(m => m.supabase.auth.getUser());
-      if (authError || !user) {
-        console.error('❌ User not authenticated for customers fetch');
-        throw new Error('User not authenticated');
-      }
-      
-      console.log('🔍 Fetching customers for store:', user.id);
-      const data = await getCustomers(user.id);
-      console.log('✅ Customers fetched:', data?.length || 0);
-      return data;
-    },
-  });
-
-  const queryClient = useQueryClient();
-  const { toast } = useToast();
+  // Use comprehensive real-time hook for all operations
+  const {
+    customers,
+    customersLoading: isLoading,
+    customersError: error,
+    refreshCustomers,
+    deleteCustomerMutation,
+    updateCustomerMutation,
+    recordRepaymentMutation,
+    pendingOperations
+  } = useComprehensiveRealtime();
 
   const [showNewCustomerForm, setShowNewCustomerForm] = useState(false);
   const [showEditCustomerForm, setShowEditCustomerForm] = useState(false);
@@ -93,49 +82,14 @@ export default function Customers() {
     setShowRepaymentModal(true);
   }, []);
 
-  // Enhanced delete mutation with comprehensive error handling
-  const deleteMutation = useMutation({
-    mutationFn: async (customerId: number) => {
-      console.log('🗑️ Starting customer deletion:', customerId);
-      try {
-        await deleteCustomer(customerId);
-        console.log('✅ Customer deletion successful');
-      } catch (error) {
-        console.error('❌ Customer deletion failed:', error);
-        throw error;
-      }
-    },
-    onSuccess: async () => {
-      console.log('🔄 Refreshing customer data after deletion');
-      
-      // Force immediate refresh of all related data
-      await Promise.all([
-        queryClient.invalidateQueries({ queryKey: ["customers"] }),
-        queryClient.invalidateQueries({ queryKey: ["dashboard-metrics"] }),
-        refreshCustomers() // Use the query's refresh function
-      ]);
-      
-      toast({
-        title: "Customer deleted successfully",
-        description: "Customer list has been updated"
-      });
+  // Confirm delete using comprehensive mutation
+  const confirmDeleteCustomer = useCallback(() => {
+    if (selectedCustomer) {
+      deleteCustomerMutation.mutate(selectedCustomer.id);
       setShowDeleteConfirm(false);
       setSelectedCustomer(null);
-    },
-    onError: (error: any) => {
-      console.error('❌ Delete operation failed:', error);
-      toast({
-        title: "Failed to delete customer",
-        description: error.message || "An error occurred while deleting the customer",
-        variant: "destructive"
-      });
-    },
-  });
-
-  const confirmDeleteCustomer = () => {
-    if (!selectedCustomer) return;
-    deleteMutation.mutate(selectedCustomer.id);
-  };
+    }
+  }, [selectedCustomer, deleteCustomerMutation]);
 
   const handleCloseRepaymentModal = useCallback(() => {
     console.log('✖️ Closing repayment modal');
@@ -143,35 +97,7 @@ export default function Customers() {
     setSelectedCustomer(null);
   }, []);
 
-  // Real-time subscriptions for customer changes
-  useEffect(() => {
-    console.log('🔄 Setting up real-time customer subscriptions');
-    
-    const handleCustomerChanges = (payload: any) => {
-      console.log('📡 Real-time customer change:', payload.eventType, payload.new?.name || payload.old?.name);
-      
-      // Force refresh customer data
-      setTimeout(() => {
-        refreshCustomers();
-        queryClient.invalidateQueries({ queryKey: ["customers"] });
-        queryClient.invalidateQueries({ queryKey: ["dashboard-metrics"] });
-      }, 100);
-    };
-
-    const channel = supabase
-      .channel('customer-changes')
-      .on('postgres_changes', {
-        event: '*',
-        schema: 'public',
-        table: 'customers'
-      }, handleCustomerChanges)
-      .subscribe();
-
-    return () => {
-      console.log('🔄 Cleaning up real-time subscriptions');
-      supabase.removeChannel(channel);
-    };
-  }, [refreshCustomers, queryClient]);
+  // Real-time subscriptions are now handled by useComprehensiveRealtime hook
 
   if (isLoading) {
     return (

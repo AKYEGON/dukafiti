@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -11,10 +10,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { useToast } from '@/hooks/use-toast';
-import { Package, WifiOff } from 'lucide-react';
+import { Package } from 'lucide-react';
 import { type Product } from '@/types/schema';
-import { restockProductOfflineAware } from '@/lib/offline-api';
+import { useComprehensiveRealtime } from '@/hooks/useComprehensiveRealtime';
 
 interface RestockModalProps {
   product: Product | null;
@@ -25,80 +23,16 @@ interface RestockModalProps {
 export function RestockModal({ product, open, onOpenChange }: RestockModalProps) {
   const [quantity, setQuantity] = useState('');
   const [buyingPrice, setBuyingPrice] = useState('');
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
+  const { restockProductMutation } = useComprehensiveRealtime();
 
   // Reset state when modal closes
   useEffect(() => {
     if (!open) {
       setQuantity('');
       setBuyingPrice('');
+      restockProductMutation.reset();
     }
-  }, [open]);
-
-  const restockMutation = useMutation({
-    mutationKey: ['restock', product?.id],
-    mutationFn: async ({ productId, qty, costPrice }: { productId: number; qty: number; costPrice?: number }) => {
-      console.log('🔄 Starting restock mutation:', { productId, qty, costPrice });
-      
-      try {
-        // Call updateProduct to add stock directly
-        const { updateProduct } = await import('@/lib/supabase-data');
-        const result = await updateProduct(productId, { 
-          stock: (product?.stock || 0) + qty,
-          cost_price: costPrice 
-        });
-        
-        console.log('✅ Restock result:', result);
-        return result;
-      } catch (error) {
-        console.error('❌ Restock error:', error);
-        throw error;
-      }
-    },
-    onSuccess: (data: any) => {
-      console.log('🎉 Restock success, forcing immediate data refresh');
-      
-      // Immediate optimistic update of the cache
-      queryClient.setQueryData(['products'], (oldData: any) => {
-        if (!oldData || !Array.isArray(oldData)) return oldData;
-        
-        return oldData.map((p: any) => 
-          p.id === product?.id 
-            ? { ...p, stock: data.stock || (p.stock + parseInt(quantity)) }
-            : p
-        );
-      });
-      
-      // Force immediate refresh of all related queries
-      queryClient.invalidateQueries({ queryKey: ['products'] });
-      queryClient.invalidateQueries({ queryKey: ['dashboard-metrics'] });
-      queryClient.refetchQueries({ queryKey: ['products'] });
-      queryClient.refetchQueries({ queryKey: ['dashboard-metrics'] });
-      
-      toast({
-        title: 'Stock Added Successfully',
-        description: `${quantity} units added to ${product?.name}. New stock: ${data.stock || 'updated'}`,
-      });
-      
-      // Reset form and close modal immediately
-      setQuantity('');
-      setBuyingPrice('');
-      onOpenChange(false);
-    },
-    onError: (error: Error) => {
-      
-      toast({
-        title: 'Restock Failed',
-        description: error.message,
-        variant: 'destructive',
-      });
-      
-      // Reset form values but keep modal open so user can try again
-      setQuantity('');
-      setBuyingPrice('');
-    },
-  });
+  }, [open, restockProductMutation]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -109,28 +43,29 @@ export function RestockModal({ product, open, onOpenChange }: RestockModalProps)
     const costPrice = parseFloat(buyingPrice);
     
     if (!quantity || !buyingPrice || qty <= 0 || costPrice < 0) {
-      toast({
-        title: 'Invalid Input',
-        description: 'Please enter valid quantity and buying price values.',
-        variant: 'destructive',
-      });
       return;
     }
     
-    restockMutation.mutate({
+    restockProductMutation.mutate({
       productId: Number(product.id),
-      qty,
-      costPrice
+      quantity: qty,
+      buyingPrice: costPrice
+    }, {
+      onSuccess: () => {
+        setQuantity('');
+        setBuyingPrice('');
+        onOpenChange(false);
+      }
     });
   };
 
   const handleClose = () => {
     // Don't close if mutation is pending
-    if (restockMutation.isPending) return;
+    if (restockProductMutation.isPending) return;
     
     setQuantity('');
     setBuyingPrice('');
-    restockMutation.reset();
+    restockProductMutation.reset();
     onOpenChange(false);
   };
 
@@ -162,7 +97,7 @@ export function RestockModal({ product, open, onOpenChange }: RestockModalProps)
               value={quantity}
               onChange={(e) => setQuantity(e.target.value)}
               className="h-12"
-              disabled={restockMutation.isPending}
+              disabled={restockProductMutation.isPending}
               required
             />
           </div>
@@ -178,7 +113,7 @@ export function RestockModal({ product, open, onOpenChange }: RestockModalProps)
               value={buyingPrice}
               onChange={(e) => setBuyingPrice(e.target.value)}
               className="h-12"
-              disabled={restockMutation.isPending}
+              disabled={restockProductMutation.isPending}
               required
             />
           </div>
@@ -202,16 +137,16 @@ export function RestockModal({ product, open, onOpenChange }: RestockModalProps)
               type="button"
               variant="outline"
               onClick={handleClose}
-              disabled={restockMutation.isPending}
+              disabled={restockProductMutation.isPending}
             >
               Cancel
             </Button>
             <Button
               type="submit"
-              disabled={restockMutation.isPending || !quantity || !buyingPrice}
+              disabled={restockProductMutation.isPending || !quantity || !buyingPrice}
               className="bg-blue-600 hover:bg-blue-700 text-white"
             >
-              {restockMutation.isPending ? (
+              {restockProductMutation.isPending ? (
                 <>
                   <span className="animate-spin mr-2">⏳</span>
                   Adding Stock...
