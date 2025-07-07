@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useComprehensiveRealtimeFixed } from '@/hooks/useComprehensiveRealtimeFixed';
+import { RefreshButton } from '@/components/ui/refresh-button';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -151,6 +153,9 @@ const downloadCSV = (csvContent: string, filename: string): void => {
 };
 
 export default function Reports() {
+  // Use comprehensive real-time hook for connected status and manual refresh
+  const { forceRefreshAll, isConnected } = useComprehensiveRealtimeFixed();
+  
   // State for timeframe selectors
   const [summaryPeriod, setSummaryPeriod] = useState<'today' | 'weekly' | 'monthly'>('today');
   const [trendPeriod, setTrendPeriod] = useState<'hourly' | 'daily' | 'monthly'>('daily');
@@ -161,18 +166,22 @@ export default function Reports() {
   
   const [exportingCSV, setExportingCSV] = useState<string | null>(null);
 
-  // Fetch summary data
-  const { data: summaryData, isLoading: summaryLoading, error: summaryError } = useQuery<SummaryData>({
+  // Fetch summary data with runtime Supabase calls
+  const { data: summaryData, isLoading: summaryLoading, error: summaryError, refetch: refreshSummary } = useQuery<SummaryData>({
     queryKey: ['reports-summary', summaryPeriod],
-    queryFn: () => getReportsSummary(summaryPeriod)
+    queryFn: () => getReportsSummary(summaryPeriod),
+    staleTime: 0, // Always fetch fresh
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
   });
 
-  // Fetch trend data
-  const { data: trendData, isLoading: trendLoading, error: trendError } = useQuery<TrendData[]>({
+  // Fetch trend data with runtime Supabase calls
+  const { data: trendData, isLoading: trendLoading, error: trendError, refetch: refreshTrend } = useQuery<TrendData[]>({
     queryKey: ['reports-trend', trendPeriod],
     queryFn: () => getReportsTrend(trendPeriod),
-    staleTime: 0, // Always refetch
-    refetchOnMount: 'always'
+    staleTime: 0, // Always fetch fresh
+    refetchOnWindowFocus: true,
+    refetchOnMount: true,
   });
 
   // Debug trend data
@@ -353,9 +362,31 @@ export default function Reports() {
       <div className="container mx-auto px-4 sm:px-6 md:px-8 py-6 lg:py-12">
         <div className="space-y-6 sm:space-y-8">
           {/* Header */}
-          <div>
-            <h1 className="text-2xl font-bold text-neutral-900 dark:text-neutral-100 mb-2">Reports</h1>
-            <p className="text-neutral-600 dark:text-neutral-400">View your business analytics and performance</p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-neutral-900 dark:text-neutral-100 mb-2">Reports</h1>
+              <p className="text-neutral-600 dark:text-neutral-400">
+                View your business analytics and performance
+                {(summaryLoading || trendLoading || ordersLoading || topCustomersLoading || topProductsLoading) && (
+                  <span className="ml-2 text-orange-600 dark:text-orange-400">• Updating...</span>
+                )}
+                {!isConnected && (
+                  <span className="ml-2 text-red-600 dark:text-red-400">• Offline</span>
+                )}
+              </p>
+            </div>
+            <RefreshButton
+              onRefresh={async () => {
+                await forceRefreshAll();
+                await refreshSummary();
+                await refreshTrend();
+              }}
+              isLoading={summaryLoading || trendLoading || ordersLoading || topCustomersLoading || topProductsLoading}
+              size="sm"
+              variant="outline"
+              showLabel={true}
+              label="Refresh Data"
+            />
           </div>
 
           {/* Responsive Layout */}

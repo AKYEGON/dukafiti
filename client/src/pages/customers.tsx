@@ -9,12 +9,13 @@ import { formatCurrency } from "@/lib/utils";
 import { CustomerForm } from "@/components/customers/customer-form";
 import { RecordRepaymentModal } from "@/components/customers/record-repayment-modal";
 import { MobilePageWrapper } from "@/components/layout/mobile-page-wrapper";
+import { RefreshButton } from "@/components/ui/refresh-button";
 import { motion, AnimatePresence } from "framer-motion";
-import { useRealtimeData } from "@/hooks/useRealtimeData";
+import { useComprehensiveRealtimeFixed } from "@/hooks/useComprehensiveRealtimeFixed";
 import type { Customer } from "@/types/schema";
 
 export default function Customers() {
-  // Use enhanced real-time hook for all operations
+  // Use comprehensive real-time hook for all operations - FIXED VERSION
   const {
     customers,
     customersLoading: isLoading,
@@ -23,8 +24,9 @@ export default function Customers() {
     deleteCustomerMutation,
     updateCustomerMutation,
     recordRepaymentMutation,
-    pendingOperations
-  } = useRealtimeData();
+    pendingOperations,
+    isConnected
+  } = useComprehensiveRealtimeFixed();
 
   const [showNewCustomerForm, setShowNewCustomerForm] = useState(false);
   const [showEditCustomerForm, setShowEditCustomerForm] = useState(false);
@@ -132,14 +134,33 @@ export default function Customers() {
         {/* Enhanced Header */}
         <div className="space-y-4">
           <div className="flex items-center justify-between">
-            <Button 
-              onClick={() => setShowNewCustomerForm(true)}
-              className="bg-accent hover:bg-purple-700 text-white min-h-[48px] px-6"
-              aria-label="Add new customer"
-            >
-              <Plus className="mr-2 h-5 w-5" />
-              Add Customer
-            </Button>
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                Customer Management
+                {(isLoading || pendingOperations > 0) && (
+                  <span className="ml-2 text-sm text-orange-600 dark:text-orange-400">• Updating...</span>
+                )}
+                {!isConnected && (
+                  <span className="ml-2 text-sm text-red-600 dark:text-red-400">• Offline</span>
+                )}
+              </h2>
+            </div>
+            <div className="flex items-center gap-3">
+              <RefreshButton
+                onRefresh={refreshCustomers}
+                isLoading={isLoading || pendingOperations > 0}
+                size="sm"
+                variant="outline"
+              />
+              <Button 
+                onClick={() => setShowNewCustomerForm(true)}
+                className="bg-accent hover:bg-purple-700 text-white min-h-[48px] px-6"
+                aria-label="Add new customer"
+              >
+                <Plus className="mr-2 h-5 w-5" />
+                Add Customer
+              </Button>
+            </div>
           </div>
           
           {/* Search and Filter Bar */}

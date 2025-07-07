@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { type InsertProduct, type Product } from "@/types/schema";
 import { createProduct, updateProduct } from "@/lib/supabase-data";
 import { useToast } from "@/hooks/use-toast";
-import { useRealtimeData } from "@/hooks/useRealtimeData";
+import { useComprehensiveRealtimeFixed } from "@/hooks/useComprehensiveRealtimeFixed";
 import {
   Dialog,
   DialogContent,
@@ -33,7 +33,7 @@ interface ProductFormProps {
 
 export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
   const { toast } = useToast();
-  const { createProductMutation, updateProductMutation } = useRealtimeData();
+  const { createProductMutation, updateProductMutation } = useComprehensiveRealtimeFixed();
   const [unknownQuantity, setUnknownQuantity] = useState(false);
 
   const form = useForm<InsertProduct>({

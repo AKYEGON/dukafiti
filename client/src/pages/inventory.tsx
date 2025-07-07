@@ -25,7 +25,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Search, Package, Edit, Trash2, Plus, PackagePlus } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useRealtimeData } from "@/hooks/useRealtimeData";
+import { RefreshButton } from "@/components/ui/refresh-button";
+import { useComprehensiveRealtimeFixed } from "@/hooks/useComprehensiveRealtimeFixed";
 
 type SortOption = "name-asc" | "name-desc" | "price-asc" | "price-desc";
 
@@ -37,7 +38,7 @@ export default function Inventory() {
   const [deleteProductState, setDeleteProductState] = useState<Product | undefined>();
   const [restockProduct, setRestockProduct] = useState<Product | undefined>();
 
-  // Use enhanced real-time hook for all operations
+  // Use comprehensive real-time hook for all operations - FIXED VERSION
   const {
     products,
     productsLoading: isLoading,
@@ -45,8 +46,9 @@ export default function Inventory() {
     refreshProducts: refresh,
     deleteProductMutation,
     restockProductMutation,
-    pendingOperations
-  } = useRealtimeData();
+    pendingOperations,
+    isConnected
+  } = useComprehensiveRealtimeFixed();
 
   const filteredAndSortedProducts = useMemo(() => {
     // First search, then sort
@@ -125,15 +127,18 @@ export default function Inventory() {
             </h1>
             <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
               Manage your product inventory
-              {isStale && (
+              {(isLoading || pendingOperations > 0) && (
                 <span className="ml-2 text-orange-600 dark:text-orange-400">• Updating...</span>
+              )}
+              {!isConnected && (
+                <span className="ml-2 text-red-600 dark:text-red-400">• Offline</span>
               )}
             </p>
           </div>
           <div className="flex items-center gap-2">
             <RefreshButton
               onRefresh={refresh}
-              isLoading={isFetching}
+              isLoading={isLoading || pendingOperations > 0}
               size="sm"
               variant="outline"
             />

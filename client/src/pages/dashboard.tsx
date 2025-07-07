@@ -25,12 +25,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ProductForm } from "@/components/inventory/product-form";
 import { CustomerForm } from "@/components/customers/customer-form";
 import { RefreshButton } from "@/components/ui/refresh-button";
-import { useDashboardStore } from "@/hooks/useDashboardStore";
-import { useSalesStore } from "@/hooks/useSalesStore";
-import { useInventoryStore } from "@/hooks/useInventoryStore";
-import { useCustomersStore } from "@/hooks/useCustomersStore";
-import { useRealTimeStore } from "@/hooks/useRealTimeStore";
-import { DashboardMonitor } from "@/components/debug/dashboard-monitor";
+import { useComprehensiveRealtimeFixed } from "@/hooks/useComprehensiveRealtimeFixed";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/lib/supabase";
 
 
 
@@ -39,28 +36,90 @@ export default function Dashboard() {
   const [showProductForm, setShowProductForm] = useState(false);
   const [showCustomerForm, setShowCustomerForm] = useState(false);
 
-  // Enable store-isolated real-time updates
-  const { forceRefresh, subscriptionsActive } = useRealTimeStore({
-    enabled: true,
-    showNotifications: true,
+  // Use comprehensive real-time hook for all dashboard data
+  const { 
+    products,
+    customers,
+    orders,
+    productsLoading,
+    customersLoading,
+    ordersLoading,
+    forceRefreshAll,
+    isConnected,
+    pendingOperations
+  } = useComprehensiveRealtimeFixed();
+
+  // Enhanced dashboard metrics query with runtime Supabase calls
+  const { data: metrics, isLoading: metricsLoading, refetch: refreshMetrics } = useQuery<DashboardMetrics>({
+    queryKey: ['dashboard-metrics'],
+    queryFn: async () => {
+      console.log('🔄 Fetching dashboard metrics at runtime...');
+      
+      try {
+        // Runtime Supabase calls to get fresh data
+        const [productsData, customersData, ordersData] = await Promise.all([
+          supabase.from('products').select('*'),
+          supabase.from('customers').select('*'),  
+          supabase.from('orders').select('*')
+        ]);
+
+        if (productsData.error) throw productsData.error;
+        if (customersData.error) throw customersData.error;
+        if (ordersData.error) throw ordersData.error;
+
+        const products = productsData.data || [];
+        const customers = customersData.data || [];
+        const orders = ordersData.data || [];
+
+        // Calculate metrics from fresh data
+        const totalRevenue = orders.reduce((sum: number, order: any) => sum + parseFloat(order.total || '0'), 0);
+        const todayOrders = orders.filter((order: any) => {
+          const orderDate = new Date(order.created_at).toDateString();
+          const today = new Date().toDateString();
+          return orderDate === today;
+        }).length;
+
+        const inventoryItems = products.length;
+        const totalCustomers = customers.length;
+
+        return {
+          totalRevenue: totalRevenue.toFixed(2),
+          ordersToday: todayOrders,
+          inventoryItems,
+          totalCustomers,
+        };
+      } catch (error) {
+        console.error('❌ Dashboard metrics fetch failed:', error);
+        throw error;
+      }
+    },
+    staleTime: 0, // Always fetch fresh
+    refetchOnWindowFocus: true,
   });
 
-  // Store-isolated data hooks
-  const { 
-    metrics, 
-    isLoading: metricsLoading, 
-    isFetching: metricsFetching,
-    refresh: refreshMetrics,
-    refreshDashboard
-  } = useDashboardStore();
-
-  const { 
-    recentOrders, 
-    recentOrdersLoading, 
-    isFetching: salesFetching,
-    refresh: refreshOrders,
-    refreshRecentOrders
-  } = useSalesStore();
+  // Recent orders with runtime fetching
+  const { data: recentOrders = [], isLoading: recentOrdersLoading, refetch: refreshOrders } = useQuery<Order[]>({
+    queryKey: ['recent-orders'],
+    queryFn: async () => {
+      console.log('🔄 Fetching recent orders at runtime...');
+      
+      try {
+        const { data, error } = await supabase
+          .from('orders')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(5);
+        
+        if (error) throw error;
+        return data || [];
+      } catch (error) {
+        console.error('❌ Recent orders fetch failed:', error);
+        throw error;
+      }
+    },
+    staleTime: 0, // Always fetch fresh
+    refetchOnWindowFocus: true,
+  });
 
   // Quick Actions handlers
   const handleAddProduct = () => {
@@ -196,17 +255,21 @@ export default function Dashboard() {
               <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Dashboard</h1>
               <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                 Business overview and key metrics
-                {(metricsFetching || salesFetching) && (
+                {(metricsLoading || recentOrdersLoading || pendingOperations > 0) && (
                   <span className="ml-2 text-orange-600 dark:text-orange-400">• Updating...</span>
+                )}
+                {!isConnected && (
+                  <span className="ml-2 text-red-600 dark:text-red-400">• Offline</span>
                 )}
               </p>
             </div>
             <RefreshButton
               onRefresh={async () => {
-                forceRefresh();
-                await handleRefreshAll();
+                await forceRefreshAll();
+                await refreshMetrics();
+                await refreshOrders();
               }}
-              isLoading={metricsFetching || salesFetching}
+              isLoading={metricsLoading || recentOrdersLoading}
               size="sm"
               variant="outline"
               showLabel={true}

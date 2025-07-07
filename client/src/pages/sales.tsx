@@ -10,10 +10,12 @@ import { formatCurrency } from "@/lib/utils";
 import { offlineQueue, isOnline } from "@/lib/offline-queue";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SaleConfirmationModal } from "@/components/sales/sale-confirmation-modal";
+import { useComprehensiveRealtimeFixed } from "@/hooks/useComprehensiveRealtimeFixed";
 import { getProducts, searchProducts, getCustomers } from "@/lib/supabase-data";
 import { triggerSaleCompletedNotification, triggerLowStockNotification } from "@/lib/notification-triggers";
 import { supabase } from "@/lib/supabase";
 import { createSaleOfflineAware, createCustomerOfflineAware } from "@/lib/offline-api";
+import { RefreshButton } from "@/components/ui/refresh-button";
 
 
 
@@ -35,83 +37,21 @@ export default function Sales() {
   const buttonRef = useRef<HTMLButtonElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
-  // Fetch all products for quick select functionality
-  const { data: products = [], isLoading: productsLoading } = useQuery<Product[]>({
-    queryKey: ["products"],
-    queryFn: getProducts,
-  });
+  // Use comprehensive real-time hook for products data
+  const { 
+    products,
+    productsLoading,
+    refreshProducts,
+    isConnected 
+  } = useComprehensiveRealtimeFixed();
 
-  // Get frequent products (first 6 for quick select)
-  const { data: frequentProducts = [] } = useQuery<Product[]>({
-    queryKey: ["products-frequent"],
-    queryFn: async () => {
-      const allProducts = await getProducts();
-      return allProducts.sort((a: any, b: any) => (b.sales_count || 0) - (a.sales_count || 0));
-    },
-  });
+  // Get frequent products for quick select (first 6, sorted by sales)
+  const quickSelectProducts = products
+    .slice()
+    .sort((a: any, b: any) => (b.sales_count || 0) - (a.sales_count || 0))
+    .slice(0, 6);
 
-  const quickSelectProducts = frequentProducts.length > 0 
-    ? frequentProducts.slice(0, 6) 
-    : products.slice(0, 6);
-
-  // Set up real-time subscription for product updates (stock changes)
-  useEffect(() => {
-    
-    
-    const subscription = supabase
-      .channel('products_realtime_sales')
-      .on('postgres_changes', {
-        event: 'UPDATE',
-        schema: 'public',
-        table: 'products'
-      }, (payload) => {
-        
-        
-        // Update the products query cache with the new data
-        queryClient.setQueryData<Product[]>(['products'], (oldProducts) => {
-          if (!oldProducts) return oldProducts;
-          
-          const updatedProduct = payload.new as Product;
-          return oldProducts.map(product => 
-            product.id === updatedProduct.id ? updatedProduct : product
-          );
-        });
-        
-        // Also update frequent products cache
-        queryClient.setQueryData<Product[]>(['products-frequent'], (oldProducts) => {
-          if (!oldProducts) return oldProducts;
-          
-          const updatedProduct = payload.new as Product;
-          return oldProducts.map(product => 
-            product.id === updatedProduct.id ? updatedProduct : product
-          );
-        });
-        
-        // Update cart items with fresh product data to reflect stock changes
-        setCartItems(prevCart => {
-          return prevCart.map(cartItem => {
-            const updatedProduct = payload.new as Product;
-            if (cartItem.product.id === updatedProduct.id) {
-              return {
-                ...cartItem,
-                product: updatedProduct
-              };
-            }
-            return cartItem;
-          });
-        });
-        
-        
-      })
-      .subscribe((status) => {
-        
-      });
-
-    return () => {
-      
-      supabase.removeChannel(subscription);
-    };
-  }, [queryClient]);
+  // Real-time updates now handled by comprehensive hook
 
   // Search function with timeout for debouncing
   const performSearch = useCallback(async (query: string) => {
