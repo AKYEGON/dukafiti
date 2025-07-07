@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { type Product } from "@shared/schema";
 import { ProductForm } from "@/components/inventory/product-form";
 import { RestockModal } from "@/components/inventory/restock-modal";
-import { StockUpdateTester } from "@/components/debug/StockUpdateTester";
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -23,7 +23,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Search, Package, Edit, Trash2, Plus, PackagePlus, Bug } from "lucide-react";
+import { Search, Package, Edit, Trash2, Plus, PackagePlus } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -40,7 +40,7 @@ export default function Inventory() {
   const [editingProduct, setEditingProduct] = useState<Product | undefined>();
   const [deleteProduct, setDeleteProduct] = useState<Product | undefined>();
   const [restockProduct, setRestockProduct] = useState<Product | undefined>();
-  const [showDebugTester, setShowDebugTester] = useState(false);
+
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { createNotification } = useNotifications();
@@ -172,23 +172,13 @@ export default function Inventory() {
           <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">
             Inventory
           </h1>
-          <div className="flex items-center gap-2">
-            <Button 
-              variant="outline"
-              onClick={() => setShowDebugTester(!showDebugTester)} 
-              className="flex items-center gap-2 text-orange-600 border-orange-600 hover:bg-orange-50 dark:hover:bg-orange-950"
-            >
-              <Bug className="w-4 h-4" />
-              Debug Stock
-            </Button>
-            <Button 
-              onClick={() => setShowProductForm(true)} 
-              className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white"
-            >
-              <Plus className="w-4 h-4" />
-              Add Product
-            </Button>
-          </div>
+          <Button 
+            onClick={() => setShowProductForm(true)} 
+            className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white"
+          >
+            <Plus className="w-4 h-4" />
+            Add Product
+          </Button>
         </div>
 
         {/* Search and Sort Bar */}
@@ -217,12 +207,7 @@ export default function Inventory() {
         </div>
       </div>
 
-      {/* Debug Tester (conditionally shown) */}
-      {showDebugTester && (
-        <div className="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-orange-50/50 dark:bg-orange-950/20">
-          <StockUpdateTester />
-        </div>
-      )}
+
 
       {/* Main Content with Professional Grid Layout */}
       <div className="px-6 py-6">
