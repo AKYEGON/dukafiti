@@ -1,11 +1,13 @@
 import { supabase } from './supabase';
 
-// Product operations
-export const getProducts = async () => {
+// Product operations - Store isolated
+export const getProducts = async (storeId: string) => {
+  if (!storeId) throw new Error('Store ID required');
   
   const { data, error } = await supabase
     .from('products')
     .select('*')
+    .eq('store_id', storeId)
     .order('created_at', { ascending: false });
   
   if (error) throw error;
@@ -14,8 +16,6 @@ export const getProducts = async () => {
 
 export const createProduct = async (product: any) => {
   try {
-    
-    
     const insertData = {
       name: product.name,
       sku: product.sku,
@@ -26,9 +26,8 @@ export const createProduct = async (product: any) => {
       category: product.category || 'General',
       low_stock_threshold: product.unknownQuantity ? null : (product.lowStockThreshold || 10),
       sales_count: 0,
+      // store_id will be set automatically by trigger
     };
-    
-    
     
     const { data, error } = await supabase
       .from('products')
@@ -37,14 +36,14 @@ export const createProduct = async (product: any) => {
       .single();
     
     if (error) {
-      
+      console.error('Product creation error:', error);
       throw new Error(error.message || 'Failed to create product in database');
     }
     
-    
+    console.log('Product created successfully:', data);
     return data;
   } catch (error) {
-    
+    console.error('Product creation failed:', error);
     throw error;
   }
 };
@@ -85,11 +84,14 @@ export const deleteProduct = async (id: number) => {
   if (error) throw error;
 };
 
-// Customer operations
-export const getCustomers = async () => {
+// Customer operations - Store isolated
+export const getCustomers = async (storeId: string) => {
+  if (!storeId) throw new Error('Store ID required');
+  
   const { data, error } = await supabase
     .from('customers')
     .select('*')
+    .eq('store_id', storeId)
     .order('created_at', { ascending: false });
   
   if (error) throw error;
@@ -100,6 +102,7 @@ export const createCustomer = async (customer: any) => {
   try {
     
     
+    // store_id will be set automatically by trigger
     const { data, error } = await supabase
       .from('customers')
       .insert([{

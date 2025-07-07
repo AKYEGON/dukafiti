@@ -25,10 +25,11 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ProductForm } from "@/components/inventory/product-form";
 import { CustomerForm } from "@/components/customers/customer-form";
 import { RefreshButton } from "@/components/ui/refresh-button";
-import { useEnhancedQuery } from "@/hooks/useEnhancedQuery";
-import { useSalesSimple as useSales } from "@/hooks/useSalesSimple";
-import { useComprehensiveRealtime, useVisibilityRefresh } from "@/hooks/useComprehensiveRealtime";
-import { getDashboardMetrics } from "@/lib/supabase-data";
+import { useDashboardStore } from "@/hooks/useDashboardStore";
+import { useSalesStore } from "@/hooks/useSalesStore";
+import { useInventoryStore } from "@/hooks/useInventoryStore";
+import { useCustomersStore } from "@/hooks/useCustomersStore";
+import { useRealTimeStore } from "@/hooks/useRealTimeStore";
 import { DashboardMonitor } from "@/components/debug/dashboard-monitor";
 
 
@@ -38,39 +39,25 @@ export default function Dashboard() {
   const [showProductForm, setShowProductForm] = useState(false);
   const [showCustomerForm, setShowCustomerForm] = useState(false);
 
-  // Enable comprehensive real-time updates
-  const { forceRefresh, isConnected } = useComprehensiveRealtime({
+  // Enable store-isolated real-time updates
+  const { forceRefresh, subscriptionsActive } = useRealTimeStore({
     enabled: true,
-    tables: ['products', 'customers', 'orders', 'notifications'],
-    autoRefresh: true,
     showNotifications: true,
   });
 
-  // Auto-refresh when page becomes visible
-  useVisibilityRefresh();
-
-  // Enhanced dashboard metrics query
+  // Store-isolated data hooks
   const { 
-    data: metrics, 
+    metrics, 
     isLoading: metricsLoading, 
     refresh: refreshMetrics,
-    isStale: metricsStale,
-    isFetching: metricsFetching
-  } = useEnhancedQuery<DashboardMetrics>({
-    queryKey: ["dashboard-metrics"],
-    queryFn: getDashboardMetrics,
-    enableRealtime: true,
-    staleTime: 30 * 1000, // 30 seconds
-  });
+    refreshDashboard
+  } = useDashboardStore();
 
-  // Enhanced recent orders query using the new sales hook
   const { 
     recentOrders, 
     recentOrdersLoading, 
-    refreshRecentOrders,
-    isStale,
-    isFetching
-  } = useSales();
+    refresh: refreshOrders
+  } = useSalesStore();
 
   // Quick Actions handlers
   const handleAddProduct = () => {

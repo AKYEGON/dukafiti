@@ -5,6 +5,7 @@ import { User, Session } from '@supabase/supabase-js';
 interface AuthContextType {
   user: User | null;
   session: Session | null;
+  storeId: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   login: (email: string, password: string) => Promise<{ error?: any }>;
@@ -30,6 +31,7 @@ interface AuthProviderProps {
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
+  const [storeId, setStoreId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -37,12 +39,12 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     
     // Get initial session
     supabase.auth.getSession().then(({ data: { session }, error }) => {
-      
       setSession(session);
       setUser(session?.user ?? null);
+      setStoreId(session?.user?.id ?? null);
       setIsLoading(false);
     }).catch((error) => {
-      
+      console.error('Session error:', error);
       setIsLoading(false);
     });
 
@@ -50,13 +52,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
-      
+      console.log('Auth state changed:', event, session?.user?.id);
       setSession(session);
       setUser(session?.user ?? null);
+      setStoreId(session?.user?.id ?? null);
       setIsLoading(false);
       
       // Redirect on logout
       if (event === 'SIGNED_OUT' && typeof window !== 'undefined') {
+        setStoreId(null);
         window.location.href = '/';
       }
     });
@@ -147,6 +151,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       value={{
         user,
         session,
+        storeId,
         isAuthenticated: !!user,
         isLoading,
         login,
