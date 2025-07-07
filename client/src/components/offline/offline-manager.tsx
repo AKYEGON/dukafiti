@@ -5,7 +5,7 @@ import { Wifi, WifiOff, RotateCw, AlertCircle, CheckCircle } from 'lucide-react'
 import { offlineStore } from '@/lib/offline-store';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { toast } from '@/hooks/use-toast';
+import { useToast } from '@/hooks/use-toast';
 
 interface OfflineManagerProps {
   children: React.ReactNode;
@@ -15,6 +15,7 @@ export const OfflineManager: React.FC<OfflineManagerProps> = ({ children }) => {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [pendingCount, setPendingCount] = useState(0);
   const [isSyncing, setIsSyncing] = useState(false);
+  const { toast } = useToast();
 
   // Update online status
   const updateOnlineStatus = useCallback(() => {
@@ -65,7 +66,7 @@ export const OfflineManager: React.FC<OfflineManagerProps> = ({ children }) => {
     } finally {
       setIsSyncing(false);
     }
-  }, [isSyncing, updatePendingCount]);
+  }, [isSyncing, updatePendingCount, toast]);
 
   // Set up event listeners
   useEffect(() => {

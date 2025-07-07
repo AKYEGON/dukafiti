@@ -906,6 +906,41 @@ export const searchProducts = async (query: string) => {
   return data;
 };
 
+// Recent orders function
+export const getRecentOrders = async () => {
+  try {
+    console.log('Fetching recent orders...');
+    
+    const { data: orders, error } = await supabase
+      .from('orders')
+      .select(`
+        id,
+        customer_name,
+        total,
+        payment_method,
+        status,
+        created_at
+      `)
+      .order('created_at', { ascending: false })
+      .limit(5);
+    
+    if (error) {
+      console.error('Error fetching recent orders:', error);
+      // Return empty array if table doesn't exist
+      if (error.message.includes('relation "orders" does not exist')) {
+        console.warn('Orders table does not exist, returning empty array');
+        return [];
+      }
+      throw error;
+    }
+    
+    return orders || [];
+  } catch (error) {
+    console.error('Error in getRecentOrders:', error);
+    return [];
+  }
+};
+
 // Dashboard metrics functions
 export const getDashboardMetrics = async () => {
   try {
@@ -997,57 +1032,7 @@ export const getDashboardMetrics = async () => {
   }
 };
 
-export const getRecentOrders = async () => {
-  try {
-    const { data, error } = await supabase
-      .from('orders')
-      .select(`
-        id,
-        total,
-        status,
-        customer_name,
-        payment_method,
-        created_at,
-        customer_id,
-        reference
-      `)
-      .order('created_at', { ascending: false })
-      .limit(10);
-    
-    if (error) throw error;
-    
-    // Get order items for each order
-    const ordersWithItems = await Promise.all((data || []).map(async (order) => {
-      const { data: orderItems } = await supabase
-        .from('order_items')
-        .select(`
-          quantity,
-          product_name
-        `)
-        .eq('order_id', order.id);
-      
-      return {
-        id: order.id,
-        total: order.total,
-        status: order.status,
-        customerName: order.customer_name || 'N/A',
-        paymentMethod: order.payment_method,
-        createdAt: new Date(order.created_at),
-        customerId: order.customer_id,
-        reference: order.reference,
-        products: orderItems?.map(item => ({
-          name: item.product_name || 'Unknown Product',
-          quantity: item.quantity
-        })) || []
-      };
-    }));
-    
-    return ordersWithItems;
-  } catch (error) {
-    console.error('Error fetching recent orders:', error);
-    return [];
-  }
-};
+
 
 // Store Profile operations - with fallback to localStorage when Supabase settings table doesn't exist
 // Store profile localStorage key
