@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { Button } from '@/components/ui/button';
@@ -28,7 +28,16 @@ export function RestockModal({ product, open, onOpenChange }: RestockModalProps)
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  // Reset state when modal closes
+  useEffect(() => {
+    if (!open) {
+      setQuantity('');
+      setBuyingPrice('');
+    }
+  }, [open]);
+
   const restockMutation = useMutation({
+    mutationKey: ['restock', product?.id],
     mutationFn: async ({ productId, qty, costPrice }: { productId: number; qty: number; costPrice: number }) => {
       console.log(`Starting restock for product ${productId}: adding ${qty} units at cost ${costPrice}`);
       
@@ -99,16 +108,16 @@ export function RestockModal({ product, open, onOpenChange }: RestockModalProps)
         oldStock: currentStock 
       };
     },
-    onSuccess: async (data) => {
+    onSuccess: (data) => {
       console.log('Restock successful, invalidating queries and updating UI...');
       
       // Force refresh of all product-related queries
-      await queryClient.invalidateQueries({ queryKey: ['products'] });
-      await queryClient.invalidateQueries({ queryKey: ['products-frequent'] });
-      await queryClient.invalidateQueries({ queryKey: ['/api/dashboard/metrics'] });
+      queryClient.invalidateQueries({ queryKey: ['products'] });
+      queryClient.invalidateQueries({ queryKey: ['products-frequent'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/dashboard/metrics'] });
       
       // Force refetch to ensure immediate UI update
-      await queryClient.refetchQueries({ queryKey: ['products'] });
+      queryClient.refetchQueries({ queryKey: ['products'] });
       
       toast({
         title: 'Stock Added Successfully',
@@ -117,10 +126,12 @@ export function RestockModal({ product, open, onOpenChange }: RestockModalProps)
       
       console.log(`Stock update complete: ${product?.name} stock updated from ${data.oldStock} to ${data.newStock}`);
       
-      // Reset form and close modal
-      setQuantity('');
-      setBuyingPrice('');
-      onOpenChange(false);
+      // Reset form and close modal immediately
+      setTimeout(() => {
+        setQuantity('');
+        setBuyingPrice('');
+        onOpenChange(false);
+      }, 100);
     },
     onError: (error: Error) => {
       console.error('Restock failed:', error);
@@ -129,6 +140,10 @@ export function RestockModal({ product, open, onOpenChange }: RestockModalProps)
         description: error.message,
         variant: 'destructive',
       });
+      
+      // Reset form values but keep modal open so user can try again
+      setQuantity('');
+      setBuyingPrice('');
     },
   });
 
@@ -157,12 +172,25 @@ export function RestockModal({ product, open, onOpenChange }: RestockModalProps)
   };
 
   const handleClose = () => {
+    // Don't close if mutation is pending
+    if (restockMutation.isPending) return;
+    
     setQuantity('');
     setBuyingPrice('');
+    restockMutation.reset();
     onOpenChange(false);
   };
 
   if (!product) return null;
+
+  // Debug logging for button state
+  console.log('RestockModal render:', {
+    productId: product.id,
+    isPending: restockMutation.isPending,
+    isSuccess: restockMutation.isSuccess,
+    isError: restockMutation.isError,
+    open
+  });
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
@@ -237,7 +265,14 @@ export function RestockModal({ product, open, onOpenChange }: RestockModalProps)
               disabled={restockMutation.isPending || !quantity || !buyingPrice}
               className="bg-blue-600 hover:bg-blue-700 text-white"
             >
-              {restockMutation.isPending ? 'Adding Stock...' : 'Add Stock'}
+              {restockMutation.isPending ? (
+                <>
+                  <span className="animate-spin mr-2">⏳</span>
+                  Adding Stock...
+                </>
+              ) : (
+                'Add Stock'
+              )}
             </Button>
           </DialogFooter>
         </form>
