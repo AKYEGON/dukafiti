@@ -41,7 +41,7 @@ export function useSales() {
     staleTime: 30 * 1000, // 30 seconds
   });
 
-  // Recent orders query
+  // Recent orders query with product details
   const {
     data: recentOrders,
     isLoading: recentOrdersLoading,
@@ -49,18 +49,69 @@ export function useSales() {
   } = useEnhancedQuery<Order[]>({
     queryKey: ['recent-orders'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // First get the orders
+      const { data: orders, error: ordersError } = await supabase
         .from('orders')
         .select('*')
         .order('created_at', { ascending: false })
         .limit(10);
       
-      if (error) {
-        console.error('Failed to fetch recent orders:', error);
-        throw error;
+      if (ordersError) {
+        console.error('Failed to fetch recent orders:', ordersError);
+        throw ordersError;
       }
+
+      if (!orders || orders.length === 0) {
+        return [];
+      }
+
+      // Get order items for each order
+      const orderIds = orders.map(order => order.id);
+      const { data: orderItems, error: itemsError } = await supabase
+        .from('order_items')
+        .select('order_id, product_id, quantity, price')
+        .in('order_id', orderIds);
       
-      return data || [];
+      if (itemsError) {
+        console.error('Failed to fetch order items:', itemsError);
+        // Return orders without products if items fail
+        return orders.map(order => ({ ...order, products: [] }));
+      }
+
+      // Get product details for the items
+      const productIds = [...new Set(orderItems?.map(item => item.product_id) || [])];
+      const { data: products, error: productsError } = await supabase
+        .from('products')
+        .select('id, name, price')
+        .in('id', productIds);
+      
+      if (productsError) {
+        console.error('Failed to fetch products:', productsError);
+        // Return orders without products if products fail
+        return orders.map(order => ({ ...order, products: [] }));
+      }
+
+      // Combine orders with their products
+      const ordersWithProducts = orders.map(order => {
+        const orderOrderItems = orderItems?.filter(item => item.order_id === order.id) || [];
+        const orderProducts = orderOrderItems.map(item => {
+          const product = products?.find(p => p.id === item.product_id);
+          return {
+            id: item.product_id,
+            name: product?.name || 'Unknown Product',
+            price: product?.price || '0.00',
+            quantity: item.quantity,
+            total: (parseFloat(item.price) * item.quantity).toFixed(2)
+          };
+        });
+        
+        return {
+          ...order,
+          products: orderProducts
+        };
+      });
+      
+      return ordersWithProducts;
     },
     enableRealtime: true,
     staleTime: 15 * 1000, // 15 seconds

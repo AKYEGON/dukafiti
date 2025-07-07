@@ -43,6 +43,13 @@ export interface Order {
   status: string;
   reference?: string;
   created_at: string;
+  products?: Array<{
+    id: number;
+    name: string;
+    price: string;
+    quantity: number;
+    total: string;
+  }>;
 }
 
 export interface OrderItem {
