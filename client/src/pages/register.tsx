@@ -12,6 +12,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Link } from 'wouter';
 import { Mail, ArrowLeft, Store, Eye, EyeOff } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useTheme } from 'next-themes';
 
 const registerSchema = z.object({
   email: z.string().email('Please enter a valid email'),
@@ -28,6 +29,7 @@ export default function Register() {
   const [submittedEmail, setSubmittedEmail] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const { theme } = useTheme();
   
   const {
     register,
@@ -122,22 +124,30 @@ export default function Register() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-900 px-4 sm:px-6 lg:px-8">
       <div className="bg-white dark:bg-[#1F1F1F] border border-gray-200 dark:border-gray-700 rounded-xl shadow-lg p-6 sm:p-8 w-full max-w-md mx-auto my-12">
         
+        {/* Back Button */}
+        <button
+          onClick={() => navigate('/')}
+          className="flex items-center text-brand hover:text-brand-700 dark:text-brand-300 dark:hover:text-brand-200 mb-6 text-lg font-medium p-2 transition-colors duration-200"
+          aria-label="Go back to home page"
+        >
+          <ArrowLeft className="h-5 w-5 mr-2" />
+          Back
+        </button>
+
         {/* Logo/App Name - DukaFiti Branding */}
         <div className="text-center mb-6">
           <div className="mx-auto mb-4 flex items-center justify-center">
-            <div className="brand-logo-container">
-              <img 
-                src="/assets/logo-full.png" 
-                alt="DukaFiti" 
-                className="h-16 w-auto drop-shadow-md"
-              />
-            </div>
+            <img 
+              src={theme === 'dark' ? '/assets/banner-dark.png' : '/assets/banner-light.png'}
+              alt="DukaFiti" 
+              className="h-16 w-auto object-contain"
+            />
           </div>
           <div className="mt-3 mb-4 flex items-center justify-center">
             <img 
-              src="/assets/slogan_1751824985940.png" 
+              src={theme === 'dark' ? '/assets/slogan-dark.png' : '/assets/slogan-light.png'}
               alt="Duka Fiti ni Duka Bora" 
-              className="h-6 w-auto opacity-70 dark:opacity-50"
+              className="h-6 w-auto object-contain opacity-70 dark:opacity-50"
             />
           </div>
           <p className="text-sm text-gray-600 dark:text-gray-400">Create your business account</p>

@@ -3,6 +3,7 @@ import { Store, BarChart3, Package, Users, FileText, Settings, Menu, X, PanelLef
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
+import { useTheme } from "next-themes";
 
 const navigation = [
   { name: "Dashboard", href: "/", icon: BarChart3 },
@@ -30,6 +31,7 @@ export function Sidebar({ className, collapsed = false, toggleSidebar }: Sidebar
   const [location] = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const pageTitle = getPageTitle(location);
+  const { theme } = useTheme();
 
   // Handle escape key to close mobile menu
   useEffect(() => {
@@ -69,9 +71,9 @@ export function Sidebar({ className, collapsed = false, toggleSidebar }: Sidebar
             <Link href="/">
               <div>
                 <img 
-                  src="/assets/logo-icon.png" 
+                  src={theme === 'dark' ? '/assets/logo-dark.png' : '/assets/logo-light.png'}
                   alt="DukaFiti" 
-                  className="w-8 h-8 drop-shadow-md"
+                  className="w-8 h-8 object-contain"
                 />
               </div>
             </Link>
@@ -79,9 +81,9 @@ export function Sidebar({ className, collapsed = false, toggleSidebar }: Sidebar
             <Link href="/" className="flex items-center justify-center hover:opacity-90 transition-opacity duration-200">
               <div>
                 <img 
-                  src="/assets/logo-full.png" 
+                  src={theme === 'dark' ? '/assets/banner-dark.png' : '/assets/banner-light.png'}
                   alt="DukaFiti - Duka Fiti ni Duka Bora" 
-                  className="h-10 w-auto drop-shadow-md"
+                  className="h-10 w-auto object-contain"
                 />
               </div>
             </Link>

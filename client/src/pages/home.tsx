@@ -3,10 +3,12 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Store, BarChart3, Users, Shield, Zap, Globe, ArrowRight, CheckCircle, Star, Menu, X } from "lucide-react";
 import { useLocation } from "wouter";
 import { useState } from "react";
+import { useTheme } from "next-themes";
 
 export default function Home() {
   const [, setLocation] = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const { theme } = useTheme();
 
   const features = [
     {
@@ -50,11 +52,11 @@ export default function Home() {
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
             <div className="flex items-center">
-              <div className="brand-logo-container mr-4">
+              <div className="mr-4">
                 <img 
-                  src="/assets/logo-full.png" 
+                  src={theme === 'dark' ? '/assets/banner-dark.png' : '/assets/banner-light.png'}
                   alt="DukaFiti" 
-                  className="h-8 w-auto"
+                  className="h-8 w-auto object-contain"
                 />
               </div>
             </div>

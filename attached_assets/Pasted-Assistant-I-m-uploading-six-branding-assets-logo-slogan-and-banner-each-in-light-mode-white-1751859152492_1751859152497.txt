@@ -1,0 +1,82 @@
+Assistant, I’m uploading **six branding assets** (logo, slogan, and banner each in light‑mode [white background] and dark‑mode [black background]). Please integrate them and add a fully working Back button to both Sign Up and Login pages. Leave room for future edits via Replit AI.
+
+---
+
+## 1. Asset Integration
+
+- **Files in** `public/assets/` (or `src/assets/`):
+  - `logo-light.png`, `logo-dark.png`
+  - `slogan-light.svg`, `slogan-dark.svg`
+  - `banner-light.png`, `banner-dark.png`
+
+- **Sidebar & TopBar Logos**  
+  ```jsx
+  <img
+    src={theme === 'dark' ? '/assets/logo-dark.png' : '/assets/logo-light.png'}
+    alt="DukaSmart Logo"
+    className="h-10"
+  />
+Landing & Auth Banners
+
+jsx
+Copy
+Edit
+<img
+  src={theme === 'dark' ? '/assets/banner-dark.png' : '/assets/banner-light.png'}
+  alt="DukaSmart Banner"
+  className="w-full rounded-lg"
+/>
+Slogan Placement
+
+jsx
+Copy
+Edit
+<img
+  src={theme === 'dark' ? '/assets/slogan-dark.svg' : '/assets/slogan-light.svg'}
+  alt="DukaSmart Slogan"
+  className="mt-4"
+/>
+Ensure each component reads the current theme (from context or a dark: Tailwind variant) to choose the correct asset.
+
+2. Back Button on Auth Pages
+SignUp.jsx & Login.jsx:
+
+At the top‑left, add a Back arrow button:
+
+jsx
+Copy
+Edit
+<button
+  onClick={() => navigate(-1)}
+  className="flex items-center text-primary hover:text-primary-dark mb-6"
+>
+  ← Back
+</button>
+Import useNavigate from react-router-dom and call const navigate = useNavigate();.
+
+Ensure clicking goes back in history (or to / if history empty).
+
+3. Styling & Responsiveness
+Back button: text-lg font-medium, p-2, visible in both light/dark.
+
+Assets: object-contain and responsive sizing (max-h-12 for logos, max-w-md for slogans).
+
+QA Checklist
+ Light‑mode pages show white‑background assets; dark‑mode shows black‑background versions.
+
+ No purple or unwanted background remains around any image.
+
+ Back button appears above both Sign Up and Login forms, and navigates correctly.
+
+ All pages still build and run without errors.
+
+Please apply these changes across the app via Replit AI Agent.```
+
+
+
+
+
+
+
+
+Ask ChatGPT
