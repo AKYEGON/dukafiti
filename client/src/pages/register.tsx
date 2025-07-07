@@ -136,18 +136,18 @@ export default function Register() {
 
         {/* Logo/App Name - DukaFiti Branding */}
         <div className="text-center mb-8">
-          <div className="mx-auto mb-6 flex items-center justify-center">
+          <div className="mx-auto mb-6 flex items-center justify-center bg-gradient-to-r from-brand-50 to-accent-blue-50 dark:from-brand-900/20 dark:to-accent-blue-900/20 rounded-xl p-6">
             {/* Light mode banner */}
             <img 
               src="/assets/banner-light.png"
               alt="DukaFiti" 
-              className="h-20 w-auto object-contain dark:hidden"
+              className="w-full max-w-sm h-auto object-contain dark:hidden"
             />
             {/* Dark mode banner */}
             <img 
               src="/assets/banner-dark.png"
               alt="DukaFiti" 
-              className="h-20 w-auto object-contain hidden dark:block"
+              className="w-full max-w-sm h-auto object-contain hidden dark:block"
             />
           </div>
           <p className="text-sm text-gray-600 dark:text-gray-400">Create your business account</p>
