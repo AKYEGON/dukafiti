@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { useComprehensiveRealtimeFixed } from '@/hooks/useComprehensiveRealtimeFixed';
+import { useOrders } from '@/hooks/useRealtimeData';
 import { RefreshButton } from '@/components/ui/refresh-button';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';

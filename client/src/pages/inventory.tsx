@@ -2,7 +2,6 @@ import { useState, useMemo, useCallback, useEffect } from "react";
 import { type Product } from "@/types/schema";
 import { ProductForm } from "@/components/inventory/product-form";
 import { RestockModal } from "@/components/inventory/restock-modal";
-import { RefreshButton } from "@/components/ui/refresh-button";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,8 +24,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Search, Package, Edit, Trash2, Plus, PackagePlus } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useRuntimeData } from "@/hooks/useRuntimeData";
-import { useCRUDMutations } from "@/hooks/useCRUDMutations";
+import { useProducts } from "@/hooks/useRealtimeData";
 
 type SortOption = "name-asc" | "name-desc" | "price-asc" | "price-desc";
 
@@ -38,20 +36,20 @@ export default function Inventory() {
   const [deleteProductState, setDeleteProductState] = useState<Product | undefined>();
   const [restockProduct, setRestockProduct] = useState<Product | undefined>();
 
-  // Use runtime data hook for fresh data fetching with RLS
+  // Use real-time data hook for instant updates
   const {
     products,
-    productsLoading: isLoading,
-    productsError: error,
-    refetchProducts: refresh,
-    isConnected
-  } = useRuntimeData();
-
-  // Use CRUD mutations for all operations
-  const {
-    deleteProductMutation,
-    restockProductMutation
-  } = useCRUDMutations();
+    isLoading,
+    isRefreshing,
+    error,
+    refreshData: refresh,
+    createProduct,
+    updateProduct,
+    deleteProduct,
+    isCreating,
+    isUpdating,
+    isDeleting
+  } = useProducts();
 
   // Search and sort functions
   const searchProducts = useCallback((searchTerm: string) => {
@@ -117,10 +115,10 @@ export default function Inventory() {
   // Confirm delete handler
   const confirmDelete = useCallback(() => {
     if (deleteProductState) {
-      deleteProductMutation.mutate(deleteProductState.id);
+      deleteProduct(deleteProductState.id);
       setDeleteProductState(undefined);
     }
-  }, [deleteProductState, deleteProductMutation]);
+  }, [deleteProductState, deleteProduct]);
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-[#1F1F1F]">
@@ -136,18 +134,20 @@ export default function Inventory() {
               {isLoading && (
                 <span className="ml-2 text-orange-600 dark:text-orange-400">• Loading...</span>
               )}
-              {!isConnected && (
-                <span className="ml-2 text-red-600 dark:text-red-400">• Offline</span>
+              {isRefreshing && (
+                <span className="ml-2 text-blue-600 dark:text-blue-400">• Updating...</span>
               )}
             </p>
           </div>
           <div className="flex items-center gap-2">
-            <RefreshButton
-              onRefresh={refresh}
-              isLoading={isLoading}
+            <Button
+              onClick={refresh}
+              disabled={isRefreshing}
               size="sm"
               variant="outline"
-            />
+            >
+              {isRefreshing ? "Refreshing..." : "Refresh"}
+            </Button>
             <Button 
               onClick={() => setShowProductForm(true)} 
               className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white"

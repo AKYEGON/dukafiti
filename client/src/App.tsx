@@ -11,7 +11,7 @@ import { config } from "./lib/config";
 
 import { AuthProvider, useAuth } from "@/contexts/SupabaseAuth";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
-import { useRealtimeData } from "@/hooks/useRealtimeData";
+
 import { ThemeProvider } from "@/contexts/theme-context";
 import { EnhancedErrorBoundary } from "@/components/debug/error-boundary";
 import { OfflineProvider } from "@/contexts/OfflineContext";
@@ -36,8 +36,6 @@ import Debug from "@/pages/debug";
 import DebugAuth from "@/pages/debug-auth";
 
 function AuthenticatedApp() {
-  // Initialize unified real-time subscriptions
-  const { refreshAll } = useRealtimeData();
   
   // Console log environment variables for debugging
   useEffect(() => {
