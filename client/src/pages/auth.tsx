@@ -6,6 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/SupabaseAuth";
 import { useLocation } from "wouter";
 import { Eye, EyeOff, ArrowLeft } from "lucide-react";
+import { FcGoogle } from "react-icons/fc";
 import { useTheme } from "next-themes";
 // Logo imports will be handled via public assets
 
@@ -21,7 +22,7 @@ export default function AuthPage() {
   });
   
   const { toast } = useToast();
-  const { login, signup } = useAuth();
+  const { login, signup, signInWithGoogle } = useAuth();
   const { theme } = useTheme();
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -71,6 +72,29 @@ export default function AuthPage() {
     });
   };
 
+  const handleGoogleSignIn = async () => {
+    setIsLoading(true);
+    try {
+      const result = await signInWithGoogle();
+      if (result.error) {
+        toast({
+          title: "Google Sign-In Failed",
+          description: result.error.message || "Please try again",
+          variant: "destructive",
+        });
+      }
+    } catch (error) {
+      console.error("Google sign-in error:", error);
+      toast({
+        title: "Error",
+        description: "An unexpected error occurred. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex">
       {/* Left Panel - Form */}
@@ -90,11 +114,13 @@ export default function AuthPage() {
 
         {/* Logo */}
         <div className="mb-8 flex justify-center lg:justify-start">
-          <img 
-            src={theme === 'dark' ? "/assets/logo-title-black.png" : "/assets/logo-title-white.png"}
-            alt="DukaFiti - Duka Bora Ni Duka Fiti" 
-            className="h-16 w-auto object-contain"
-          />
+          <div className="bg-brand-600 p-3 rounded-lg">
+            <img 
+              src="/assets/logo-title-white.png"
+              alt="DukaFiti - Duka Bora Ni Duka Fiti" 
+              className="h-12 w-auto object-contain"
+            />
+          </div>
         </div>
 
         {/* Form */}
@@ -180,6 +206,25 @@ export default function AuthPage() {
               disabled={isLoading}
             >
               {isLoading ? "Please wait..." : (isLogin ? "Sign In" : "Sign Up")}
+            </Button>
+            
+            {/* Divider */}
+            <div className="flex items-center my-6">
+              <div className="flex-1 border-t border-gray-300 dark:border-gray-600"></div>
+              <span className="px-4 text-sm text-gray-500 dark:text-gray-400">or</span>
+              <div className="flex-1 border-t border-gray-300 dark:border-gray-600"></div>
+            </div>
+            
+            {/* Google Sign In Button */}
+            <Button
+              type="button"
+              onClick={handleGoogleSignIn}
+              disabled={isLoading}
+              variant="outline"
+              className="w-full h-14 text-lg font-medium border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-900 dark:text-white rounded-full transition-all duration-200 shadow-sm hover:shadow-md flex items-center justify-center gap-3"
+            >
+              <FcGoogle className="h-6 w-6" />
+              {isLogin ? "Sign in with Google" : "Sign up with Google"}
             </Button>
           </form>
 

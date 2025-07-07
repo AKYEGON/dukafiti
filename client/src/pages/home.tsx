@@ -345,7 +345,7 @@ export default function Home() {
           <div className="text-center">
             <div className="mb-6">
               <img 
-                src={theme === 'dark' ? "/assets/slogan-only-black.png" : "/assets/slogan-only-white.png"}
+                src="/assets/slogan-only-white.png"
                 alt="Duka Bora Ni Duka Fiti" 
                 className="h-8 w-auto opacity-80"
               />
