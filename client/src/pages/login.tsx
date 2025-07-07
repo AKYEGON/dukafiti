@@ -83,18 +83,18 @@ export default function Login() {
 
         {/* Logo/App Name - DukaFiti Branding */}
         <div className="text-center mb-8">
-          <div className="mx-auto mb-6 flex items-center justify-center bg-gradient-to-r from-brand-50 to-accent-blue-50 dark:from-brand-900 dark:to-accent-blue-900 rounded-xl p-8 shadow-lg">
-            {/* Light mode banner */}
+          <div className="mx-auto mb-6 flex items-center justify-center rounded-xl p-6">
+            {/* Light mode title and slogan */}
             <img 
-              src="/assets/banner-light.png"
-              alt="DukaFiti" 
-              className="h-32 w-auto object-contain dark:hidden drop-shadow-lg"
+              src="/assets/auth-logo-light.png"
+              alt="DukaFiti - Duka Bora Ni Duka Fiti" 
+              className="h-24 w-auto object-contain dark:hidden"
             />
-            {/* Dark mode banner */}
+            {/* Dark mode title and slogan */}
             <img 
-              src="/assets/banner-dark.png"
-              alt="DukaFiti" 
-              className="h-32 w-auto object-contain hidden dark:block drop-shadow-lg"
+              src="/assets/auth-logo-dark.png"
+              alt="DukaFiti - Duka Bora Ni Duka Fiti" 
+              className="h-24 w-auto object-contain hidden dark:block"
             />
           </div>
         </div>
