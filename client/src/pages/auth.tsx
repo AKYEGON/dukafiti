@@ -98,78 +98,78 @@ export default function AuthPage() {
   return (
     <div className="min-h-screen flex">
       {/* Left Panel - Form */}
-      <div className="w-full lg:w-1/2 flex flex-col justify-center px-8 py-12 bg-white dark:bg-gray-900">
-        {/* Back Button */}
-        <div className="absolute top-6 left-6">
+      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 lg:p-16 bg-gray-50 dark:bg-gray-900 relative">
+        {/* Back Button - Fixed positioning outside card */}
+        <div className="absolute top-8 left-8 z-20">
           <Button
             variant="ghost"
             size="sm"
             onClick={() => setLocation("/")}
-            className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100"
+            className="text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 bg-white/90 dark:bg-gray-800/90 backdrop-blur-sm border border-gray-200 dark:border-gray-700 rounded-lg px-4 py-2 shadow-sm"
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Home
           </Button>
         </div>
 
-        {/* Logo */}
-        <div className="mb-8 flex justify-center lg:justify-start">
-          <div className="bg-white dark:bg-gray-900 p-6 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700">
-            <img 
-              src={theme === 'dark' ? "/assets/banner-dark.png" : "/assets/banner-light.png"}
-              alt="DukaFiti - Duka Bora Ni Duka Fiti" 
-              className="h-16 w-auto object-contain"
-            />
+        {/* Single unified card */}
+        <div className="max-w-lg w-full bg-white dark:bg-gray-800 p-12 rounded-3xl shadow-2xl border border-gray-200 dark:border-gray-700">
+          {/* Logo inside card */}
+          <div className="mb-10 flex justify-center">
+            <div className="bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-700 dark:to-gray-600 p-6 rounded-2xl">
+              <img 
+                src={theme === 'dark' ? "/assets/banner-dark.png" : "/assets/banner-light.png"}
+                alt="DukaFiti - Duka Bora Ni Duka Fiti" 
+                className="h-20 w-auto object-contain"
+              />
+            </div>
           </div>
-        </div>
-
-        {/* Form */}
-        <div className="max-w-md mx-auto lg:mx-0 w-full bg-white dark:bg-gray-900 p-8 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 backdrop-blur-sm">
-          <div className="mb-8">
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-brand-600 to-brand-700 bg-clip-text text-transparent mb-2">
+          {/* Form header */}
+          <div className="mb-10 text-center">
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-brand-600 to-brand-700 bg-clip-text text-transparent mb-3">
               {isLogin ? "Welcome Back" : "Create Account"}
             </h1>
-            <p className="text-gray-600 dark:text-gray-400">
+            <p className="text-gray-600 dark:text-gray-400 text-lg">
               {isLogin ? "Sign in to your DukaFiti account" : "Start your journey with DukaFiti"}
             </p>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          <form onSubmit={handleSubmit} className="space-y-8">
             {!isLogin && (
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <Label htmlFor="name" className="text-sm font-semibold text-gray-700 dark:text-gray-300 tracking-wide">
-                  NAME
+                  FULL NAME
                 </Label>
                 <Input
                   id="name"
                   name="name"
                   type="text"
-                  placeholder="Your name"
+                  placeholder="Enter your full name"
                   value={formData.name}
                   onChange={handleInputChange}
                   required={!isLogin}
-                  className="h-14 px-4 rounded-full border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:border-brand focus:ring-brand focus:ring-2 focus:ring-brand/20 transition-all duration-200"
+                  className="h-16 px-6 rounded-2xl border-2 border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:border-brand focus:ring-brand focus:ring-2 focus:ring-brand/20 transition-all duration-200 text-lg"
                 />
               </div>
             )}
             
-            <div className="space-y-2">
+            <div className="space-y-3">
               <Label htmlFor="email" className="text-sm font-semibold text-gray-700 dark:text-gray-300 tracking-wide">
-                EMAIL
+                EMAIL ADDRESS
               </Label>
               <Input
                 id="email"
                 name="email"
                 type="email"
-                placeholder="Your email"
+                placeholder="Enter your email address"
                 value={formData.email}
                 onChange={handleInputChange}
                 required
-                className="h-14 px-4 rounded-full border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:border-brand focus:ring-brand"
+                className="h-16 px-6 rounded-2xl border-2 border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:border-brand focus:ring-brand focus:ring-2 focus:ring-brand/20 transition-all duration-200 text-lg"
               />
             </div>
             
-            <div className="space-y-2">
+            <div className="space-y-3">
               <Label htmlFor="password" className="text-sm font-semibold text-gray-700 dark:text-gray-300 tracking-wide">
                 PASSWORD
               </Label>
@@ -178,23 +178,23 @@ export default function AuthPage() {
                   id="password"
                   name="password"
                   type={showPassword ? "text" : "password"}
-                  placeholder="Your password"
+                  placeholder="Enter your password"
                   value={formData.password}
                   onChange={handleInputChange}
                   required
-                  className="h-14 px-4 pr-12 rounded-full border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:border-brand focus:ring-brand focus:ring-2 focus:ring-brand/20 transition-all duration-200"
+                  className="h-16 px-6 pr-16 rounded-2xl border-2 border-gray-200 dark:border-gray-600 bg-gray-50 dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:border-brand focus:ring-brand focus:ring-2 focus:ring-brand/20 transition-all duration-200 text-lg"
                 />
                 <Button
                   type="button"
                   variant="ghost"
                   size="sm"
-                  className="absolute right-3 top-1/2 -translate-y-1/2 h-8 w-8 p-0 hover:bg-transparent text-gray-500 dark:text-gray-400"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 h-8 w-8 p-0 hover:bg-gray-100 dark:hover:bg-gray-600 rounded-full text-gray-500 dark:text-gray-400"
                   onClick={() => setShowPassword(!showPassword)}
                 >
                   {showPassword ? (
-                    <EyeOff className="h-4 w-4" />
+                    <EyeOff className="h-5 w-5" />
                   ) : (
-                    <Eye className="h-4 w-4" />
+                    <Eye className="h-5 w-5" />
                   )}
                 </Button>
               </div>
@@ -202,17 +202,17 @@ export default function AuthPage() {
 
             <Button 
               type="submit" 
-              className="w-full h-14 rounded-full bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700 text-white font-semibold text-lg shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02]"
+              className="w-full h-16 rounded-2xl bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700 text-white font-bold text-xl shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02] mt-8"
               disabled={isLoading}
             >
-              {isLoading ? "Please wait..." : (isLogin ? "Sign In" : "Sign Up")}
+              {isLoading ? "Please wait..." : (isLogin ? "Sign In" : "Create Account")}
             </Button>
             
             {/* Divider */}
-            <div className="flex items-center my-6">
-              <div className="flex-1 border-t border-gray-300 dark:border-gray-600"></div>
-              <span className="px-4 text-sm text-gray-500 dark:text-gray-400">or</span>
-              <div className="flex-1 border-t border-gray-300 dark:border-gray-600"></div>
+            <div className="flex items-center my-8">
+              <div className="flex-1 border-t border-gray-200 dark:border-gray-600"></div>
+              <span className="px-6 text-sm text-gray-500 dark:text-gray-400 font-medium">or</span>
+              <div className="flex-1 border-t border-gray-200 dark:border-gray-600"></div>
             </div>
             
             {/* Google Sign In Button */}
@@ -221,26 +221,26 @@ export default function AuthPage() {
               onClick={handleGoogleSignIn}
               disabled={isLoading}
               variant="outline"
-              className="w-full h-14 text-lg font-medium border-2 border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 text-gray-900 dark:text-white rounded-full transition-all duration-200 shadow-sm hover:shadow-md flex items-center justify-center gap-3"
+              className="w-full h-16 text-lg font-semibold border-2 border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 text-gray-900 dark:text-white rounded-2xl transition-all duration-200 shadow-sm hover:shadow-md flex items-center justify-center gap-4"
             >
-              <FcGoogle className="h-6 w-6" />
+              <FcGoogle className="h-7 w-7" />
               {isLogin ? "Sign in with Google" : "Sign up with Google"}
             </Button>
             
-            <div className="mt-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-700 rounded-xl">
+            <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-700 rounded-2xl">
               <p className="text-sm text-blue-800 dark:text-blue-300 text-center">
                 <span className="font-semibold">Note:</span> Google OAuth requires additional setup. Use email/password authentication for immediate access.
               </p>
             </div>
           </form>
 
-          <div className="mt-6 text-center">
-            <p className="text-sm text-gray-600 dark:text-gray-400">
+          <div className="mt-8 text-center">
+            <p className="text-base text-gray-600 dark:text-gray-400 mb-2">
               {isLogin ? "Don't have an account?" : "Already have an account?"}
             </p>
             <Button
               variant="link"
-              className="text-brand hover:text-brand-700 font-semibold transition-colors duration-200"
+              className="text-brand hover:text-brand-700 font-bold text-lg transition-colors duration-200"
               onClick={() => {
                 setIsLogin(!isLogin);
                 setFormData({ email: "", password: "", name: "" });

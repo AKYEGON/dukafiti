@@ -505,6 +505,12 @@ Changelog:
 - July 7, 2025. Implemented fallback text-based branding for reliability when image assets fail to load
 - July 7, 2025. Created comprehensive Google OAuth setup documentation for future production deployment
 - July 7, 2025. Enhanced authentication page with helpful notices about OAuth configuration requirements
+- July 7, 2025. Completely redesigned authentication page layout with unified single card design
+- July 7, 2025. Fixed back button overlap issue with proper positioning outside the main card
+- July 7, 2025. Improved spacing and positioning throughout authentication form for better UX
+- July 7, 2025. Enhanced form elements with larger input fields, better typography, and improved accessibility
+- July 7, 2025. Integrated dynamic banner images inside the unified card with proper light/dark mode switching
+- July 7, 2025. Replaced squeezed layout with spacious, professional single-card design
 ```
 
 ## User Preferences
