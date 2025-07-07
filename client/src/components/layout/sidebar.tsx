@@ -1,5 +1,5 @@
 import { Link, useLocation } from "wouter";
-import { Store, BarChart3, Package, Users, FileText, Settings, Menu, X, PanelLeftClose, PanelLeftOpen } from "lucide-react";
+import { Store, BarChart3, Package, Users, FileText, Settings, Menu, X, PanelLeftClose, PanelLeftOpen, TrendingUp } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
@@ -11,6 +11,7 @@ const navigation = [
   { name: "Sales", href: "/sales", icon: BarChart3 },
   { name: "Customers", href: "/customers", icon: Users },
   { name: "Reports", href: "/reports", icon: FileText },
+  { name: "Profits", href: "/profits", icon: TrendingUp },
   { name: "Settings", href: "/settings", icon: Settings },
 ];
 

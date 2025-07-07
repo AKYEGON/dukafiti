@@ -25,6 +25,7 @@ import Inventory from "@/pages/inventory";
 import Sales from "@/pages/sales";
 import Customers from "@/pages/customers";
 import Reports from "@/pages/reports";
+import Profits from "@/pages/profits";
 import NotificationsPage from "@/pages/notifications";
 import Home from "@/pages/home";
 import AuthPage from "@/pages/auth";
@@ -80,6 +81,7 @@ function AuthenticatedApp() {
             <Route path="/sales" component={Sales} />
             <Route path="/customers" component={Customers} />
             <Route path="/reports" component={Reports} />
+            <Route path="/profits" component={Profits} />
             <Route path="/notifications" component={NotificationsPage} />
             <Route path="/settings" component={SettingsPage} />
             <Route component={NotFound} />

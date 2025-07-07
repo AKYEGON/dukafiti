@@ -21,13 +21,15 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Search, Package, Edit, Trash2, Plus } from "lucide-react";
+import { Search, Package, Edit, Trash2, Plus, RefreshCw } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import useNotifications from "@/hooks/useNotifications";
 import { getProducts, updateProduct, deleteProduct, createProduct } from "@/lib/supabase-data";
 import { supabase } from "@/lib/supabase";
+import { RestockModal } from "@/components/inventory/RestockModal";
+import { RestockHistory } from "@/components/inventory/RestockHistory";
 
 type SortOption = "name-asc" | "name-desc" | "price-asc" | "price-desc";
 
@@ -37,6 +39,8 @@ export default function Inventory() {
   const [showProductForm, setShowProductForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | undefined>();
   const [deleteProduct, setDeleteProduct] = useState<Product | undefined>();
+  const [restockProduct, setRestockProduct] = useState<Product | undefined>();
+  const [showRestockHistory, setShowRestockHistory] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { createNotification } = useNotifications();
@@ -145,6 +149,10 @@ export default function Inventory() {
     setDeleteProduct(product);
   };
 
+  const handleRestock = (product: Product) => {
+    setRestockProduct(product);
+  };
+
   const handleFormClose = () => {
     setShowProductForm(false);
     setEditingProduct(undefined);
@@ -158,13 +166,24 @@ export default function Inventory() {
           <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">
             Inventory
           </h1>
-          <Button 
-            onClick={() => setShowProductForm(true)} 
-            className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white"
-          >
-            <Plus className="w-4 h-4" />
-            Add Product
-          </Button>
+          <div className="flex gap-2">
+            <Button 
+              onClick={() => setShowRestockHistory(true)}
+              variant="outline"
+              size="sm"
+              className="flex items-center gap-2"
+            >
+              <RefreshCw className="w-4 h-4" />
+              View History
+            </Button>
+            <Button 
+              onClick={() => setShowProductForm(true)} 
+              className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white"
+            >
+              <Plus className="w-4 h-4" />
+              Add Product
+            </Button>
+          </div>
         </div>
 
         {/* Search and Sort Bar */}
@@ -238,6 +257,16 @@ export default function Inventory() {
                 >
                   {/* Action Buttons - Top Right Corner */}
                   <div className="absolute top-4 right-4 flex gap-1">
+                    {product.stock !== null && (
+                      <button
+                        onClick={() => handleRestock(product)}
+                        className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 hover:text-blue-600 transition-colors"
+                        aria-label="Restock product"
+                        title="Restock"
+                      >
+                        <RefreshCw className="w-4 h-4" />
+                      </button>
+                    )}
                     <button
                       onClick={() => handleEdit(product)}
                       className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 hover:text-green-600 transition-colors"
@@ -288,6 +317,25 @@ export default function Inventory() {
         open={showProductForm}
         onOpenChange={handleFormClose}
         product={editingProduct}
+      />
+
+      {/* Restock Modal */}
+      {restockProduct && (
+        <RestockModal
+          isOpen={true}
+          onClose={() => setRestockProduct(undefined)}
+          product={{
+            id: restockProduct.id,
+            name: restockProduct.name,
+            stock: restockProduct.stock || 0
+          }}
+        />
+      )}
+
+      {/* Restock History Modal */}
+      <RestockHistory
+        isOpen={showRestockHistory}
+        onClose={() => setShowRestockHistory(false)}
       />
 
       {/* Delete Confirmation Dialog */}

@@ -380,6 +380,7 @@ export default function Sales() {
         productName: item.product.name,
         quantity: item.quantity,
         price: item.unitPrice,
+        costPrice: item.product.cost_price || 0, // Include cost price for profit tracking
         hasStock: item.product.stock !== null,
         newStock: item.product.stock !== null ? (item.product.stock || 0) - item.quantity : null,
         newSalesCount: (item.product.salesCount || 0) + item.quantity,
