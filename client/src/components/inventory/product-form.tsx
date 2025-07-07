@@ -151,12 +151,12 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
       return;
     }
     
-    if (!data.price || parseFloat(data.price as string) <= 0) {
+    if (!data.price || parseFloat(data.price) <= 0) {
       toast({ title: "Price must be greater than 0", variant: "destructive" });
       return;
     }
     
-    if (!unknownQuantity && (!data.stock || data.stock < 0)) {
+    if (!unknownQuantity && (typeof data.stock !== 'number' || data.stock < 0)) {
       toast({ title: "Stock quantity must be 0 or greater", variant: "destructive" });
       return;
     }
@@ -314,7 +314,14 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
                           disabled={unknownQuantity}
                           onChange={(e) => {
                             if (!unknownQuantity) {
-                              field.onChange(parseInt(e.target.value) || 0);
+                              const value = e.target.value;
+                              // Allow empty string to be handled properly
+                              if (value === "") {
+                                field.onChange(0);
+                              } else {
+                                const numValue = parseInt(value);
+                                field.onChange(isNaN(numValue) ? 0 : Math.max(0, numValue));
+                              }
                             }
                           }}
                           className={`h-10 text-base ${unknownQuantity ? "bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400" : ""}`}

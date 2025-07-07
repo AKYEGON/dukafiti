@@ -104,11 +104,11 @@ export interface InsertProduct {
   name: string;
   sku: string;
   description?: string;
-  price: number;
-  cost_price?: number;
+  price: string;
+  costPrice?: string;
   stock?: number;
   category: string;
-  low_stock_threshold?: number;
+  lowStockThreshold?: number;
   unknownQuantity?: boolean;
 }
 
