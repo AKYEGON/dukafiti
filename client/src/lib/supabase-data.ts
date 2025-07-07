@@ -1041,97 +1041,19 @@ export const getRecentOrders = async () => {
 };
 
 // Store Profile operations - with fallback to localStorage when Supabase settings table doesn't exist
+// Store profile localStorage key
+const STORE_PROFILE_KEY = 'dukafiti_store_profile_v2';
+
 export const getStoreProfile = async () => {
   try {
-    console.log('Fetching store profile from Supabase');
+    console.log('Fetching store profile...');
     
-    const { data, error } = await supabase
-      .from('settings')
-      .select('*')
-      .single();
-    
-    if (error) {
-      console.error('Store profile fetch failed:', error);
-      
-      // If settings table doesn't exist, use localStorage fallback
-      if (error.code === '42P01' || error.message.includes('does not exist')) {
-        console.log('Settings table not found, using localStorage fallback');
-        const localData = localStorage.getItem('dukafiti_store_profile');
-        if (localData) {
-          try {
-            const parsed = JSON.parse(localData);
-            return {
-              storeName: parsed.storeName || '',
-              ownerName: parsed.ownerName || '',
-              address: parsed.address || ''
-            };
-          } catch (parseError) {
-            console.error('Error parsing localStorage data:', parseError);
-          }
-        }
-        
-        return {
-          storeName: '',
-          ownerName: '',
-          address: ''
-        };
-      }
-      
-      // Try to create default settings entry for other errors
-      const { data: newData, error: insertError } = await supabase
-        .from('settings')
-        .insert([{
-          store_name: '',
-          owner_name: '',
-          address: ''
-        }])
-        .select()
-        .single();
-      
-      if (insertError) {
-        console.error('Failed to create default settings:', insertError);
-        // Fallback to localStorage
-        const localData = localStorage.getItem('dukafiti_store_profile');
-        if (localData) {
-          try {
-            const parsed = JSON.parse(localData);
-            return {
-              storeName: parsed.storeName || '',
-              ownerName: parsed.ownerName || '',
-              address: parsed.address || ''
-            };
-          } catch (parseError) {
-            console.error('Error parsing localStorage data:', parseError);
-          }
-        }
-        
-        return {
-          storeName: '',
-          ownerName: '',
-          address: ''
-        };
-      }
-      
-      return {
-        storeName: newData.store_name || '',
-        ownerName: newData.owner_name || '',
-        address: newData.address || ''
-      };
-    }
-    
-    return {
-      storeName: data.store_name || '',
-      ownerName: data.owner_name || '',
-      address: data.address || ''
-    };
-  } catch (error) {
-    console.error('Store profile fetch failed:', error);
-    
-    // Fallback to localStorage
-    const localData = localStorage.getItem('dukafiti_store_profile');
+    // For now, use localStorage as primary storage since settings table doesn't exist
+    const localData = localStorage.getItem(STORE_PROFILE_KEY);
     if (localData) {
       try {
         const parsed = JSON.parse(localData);
+        console.log('Retrieved store profile from localStorage:', parsed);
         return {
           storeName: parsed.storeName || '',
           ownerName: parsed.ownerName || '',
@@ -1141,6 +1063,16 @@ export const getStoreProfile = async () => {
         console.error('Error parsing localStorage data:', parseError);
       }
     }
+    
+    // Return empty profile if no data exists
+    console.log('No store profile found, returning defaults');
+    return {
+      storeName: '',
+      ownerName: '',
+      address: ''
+    };
+  } catch (error) {
+    console.error('Store profile fetch failed:', error);
     
     return {
       storeName: '',
@@ -1156,53 +1088,26 @@ export const updateStoreProfile = async (profileData: {
   address: string;
 }) => {
   try {
-    console.log('Updating store profile in Supabase:', profileData);
+    console.log('Updating store profile:', profileData);
     
-    const { data, error } = await supabase
-      .from('settings')
-      .upsert([{
-        store_name: profileData.storeName,
-        owner_name: profileData.ownerName,
-        address: profileData.address,
-        updated_at: new Date().toISOString()
-      }])
-      .select()
-      .single();
+    // Save to localStorage as primary storage (since settings table doesn't exist)
+    const profileWithTimestamp = {
+      ...profileData,
+      lastUpdated: new Date().toISOString()
+    };
     
-    if (error) {
-      console.error('Store profile update failed:', error);
-      
-      // If settings table doesn't exist, save to localStorage as fallback
-      if (error.code === '42P01' || error.message.includes('does not exist')) {
-        console.log('Settings table not found, saving to localStorage');
-        localStorage.setItem('dukafiti_store_profile', JSON.stringify(profileData));
-        return profileData;
-      }
-      
-      throw error;
-    }
+    localStorage.setItem(STORE_PROFILE_KEY, JSON.stringify(profileWithTimestamp));
+    console.log('Store profile saved to localStorage successfully');
     
-    console.log('Store profile updated successfully in Supabase');
-    
-    // Also save to localStorage as backup
-    localStorage.setItem('dukafiti_store_profile', JSON.stringify(profileData));
-    
+    // Return the saved data
     return {
-      storeName: data.store_name,
-      ownerName: data.owner_name,
-      address: data.address
+      storeName: profileData.storeName,
+      ownerName: profileData.ownerName,
+      address: profileData.address
     };
   } catch (error) {
     console.error('Store profile update failed:', error);
-    
-    // Final fallback to localStorage
-    if ((error as any)?.code === '42P01' || (error as any)?.message?.includes('does not exist')) {
-      console.log('Using localStorage fallback for settings');
-      localStorage.setItem('dukafiti_store_profile', JSON.stringify(profileData));
-      return profileData;
-    }
-    
-    throw error;
+    throw new Error('Failed to save store profile. Please try again.');
   }
 };
 

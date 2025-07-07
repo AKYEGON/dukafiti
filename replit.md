@@ -480,6 +480,10 @@ Changelog:
 - July 6, 2025. Verified Supabase connection with successful test - all tables (products, customers, orders) accessible with data
 - July 6, 2025. Updated replit.md architecture documentation to reflect serverless Supabase-first approach
 - July 6, 2025. Migrated from Express/Node.js backend to direct Supabase client operations for improved performance
+- July 7, 2025. Fixed critical store profile data persistence issue - settings table missing from Supabase
+- July 7, 2025. Implemented robust localStorage-based store profile storage with timestamp tracking  
+- July 7, 2025. Enhanced getStoreProfile and updateStoreProfile functions for reliable data persistence
+- July 7, 2025. Updated branding assets with new title images for sidebar and navigation
 ```
 
 ## User Preferences
