@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { type Product } from "@/types/schema";
 import { ProductForm } from "@/components/inventory/product-form";
@@ -30,6 +30,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import useNotifications from "@/hooks/useNotifications";
 import { updateProduct, deleteProduct, createProduct } from "@/lib/supabase-data";
 import { useInventory } from "@/hooks/useInventory";
+import { supabase } from "@/lib/supabase";
 
 type SortOption = "name-asc" | "name-desc" | "price-asc" | "price-desc";
 
@@ -59,18 +60,41 @@ export default function Inventory() {
     updateStockOptimistically,
   } = useInventory();
 
+  // Enhanced delete mutation with proper error handling and logging
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
-      await deleteProduct(id);
+      console.log('🗑️ Starting product deletion:', id);
+      try {
+        await deleteProduct(id);
+        console.log('✅ Product deletion successful');
+      } catch (error) {
+        console.error('❌ Product deletion failed:', error);
+        throw error;
+      }
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["products"] });
-      queryClient.invalidateQueries({ queryKey: ["dashboard-metrics"] });
-      toast({ title: "Product deleted successfully" });
+    onSuccess: async () => {
+      console.log('🔄 Refreshing inventory data after deletion');
+      
+      // Force immediate refresh of all related data
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["products"] }),
+        queryClient.invalidateQueries({ queryKey: ["dashboard-metrics"] }),
+        refresh() // Use the inventory hook's refresh function
+      ]);
+      
+      toast({ 
+        title: "Product deleted successfully",
+        description: "Inventory has been updated"
+      });
       setDeleteProductState(undefined);
     },
-    onError: () => {
-      toast({ title: "Failed to delete product", variant: "destructive" });
+    onError: (error: any) => {
+      console.error('❌ Delete operation failed:', error);
+      toast({ 
+        title: "Failed to delete product", 
+        description: error.message || "An error occurred while deleting the product",
+        variant: "destructive" 
+      });
     },
   });
 
@@ -82,24 +106,63 @@ export default function Inventory() {
     );
   }, [products, search, sortBy, searchProducts, sortProducts]);
 
-  const handleEdit = (product: Product) => {
+  // Enhanced handlers with logging and state management
+  const handleEdit = useCallback((product: Product) => {
+    console.log('✏️ Editing product:', product.id, product.name);
     setEditingProduct(product);
     setShowProductForm(true);
-  };
+  }, []);
 
-  const handleDelete = (product: Product) => {
+  const handleDelete = useCallback((product: Product) => {
+    console.log('🗑️ Preparing to delete product:', product.id, product.name);
     setDeleteProductState(product);
-  };
+  }, []);
 
-  const handleRestock = (product: Product) => {
-    
+  const handleRestock = useCallback((product: Product) => {
+    console.log('📦 Preparing to restock product:', product.id, product.name);
     setRestockProduct(product);
-  };
+  }, []);
 
-  const handleFormClose = () => {
+  const handleFormClose = useCallback(() => {
+    console.log('✖️ Closing product form');
     setShowProductForm(false);
     setEditingProduct(undefined);
-  };
+  }, []);
+
+  const handleRestockClose = useCallback(() => {
+    console.log('✖️ Closing restock modal');
+    setRestockProduct(undefined);
+  }, []);
+
+  // Real-time subscriptions for inventory changes
+  useEffect(() => {
+    console.log('🔄 Setting up real-time inventory subscriptions');
+    
+    const handleProductChanges = (payload: any) => {
+      console.log('📡 Real-time product change:', payload.eventType, payload.new?.name || payload.old?.name);
+      
+      // Force refresh inventory data
+      setTimeout(() => {
+        refresh();
+        queryClient.invalidateQueries({ queryKey: ["products"] });
+        queryClient.invalidateQueries({ queryKey: ["dashboard-metrics"] });
+      }, 100);
+    };
+
+    const channel = supabase
+      .channel('inventory-changes')
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'products'
+      }, handleProductChanges)
+      .subscribe();
+
+    return () => {
+      console.log('🔄 Cleaning up real-time subscriptions');
+      supabase.removeChannel(channel);
+    };
+  }, [refresh, queryClient]);
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-[#1F1F1F]">
@@ -283,12 +346,15 @@ export default function Inventory() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogCancel disabled={deleteMutation.isPending}>
+              Cancel
+            </AlertDialogCancel>
             <AlertDialogAction
               onClick={() => deleteProductState && deleteMutation.mutate(deleteProductState.id)}
+              disabled={deleteMutation.isPending}
               className="bg-red-600 hover:bg-red-700"
             >
-              Delete
+              {deleteMutation.isPending ? "Deleting..." : "Delete"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

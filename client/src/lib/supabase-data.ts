@@ -102,12 +102,32 @@ export const updateProduct = async (id: number, updates: any) => {
 };
 
 export const deleteProduct = async (id: number) => {
-  const { error } = await supabase
-    .from('products')
-    .delete()
-    .eq('id', id);
-  
-  if (error) throw error;
+  try {
+    // Get current user ID for store isolation
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      throw new Error('User not authenticated');
+    }
+
+    console.log('🗑️ Deleting product:', id, 'for store:', user.id);
+    
+    const { error } = await supabase
+      .from('products')
+      .delete()
+      .eq('id', id)
+      .eq('store_id', user.id); // Ensure we only delete our own products
+    
+    if (error) {
+      console.error('❌ Product deletion error:', error);
+      if (error.details) console.error('Details:', error.details);
+      throw error;
+    }
+    
+    console.log('✅ Product deleted successfully');
+  } catch (error) {
+    console.error('❌ Product deletion failed:', error);
+    throw error;
+  }
 };
 
 // Customer operations - Store isolated
@@ -207,16 +227,23 @@ export const updateCustomer = async (id: number, updates: any) => {
 
 export const deleteCustomer = async (id: number) => {
   try {
+    // Get current user ID for store isolation
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      throw new Error('User not authenticated');
+    }
+
+    console.log('🗑️ Deleting customer:', id, 'for store:', user.id);
     
-    
-    // First delete any related orders and order items
+    // First delete any related orders and order items (with store isolation)
     const { data: orders, error: ordersError } = await supabase
       .from('orders')
       .select('id')
-      .eq('customer_id', id);
+      .eq('customer_id', id)
+      .eq('store_id', user.id); // Only get orders from our store
     
     if (ordersError) {
-      
+      console.error('❌ Error fetching related orders:', ordersError);
       throw ordersError;
     }
     
@@ -226,10 +253,11 @@ export const deleteCustomer = async (id: number) => {
         const { error: orderItemsError } = await supabase
           .from('order_items')
           .delete()
-          .eq('order_id', order.id);
+          .eq('order_id', order.id)
+          .eq('store_id', user.id); // Ensure store isolation
         
         if (orderItemsError) {
-          
+          console.error('❌ Error deleting order items:', orderItemsError);
           throw orderItemsError;
         }
       }
@@ -238,22 +266,24 @@ export const deleteCustomer = async (id: number) => {
       const { error: deleteOrdersError } = await supabase
         .from('orders')
         .delete()
-        .eq('customer_id', id);
+        .eq('customer_id', id)
+        .eq('store_id', user.id); // Ensure store isolation
       
       if (deleteOrdersError) {
-        
+        console.error('❌ Error deleting orders:', deleteOrdersError);
         throw deleteOrdersError;
       }
     }
     
-    // Delete any payments
+    // Delete any payments (with store isolation)
     const { error: paymentsError } = await supabase
       .from('payments')
       .delete()
-      .eq('customer_id', id);
+      .eq('customer_id', id)
+      .eq('store_id', user.id); // Ensure store isolation
     
     if (paymentsError) {
-      
+      console.error('❌ Error deleting payments:', paymentsError);
       throw paymentsError;
     }
     
@@ -261,53 +291,64 @@ export const deleteCustomer = async (id: number) => {
     const { error } = await supabase
       .from('customers')
       .delete()
-      .eq('id', id);
+      .eq('id', id)
+      .eq('store_id', user.id); // Ensure store isolation
     
     if (error) {
-      
+      console.error('❌ Customer deletion error:', error);
       throw error;
     }
     
-    
+    console.log('✅ Customer deleted successfully');
   } catch (error) {
-    
+    console.error('❌ Customer deletion failed:', error);
     throw error;
   }
 };
 
 export const recordCustomerRepayment = async (customerId: number, amount: number, method: string, note?: string) => {
   try {
+    // Get current user ID for store isolation
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      throw new Error('User not authenticated');
+    }
+
+    console.log('💰 Recording repayment for customer:', customerId, 'amount:', amount, 'for store:', user.id);
     
-    
-    // Get current customer balance
+    // Get current customer balance with store isolation
     const { data: customer, error: customerError } = await supabase
       .from('customers')
       .select('balance')
       .eq('id', customerId)
+      .eq('store_id', user.id) // Ensure we only access our own customers
       .single();
     
     if (customerError) {
-      
+      console.error('❌ Customer fetch error:', customerError);
       throw customerError;
     }
     
     const currentBalance = parseFloat(customer.balance || '0');
     const newBalance = Math.max(0, currentBalance - amount);
     
-    // Update customer balance
+    console.log('💰 Balance update:', { currentBalance, amount, newBalance });
+    
+    // Update customer balance with store isolation
     const { data: updatedCustomer, error: updateError } = await supabase
       .from('customers')
       .update({ balance: newBalance })
       .eq('id', customerId)
+      .eq('store_id', user.id) // Ensure store isolation
       .select()
       .single();
     
     if (updateError) {
-      
+      console.error('❌ Customer balance update error:', updateError);
       throw updateError;
     }
     
-    // Record the payment
+    // Record the payment with store isolation
     const { data: payment, error: paymentError } = await supabase
       .from('payments')
       .insert([{
@@ -316,21 +357,20 @@ export const recordCustomerRepayment = async (customerId: number, amount: number
         method: method,
         reference: note || null,
         status: 'completed',
+        store_id: user.id, // Ensure store isolation
       }])
       .select()
       .single();
     
     if (paymentError) {
-      
+      console.error('❌ Payment recording error:', paymentError);
       throw paymentError;
     }
     
-    // MVP: Credit reminders are handled daily, not on individual payments
-
-    
+    console.log('✅ Repayment recorded successfully:', { customer: updatedCustomer, payment });
     return { customer: updatedCustomer, payment };
   } catch (error) {
-    
+    console.error('❌ Repayment recording failed:', error);
     throw error;
   }
 };
@@ -1598,14 +1638,26 @@ export const restockProduct = async (restockData: {
   userId?: number;
 }) => {
   try {
-    // Get current product data
+    // Get current user ID for store isolation
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      throw new Error('User not authenticated');
+    }
+
+    console.log('📦 Restocking product:', restockData.productId, 'quantity:', restockData.quantity, 'for store:', user.id);
+    
+    // Get current product data with store isolation
     const { data: product, error: productError } = await supabase
       .from('products')
       .select('*')
       .eq('id', restockData.productId)
+      .eq('store_id', user.id) // Ensure we only access our own products
       .single();
     
-    if (productError) throw productError;
+    if (productError) {
+      console.error('❌ Product fetch error:', productError);
+      throw productError;
+    }
     
     // Update product stock
     const newStock = (product.stock || 0) + restockData.quantity;
@@ -1613,12 +1665,16 @@ export const restockProduct = async (restockData: {
       .from('products')
       .update({ stock: newStock })
       .eq('id', restockData.productId)
+      .eq('store_id', user.id) // Ensure store isolation
       .select()
       .single();
     
-    if (updateError) throw updateError;
+    if (updateError) {
+      console.error('❌ Product update error:', updateError);
+      throw updateError;
+    }
     
-    // Record restock history
+    // Record restock history (if table exists)
     const { error: historyError } = await supabase
       .from('restock_history')
       .insert([{
@@ -1627,17 +1683,19 @@ export const restockProduct = async (restockData: {
         quantity: restockData.quantity,
         supplier: restockData.supplier || null,
         note: restockData.note || null,
-        user_id: restockData.userId || null,
+        user_id: restockData.userId || user.id,
+        store_id: user.id, // Ensure store isolation
       }]);
     
     if (historyError) {
-      
+      console.warn('⚠️ Restock history recording failed (table may not exist):', historyError);
       // Don't throw, just log the error
     }
     
+    console.log('✅ Product restocked successfully:', updatedProduct);
     return updatedProduct;
   } catch (error) {
-    
+    console.error('❌ Product restock failed:', error);
     throw error;
   }
 };

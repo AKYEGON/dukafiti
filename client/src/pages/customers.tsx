@@ -1,5 +1,5 @@
-import { useState, useMemo } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState, useMemo, useEffect, useCallback } from "react";
+import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { Plus, User, Phone, Search, Filter, CreditCard, Eye, AlertCircle, Trash2, Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,12 +11,13 @@ import { CustomerForm } from "@/components/customers/customer-form";
 import { RecordRepaymentModal } from "@/components/customers/record-repayment-modal";
 import { MobilePageWrapper } from "@/components/layout/mobile-page-wrapper";
 import { motion, AnimatePresence } from "framer-motion";
-import { getCustomers, deleteCustomer } from "@/lib/supabase-data";
+import { getCustomers, deleteCustomer, updateCustomer, recordCustomerRepayment } from "@/lib/supabase-data";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/lib/supabase";
 import type { Customer } from "@/types/schema";
 
 export default function Customers() {
-  const { data: customers, isLoading } = useQuery<Customer[]>({
+  const { data: customers, isLoading, refetch: refreshCustomers } = useQuery<Customer[]>({
     queryKey: ["customers"],
     queryFn: async () => {
       // Get current user for store isolation
@@ -43,7 +44,6 @@ export default function Customers() {
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterType, setFilterType] = useState<"all" | "withDebt" | "noDebt">("all");
-  const [isDeleting, setIsDeleting] = useState(false);
 
   // Filter and search customers
   const filteredCustomers = useMemo(() => {
@@ -74,49 +74,104 @@ export default function Customers() {
     });
   }, [customers, searchQuery, filterType]);
 
-  const handleEditCustomer = (customer: Customer) => {
+  // Enhanced handlers with logging and state management
+  const handleEditCustomer = useCallback((customer: Customer) => {
+    console.log('✏️ Editing customer:', customer.id, customer.name);
     setSelectedCustomer(customer);
     setShowEditCustomerForm(true);
-  };
+  }, []);
 
-  const handleDeleteCustomer = (customer: Customer) => {
+  const handleDeleteCustomer = useCallback((customer: Customer) => {
+    console.log('🗑️ Preparing to delete customer:', customer.id, customer.name);
     setSelectedCustomer(customer);
     setShowDeleteConfirm(true);
-  };
+  }, []);
 
-  const confirmDeleteCustomer = async () => {
-    if (!selectedCustomer) return;
-    
-    setIsDeleting(true);
-    try {
-      await deleteCustomer(selectedCustomer.id);
-      toast({
-        title: "Success",
-        description: "Customer deleted successfully",
-      });
-      queryClient.invalidateQueries({ queryKey: ["customers"] });
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to delete customer",
-        variant: "destructive",
-      });
-    } finally {
-      setIsDeleting(false);
-      setShowDeleteConfirm(false);
-      setSelectedCustomer(null);
-    }
-  };
-
-  const handleRecordRepayment = (customer: Customer) => {
+  const handleRecordRepayment = useCallback((customer: Customer) => {
+    console.log('💰 Recording repayment for customer:', customer.id, customer.name);
     setSelectedCustomer(customer);
     setShowRepaymentModal(true);
+  }, []);
+
+  // Enhanced delete mutation with comprehensive error handling
+  const deleteMutation = useMutation({
+    mutationFn: async (customerId: number) => {
+      console.log('🗑️ Starting customer deletion:', customerId);
+      try {
+        await deleteCustomer(customerId);
+        console.log('✅ Customer deletion successful');
+      } catch (error) {
+        console.error('❌ Customer deletion failed:', error);
+        throw error;
+      }
+    },
+    onSuccess: async () => {
+      console.log('🔄 Refreshing customer data after deletion');
+      
+      // Force immediate refresh of all related data
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["customers"] }),
+        queryClient.invalidateQueries({ queryKey: ["dashboard-metrics"] }),
+        refreshCustomers() // Use the query's refresh function
+      ]);
+      
+      toast({
+        title: "Customer deleted successfully",
+        description: "Customer list has been updated"
+      });
+      setShowDeleteConfirm(false);
+      setSelectedCustomer(null);
+    },
+    onError: (error: any) => {
+      console.error('❌ Delete operation failed:', error);
+      toast({
+        title: "Failed to delete customer",
+        description: error.message || "An error occurred while deleting the customer",
+        variant: "destructive"
+      });
+    },
+  });
+
+  const confirmDeleteCustomer = () => {
+    if (!selectedCustomer) return;
+    deleteMutation.mutate(selectedCustomer.id);
   };
 
-  const handleCloseRepaymentModal = () => {
+  const handleCloseRepaymentModal = useCallback(() => {
+    console.log('✖️ Closing repayment modal');
     setShowRepaymentModal(false);
     setSelectedCustomer(null);
-  };
+  }, []);
+
+  // Real-time subscriptions for customer changes
+  useEffect(() => {
+    console.log('🔄 Setting up real-time customer subscriptions');
+    
+    const handleCustomerChanges = (payload: any) => {
+      console.log('📡 Real-time customer change:', payload.eventType, payload.new?.name || payload.old?.name);
+      
+      // Force refresh customer data
+      setTimeout(() => {
+        refreshCustomers();
+        queryClient.invalidateQueries({ queryKey: ["customers"] });
+        queryClient.invalidateQueries({ queryKey: ["dashboard-metrics"] });
+      }, 100);
+    };
+
+    const channel = supabase
+      .channel('customer-changes')
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'customers'
+      }, handleCustomerChanges)
+      .subscribe();
+
+    return () => {
+      console.log('🔄 Cleaning up real-time subscriptions');
+      supabase.removeChannel(channel);
+    };
+  }, [refreshCustomers, queryClient]);
 
   if (isLoading) {
     return (
@@ -376,16 +431,16 @@ export default function Customers() {
               <Button
                 variant="outline"
                 onClick={() => setShowDeleteConfirm(false)}
-                disabled={isDeleting}
+                disabled={deleteMutation.isPending}
               >
                 Cancel
               </Button>
               <Button
                 variant="destructive"
                 onClick={confirmDeleteCustomer}
-                disabled={isDeleting}
+                disabled={deleteMutation.isPending}
               >
-                {isDeleting ? "Deleting..." : "Delete Customer"}
+                {deleteMutation.isPending ? "Deleting..." : "Delete Customer"}
               </Button>
             </DialogFooter>
           </DialogContent>
