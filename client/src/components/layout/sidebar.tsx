@@ -76,9 +76,9 @@ export function Sidebar({ className, collapsed = false, toggleSidebar }: Sidebar
                   alt="DukaFiti" 
                   className="w-10 h-10 object-contain dark:hidden"
                 />
-                {/* Dark mode logo icon */}
+                {/* Dark mode D logo icon */}
                 <img 
-                  src="/assets/logo-icon-dark.png"
+                  src="/assets/d-logo-dark.png"
                   alt="DukaFiti" 
                   className="w-10 h-10 object-contain hidden dark:block"
                 />
