@@ -137,21 +137,31 @@ export default function Register() {
         {/* Logo/App Name - DukaFiti Branding */}
         <div className="text-center mb-6">
           <div className="mx-auto mb-4 flex items-center justify-center">
+            {/* Light mode logo */}
             <img 
-              src={theme === 'dark' ? '/assets/banner-dark.png' : '/assets/banner-light.png'}
+              src="/assets/logo-light.png"
               alt="DukaFiti" 
-              className="h-16 w-auto object-contain"
-              onError={(e) => {
-                const target = e.target as HTMLImageElement;
-                target.src = '/assets/logo-full.png';
-              }}
+              className="h-16 w-auto object-contain dark:hidden"
+            />
+            {/* Dark mode logo */}
+            <img 
+              src="/assets/logo-dark.png"
+              alt="DukaFiti" 
+              className="h-16 w-auto object-contain hidden dark:block"
             />
           </div>
           <div className="mt-3 mb-4 flex items-center justify-center">
+            {/* Light mode slogan */}
             <img 
-              src={theme === 'dark' ? '/assets/slogan-dark.png' : '/assets/slogan-light.png'}
+              src="/assets/slogan-light.png"
               alt="Duka Fiti ni Duka Bora" 
-              className="h-6 w-auto object-contain opacity-70 dark:opacity-50"
+              className="h-6 w-auto object-contain opacity-70 dark:hidden"
+            />
+            {/* Dark mode slogan */}
+            <img 
+              src="/assets/slogan-dark.png"
+              alt="Duka Fiti ni Duka Bora" 
+              className="h-6 w-auto object-contain opacity-50 hidden dark:block"
             />
           </div>
           <p className="text-sm text-gray-600 dark:text-gray-400">Create your business account</p>

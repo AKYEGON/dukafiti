@@ -52,15 +52,18 @@ export default function Home() {
           <div className="flex justify-between items-center h-16">
             {/* Logo */}
             <div className="flex items-center">
-              <div className="mr-4">
+              <div className="mr-4 relative">
+                {/* Light mode logo */}
                 <img 
-                  src={theme === 'dark' ? '/assets/banner-dark.png' : '/assets/banner-light.png'}
+                  src="/assets/logo-light.png"
                   alt="DukaFiti" 
-                  className="h-8 w-auto object-contain"
-                  onError={(e) => {
-                    const target = e.target as HTMLImageElement;
-                    target.src = '/assets/logo-full.png';
-                  }}
+                  className="h-10 w-auto object-contain dark:hidden"
+                />
+                {/* Dark mode logo */}
+                <img 
+                  src="/assets/logo-dark.png"
+                  alt="DukaFiti" 
+                  className="h-10 w-auto object-contain hidden dark:block"
                 />
               </div>
             </div>
@@ -164,29 +167,55 @@ export default function Home() {
 
             <div className="lg:col-span-6 mt-12 lg:mt-0">
               <div className="relative">
-                <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl p-8 border border-gray-200 dark:border-gray-700">
-                  <div className="space-y-4">
-                    <div className="flex items-center justify-between bg-brand-50 dark:bg-brand-900/20 p-4 rounded-lg">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-3 h-3 bg-brand-500 rounded-full"></div>
-                        <span className="text-sm font-medium text-gray-900 dark:text-white">Today's Sales</span>
+                {/* Hero Banner with Dark/Light Mode Switching */}
+                <div className="relative overflow-hidden rounded-xl shadow-2xl">
+                  {/* Light mode banner */}
+                  <img 
+                    src="/assets/logo-light.png" 
+                    className="w-full h-80 object-cover dark:hidden" 
+                    alt="DukaFiti Hero Banner" 
+                  />
+                  {/* Dark mode banner */}
+                  <img 
+                    src="/assets/logo-dark.png" 
+                    className="w-full h-80 object-cover hidden dark:block" 
+                    alt="DukaFiti Hero Banner" 
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/50 dark:to-white/20"></div>
+                  
+                  {/* Slogan Overlay */}
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="text-center">
+                      {/* Light mode slogan */}
+                      <img 
+                        src="/assets/slogan-light.png" 
+                        className="h-8 w-auto mx-auto mb-4 dark:hidden opacity-90" 
+                        alt="Duka Fiti ni Duka Bora" 
+                      />
+                      {/* Dark mode slogan */}
+                      <img 
+                        src="/assets/slogan-dark.png" 
+                        className="h-8 w-auto mx-auto mb-4 hidden dark:block opacity-90" 
+                        alt="Duka Fiti ni Duka Bora" 
+                      />
+                      <div className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm rounded-lg p-4 mx-4">
+                        <p className="text-sm text-gray-700 dark:text-gray-300 font-medium">
+                          Modern POS • Real-time Analytics • Offline Ready
+                        </p>
                       </div>
-                      <span className="text-lg font-bold text-brand-600">KES 45,680</span>
                     </div>
-                    <div className="flex items-center justify-between bg-accent-blue-50 dark:bg-accent-blue-900/20 p-4 rounded-lg">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-3 h-3 bg-accent-blue-500 rounded-full"></div>
-                        <span className="text-sm font-medium text-gray-900 dark:text-white">Products Sold</span>
-                      </div>
-                      <span className="text-lg font-bold text-accent-blue-600">127</span>
-                    </div>
-                    <div className="flex items-center justify-between bg-gray-50 dark:bg-gray-700 p-4 rounded-lg">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-3 h-3 bg-gray-500 rounded-full"></div>
-                        <span className="text-sm font-medium text-gray-900 dark:text-white">Low Stock Alert</span>
-                      </div>
-                      <span className="text-lg font-bold text-orange-600">3 items</span>
-                    </div>
+                  </div>
+                </div>
+                
+                {/* Dashboard Preview Cards */}
+                <div className="mt-6 grid grid-cols-2 gap-4">
+                  <div className="bg-brand-50 dark:bg-brand-900/20 p-4 rounded-lg">
+                    <div className="text-xs text-brand-600 dark:text-brand-400 font-medium">Today's Sales</div>
+                    <div className="text-lg font-bold text-brand-700 dark:text-brand-300">KES 45,680</div>
+                  </div>
+                  <div className="bg-accent-blue-50 dark:bg-accent-blue-900/20 p-4 rounded-lg">
+                    <div className="text-xs text-accent-blue-600 dark:text-accent-blue-400 font-medium">Products Sold</div>
+                    <div className="text-lg font-bold text-accent-blue-700 dark:text-accent-blue-300">127</div>
                   </div>
                 </div>
               </div>

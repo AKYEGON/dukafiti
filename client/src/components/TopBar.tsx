@@ -178,10 +178,17 @@ export function TopBar({ onToggleSidebar, isSidebarCollapsed }: TopBarProps) {
         <div className="flex-1 max-w-md mx-auto relative" ref={searchRef}>
           {/* Slogan Watermark Background */}
           <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0">
+            {/* Light mode slogan watermark */}
             <img 
-              src="/assets/slogan_1751824985940.png" 
+              src="/assets/slogan-light.png" 
               alt=""
-              className="opacity-5 h-6 w-auto dark:opacity-[0.03]"
+              className="opacity-5 h-6 w-auto dark:hidden"
+            />
+            {/* Dark mode slogan watermark */}
+            <img 
+              src="/assets/slogan-dark.png" 
+              alt=""
+              className="opacity-[0.03] h-6 w-auto hidden dark:block"
             />
           </div>
           
