@@ -150,7 +150,6 @@ export default function Register() {
               className="h-32 w-auto object-contain hidden dark:block drop-shadow-lg"
             />
           </div>
-          <p className="text-sm text-gray-600 dark:text-gray-400">Create your business account</p>
         </div>
 
         {/* Register Form */}

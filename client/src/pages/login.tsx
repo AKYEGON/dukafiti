@@ -97,7 +97,6 @@ export default function Login() {
               className="h-32 w-auto object-contain hidden dark:block drop-shadow-lg"
             />
           </div>
-          <p className="text-sm text-gray-600 dark:text-gray-400">Welcome back to your business</p>
         </div>
 
         {/* Login Form */}
