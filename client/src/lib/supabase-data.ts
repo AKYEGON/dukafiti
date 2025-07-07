@@ -1323,10 +1323,10 @@ export const createCreditReminderNotification = async (customerId: string, custo
     const { data, error } = await supabase
       .from('notifications')
       .insert([{
-        type: 'credit',
-        entity_id: customerId,
+        type: 'payment_received',
         title: 'Payment Reminder',
         message: `${customerName} owes KES ${balance.toFixed(2)}`,
+        user_id: 1,
         is_read: false
       }])
       .select()
@@ -1337,6 +1337,7 @@ export const createCreditReminderNotification = async (customerId: string, custo
       throw error;
     }
 
+    console.log(`✅ Created payment reminder for ${customerName}: KES ${balance.toFixed(2)}`);
     return data;
   } catch (error) {
     console.error('createCreditReminderNotification error:', error);
@@ -1351,9 +1352,9 @@ export const createLowStockAlertNotification = async (productId: string, product
       .from('notifications')
       .insert([{
         type: 'low_stock',
-        entity_id: productId,
         title: 'Low Stock Alert',
-        message: `${productName} is low: ${quantity} left`,
+        message: `${productName} is running low (Current stock: ${quantity})`,
+        user_id: 1,
         is_read: false
       }])
       .select()
@@ -1364,6 +1365,7 @@ export const createLowStockAlertNotification = async (productId: string, product
       throw error;
     }
 
+    console.log(`✅ Created low stock notification for ${productName}: ${quantity} units remaining`);
     return data;
   } catch (error) {
     console.error('createLowStockAlertNotification error:', error);

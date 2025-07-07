@@ -11,10 +11,10 @@ export const triggerSaleCompletedNotification = async (
   const { error } = await supabase
     .from('notifications')
     .insert([{
-      type: 'credit',
-      entity_id: orderId,
+      type: 'sale_completed',
       title: 'Sale Completed',
       message: `Sale of KES ${total.toFixed(2)} completed via ${paymentMethod}${customerName ? ` to ${customerName}` : ''}`,
+      user_id: 1,
       is_read: false
     }]);
 
@@ -31,10 +31,10 @@ export const triggerPaymentReceivedNotification = async (
   const { error } = await supabase
     .from('notifications')
     .insert([{
-      type: 'credit',
-      entity_id: customerId,
+      type: 'payment_received',
       title: 'Payment Received',
       message: `Payment of KES ${amount.toFixed(2)} received from ${customerName}`,
+      user_id: 1,
       is_read: false
     }]);
 
@@ -52,9 +52,9 @@ export const triggerLowStockNotification = async (
     .from('notifications')
     .insert([{
       type: 'low_stock',
-      entity_id: productId,
       title: 'Low Stock Alert',
       message: `${productName} is running low (${currentStock} remaining)`,
+      user_id: 1,
       is_read: false
     }]);
 
@@ -72,10 +72,10 @@ export const triggerCreditReminderNotification = async (
   const { error } = await supabase
     .from('notifications')
     .insert([{
-      type: 'credit',
-      entity_id: customerId,
+      type: 'payment_received',
       title: 'Credit Reminder',
       message: `${customerName} has outstanding credit of KES ${amount.toFixed(2)} (${daysPastDue} days overdue)`,
+      user_id: 1,
       is_read: false
     }]);
 
@@ -91,10 +91,10 @@ export const triggerCustomerRegisteredNotification = async (
   const { error } = await supabase
     .from('notifications')
     .insert([{
-      type: 'credit',
-      entity_id: customerId,
+      type: 'sale_completed',
       title: 'New Customer',
       message: `${customerName} has been registered as a new customer`,
+      user_id: 1,
       is_read: false
     }]);
 
@@ -112,9 +112,9 @@ export const triggerInventoryUpdatedNotification = async (
     .from('notifications')
     .insert([{
       type: 'low_stock',
-      entity_id: productId,
       title: 'Inventory Updated',
       message: `Product "${productName}" has been ${action}`,
+      user_id: 1,
       is_read: false
     }]);
 

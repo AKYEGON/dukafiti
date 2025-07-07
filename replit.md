@@ -487,6 +487,10 @@ Changelog:
 - July 7, 2025. Updated collapsed sidebar to show dynamic "D" logo in dark mode and standard logo in light mode
 - July 7, 2025. Replaced login and register page logos with new title and slogan images featuring dynamic dark/light mode switching
 - July 7, 2025. Updated sidebar collapsed state with new D logos - purple with white "D" for light mode and purple with black "D" for dark mode
+- July 7, 2025. Fixed critical low stock notification system bug - beans product now properly triggers alerts at threshold (10 <= 10)
+- July 7, 2025. Enhanced notification schema to use correct database structure (user_id instead of entity_id) for all notification types
+- July 7, 2025. Updated all notification creation functions across codebase to use proper schema and type mappings
+- July 7, 2025. Verified low stock notifications now work correctly and display in real-time UI notification panel
 ```
 
 ## User Preferences
