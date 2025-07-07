@@ -44,21 +44,33 @@ export function RestockModal({ product, open, onOpenChange }: RestockModalProps)
       const currentStock = currentProduct.stock || 0;
       const newStock = currentStock + qty;
 
-      // Update product with new stock (cost_price will be added to schema later)
+      // Update product with new stock and cost price
       const { error: updateError } = await supabase
         .from('products')
         .update({
-          stock: newStock
+          stock: newStock,
+          cost_price: costPrice
         })
         .eq('id', productId);
 
       if (updateError) {
-        throw new Error(`Failed to update product: ${updateError.message}`);
+        // If cost_price column doesn't exist yet, try updating just stock
+        if (updateError.message.includes('cost_price')) {
+          console.warn('cost_price column not found, updating stock only');
+          const { error: stockOnlyError } = await supabase
+            .from('products')
+            .update({ stock: newStock })
+            .eq('id', productId);
+          
+          if (stockOnlyError) {
+            throw new Error(`Failed to update product stock: ${stockOnlyError.message}`);
+          }
+          
+          console.log(`Stock updated. Buying price ${costPrice} will be stored once cost_price column is added.`);
+        } else {
+          throw new Error(`Failed to update product: ${updateError.message}`);
+        }
       }
-
-      // For now, we'll store buying price info in local storage or a separate tracking system
-      // This will be moved to the database once the cost_price column is added to the schema
-      console.log(`Buying price for ${productId}: ${costPrice} (to be stored in cost_price column)`);
 
       return { newStock, productId, costPrice };
     },

@@ -533,6 +533,13 @@ Changelog:
 - July 7, 2025. Enhanced signInWithGoogle function with proper OAuth configuration and redirect handling
 - July 7, 2025. Created comprehensive Google OAuth setup documentation (GOOGLE_OAUTH_SETUP.md)
 - July 7, 2025. Applied consistent styling and theming to Google OAuth buttons across authentication pages
+- July 7, 2025. Implemented comprehensive "Add Stock" functionality on Inventory page for restocking and profit tracking
+- July 7, 2025. Created RestockModal component with quantity and buying price inputs, form validation, and error handling
+- July 7, 2025. Added PackagePlus icon "Add Stock" button to each product card with hover effects and proper accessibility
+- July 7, 2025. Integrated real-time stock updates with immediate inventory list refresh after restocking operations
+- July 7, 2025. Built graceful fallback system for cost_price field - works with quantities now, supports profit tracking once column is added
+- July 7, 2025. Created comprehensive documentation and SQL scripts for adding cost_price column to Supabase products table
+- July 7, 2025. Enhanced inventory management workflow with professional modal design and user-friendly success feedback
 ```
 
 ## User Preferences
