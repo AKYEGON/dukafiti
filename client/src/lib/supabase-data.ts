@@ -16,6 +16,12 @@ export const getProducts = async (storeId: string) => {
 
 export const createProduct = async (product: any) => {
   try {
+    // Get current user ID for store isolation
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      throw new Error('User not authenticated');
+    }
+
     const insertData = {
       name: product.name,
       sku: product.sku,
@@ -26,7 +32,7 @@ export const createProduct = async (product: any) => {
       category: product.category || 'General',
       low_stock_threshold: product.unknownQuantity ? null : (product.lowStockThreshold || 10),
       sales_count: 0,
-      // store_id will be set automatically by trigger
+      store_id: user.id, // Explicit store isolation
     };
     
     const { data, error } = await supabase
@@ -36,43 +42,63 @@ export const createProduct = async (product: any) => {
       .single();
     
     if (error) {
-      console.error('Product creation error:', error);
+      console.error('❌ Product creation error:', error);
+      if (error.details) console.error('Details:', error.details);
+      if (error.hint) console.error('Hint:', error.hint);
       throw new Error(error.message || 'Failed to create product in database');
     }
     
-    console.log('Product created successfully:', data);
+    console.log('✅ Product created successfully:', data);
     return data;
   } catch (error) {
-    console.error('Product creation failed:', error);
+    console.error('❌ Product creation failed:', error);
     throw error;
   }
 };
 
 export const updateProduct = async (id: number, updates: any) => {
-  const updateData: any = {
-    name: updates.name,
-    sku: updates.sku,
-    description: updates.description,
-    price: updates.price,
-    stock: updates.unknownQuantity ? null : updates.stock,
-    category: updates.category,
-    low_stock_threshold: updates.unknownQuantity ? null : updates.lowStockThreshold,
-  };
-  
-  // Include cost_price if provided
-  if (updates.costPrice !== undefined) {
-    updateData.cost_price = updates.costPrice;
+  try {
+    // Get current user ID for store isolation
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      throw new Error('User not authenticated');
+    }
+
+    const updateData: any = {
+      name: updates.name,
+      sku: updates.sku,
+      description: updates.description,
+      price: updates.price,
+      stock: updates.unknownQuantity ? null : updates.stock,
+      category: updates.category,
+      low_stock_threshold: updates.unknownQuantity ? null : updates.lowStockThreshold,
+    };
+    
+    // Include cost_price if provided
+    if (updates.costPrice !== undefined) {
+      updateData.cost_price = updates.costPrice;
+    }
+    
+    const { data, error } = await supabase
+      .from('products')
+      .update(updateData)
+      .eq('id', id)
+      .eq('store_id', user.id) // Ensure we only update our own products
+      .select()
+      .single();
+    
+    if (error) {
+      console.error('❌ Product update error:', error);
+      if (error.details) console.error('Details:', error.details);
+      throw error;
+    }
+    
+    console.log('✅ Product updated successfully:', data);
+    return data;
+  } catch (error) {
+    console.error('❌ Product update failed:', error);
+    throw error;
   }
-  
-  const { data, error } = await supabase
-    .from('products')
-    .update(updateData)
-    .eq('id', id)
-    .select()
-    .single();
-  
-  if (error) throw error;
-  return data;
 };
 
 export const deleteProduct = async (id: number) => {
@@ -100,9 +126,12 @@ export const getCustomers = async (storeId: string) => {
 
 export const createCustomer = async (customer: any) => {
   try {
-    
-    
-    // store_id will be set automatically by trigger
+    // Get current user ID for store isolation
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      throw new Error('User not authenticated');
+    }
+
     const { data, error } = await supabase
       .from('customers')
       .insert([{
@@ -110,16 +139,19 @@ export const createCustomer = async (customer: any) => {
         email: customer.email || null,
         phone: customer.phone,
         balance: customer.balance || 0,
+        store_id: user.id, // Explicit store isolation
       }])
       .select()
       .single();
     
     if (error) {
-      
+      console.error('❌ Customer creation error:', error);
+      if (error.details) console.error('Details:', error.details);
+      if (error.hint) console.error('Hint:', error.hint);
       throw error;
     }
     
-    
+    console.log('✅ Customer created successfully:', data);
     return data;
   } catch (error) {
     
@@ -129,8 +161,12 @@ export const createCustomer = async (customer: any) => {
 
 export const updateCustomer = async (id: number, updates: any) => {
   try {
-    
-    
+    // Get current user ID for store isolation
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    if (authError || !user) {
+      throw new Error('User not authenticated');
+    }
+
     // Prepare update object with only the fields that should be updated
     const updateObject: any = {
       name: updates.name,
@@ -151,18 +187,20 @@ export const updateCustomer = async (id: number, updates: any) => {
       .from('customers')
       .update(updateObject)
       .eq('id', id)
+      .eq('store_id', user.id) // Ensure we only update our own customers
       .select()
       .single();
     
     if (error) {
-      
+      console.error('❌ Customer update error:', error);
+      if (error.details) console.error('Details:', error.details);
       throw new Error(`Failed to update customer: ${error.message}`);
     }
     
-    
+    console.log('✅ Customer updated successfully:', data);
     return data;
   } catch (error) {
-    
+    console.error('❌ Customer update failed:', error);
     throw error;
   }
 };
