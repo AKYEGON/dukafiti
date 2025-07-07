@@ -11,24 +11,25 @@ import { RecordRepaymentModal } from "@/components/customers/record-repayment-mo
 import { MobilePageWrapper } from "@/components/layout/mobile-page-wrapper";
 import { RefreshButton } from "@/components/ui/refresh-button";
 import { motion, AnimatePresence } from "framer-motion";
-import { useCustomers } from "@/hooks/useRealtimeData";
+import { useSimpleCustomers } from "@/hooks/useSimpleCustomers";
 import type { Customer } from "@/types/schema";
 
 export default function Customers() {
-  // Use real-time data hook for instant updates
+  // Use clean simple customers hook without naming conflicts
   const {
     customers,
     isLoading,
-    isRefreshing,
     error,
-    refreshData: refreshCustomers,
+    refetch: refreshCustomers,
     createCustomer,
     updateCustomer,
     deleteCustomer,
+    recordRepayment,
     isCreating,
     isUpdating,
-    isDeleting
-  } = useCustomers();
+    isDeleting,
+    isRecordingRepayment
+  } = useSimpleCustomers();
 
   const [showNewCustomerForm, setShowNewCustomerForm] = useState(false);
   const [showEditCustomerForm, setShowEditCustomerForm] = useState(false);
@@ -86,14 +87,14 @@ export default function Customers() {
     setShowRepaymentModal(true);
   }, []);
 
-  // Confirm delete using comprehensive mutation
+  // Confirm delete using simple hook
   const confirmDeleteCustomer = useCallback(() => {
     if (selectedCustomer) {
-      deleteCustomerMutation.mutate(selectedCustomer.id);
+      deleteCustomer(selectedCustomer.id);
       setShowDeleteConfirm(false);
       setSelectedCustomer(null);
     }
-  }, [selectedCustomer, deleteCustomerMutation]);
+  }, [selectedCustomer, deleteCustomer]);
 
   const handleCloseRepaymentModal = useCallback(() => {
     console.log('✖️ Closing repayment modal');
@@ -101,7 +102,7 @@ export default function Customers() {
     setSelectedCustomer(null);
   }, []);
 
-  // Real-time subscriptions are now handled by useComprehensiveRealtime hook
+  // Real-time updates handled by useSimpleCustomers hook
 
   if (isLoading) {
     return (
@@ -141,9 +142,6 @@ export default function Customers() {
                 Customer Management
                 {isLoading && (
                   <span className="ml-2 text-sm text-orange-600 dark:text-orange-400">• Loading...</span>
-                )}
-                {!isConnected && (
-                  <span className="ml-2 text-sm text-red-600 dark:text-red-400">• Offline</span>
                 )}
               </h2>
             </div>
@@ -380,16 +378,16 @@ export default function Customers() {
               <Button
                 variant="outline"
                 onClick={() => setShowDeleteConfirm(false)}
-                disabled={deleteCustomerMutation.isPending}
+                disabled={isDeleting}
               >
                 Cancel
               </Button>
               <Button
                 variant="destructive"
                 onClick={confirmDeleteCustomer}
-                disabled={deleteCustomerMutation.isPending}
+                disabled={isDeleting}
               >
-                {deleteCustomerMutation.isPending ? "Deleting..." : "Delete Customer"}
+                {isDeleting ? "Deleting..." : "Delete Customer"}
               </Button>
             </DialogFooter>
           </DialogContent>
