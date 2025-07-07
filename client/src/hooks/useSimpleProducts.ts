@@ -33,18 +33,41 @@ export function useSimpleProducts() {
     staleTime: 0
   });
 
-  // Create product
+  // Create product with SKU validation
   const createMutation = useMutation({
     mutationFn: async (productData: any) => {
       if (!user?.id) throw new Error('User not authenticated');
       
+      // Auto-generate SKU if empty or check for duplicates
+      let finalSKU = productData.sku;
+      if (!finalSKU || finalSKU.trim() === '') {
+        finalSKU = await generateUniqueSKU(productData.name, user.id);
+      } else {
+        // Check if SKU already exists
+        const { data: existingProduct } = await supabase
+          .from('products')
+          .select('id')
+          .eq('sku', finalSKU)
+          .eq('store_id', user.id)
+          .maybeSingle();
+        
+        if (existingProduct) {
+          throw new Error(`SKU "${finalSKU}" already exists. Please use a different SKU.`);
+        }
+      }
+      
       const { data, error } = await supabase
         .from('products')
-        .insert([{ ...productData, store_id: user.id }])
+        .insert([{ ...productData, sku: finalSKU, store_id: user.id }])
         .select()
         .single();
       
-      if (error) throw error;
+      if (error) {
+        if (error.code === '23505' && error.message.includes('products_sku_key')) {
+          throw new Error(`SKU "${finalSKU}" already exists. Please use a different SKU.`);
+        }
+        throw error;
+      }
       return data;
     },
     onSuccess: () => {
@@ -63,9 +86,24 @@ export function useSimpleProducts() {
     }
   });
 
-  // Update product
+  // Update product with SKU validation
   const updateMutation = useMutation({
     mutationFn: async ({ id, ...updateData }: any) => {
+      // If SKU is being updated, check for duplicates
+      if (updateData.sku && user?.id) {
+        const { data: existingProduct } = await supabase
+          .from('products')
+          .select('id')
+          .eq('sku', updateData.sku)
+          .eq('store_id', user.id)
+          .neq('id', id)
+          .maybeSingle();
+        
+        if (existingProduct) {
+          throw new Error(`SKU "${updateData.sku}" already exists. Please use a different SKU.`);
+        }
+      }
+      
       const { data, error } = await supabase
         .from('products')
         .update(updateData)
@@ -74,7 +112,12 @@ export function useSimpleProducts() {
         .select()
         .single();
       
-      if (error) throw error;
+      if (error) {
+        if (error.code === '23505' && error.message.includes('products_sku_key')) {
+          throw new Error(`SKU "${updateData.sku}" already exists. Please use a different SKU.`);
+        }
+        throw error;
+      }
       return data;
     },
     onSuccess: () => {
@@ -133,4 +176,39 @@ export function useSimpleProducts() {
     isUpdating: updateMutation.isPending,
     isDeleting: deleteMutation.isPending
   };
+}
+
+// Helper function to generate unique SKU
+async function generateUniqueSKU(productName: string, storeId: string): Promise<string> {
+  if (!productName) return `PROD-${Date.now()}`;
+  
+  // Generate base SKU from product name
+  const baseSKU = productName
+    .toUpperCase()
+    .replace(/[^A-Z0-9]/g, '')
+    .substring(0, 6);
+  
+  // Try the base SKU first
+  let uniqueSKU = baseSKU;
+  let counter = 1;
+  
+  while (counter <= 100) { // Prevent infinite loop
+    const { data: existingProduct } = await supabase
+      .from('products')
+      .select('id')
+      .eq('sku', uniqueSKU)
+      .eq('store_id', storeId)
+      .maybeSingle();
+    
+    if (!existingProduct) {
+      return uniqueSKU;
+    }
+    
+    // Generate new SKU with counter
+    uniqueSKU = `${baseSKU}${counter.toString().padStart(2, '0')}`;
+    counter++;
+  }
+  
+  // Fallback to timestamp-based SKU
+  return `PROD-${Date.now()}`;
 }

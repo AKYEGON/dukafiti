@@ -157,16 +157,47 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
                 name="sku"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel className="text-sm font-medium text-gray-700 dark:text-gray-300">SKU (Product Code) *</FormLabel>
+                    <FormLabel className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                      SKU (Product Code) 
+                      <span className="text-xs text-gray-500 ml-2">(Optional - auto-generated if empty)</span>
+                    </FormLabel>
                     <FormControl>
-                      <Input 
-                        {...field} 
-                        placeholder="e.g. PROD001, TEA001"
-                        className="h-10 text-base"
-                      />
+                      <div className="flex gap-2">
+                        <Input 
+                          {...field} 
+                          placeholder="Leave empty for auto-generation or enter custom SKU"
+                          className="h-10 text-base flex-1"
+                        />
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            const productName = form.getValues('name');
+                            if (productName) {
+                              const autoSKU = productName
+                                .toUpperCase()
+                                .replace(/[^A-Z0-9]/g, '')
+                                .substring(0, 6) + 
+                                Math.random().toString(36).substring(2, 4).toUpperCase();
+                              form.setValue('sku', autoSKU);
+                            } else {
+                              toast({
+                                title: "Note",
+                                description: "Please enter product name first",
+                              });
+                            }
+                          }}
+                          className="whitespace-nowrap"
+                        >
+                          Generate
+                        </Button>
+                      </div>
                     </FormControl>
                     <FormMessage />
-                    <p className="text-xs text-gray-500 dark:text-gray-400">Must be unique for each product</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      Must be unique. If left empty, we'll generate one automatically.
+                    </p>
                   </FormItem>
                 )}
               />
