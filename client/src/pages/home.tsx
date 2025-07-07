@@ -1,14 +1,21 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Store, BarChart3, Users, Shield, Zap, Globe, ArrowRight, CheckCircle, Star, Menu, X } from "lucide-react";
+import { Store, BarChart3, Users, Shield, Zap, Globe, ArrowRight, CheckCircle, Star, Menu, X, Sun, Moon } from "lucide-react";
 import { useLocation } from "wouter";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTheme } from "next-themes";
+import brandLightImage from '@assets/slogan and title in white background_1751876041697.png';
+import brandDarkImage from '@assets/title and slogan in black backgr_1751876041710.png';
 
 export default function Home() {
   const [, setLocation] = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const { theme } = useTheme();
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const features = [
     {
@@ -53,29 +60,42 @@ export default function Home() {
             {/* Logo */}
             <div className="flex items-center">
               <div className="mr-4 relative">
-                {/* Light mode title */}
-                <img 
-                  src="/assets/title-light.png"
-                  alt="DukaFiti" 
-                  className="h-10 w-auto object-contain dark:hidden"
-                />
-                {/* Dark mode title */}
-                <img 
-                  src="/assets/title-dark.png"
-                  alt="DukaFiti" 
-                  className="h-10 w-auto object-contain hidden dark:block"
-                />
+                {mounted && (
+                  <img 
+                    src={theme === 'dark' ? brandDarkImage : brandLightImage}
+                    alt="DukaFiti - Duka Bora Ni Duka Fiti" 
+                    className="h-10 w-auto object-contain"
+                    style={{ maxWidth: '200px' }}
+                  />
+                )}
               </div>
             </div>
 
             {/* Desktop Navigation */}
-            <div className="hidden md:flex items-center space-x-8">
+            <div className="hidden md:flex items-center space-x-6">
               <a href="#features" className="text-gray-600 dark:text-gray-300 hover:text-brand-600 dark:hover:text-brand-400 font-medium">Features</a>
               <a href="#testimonials" className="text-gray-600 dark:text-gray-300 hover:text-brand-600 dark:hover:text-brand-400 font-medium">Testimonials</a>
+              
+              {/* Theme Toggle */}
+              {mounted && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                  className="h-10 w-10 p-0"
+                >
+                  {theme === 'dark' ? (
+                    <Sun className="h-5 w-5 text-yellow-500" />
+                  ) : (
+                    <Moon className="h-5 w-5 text-blue-600" />
+                  )}
+                </Button>
+              )}
+              
               <Button 
                 variant="outline" 
                 onClick={() => setLocation('/auth')}
-                className="h-10 px-6 border-brand-200 text-brand-700 hover:bg-brand-50 dark:border-brand-700 dark:text-brand-300"
+                className="h-10 px-6 border-brand-200 text-brand-700 hover:bg-brand-50 dark:border-brand-700 dark:text-brand-300 dark:hover:bg-brand-900"
               >
                 Log In
               </Button>
@@ -106,10 +126,30 @@ export default function Home() {
               <div className="flex flex-col space-y-4">
                 <a href="#features" className="text-gray-600 dark:text-gray-300 hover:text-brand-600 dark:hover:text-brand-400 font-medium">Features</a>
                 <a href="#testimonials" className="text-gray-600 dark:text-gray-300 hover:text-brand-600 dark:hover:text-brand-400 font-medium">Testimonials</a>
+                
+                {/* Mobile Theme Toggle */}
+                {mounted && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-600 dark:text-gray-300 font-medium">Dark Mode</span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+                      className="h-10 w-10 p-0"
+                    >
+                      {theme === 'dark' ? (
+                        <Sun className="h-5 w-5 text-yellow-500" />
+                      ) : (
+                        <Moon className="h-5 w-5 text-blue-600" />
+                      )}
+                    </Button>
+                  </div>
+                )}
+                
                 <Button 
                   variant="outline" 
                   onClick={() => setLocation('/auth')}
-                  className="w-full h-12 border-brand-200 text-brand-700 hover:bg-brand-50"
+                  className="w-full h-12 border-brand-200 text-brand-700 hover:bg-brand-50 dark:border-brand-700 dark:text-brand-300 dark:hover:bg-brand-900"
                 >
                   Log In
                 </Button>

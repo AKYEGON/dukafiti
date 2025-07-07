@@ -520,6 +520,10 @@ Changelog:
 - July 7, 2025. Fixed Vite asset loading by using direct imports instead of public URL references
 - July 7, 2025. Applied dynamic light/dark mode image switching using imported brand assets
 - July 7, 2025. Maintained compact spacing and professional layout while displaying authentic brand images
+- July 7, 2025. Enhanced landing page with seamless dark/light mode support and theme toggle functionality
+- July 7, 2025. Added theme toggle buttons to both desktop and mobile navigation menus
+- July 7, 2025. Fixed logout behavior to preserve theme state when navigating back to landing page
+- July 7, 2025. Integrated proper brand images in landing page header with mounted state checking
 ```
 
 ## User Preferences
