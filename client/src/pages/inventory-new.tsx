@@ -265,7 +265,7 @@ export default function Inventory() {
                   <div className="absolute top-4 right-4 flex gap-1">
                     <button
                       onClick={() => handleRestock(product)}
-                      disabled={restockProductMutation.isPending}
+                      disabled={false}
                       className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 hover:text-blue-600 transition-colors disabled:opacity-50"
                       aria-label="Add stock"
                     >
@@ -280,7 +280,7 @@ export default function Inventory() {
                     </button>
                     <button
                       onClick={() => handleDelete(product)}
-                      disabled={deleteProductMutation.isPending}
+                      disabled={false}
                       className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 hover:text-red-600 transition-colors disabled:opacity-50"
                       aria-label="Delete product"
                     >
@@ -341,15 +341,15 @@ export default function Inventory() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleteProductMutation.isPending}>
+            <AlertDialogCancel disabled={false}>
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmDelete}
-              disabled={deleteProductMutation.isPending}
+              disabled={false}
               className="bg-red-600 hover:bg-red-700"
             >
-              {deleteProductMutation.isPending ? "Deleting..." : "Delete"}
+              Delete
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
