@@ -29,6 +29,7 @@ import { useProducts, useCustomers, useOrders } from "@/hooks/useRealtimeData";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
 import { useAuth } from "@/contexts/SupabaseAuth";
+import { useOffline } from "@/contexts/OfflineContext";
 
 
 
@@ -38,6 +39,7 @@ export default function Dashboard() {
   const [showCustomerForm, setShowCustomerForm] = useState(false);
 
   const { user } = useAuth();
+  const { isOnline, pendingSyncCount } = useOffline();
   
   // Use individual real-time hooks for dashboard data
   const { products, isLoading: productsLoading, refreshData: refreshProducts } = useProducts();
@@ -255,11 +257,14 @@ export default function Dashboard() {
               <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Dashboard</h1>
               <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                 Business overview and key metrics
-                {(metricsLoading || recentOrdersLoading || pendingOperations > 0) && (
+                {(metricsLoading || recentOrdersLoading || pendingSyncCount > 0) && (
                   <span className="ml-2 text-orange-600 dark:text-orange-400">• Updating...</span>
                 )}
-                {!isConnected && (
+                {!isOnline && (
                   <span className="ml-2 text-red-600 dark:text-red-400">• Offline</span>
+                )}
+                {pendingSyncCount > 0 && (
+                  <span className="ml-2 text-blue-600 dark:text-blue-400">• {pendingSyncCount} pending</span>
                 )}
               </p>
             </div>
