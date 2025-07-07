@@ -20,9 +20,10 @@ import {
   HardDrive
 } from 'lucide-react';
 import { offlineManager } from '@/lib/offline-manager';
-import { toast } from '@/hooks/use-toast';
+import { useToast } from '@/hooks/use-toast';
 
 export function OfflineSettings() {
+  const { toast } = useToast();
   const { 
     isOnline, 
     isOfflineMode, 

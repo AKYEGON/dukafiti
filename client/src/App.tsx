@@ -14,6 +14,7 @@ import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { useRealtimeData } from "@/hooks/useRealtimeData";
 import { ThemeProvider } from "@/contexts/theme-context";
 import { ErrorBoundary } from "@/components/error-boundary";
+import { OfflineProvider } from "@/contexts/OfflineContext";
 import OfflineManager from "@/components/offline/offline-manager";
 import { registerServiceWorker } from "@/lib/sw-registration";
 
@@ -184,12 +185,14 @@ function App() {
       <QueryClientProvider client={queryClient}>
         <ThemeProvider>
           <AuthProvider>
-            <OfflineManager>
-              <TooltipProvider>
-                <Router />
-                <Toaster />
-              </TooltipProvider>
-            </OfflineManager>
+            <OfflineProvider>
+              <OfflineManager>
+                <TooltipProvider>
+                  <Router />
+                  <Toaster />
+                </TooltipProvider>
+              </OfflineManager>
+            </OfflineProvider>
           </AuthProvider>
         </ThemeProvider>
       </QueryClientProvider>

@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { type DashboardMetrics, type Order } from "@/types/schema";
-import { formatCurrency as formatCurrencyUtil } from "@/lib/currency";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -28,6 +27,7 @@ import { CustomerForm } from "@/components/customers/customer-form";
 import { RefreshButton } from "@/components/ui/refresh-button";
 import { useEnhancedQuery } from "@/hooks/useEnhancedQuery";
 import { useSales } from "@/hooks/useSales";
+import { useComprehensiveRealtime, useVisibilityRefresh } from "@/hooks/useComprehensiveRealtime";
 import { getDashboardMetrics } from "@/lib/supabase-data";
 
 
@@ -36,6 +36,17 @@ export default function Dashboard() {
   const [, setLocation] = useLocation();
   const [showProductForm, setShowProductForm] = useState(false);
   const [showCustomerForm, setShowCustomerForm] = useState(false);
+
+  // Enable comprehensive real-time updates
+  const { forceRefresh, isConnected } = useComprehensiveRealtime({
+    enabled: true,
+    tables: ['products', 'customers', 'orders', 'notifications'],
+    autoRefresh: true,
+    showNotifications: true,
+  });
+
+  // Auto-refresh when page becomes visible
+  useVisibilityRefresh();
 
   // Enhanced dashboard metrics query
   const { 
@@ -200,7 +211,10 @@ export default function Dashboard() {
               </p>
             </div>
             <RefreshButton
-              onRefresh={handleRefreshAll}
+              onRefresh={async () => {
+                forceRefresh();
+                await handleRefreshAll();
+              }}
               isLoading={metricsFetching || ordersFetching}
               size="sm"
               variant="outline"

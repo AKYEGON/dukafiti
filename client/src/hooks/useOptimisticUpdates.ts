@@ -1,157 +1,104 @@
 /**
  * Optimistic Updates Hook
- * Provides immediate UI updates before server confirmation
+ * Provides optimistic UI updates for better user experience
  */
 
-import { useQueryClient } from '@tanstack/react-query';
 import { useCallback } from 'react';
-import type { Product, Customer, Order } from '@/types/schema';
+import { useQueryClient } from '@tanstack/react-query';
+import { useToast } from '@/hooks/use-toast';
+import type { Product, Order, Customer } from '@/types/schema';
 
 export function useOptimisticUpdates() {
   const queryClient = useQueryClient();
+  const { toast } = useToast();
 
-  // Optimistic product creation
-  const optimisticCreateProduct = useCallback((product: Partial<Product>) => {
-    const tempId = Date.now(); // Temporary ID
-    const optimisticProduct = {
-      id: tempId,
-      ...product,
-      created_at: new Date().toISOString(),
-      sales_count: 0,
-    } as Product;
-
-    queryClient.setQueryData(['products'], (old: Product[] | undefined) => {
-      if (!old) return [optimisticProduct];
-      return [optimisticProduct, ...old];
-    });
-
-    return { tempId, optimisticProduct };
-  }, [queryClient]);
-
-  // Optimistic product update
-  const optimisticUpdateProduct = useCallback((id: number, updates: Partial<Product>) => {
-    queryClient.setQueryData(['products'], (old: Product[] | undefined) => {
-      if (!old) return old;
-      return old.map(product => 
-        product.id === id ? { ...product, ...updates } : product
-      );
-    });
-  }, [queryClient]);
-
-  // Optimistic stock update
-  const optimisticUpdateStock = useCallback((id: number, newStock: number) => {
-    queryClient.setQueryData(['products'], (old: Product[] | undefined) => {
-      if (!old) return old;
-      return old.map(product => 
-        product.id === id ? { ...product, stock: newStock } : product
-      );
-    });
-  }, [queryClient]);
-
-  // Optimistic customer creation
-  const optimisticCreateCustomer = useCallback((customer: Partial<Customer>) => {
-    const tempId = Date.now();
-    const optimisticCustomer = {
-      id: tempId,
-      ...customer,
-      created_at: new Date().toISOString(),
-    } as Customer;
-
-    queryClient.setQueryData(['customers'], (old: Customer[] | undefined) => {
-      if (!old) return [optimisticCustomer];
-      return [optimisticCustomer, ...old];
-    });
-
-    return { tempId, optimisticCustomer };
-  }, [queryClient]);
-
-  // Optimistic customer update
-  const optimisticUpdateCustomer = useCallback((id: number, updates: Partial<Customer>) => {
-    queryClient.setQueryData(['customers'], (old: Customer[] | undefined) => {
-      if (!old) return old;
-      return old.map(customer => 
-        customer.id === id ? { ...customer, ...updates } : customer
-      );
-    });
-  }, [queryClient]);
-
-  // Optimistic sale processing
-  const optimisticProcessSale = useCallback((sale: {
-    items: Array<{ productId: number; quantity: number }>;
-    total: number;
-    customer_name?: string;
-    payment_method: string;
-  }) => {
-    const tempId = Date.now();
-    const optimisticOrder = {
-      id: tempId,
-      customer_name: sale.customer_name || 'Walk-in Customer',
-      total: sale.total,
-      status: 'completed',
-      payment_method: sale.payment_method,
-      created_at: new Date().toISOString(),
-    } as Order;
-
-    // Add to orders
-    queryClient.setQueryData(['orders'], (old: Order[] | undefined) => {
-      if (!old) return [optimisticOrder];
-      return [optimisticOrder, ...old];
-    });
-
-    // Add to recent orders
-    queryClient.setQueryData(['recent-orders'], (old: Order[] | undefined) => {
-      if (!old) return [optimisticOrder];
-      const updated = [optimisticOrder, ...old];
-      return updated.slice(0, 10);
-    });
-
-    // Update product stock optimistically
-    sale.items.forEach(item => {
-      queryClient.setQueryData(['products'], (old: Product[] | undefined) => {
-        if (!old) return old;
-        return old.map(product => {
-          if (product.id === item.productId && product.stock !== null) {
-            return {
-              ...product,
-              stock: Math.max(0, product.stock - item.quantity),
-              sales_count: (product.sales_count || 0) + item.quantity,
-            };
-          }
-          return product;
+  const optimisticProcessSale = useCallback(
+    async (saleData: any) => {
+      try {
+        // Optimistically update inventory
+        queryClient.setQueryData<Product[]>(['products'], (old) => {
+          if (!old) return old;
+          return old.map((product) => {
+            const saleItem = saleData.items?.find((item: any) => item.product_id === product.id);
+            if (saleItem) {
+              return {
+                ...product,
+                stock: Math.max(0, product.stock - saleItem.quantity),
+                sales_count: (product.sales_count || 0) + saleItem.quantity,
+              };
+            }
+            return product;
+          });
         });
-      });
-    });
 
-    return { tempId, optimisticOrder };
-  }, [queryClient]);
+        // Optimistically update orders
+        queryClient.setQueryData<Order[]>(['orders'], (old) => {
+          if (!old) return [];
+          const newOrder: Order = {
+            id: Date.now(), // temporary ID
+            customer_name: saleData.customer_name || 'Walk-in Customer',
+            total: saleData.total,
+            status: 'completed',
+            payment_method: saleData.payment_method || 'cash',
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          };
+          return [newOrder, ...old];
+        });
 
-  // Rollback function for failed operations
-  const rollbackOptimisticUpdate = useCallback((queryKey: string[], originalData: any) => {
-    queryClient.setQueryData(queryKey, originalData);
-  }, [queryClient]);
+        // Show success toast
+        toast({
+          title: "Sale processed",
+          description: `Sale of ${saleData.total ? `KES ${saleData.total.toFixed(2)}` : 'items'} completed successfully`,
+        });
 
-  // Confirm optimistic update (replace temp ID with real ID)
-  const confirmOptimisticUpdate = useCallback((
-    queryKey: string[], 
-    tempId: number, 
-    realData: any
-  ) => {
-    queryClient.setQueryData(queryKey, (old: any[] | undefined) => {
-      if (!old) return [realData];
-      return old.map(item => item.id === tempId ? realData : item);
-    });
-  }, [queryClient]);
+      } catch (error) {
+        console.error('Optimistic update failed:', error);
+        toast({
+          title: "Update failed",
+          description: "Failed to update interface",
+          variant: "destructive",
+        });
+      }
+    },
+    [queryClient, toast]
+  );
+
+  const optimisticUpdateProduct = useCallback(
+    async (productId: number, updates: Partial<Product>) => {
+      try {
+        queryClient.setQueryData<Product[]>(['products'], (old) => {
+          if (!old) return old;
+          return old.map((product) =>
+            product.id === productId ? { ...product, ...updates } : product
+          );
+        });
+      } catch (error) {
+        console.error('Optimistic product update failed:', error);
+      }
+    },
+    [queryClient]
+  );
+
+  const optimisticUpdateCustomer = useCallback(
+    async (customerId: number, updates: Partial<Customer>) => {
+      try {
+        queryClient.setQueryData<Customer[]>(['customers'], (old) => {
+          if (!old) return old;
+          return old.map((customer) =>
+            customer.id === customerId ? { ...customer, ...updates } : customer
+          );
+        });
+      } catch (error) {
+        console.error('Optimistic customer update failed:', error);
+      }
+    },
+    [queryClient]
+  );
 
   return {
-    optimisticCreateProduct,
-    optimisticUpdateProduct,
-    optimisticUpdateStock,
-    optimisticCreateCustomer,
-    optimisticUpdateCustomer,
     optimisticProcessSale,
-    rollbackOptimisticUpdate,
-    confirmOptimisticUpdate,
+    optimisticUpdateProduct,
+    optimisticUpdateCustomer,
   };
 }
-
-export default useOptimisticUpdates;

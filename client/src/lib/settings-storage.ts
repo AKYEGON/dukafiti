@@ -7,11 +7,12 @@ interface StoreProfile {
   id?: number;
   storeName: string;
   ownerName: string;
-  storeType: string;
-  location: string;
-  phone: string;
-  email: string;
-  description: string;
+  address: string;
+  storeType?: string;
+  location?: string;
+  phone?: string;
+  email?: string;
+  description?: string;
   updated_at?: string;
 }
 
