@@ -49,6 +49,7 @@ export default function Dashboard() {
   const { 
     metrics, 
     isLoading: metricsLoading, 
+    isFetching: metricsFetching,
     refresh: refreshMetrics,
     refreshDashboard
   } = useDashboardStore();
@@ -56,7 +57,9 @@ export default function Dashboard() {
   const { 
     recentOrders, 
     recentOrdersLoading, 
-    refresh: refreshOrders
+    isFetching: salesFetching,
+    refresh: refreshOrders,
+    refreshRecentOrders
   } = useSalesStore();
 
   // Quick Actions handlers
@@ -193,7 +196,7 @@ export default function Dashboard() {
               <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Dashboard</h1>
               <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
                 Business overview and key metrics
-                {(metricsStale || isStale) && (
+                {(metricsFetching || salesFetching) && (
                   <span className="ml-2 text-orange-600 dark:text-orange-400">• Updating...</span>
                 )}
               </p>
@@ -203,7 +206,7 @@ export default function Dashboard() {
                 forceRefresh();
                 await handleRefreshAll();
               }}
-              isLoading={metricsFetching || isFetching}
+              isLoading={metricsFetching || salesFetching}
               size="sm"
               variant="outline"
               showLabel={true}
