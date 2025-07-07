@@ -53,15 +53,15 @@ export default function Home() {
             {/* Logo */}
             <div className="flex items-center">
               <div className="mr-4 relative">
-                {/* Light mode banner */}
+                {/* Light mode title */}
                 <img 
-                  src="/assets/banner-light.png"
+                  src="/assets/title-light.png"
                   alt="DukaFiti" 
                   className="h-10 w-auto object-contain dark:hidden"
                 />
-                {/* Dark mode banner */}
+                {/* Dark mode title */}
                 <img 
-                  src="/assets/banner-dark.png"
+                  src="/assets/title-dark.png"
                   alt="DukaFiti" 
                   className="h-10 w-auto object-contain hidden dark:block"
                 />

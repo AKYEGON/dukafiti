@@ -86,19 +86,13 @@ export function Sidebar({ className, collapsed = false, toggleSidebar }: Sidebar
             </Link>
           ) : (
             <Link href="/" className="flex items-center justify-center hover:opacity-90 transition-opacity duration-200">
-              <div className="relative">
-                {/* Light mode full logo */}
-                <img 
-                  src="/assets/logo-light.png"
-                  alt="DukaFiti - Duka Fiti ni Duka Bora" 
-                  className="h-12 w-auto object-contain dark:hidden"
-                />
-                {/* Dark mode full logo */}
-                <img 
-                  src="/assets/logo-dark.png"
-                  alt="DukaFiti - Duka Fiti ni Duka Bora" 
-                  className="h-12 w-auto object-contain hidden dark:block"
-                />
+              <div className="text-center">
+                <h1 className="text-2xl font-bold text-brand-600 dark:text-brand-400 tracking-wide">
+                  DUKAFITI
+                </h1>
+                <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
+                  Duka Fiti ni Duka Bora
+                </p>
               </div>
             </Link>
           )}
