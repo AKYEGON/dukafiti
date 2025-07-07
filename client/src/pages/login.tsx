@@ -82,37 +82,22 @@ export default function Login() {
         </button>
 
         {/* Logo/App Name - DukaFiti Branding */}
-        <div className="text-center mb-6">
-          <div className="mx-auto mb-4 flex items-center justify-center">
-            {/* Light mode logo */}
+        <div className="text-center mb-8">
+          <div className="mx-auto mb-6 flex items-center justify-center">
+            {/* Light mode banner */}
             <img 
-              src="/assets/logo-light.png"
+              src="/assets/banner-light.png"
               alt="DukaFiti" 
-              className="h-16 w-auto object-contain dark:hidden"
+              className="h-20 w-auto object-contain dark:hidden"
             />
-            {/* Dark mode logo */}
+            {/* Dark mode banner */}
             <img 
-              src="/assets/logo-dark.png"
+              src="/assets/banner-dark.png"
               alt="DukaFiti" 
-              className="h-16 w-auto object-contain hidden dark:block"
+              className="h-20 w-auto object-contain hidden dark:block"
             />
           </div>
-          <div className="mt-3 mb-4 flex items-center justify-center">
-            {/* Light mode slogan */}
-            <img 
-              src="/assets/slogan-light.png"
-              alt="Duka Fiti ni Duka Bora" 
-              className="h-6 w-auto object-contain opacity-70 dark:hidden"
-            />
-            {/* Dark mode slogan */}
-            <img 
-              src="/assets/slogan-dark.png"
-              alt="Duka Fiti ni Duka Bora" 
-              className="h-6 w-auto object-contain opacity-50 hidden dark:block"
-            />
-          </div>
-          <h1 className="text-3xl font-bold text-brand-700 dark:text-brand-300 text-center">DukaFiti</h1>
-          <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">Welcome back to your business</p>
+          <p className="text-sm text-gray-600 dark:text-gray-400">Welcome back to your business</p>
         </div>
 
         {/* Login Form */}

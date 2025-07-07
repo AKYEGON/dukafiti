@@ -53,15 +53,15 @@ export default function Home() {
             {/* Logo */}
             <div className="flex items-center">
               <div className="mr-4 relative">
-                {/* Light mode logo */}
+                {/* Light mode banner */}
                 <img 
-                  src="/assets/logo-light.png"
+                  src="/assets/banner-light.png"
                   alt="DukaFiti" 
                   className="h-10 w-auto object-contain dark:hidden"
                 />
-                {/* Dark mode logo */}
+                {/* Dark mode banner */}
                 <img 
-                  src="/assets/logo-dark.png"
+                  src="/assets/banner-dark.png"
                   alt="DukaFiti" 
                   className="h-10 w-auto object-contain hidden dark:block"
                 />
@@ -168,41 +168,25 @@ export default function Home() {
             <div className="lg:col-span-6 mt-12 lg:mt-0">
               <div className="relative">
                 {/* Hero Banner with Dark/Light Mode Switching */}
-                <div className="relative overflow-hidden rounded-xl shadow-2xl">
-                  {/* Light mode banner */}
-                  <img 
-                    src="/assets/logo-light.png" 
-                    className="w-full h-80 object-cover dark:hidden" 
-                    alt="DukaFiti Hero Banner" 
-                  />
-                  {/* Dark mode banner */}
-                  <img 
-                    src="/assets/logo-dark.png" 
-                    className="w-full h-80 object-cover hidden dark:block" 
-                    alt="DukaFiti Hero Banner" 
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/50 dark:to-white/20"></div>
-                  
-                  {/* Slogan Overlay */}
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="text-center">
-                      {/* Light mode slogan */}
-                      <img 
-                        src="/assets/slogan-light.png" 
-                        className="h-8 w-auto mx-auto mb-4 dark:hidden opacity-90" 
-                        alt="Duka Fiti ni Duka Bora" 
-                      />
-                      {/* Dark mode slogan */}
-                      <img 
-                        src="/assets/slogan-dark.png" 
-                        className="h-8 w-auto mx-auto mb-4 hidden dark:block opacity-90" 
-                        alt="Duka Fiti ni Duka Bora" 
-                      />
-                      <div className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm rounded-lg p-4 mx-4">
-                        <p className="text-sm text-gray-700 dark:text-gray-300 font-medium">
-                          Modern POS • Real-time Analytics • Offline Ready
-                        </p>
-                      </div>
+                <div className="relative overflow-hidden rounded-xl shadow-2xl bg-gradient-to-br from-brand-100 to-accent-blue-100 dark:from-brand-900 dark:to-accent-blue-900">
+                  <div className="p-8 text-center">
+                    {/* Light mode banner */}
+                    <img 
+                      src="/assets/banner-light.png" 
+                      className="h-32 w-auto mx-auto mb-6 dark:hidden" 
+                      alt="DukaFiti Hero Banner" 
+                    />
+                    {/* Dark mode banner */}
+                    <img 
+                      src="/assets/banner-dark.png" 
+                      className="h-32 w-auto mx-auto mb-6 hidden dark:block" 
+                      alt="DukaFiti Hero Banner" 
+                    />
+                    
+                    <div className="bg-white/90 dark:bg-gray-900/90 backdrop-blur-sm rounded-lg p-4">
+                      <p className="text-sm text-gray-700 dark:text-gray-300 font-medium">
+                        Modern POS • Real-time Analytics • Offline Ready
+                      </p>
                     </div>
                   </div>
                 </div>
