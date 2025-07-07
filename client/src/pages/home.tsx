@@ -343,10 +343,12 @@ export default function Home() {
       <footer className="bg-gray-900 dark:bg-black border-t border-gray-800">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="text-center">
-            <div className="mb-6">
-              <div className="text-white text-lg font-semibold opacity-80">
-                Duka Bora Ni Duka Fiti
-              </div>
+            <div className="mb-6 flex justify-center">
+              <img 
+                src={theme === 'dark' ? "/assets/banner-dark.png" : "/assets/banner-light.png"}
+                alt="DukaFiti - Duka Bora Ni Duka Fiti" 
+                className="h-10 w-auto object-contain opacity-90"
+              />
             </div>
             <p className="text-gray-400 text-sm">
               © 2025 DukaFiti. All rights reserved. Built for Kenyan businesses.

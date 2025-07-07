@@ -114,31 +114,30 @@ export default function AuthPage() {
 
         {/* Logo */}
         <div className="mb-8 flex justify-center lg:justify-start">
-          <div className="bg-brand-600 p-4 rounded-lg shadow-lg">
-            <div className="text-white text-2xl font-bold">
-              DukaFiti
-            </div>
-            <div className="text-white text-xs opacity-80 mt-1">
-              Duka Bora Ni Duka Fiti
-            </div>
+          <div className="bg-white dark:bg-gray-900 p-6 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700">
+            <img 
+              src={theme === 'dark' ? "/assets/banner-dark.png" : "/assets/banner-light.png"}
+              alt="DukaFiti - Duka Bora Ni Duka Fiti" 
+              className="h-16 w-auto object-contain"
+            />
           </div>
         </div>
 
         {/* Form */}
-        <div className="max-w-md mx-auto lg:mx-0 w-full">
+        <div className="max-w-md mx-auto lg:mx-0 w-full bg-white dark:bg-gray-900 p-8 rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 backdrop-blur-sm">
           <div className="mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-              {isLogin ? "Welcome Back" : "Sign Up to Discover DukaFiti Features"}
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-brand-600 to-brand-700 bg-clip-text text-transparent mb-2">
+              {isLogin ? "Welcome Back" : "Create Account"}
             </h1>
             <p className="text-gray-600 dark:text-gray-400">
-              {isLogin ? "Sign in to your DukaFiti account" : "Join DukaFiti and start managing your business efficiently"}
+              {isLogin ? "Sign in to your DukaFiti account" : "Start your journey with DukaFiti"}
             </p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {!isLogin && (
               <div className="space-y-2">
-                <Label htmlFor="name" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                <Label htmlFor="name" className="text-sm font-semibold text-gray-700 dark:text-gray-300 tracking-wide">
                   NAME
                 </Label>
                 <Input
@@ -149,13 +148,13 @@ export default function AuthPage() {
                   value={formData.name}
                   onChange={handleInputChange}
                   required={!isLogin}
-                  className="h-14 px-4 rounded-full border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:border-brand focus:ring-brand"
+                  className="h-14 px-4 rounded-full border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:border-brand focus:ring-brand focus:ring-2 focus:ring-brand/20 transition-all duration-200"
                 />
               </div>
             )}
             
             <div className="space-y-2">
-              <Label htmlFor="email" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              <Label htmlFor="email" className="text-sm font-semibold text-gray-700 dark:text-gray-300 tracking-wide">
                 EMAIL
               </Label>
               <Input
@@ -171,7 +170,7 @@ export default function AuthPage() {
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="password" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+              <Label htmlFor="password" className="text-sm font-semibold text-gray-700 dark:text-gray-300 tracking-wide">
                 PASSWORD
               </Label>
               <div className="relative">
@@ -183,7 +182,7 @@ export default function AuthPage() {
                   value={formData.password}
                   onChange={handleInputChange}
                   required
-                  className="h-14 px-4 pr-12 rounded-full border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:border-brand focus:ring-brand"
+                  className="h-14 px-4 pr-12 rounded-full border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:border-brand focus:ring-brand focus:ring-2 focus:ring-brand/20 transition-all duration-200"
                 />
                 <Button
                   type="button"
@@ -203,7 +202,7 @@ export default function AuthPage() {
 
             <Button 
               type="submit" 
-              className="w-full h-14 rounded-full bg-gradient-to-r from-cyan-400 to-cyan-500 hover:from-cyan-500 hover:to-cyan-600 text-white font-semibold text-lg shadow-lg transition-all duration-200"
+              className="w-full h-14 rounded-full bg-gradient-to-r from-brand-500 to-brand-600 hover:from-brand-600 hover:to-brand-700 text-white font-semibold text-lg shadow-lg hover:shadow-xl transition-all duration-200 transform hover:scale-[1.02]"
               disabled={isLoading}
             >
               {isLoading ? "Please wait..." : (isLogin ? "Sign In" : "Sign Up")}
@@ -228,9 +227,9 @@ export default function AuthPage() {
               {isLogin ? "Sign in with Google" : "Sign up with Google"}
             </Button>
             
-            <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg">
+            <div className="mt-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-700 rounded-xl">
               <p className="text-sm text-blue-800 dark:text-blue-300 text-center">
-                💡 <strong>Note:</strong> Google OAuth requires additional setup. Use email/password authentication for immediate access.
+                <span className="font-semibold">Note:</span> Google OAuth requires additional setup. Use email/password authentication for immediate access.
               </p>
             </div>
           </form>
@@ -241,7 +240,7 @@ export default function AuthPage() {
             </p>
             <Button
               variant="link"
-              className="text-brand hover:text-brand-700 font-medium"
+              className="text-brand hover:text-brand-700 font-semibold transition-colors duration-200"
               onClick={() => {
                 setIsLogin(!isLogin);
                 setFormData({ email: "", password: "", name: "" });
