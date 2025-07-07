@@ -500,6 +500,11 @@ Changelog:
 - July 7, 2025. Updated testimonials to reflect real use cases: inventory tracking, low-stock alerts, credit management, and offline functionality
 - July 7, 2025. Added professional CSS classes for dashboard preview hover effects with smooth animations and backlighting
 - July 7, 2025. Improved landing page accuracy: focused on inventory, sales, reports, and customer credit management as core features
+- July 7, 2025. Fixed landing page footer and authentication page logo display issues by replacing broken image references with text-based branding
+- July 7, 2025. Added Google OAuth integration to authentication page with proper error handling and user guidance
+- July 7, 2025. Implemented fallback text-based branding for reliability when image assets fail to load
+- July 7, 2025. Created comprehensive Google OAuth setup documentation for future production deployment
+- July 7, 2025. Enhanced authentication page with helpful notices about OAuth configuration requirements
 ```
 
 ## User Preferences

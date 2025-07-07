@@ -114,12 +114,13 @@ export default function AuthPage() {
 
         {/* Logo */}
         <div className="mb-8 flex justify-center lg:justify-start">
-          <div className="bg-brand-600 p-3 rounded-lg">
-            <img 
-              src="/assets/logo-title-white.png"
-              alt="DukaFiti - Duka Bora Ni Duka Fiti" 
-              className="h-12 w-auto object-contain"
-            />
+          <div className="bg-brand-600 p-4 rounded-lg shadow-lg">
+            <div className="text-white text-2xl font-bold">
+              DukaFiti
+            </div>
+            <div className="text-white text-xs opacity-80 mt-1">
+              Duka Bora Ni Duka Fiti
+            </div>
           </div>
         </div>
 
@@ -226,6 +227,12 @@ export default function AuthPage() {
               <FcGoogle className="h-6 w-6" />
               {isLogin ? "Sign in with Google" : "Sign up with Google"}
             </Button>
+            
+            <div className="mt-4 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-700 rounded-lg">
+              <p className="text-sm text-blue-800 dark:text-blue-300 text-center">
+                💡 <strong>Note:</strong> Google OAuth requires additional setup. Use email/password authentication for immediate access.
+              </p>
+            </div>
           </form>
 
           <div className="mt-6 text-center">

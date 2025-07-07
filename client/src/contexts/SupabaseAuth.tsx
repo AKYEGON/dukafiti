@@ -109,6 +109,15 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   const signInWithGoogle = async () => {
     try {
+      // For now, return an error since Google OAuth needs proper setup in Supabase
+      return { 
+        error: { 
+          message: 'Google OAuth requires configuration in Supabase dashboard. Please use email/password authentication for now.' 
+        } 
+      };
+      
+      // Commented out until proper OAuth setup
+      /*
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
@@ -122,6 +131,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       }
 
       return { error: null };
+      */
     } catch (error) {
       console.error('Google sign-in error:', error);
       return { error: { message: 'Google sign-in failed' } };

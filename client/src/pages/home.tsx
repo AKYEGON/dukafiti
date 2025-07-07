@@ -344,11 +344,9 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
           <div className="text-center">
             <div className="mb-6">
-              <img 
-                src="/assets/slogan-only-white.png"
-                alt="Duka Bora Ni Duka Fiti" 
-                className="h-8 w-auto opacity-80"
-              />
+              <div className="text-white text-lg font-semibold opacity-80">
+                Duka Bora Ni Duka Fiti
+              </div>
             </div>
             <p className="text-gray-400 text-sm">
               © 2025 DukaFiti. All rights reserved. Built for Kenyan businesses.
