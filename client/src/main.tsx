@@ -1,50 +1,23 @@
+import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
 import App from "./App";
 import "./index.css";
 
-
-
-// Register Service Worker for offline functionality
+// Register service worker for PWA functionality
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js')
-      .then((registration) => {
-        
-        
-        // Listen for updates
-        registration.addEventListener('updatefound', () => {
-          const newWorker = registration.installing;
-          if (newWorker) {
-            newWorker.addEventListener('statechange', () => {
-              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                
-                // Show update available notification
-                if (confirm('A new version of DukaFiti is available. Would you like to update?')) {
-                  newWorker.postMessage({ type: 'SKIP_WAITING' });
-                  window.location.reload();
-                }
-              }
-            });
-          }
-        });
+    navigator.serviceWorker.register('/service-worker.js')
+      .then(registration => {
+        console.log('Service Worker registered successfully');
       })
-      .catch((error) => {
-        
+      .catch(error => {
+        console.log('Service Worker registration failed:', error);
       });
   });
 }
 
-const rootElement = document.getElementById("root");
-if (!rootElement) {
-  
-  throw new Error("Root element not found!");
-} else {
-  
-  try {
-    createRoot(rootElement).render(<App />);
-    
-  } catch (error) {
-    
-    throw error;
-  }
-}
+createRoot(document.getElementById("root")!).render(
+  <StrictMode>
+    <App />
+  </StrictMode>
+);

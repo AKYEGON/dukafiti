@@ -2,7 +2,7 @@
 
 ## Overview
 
-DukaFiti is a comprehensive business management platform built with a modern full-stack architecture. The application provides inventory management, sales tracking, customer management, and business analytics through an intuitive web interface. It's designed as a single-page application with a REST API backend.
+DukaFiti is a comprehensive business management platform completely rebuilt from the ground up with atomic, clean architecture. The application provides inventory management, sales tracking, customer management, and business analytics through an intuitive web interface with real-time updates and multi-tenant data isolation.
 
 ## System Architecture
 
