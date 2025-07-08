@@ -1,31 +1,34 @@
-// DukaFiti Service Worker - Static Assets Only, NO API Caching
-// This service worker ensures that API data is NEVER cached and always fetched fresh
+// DukaFiti Service Worker - Complete Offline-First Architecture
 
-const CACHE_NAME = 'dukafiti-static-v2';
+const CACHE_NAME = 'dukafiti-v1';
+const STATIC_CACHE_NAME = 'dukafiti-static-v1';
+const DATA_CACHE_NAME = 'dukafiti-data-v1';
 
-// Only cache static app shell resources
+// App Shell Resources
 const STATIC_FILES = [
   '/',
   '/index.html',
   '/manifest.json',
+  '/logo-192.png',
+  '/logo-512.png',
   '/offline.html'
 ];
 
-// Install Event - Cache Static Assets Only
+// Install Event - Cache App Shell
 self.addEventListener('install', (event) => {
-  console.log('[SW] Installing service worker - static assets only...');
+  console.log('[SW] Installing service worker...');
   event.waitUntil(
-    caches.open(CACHE_NAME)
+    caches.open(STATIC_CACHE_NAME)
       .then((cache) => {
-        console.log('[SW] Caching static assets only');
+        console.log('[SW] Caching app shell');
         return cache.addAll(STATIC_FILES);
       })
       .then(() => {
-        console.log('[SW] Static assets cached successfully');
+        console.log('[SW] App shell cached successfully');
         return self.skipWaiting();
       })
       .catch((error) => {
-        console.error('[SW] Failed to cache static assets:', error);
+        console.error('[SW] Failed to cache app shell:', error);
       })
   );
 });
@@ -38,7 +41,7 @@ self.addEventListener('activate', (event) => {
       .then((cacheNames) => {
         return Promise.all(
           cacheNames.map((cacheName) => {
-            if (cacheName !== CACHE_NAME) {
+            if (cacheName !== STATIC_CACHE_NAME && cacheName !== DATA_CACHE_NAME) {
               console.log('[SW] Deleting old cache:', cacheName);
               return caches.delete(cacheName);
             }
@@ -52,105 +55,127 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// Fetch Event - Static Assets Only, NEVER Cache API
+// Fetch Event - Network-first for API, Cache-first for static assets
 self.addEventListener('fetch', (event) => {
   const { request } = event;
   const url = new URL(request.url);
-
-  // Skip non-GET requests
-  if (request.method !== 'GET') {
+  
+  // Handle Supabase API requests
+  if (url.hostname.includes('supabase.co') || request.url.includes('/api/')) {
+    event.respondWith(
+      networkFirstWithFallback(request)
+    );
     return;
   }
-
-  // Skip requests to external domains
-  if (url.origin !== location.origin) {
+  
+  // Handle static assets
+  if (request.method === 'GET' && (
+    request.url.includes('.js') ||
+    request.url.includes('.css') ||
+    request.url.includes('.png') ||
+    request.url.includes('.jpg') ||
+    request.url.includes('.svg') ||
+    request.url.includes('.ico')
+  )) {
+    event.respondWith(
+      cacheFirstWithNetworkFallback(request)
+    );
     return;
   }
-
-  // CRITICAL: NEVER intercept API or Supabase requests
-  if (url.pathname.startsWith('/api/') || 
-      url.hostname.includes('supabase') || 
-      url.pathname.includes('supabase') ||
-      url.search.includes('supabase')) {
-    console.log('[SW] API/Supabase request - bypassing cache entirely:', url.pathname);
-    // Let these requests go directly to network with no caching
+  
+  // Handle navigation requests
+  if (request.mode === 'navigate') {
+    event.respondWith(
+      networkFirstWithFallback(request)
+        .catch(() => caches.match('/offline.html'))
+    );
     return;
   }
-
-  // Static assets - Cache-First Strategy
+  
+  // Default: network first
   event.respondWith(
-    caches.match(request)
-      .then((response) => {
-        if (response) {
-          console.log('[SW] Serving static asset from cache:', url.pathname);
-          return response;
-        }
-        
-        // Not in cache, fetch from network
-        console.log('[SW] Fetching static asset from network:', url.pathname);
-        return fetch(request)
-          .then((response) => {
-            // Only cache successful responses for static assets
-            if (response.status === 200 && 
-                (url.pathname.endsWith('.js') || 
-                 url.pathname.endsWith('.css') || 
-                 url.pathname.endsWith('.html') ||
-                 url.pathname.endsWith('.png') ||
-                 url.pathname.endsWith('.ico') ||
-                 url.pathname === '/')) {
-              
-              const responseClone = response.clone();
-              caches.open(CACHE_NAME)
-                .then((cache) => {
-                  cache.put(request, responseClone);
-                  console.log('[SW] Cached static asset:', url.pathname);
-                })
-                .catch((error) => {
-                  console.warn('[SW] Failed to cache static asset:', error);
-                });
-            }
-            
-            return response;
-          })
-          .catch(() => {
-            // Network failed for static asset
-            console.log('[SW] Network failed for static asset:', url.pathname);
-            if (url.pathname === '/' || url.pathname.endsWith('.html')) {
-              return caches.match('/offline.html');
-            }
-            throw new Error('Network unavailable and no cache available');
-          });
-      })
+    networkFirstWithFallback(request)
   );
 });
 
-// Background Sync - Not used for data sync, only for offline notifications
+// Network-first strategy with cache fallback
+async function networkFirstWithFallback(request) {
+  try {
+    const networkResponse = await fetch(request);
+    
+    // Cache successful responses
+    if (networkResponse.ok) {
+      const cache = await caches.open(DATA_CACHE_NAME);
+      cache.put(request, networkResponse.clone());
+    }
+    
+    return networkResponse;
+  } catch (error) {
+    console.log('[SW] Network failed, trying cache:', request.url);
+    
+    // Try cache
+    const cachedResponse = await caches.match(request);
+    if (cachedResponse) {
+      return cachedResponse;
+    }
+    
+    // If it's an API request, return empty response
+    if (request.url.includes('/api/') || request.url.includes('supabase.co')) {
+      return new Response(JSON.stringify({ error: 'Offline', offline: true }), {
+        status: 503,
+        headers: { 'Content-Type': 'application/json' }
+      });
+    }
+    
+    throw error;
+  }
+}
+
+// Cache-first strategy with network fallback
+async function cacheFirstWithNetworkFallback(request) {
+  try {
+    const cachedResponse = await caches.match(request);
+    if (cachedResponse) {
+      return cachedResponse;
+    }
+    
+    const networkResponse = await fetch(request);
+    const cache = await caches.open(STATIC_CACHE_NAME);
+    cache.put(request, networkResponse.clone());
+    
+    return networkResponse;
+  } catch (error) {
+    console.error('[SW] Cache and network failed:', error);
+    throw error;
+  }
+}
+
+// Handle background sync
 self.addEventListener('sync', (event) => {
-  console.log('[SW] Background sync event (not used for data):', event.tag);
-  // We don't sync data through service worker anymore
-  // All data sync is handled by the runtime data hooks
+  if (event.tag === 'background-sync') {
+    console.log('[SW] Background sync triggered');
+    event.waitUntil(
+      self.registration.showNotification('DukaFiti', {
+        body: 'Syncing offline changes...',
+        icon: '/logo-192.png',
+        badge: '/logo-192.png'
+      })
+    );
+  }
 });
 
-// Message Event - For communication with main thread
+// Handle messages from client
 self.addEventListener('message', (event) => {
-  console.log('[SW] Message received:', event.data);
-  
   if (event.data && event.data.type === 'SKIP_WAITING') {
     self.skipWaiting();
   }
   
-  if (event.data && event.data.type === 'CLEAR_ALL_CACHES') {
-    console.log('[SW] Clearing all caches...');
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames.map((cacheName) => {
-          console.log('[SW] Deleting cache:', cacheName);
-          return caches.delete(cacheName);
-        })
-      );
-    }).then(() => {
-      console.log('[SW] All caches cleared');
-      event.ports[0].postMessage({ success: true });
-    });
+  if (event.data && event.data.type === 'CACHE_URLS') {
+    event.waitUntil(
+      caches.open(STATIC_CACHE_NAME)
+        .then((cache) => cache.addAll(event.data.payload))
+    );
   }
 });
+
+console.log('[SW] Service worker script loaded');
