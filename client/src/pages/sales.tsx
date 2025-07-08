@@ -10,7 +10,7 @@ import { formatCurrency } from "@/lib/utils";
 import { offlineQueue, isOnline } from "@/lib/offline-queue";
 import { Skeleton } from "@/components/ui/skeleton";
 import { SaleConfirmationModal } from "@/components/sales/sale-confirmation-modal";
-import { useProducts } from "@/hooks/useRealtimeData";
+import { useComprehensiveRealtimeFixed } from "@/hooks/useComprehensiveRealtimeFixed";
 import { getProducts, searchProducts, getCustomers } from "@/lib/supabase-data";
 import { triggerSaleCompletedNotification, triggerLowStockNotification } from "@/lib/notification-triggers";
 import { supabase } from "@/lib/supabase";
@@ -37,13 +37,13 @@ export default function Sales() {
   const buttonRef = useRef<HTMLButtonElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
 
-  // Use real-time hook for products data
+  // Use comprehensive real-time hook for products data
   const { 
     products,
-    isLoading: productsLoading,
-    refreshData: refreshProducts,
-    isRefreshing
-  } = useProducts();
+    productsLoading,
+    refreshProducts,
+    isConnected 
+  } = useComprehensiveRealtimeFixed();
 
   // Get frequent products for quick select (first 6, sorted by sales)
   const quickSelectProducts = products

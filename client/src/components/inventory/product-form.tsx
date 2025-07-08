@@ -4,7 +4,8 @@ import { z } from "zod";
 import { useEffect, useState } from "react";
 import { type InsertProduct, type Product } from "@/types/schema";
 import { useToast } from "@/hooks/use-toast";
-import { useProducts } from "@/hooks/useRealtimeData";
+import { useRuntimeData } from "@/hooks/useRuntimeData";
+import { useCRUDMutations } from "@/hooks/useCRUDMutations";
 import {
   Dialog,
   DialogContent,
@@ -32,7 +33,8 @@ interface ProductFormProps {
 
 export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
   const { toast } = useToast();
-  const { createProduct, updateProduct, isCreating, isUpdating } = useProducts();
+  const { refetchProducts } = useRuntimeData();
+  const { createProductMutation, updateProductMutation } = useCRUDMutations();
   const [unknownQuantity, setUnknownQuantity] = useState(false);
 
   const form = useForm<InsertProduct>({
@@ -85,26 +87,46 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
   // Handle form submission
   const onSubmit = async (data: InsertProduct) => {
     try {
-      const productData = {
-        name: data.name,
-        sku: data.sku,
-        description: data.description,
-        price: parseFloat(data.price),
-        cost_price: parseFloat(data.costPrice),
-        stock: unknownQuantity ? null : data.stock,
-        category: data.category || 'General',
-        low_stock_threshold: data.lowStockThreshold,
-      };
-
       if (product) {
         // Editing existing product
-        updateProduct({ id: product.id, ...productData });
+        await updateProductMutation.mutateAsync({
+          id: product.id,
+          updates: {
+            name: data.name,
+            sku: data.sku,
+            description: data.description,
+            price: parseFloat(data.price),
+            cost_price: parseFloat(data.costPrice),
+            stock: unknownQuantity ? null : data.stock,
+            category: data.category || 'General',
+            low_stock_threshold: data.lowStockThreshold,
+          }
+        });
       } else {
         // Creating new product
-        createProduct({ ...productData, sales_count: 0 });
+        await createProductMutation.mutateAsync({
+          name: data.name,
+          sku: data.sku,
+          description: data.description,
+          price: parseFloat(data.price),
+          cost_price: parseFloat(data.costPrice),
+          stock: unknownQuantity ? null : data.stock,
+          category: data.category || 'General',
+          low_stock_threshold: data.lowStockThreshold,
+          sales_count: 0,
+        });
       }
       
-      // Reset form and close dialog
+      // Force refresh the products data to ensure UI shows the new/updated product
+      await refetchProducts();
+      
+      // Show success message
+      toast({
+        title: "Success",
+        description: `Product ${product ? 'updated' : 'created'} successfully`,
+      });
+      
+      // Reset form and close dialog on success
       onOpenChange(false);
       form.reset();
       setUnknownQuantity(false);

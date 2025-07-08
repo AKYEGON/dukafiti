@@ -25,10 +25,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ProductForm } from "@/components/inventory/product-form";
 import { CustomerForm } from "@/components/customers/customer-form";
 import { RefreshButton } from "@/components/ui/refresh-button";
-import { useProducts, useCustomers, useOrders } from "@/hooks/useRealtimeData";
+import { useComprehensiveRealtimeFixed } from "@/hooks/useComprehensiveRealtimeFixed";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/lib/supabase";
-import { useAuth } from "@/contexts/SupabaseAuth";
 
 
 
@@ -37,17 +36,18 @@ export default function Dashboard() {
   const [showProductForm, setShowProductForm] = useState(false);
   const [showCustomerForm, setShowCustomerForm] = useState(false);
 
-  const { user } = useAuth();
-  
-  // Use individual real-time hooks for dashboard data
-  const { products, isLoading: productsLoading, refreshData: refreshProducts } = useProducts();
-  const { customers, isLoading: customersLoading, refreshData: refreshCustomers } = useCustomers();
-  const { orders, isLoading: ordersLoading, refreshData: refreshOrders } = useOrders();
-  
-  // Refresh all data function
-  const forceRefreshAll = async () => {
-    await Promise.all([refreshProducts(), refreshCustomers(), refreshOrders(), refreshMetrics(), refreshRecentOrders()]);
-  };
+  // Use comprehensive real-time hook for all dashboard data
+  const { 
+    products,
+    customers,
+    orders,
+    productsLoading,
+    customersLoading,
+    ordersLoading,
+    forceRefreshAll,
+    isConnected,
+    pendingOperations
+  } = useComprehensiveRealtimeFixed();
 
   // Enhanced dashboard metrics query with runtime Supabase calls
   const { data: metrics, isLoading: metricsLoading, refetch: refreshMetrics } = useQuery<DashboardMetrics>({
@@ -98,7 +98,7 @@ export default function Dashboard() {
   });
 
   // Recent orders with runtime fetching
-  const { data: recentOrders = [], isLoading: recentOrdersLoading, refetch: refreshRecentOrders } = useQuery<Order[]>({
+  const { data: recentOrders = [], isLoading: recentOrdersLoading, refetch: refreshOrders } = useQuery<Order[]>({
     queryKey: ['recent-orders'],
     queryFn: async () => {
       console.log('🔄 Fetching recent orders at runtime...');
@@ -264,7 +264,11 @@ export default function Dashboard() {
               </p>
             </div>
             <RefreshButton
-              onRefresh={forceRefreshAll}
+              onRefresh={async () => {
+                await forceRefreshAll();
+                await refreshMetrics();
+                await refreshOrders();
+              }}
               isLoading={metricsLoading || recentOrdersLoading}
               size="sm"
               variant="outline"

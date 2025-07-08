@@ -11,24 +11,26 @@ import { RecordRepaymentModal } from "@/components/customers/record-repayment-mo
 import { MobilePageWrapper } from "@/components/layout/mobile-page-wrapper";
 import { RefreshButton } from "@/components/ui/refresh-button";
 import { motion, AnimatePresence } from "framer-motion";
-import { useCustomers } from "@/hooks/useRealtimeData";
+import { useRuntimeData } from "@/hooks/useRuntimeData";
+import { useCRUDMutations } from "@/hooks/useCRUDMutations";
 import type { Customer } from "@/types/schema";
 
 export default function Customers() {
-  // Use real-time data hook for instant updates
+  // Use runtime data hook for fresh data fetching with RLS
   const {
     customers,
-    isLoading,
-    isRefreshing,
-    error,
-    refreshData: refreshCustomers,
-    createCustomer,
-    updateCustomer,
-    deleteCustomer,
-    isCreating,
-    isUpdating,
-    isDeleting
-  } = useCustomers();
+    customersLoading: isLoading,
+    customersError: error,
+    refetchCustomers: refreshCustomers,
+    isConnected
+  } = useRuntimeData();
+
+  // Use CRUD mutations for all operations
+  const {
+    deleteCustomerMutation,
+    updateCustomerMutation,
+    recordRepaymentMutation
+  } = useCRUDMutations();
 
   const [showNewCustomerForm, setShowNewCustomerForm] = useState(false);
   const [showEditCustomerForm, setShowEditCustomerForm] = useState(false);
