@@ -108,7 +108,7 @@ export interface InsertProduct {
   costPrice?: string;
   stock?: number;
   category: string;
-  lowStockThreshold?: number;
+  low_stock_threshold?: number;
   unknownQuantity?: boolean;
 }
 

@@ -46,7 +46,7 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
       costPrice: "0",
       stock: 0,
       category: "",
-      lowStockThreshold: 10,
+      low_stock_threshold: 10,
       unknownQuantity: false,
     },
   });
@@ -64,7 +64,7 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
         costPrice: (product.cost_price || 0).toString(),
         stock: hasUnknownQuantity ? 0 : (product.stock || 0),
         category: product.category || "",
-        lowStockThreshold: product.lowStockThreshold || 10,
+        low_stock_threshold: product.low_stock_threshold || 10,
         unknownQuantity: hasUnknownQuantity,
       });
     } else {
@@ -78,7 +78,7 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
         costPrice: "0",
         stock: 0,
         category: "",
-        lowStockThreshold: 10,
+        low_stock_threshold: 10,
         unknownQuantity: false,
       });
     }
@@ -99,7 +99,7 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
             cost_price: parseFloat(data.costPrice),
             stock: unknownQuantity ? null : data.stock,
             category: data.category || 'General',
-            low_stock_threshold: data.lowStockThreshold,
+            low_stock_threshold: data.low_stock_threshold,
           }
         });
       } else {
@@ -112,7 +112,7 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
           cost_price: parseFloat(data.costPrice),
           stock: unknownQuantity ? null : data.stock,
           category: data.category || 'General',
-          low_stock_threshold: data.lowStockThreshold,
+          low_stock_threshold: data.low_stock_threshold,
           sales_count: 0,
         });
       }
@@ -355,7 +355,7 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
 
                 <FormField
                   control={form.control}
-                  name="lowStockThreshold"
+                  name="low_stock_threshold"
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel className="text-sm font-medium text-gray-700 dark:text-gray-300">Low Stock Alert</FormLabel>
