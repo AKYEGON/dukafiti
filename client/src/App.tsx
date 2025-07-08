@@ -27,10 +27,9 @@ import Customers from "@/pages/customers";
 import Reports from "@/pages/reports";
 import NotificationsPage from "@/pages/notifications";
 import Home from "@/pages/home";
-import AuthPage from "@/pages/auth";
-import AuthCallback from "@/pages/auth-callback";
 import Login from "@/pages/login";
 import Register from "@/pages/register";
+import AuthCallback from "@/pages/auth-callback";
 import Onboarding from "@/pages/onboarding";
 import NotFound from "@/pages/not-found";
 import SettingsPage from "@/pages/settings";
@@ -122,7 +121,7 @@ function Router() {
   }
 
   // Redirect authenticated users from auth pages to dashboard
-  if (user && (location === '/login' || location === '/register' || location === '/auth')) {
+  if (user && (location === '/login' || location === '/register')) {
     setLocation('/dashboard');
     return null;
   }
@@ -132,9 +131,8 @@ function Router() {
     <Switch>
       {/* Public routes */}
       <Route path="/" component={user ? () => { setLocation('/dashboard'); return null; } : Home} />
-      <Route path="/auth" component={AuthPage} />
-      <Route path="/login" component={AuthPage} />
-      <Route path="/register" component={AuthPage} />
+      <Route path="/login" component={Login} />
+      <Route path="/register" component={Register} />
       <Route path="/auth/callback" component={AuthCallback} />
       <Route path="/onboarding" component={Onboarding} />
       <Route path="/debug" component={Debug} />

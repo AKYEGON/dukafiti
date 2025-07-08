@@ -10,7 +10,6 @@ import { formatCurrency } from "@/lib/utils";
 import { Wallet, Smartphone, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { recordCustomerRepayment } from "@/lib/supabase-data";
-import { triggerPaymentReceivedNotification } from "@/lib/notification-triggers";
 import type { Customer } from "@shared/schema";
 
 interface RecordRepaymentModalProps {
@@ -61,7 +60,7 @@ export function RecordRepaymentModal({ isOpen, onClose, customer, previousPaymen
     setIsLoading(true);
     
     try {
-      const result = await recordCustomerRepayment(
+      await recordCustomerRepayment(
         customer.id,
         paymentAmount,
         method,
@@ -75,14 +74,6 @@ export function RecordRepaymentModal({ isOpen, onClose, customer, previousPaymen
         description: `Repayment of ${formatCurrency(paymentAmount)} recorded successfully`,
         className: "bg-green-600 text-white",
       });
-      
-      // Create notification for payment received
-      triggerPaymentReceivedNotification(
-        customer.id.toString(),
-        customer.name,
-        paymentAmount,
-        method as 'cash' | 'mobileMoney'
-      ).catch((err: any) => console.error('Failed to create payment notification:', err));
       
       onClose();
       resetForm();

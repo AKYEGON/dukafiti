@@ -50,64 +50,8 @@
     @apply bg-brand hover:bg-brand-700 text-white font-medium transition-all duration-200;
   }
   
-  /* Brand logo containers */
-  .brand-logo-container {
-    @apply bg-neutral-100 dark:bg-neutral-800 rounded-2xl shadow-sm p-4;
-  }
-  
-  /* Slogan watermark */
-  .slogan-watermark {
-    @apply opacity-10 pointer-events-none select-none;
-  }
-  
   .brand-button-outline {
     @apply border-brand text-brand hover:bg-brand hover:text-white transition-all duration-200;
-  }
-  
-  /* Dashboard preview hover effects */
-  .dashboard-preview-container {
-    position: relative;
-    overflow: hidden;
-    border-radius: 0.75rem;
-    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-    transition: transform 0.3s ease-in-out;
-  }
-  
-  .dashboard-preview-container:hover {
-    transform: scale(1.02);
-  }
-  
-  .dashboard-preview-glow {
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(135deg, #6366f1, #3b82f6);
-    opacity: 0.2;
-    filter: blur(12px);
-    transition: opacity 0.3s ease-in-out;
-  }
-  
-  .dashboard-preview-container:hover .dashboard-preview-glow {
-    opacity: 0.4;
-  }
-  
-  .dashboard-preview-image {
-    position: relative;
-    background: white;
-    border-radius: 0.5rem;
-    overflow: hidden;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-    transition: transform 0.3s ease-in-out;
-  }
-  
-  .dashboard-preview-image img {
-    width: 100%;
-    height: auto;
-    object-fit: cover;
-    transition: transform 0.3s ease-in-out;
-  }
-  
-  .dashboard-preview-container:hover .dashboard-preview-image img {
-    transform: scale(1.02);
   }
   
   /* Responsive container with proper max-widths */

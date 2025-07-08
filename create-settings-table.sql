@@ -1,21 +1,18 @@
--- Create settings table for store profile data
-CREATE TABLE IF NOT EXISTS public.settings (
+-- Create settings table for store profiles
+CREATE TABLE IF NOT EXISTS settings (
   id SERIAL PRIMARY KEY,
-  store_name TEXT,
-  owner_name TEXT,
+  user_id UUID NOT NULL,
+  store_name VARCHAR(255),
+  owner_name VARCHAR(255),
   address TEXT,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Enable Row Level Security
-ALTER TABLE public.settings ENABLE ROW LEVEL SECURITY;
+-- Create index for better performance
+CREATE INDEX IF NOT EXISTS idx_settings_user_id ON settings(user_id);
 
--- Create policy to allow all operations for authenticated users
-CREATE POLICY "Enable all operations for authenticated users" ON public.settings
-  FOR ALL USING (true);
-
--- Insert a default row if none exists
-INSERT INTO public.settings (store_name, owner_name, address)
-SELECT '', '', ''
-WHERE NOT EXISTS (SELECT 1 FROM public.settings);
+-- Add some sample data for testing
+INSERT INTO settings (user_id, store_name, owner_name, address) VALUES
+('00000000-0000-0000-0000-000000000001', 'Sample Store', 'John Doe', '123 Main Street, Nairobi')
+ON CONFLICT DO NOTHING;

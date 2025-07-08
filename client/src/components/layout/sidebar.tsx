@@ -3,7 +3,6 @@ import { Store, BarChart3, Package, Users, FileText, Settings, Menu, X, PanelLef
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { useTheme } from "@/contexts/theme-context";
 
 const navigation = [
   { name: "Dashboard", href: "/", icon: BarChart3 },
@@ -31,7 +30,6 @@ export function Sidebar({ className, collapsed = false, toggleSidebar }: Sidebar
   const [location] = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const pageTitle = getPageTitle(location);
-  const { theme } = useTheme();
 
   // Handle escape key to close mobile menu
   useEffect(() => {
@@ -64,40 +62,26 @@ export function Sidebar({ className, collapsed = false, toggleSidebar }: Sidebar
       <div className="flex flex-col">
         {/* Store logo/name mini-header */}
         <div className={cn(
-          "p-4 flex items-center justify-center border-b border-gray-200 dark:border-gray-700 bg-neutral-50 dark:bg-neutral-900",
+          "p-4 flex items-center justify-center border-b border-gray-200 dark:border-gray-700 bg-brand dark:bg-brand-800",
           isCollapsed && !isMobile ? "px-2" : "px-4"
         )}>
           {isCollapsed && !isMobile ? (
             <Link href="/">
-              <div className="relative">
-                {/* Light mode D logo icon */}
+              <div className="p-2 rounded-lg bg-brand-700 dark:bg-brand-900 hover:bg-brand-600 dark:hover:bg-brand-700 transition-all duration-200">
                 <img 
-                  src="/assets/d-logo-light.png"
+                  src="/assets/logo_1751815320625.png" 
                   alt="DukaFiti" 
-                  className="w-10 h-10 object-contain dark:hidden"
-                />
-                {/* Dark mode D logo icon */}
-                <img 
-                  src="/assets/d-logo-dark.png"
-                  alt="DukaFiti" 
-                  className="w-10 h-10 object-contain hidden dark:block"
+                  className="w-8 h-8 drop-shadow-md"
                 />
               </div>
             </Link>
           ) : (
             <Link href="/" className="flex items-center justify-center hover:opacity-90 transition-opacity duration-200">
-              <div className="relative">
-                {/* Light mode title */}
+              <div className="p-3 rounded-lg bg-brand-700 dark:bg-brand-900">
                 <img 
-                  src="/assets/sidebar-title-light.png"
-                  alt="DukaFiti" 
-                  className="h-12 w-auto object-contain dark:hidden"
-                />
-                {/* Dark mode title */}
-                <img 
-                  src="/assets/sidebar-title-dark.png"
-                  alt="DukaFiti" 
-                  className="h-12 w-auto object-contain hidden dark:block"
+                  src="/assets/logo plus background_1751815320608.png" 
+                  alt="DukaFiti - Duka Fiti ni Duka Bora" 
+                  className="h-10 w-auto max-w-[160px] drop-shadow-md"
                 />
               </div>
             </Link>

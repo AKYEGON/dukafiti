@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { supabase } from '../lib/supabase';
+import { supabase } from '../supabaseClient';
 import { User, Session } from '@supabase/supabase-js';
 
 interface AuthContextType {
@@ -9,7 +9,6 @@ interface AuthContextType {
   isLoading: boolean;
   login: (email: string, password: string) => Promise<{ error?: any }>;
   signup: (email: string, password: string, name?: string) => Promise<{ error?: any }>;
-  signInWithGoogle: () => Promise<{ error?: any }>;
   logout: () => Promise<void>;
 }
 
@@ -49,16 +48,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     // Listen for auth changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log('Auth state changed:', event, session);
+    } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
       setIsLoading(false);
-      
-      // Redirect on logout
-      if (event === 'SIGNED_OUT' && typeof window !== 'undefined') {
-        window.location.href = '/';
-      }
     });
 
     return () => subscription.unsubscribe();
@@ -107,33 +100,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
-  const signInWithGoogle = async () => {
-    try {
-      console.log('Initiating Google OAuth...');
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: `${window.location.origin}/dashboard`,
-          queryParams: {
-            access_type: 'offline',
-            prompt: 'consent',
-          },
-        },
-      });
-
-      if (error) {
-        console.error('Google sign-in error:', error);
-        return { error };
-      }
-
-      console.log('Google OAuth initiated successfully');
-      return { error: null };
-    } catch (error) {
-      console.error('Google sign-in error:', error);
-      return { error: { message: 'Google sign-in failed. Please ensure Google OAuth is configured in Supabase dashboard.' } };
-    }
-  };
-
   const logout = async () => {
     try {
       await supabase.auth.signOut();
@@ -151,7 +117,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         isLoading,
         login,
         signup,
-        signInWithGoogle,
         logout,
       }}
     >

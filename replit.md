@@ -17,18 +17,17 @@ DukaFiti is a comprehensive business management platform built with a modern ful
 - **PWA Features**: Service worker for offline caching, Web App Manifest for installability
 
 ### Backend Architecture
-- **Database**: Supabase (PostgreSQL) with built-in authentication and real-time features
-- **Authentication**: Supabase Auth with email/password authentication
-- **Real-time**: Supabase real-time subscriptions for live updates
-- **API Design**: Direct Supabase client calls from frontend (serverless architecture)
-- **Data Operations**: Supabase JavaScript SDK for all CRUD operations
+- **Runtime**: Node.js with Express.js server
+- **Language**: TypeScript with ES modules
+- **API Design**: RESTful API with JSON responses
+- **Request Logging**: Custom middleware for API request tracking
+- **Error Handling**: Centralized error handling middleware
 
 ### Data Storage Solutions
-- **Database**: Supabase PostgreSQL with built-in security and RLS
-- **Authentication**: Supabase Auth with session management
-- **Real-time Features**: Supabase real-time subscriptions
-- **File Storage**: Supabase Storage (available if needed)
-- **Edge Functions**: Supabase Edge Functions for serverless API endpoints
+- **Database**: PostgreSQL with Neon serverless database
+- **ORM**: Drizzle ORM for type-safe database operations
+- **Schema Management**: Drizzle Kit for migrations and schema evolution
+- **Session Storage**: PostgreSQL with connect-pg-simple for session management
 
 ## Key Components
 
@@ -56,16 +55,17 @@ RESTful endpoints organized by resource:
 
 ## Data Flow
 
-1. **Client Requests**: React components make direct Supabase API calls through TanStack Query
-2. **Authentication**: Supabase Auth handles user sessions and security
-3. **Database Operations**: Supabase JavaScript SDK executes queries with built-in security
-4. **Real-time Updates**: Supabase real-time subscriptions provide live data updates
+1. **Client Requests**: React components make API calls through TanStack Query
+2. **API Processing**: Express server handles requests with type validation
+3. **Database Operations**: Drizzle ORM executes type-safe database queries
+4. **Response Handling**: Structured JSON responses with error handling
 5. **UI Updates**: React Query manages cache invalidation and optimistic updates
 
 ## External Dependencies
 
 ### Core Dependencies
-- **@supabase/supabase-js**: Supabase JavaScript SDK for database and auth operations
+- **@neondatabase/serverless**: Neon PostgreSQL driver for serverless environments
+- **drizzle-orm & drizzle-kit**: Type-safe ORM with migration tools
 - **@tanstack/react-query**: Server state management and caching
 - **react-hook-form**: Performant form handling with validation
 - **zod**: Runtime type validation and schema definition
@@ -468,83 +468,6 @@ Changelog:
 - July 6, 2025. Modified Home page navigation logo to use branded container with drop shadows
 - July 6, 2025. Created Footer component with slogan logo in brand-appropriate container styling
 - July 6, 2025. Applied drop-shadow effects to all logos for enhanced visual depth and professional appearance
-- July 6, 2025. Completely rebuilt notifications system as simple MVP with only Credit Reminders and Low Stock Alerts
-- July 6, 2025. Replaced complex notification system with simplified table structure (type, entity_id, title, message, is_read, created_at)
-- July 6, 2025. Created new useNotifications hook with real-time Supabase subscriptions for instant notification updates
-- July 6, 2025. Built clean NotificationsDropdown component replacing old NotificationsPanel with auto-mark-as-read functionality
-- July 6, 2025. Integrated MVP notification creation functions: createCreditReminderNotification, createLowStockAlertNotification
-- July 6, 2025. Added low stock checking after sales and daily credit reminder checking for customers with 7+ day overdue balances
-- July 6, 2025. Added NotificationsTester component to dashboard for MVP system validation and QA testing
-- July 6, 2025. Completed full Supabase integration with provided credentials (URL: kwdzbssuovwemthmiuht.supabase.co)
-- July 6, 2025. Updated environment variables with VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY, and VITE_SUPABASE_SERVICE_ROLE_KEY
-- July 6, 2025. Verified Supabase connection with successful test - all tables (products, customers, orders) accessible with data
-- July 6, 2025. Updated replit.md architecture documentation to reflect serverless Supabase-first approach
-- July 6, 2025. Migrated from Express/Node.js backend to direct Supabase client operations for improved performance
-- July 7, 2025. Fixed critical store profile data persistence issue - settings table missing from Supabase
-- July 7, 2025. Implemented robust localStorage-based store profile storage with timestamp tracking  
-- July 7, 2025. Enhanced getStoreProfile and updateStoreProfile functions for reliable data persistence
-- July 7, 2025. Updated branding assets with new title images for sidebar and navigation
-- July 7, 2025. Updated collapsed sidebar to show dynamic "D" logo in dark mode and standard logo in light mode
-- July 7, 2025. Replaced login and register page logos with new title and slogan images featuring dynamic dark/light mode switching
-- July 7, 2025. Updated sidebar collapsed state with new D logos - purple with white "D" for light mode and purple with black "D" for dark mode
-- July 7, 2025. Fixed critical low stock notification system bug - beans product now properly triggers alerts at threshold (10 <= 10)
-- July 7, 2025. Enhanced notification schema to use correct database structure (user_id instead of entity_id) for all notification types
-- July 7, 2025. Updated all notification creation functions across codebase to use proper schema and type mappings
-- July 7, 2025. Verified low stock notifications now work correctly and display in real-time UI notification panel
-- July 7, 2025. Removed MVP Notifications Testing panel from dashboard per user request
-- July 7, 2025. Updated landing page with accurate business descriptions and professional UX/UI enhancements
-- July 7, 2025. Changed free trial period from 30 days to 14 days per user request
-- July 7, 2025. Replaced dashboard preview image with user-provided screenshot featuring professional backlighting and hover effects
-- July 7, 2025. Removed "Watch Demo" button and updated all text to accurately reflect DukaFiti's actual functionality
-- July 7, 2025. Enhanced feature descriptions to accurately describe inventory management, sales tracking, and customer credit functionality
-- July 7, 2025. Updated testimonials to reflect real use cases: inventory tracking, low-stock alerts, credit management, and offline functionality
-- July 7, 2025. Added professional CSS classes for dashboard preview hover effects with smooth animations and backlighting
-- July 7, 2025. Improved landing page accuracy: focused on inventory, sales, reports, and customer credit management as core features
-- July 7, 2025. Fixed landing page footer and authentication page logo display issues by replacing broken image references with text-based branding
-- July 7, 2025. Added Google OAuth integration to authentication page with proper error handling and user guidance
-- July 7, 2025. Implemented fallback text-based branding for reliability when image assets fail to load
-- July 7, 2025. Created comprehensive Google OAuth setup documentation for future production deployment
-- July 7, 2025. Enhanced authentication page with helpful notices about OAuth configuration requirements
-- July 7, 2025. Completely redesigned authentication page layout with unified single card design
-- July 7, 2025. Fixed back button overlap issue with proper positioning outside the main card
-- July 7, 2025. Improved spacing and positioning throughout authentication form for better UX
-- July 7, 2025. Enhanced form elements with larger input fields, better typography, and improved accessibility
-- July 7, 2025. Integrated dynamic banner images inside the unified card with proper light/dark mode switching
-- July 7, 2025. Replaced squeezed layout with spacious, professional single-card design
-- July 7, 2025. Updated authentication pages with compact spacing that fits page without scrolling
-- July 7, 2025. Implemented professional gradient text-based branding with dynamic light/dark mode support
-- July 7, 2025. Applied consistent DukaFiti branding across login, register, and auth pages
-- July 7, 2025. Enhanced branding visibility with gradient backgrounds and proper contrast ratios
-- July 7, 2025. Created reliable fallback branding system that works regardless of image loading issues
-- July 7, 2025. CRITICAL FIX: Resolved Add Stock button loading state issue by removing async callback causing mutation hang
-- July 7, 2025. Fixed sales failure by removing non-existent cost_price_at_sale column from order_items schema
-- July 7, 2025. Enhanced RestockModal with proper mutation reset and improved error handling
-- July 7, 2025. Verified both Add Stock and Sales functionality working correctly with direct Supabase integration
-- July 7, 2025. Successfully integrated user-uploaded brand images using @assets import system
-- July 7, 2025. Fixed Vite asset loading by using direct imports instead of public URL references
-- July 7, 2025. Applied dynamic light/dark mode image switching using imported brand assets
-- July 7, 2025. Maintained compact spacing and professional layout while displaying authentic brand images
-- July 7, 2025. Enhanced landing page with seamless dark/light mode support and theme toggle functionality
-- July 7, 2025. Added theme toggle buttons to both desktop and mobile navigation menus
-- July 7, 2025. Fixed logout behavior to preserve theme state when navigating back to landing page
-- July 7, 2025. Integrated proper brand images in landing page header with mounted state checking
-- July 7, 2025. CRITICAL FIX: Replaced API-based theme system with localStorage-based persistence for consistent theme behavior
-- July 7, 2025. Fixed theme reverting to light mode on logout by implementing proper localStorage theme persistence
-- July 7, 2025. Updated landing page header to use new streamlined DUKAFITI brand images for light and dark modes
-- July 7, 2025. Migrated all pages from next-themes to custom theme context with localStorage support
-- July 7, 2025. Integrated Google OAuth authentication flow on both Login and Sign-Up pages using Supabase Auth
-- July 7, 2025. Added "Continue with Google" buttons with proper error handling and user feedback
-- July 7, 2025. Enhanced signInWithGoogle function with proper OAuth configuration and redirect handling
-- July 7, 2025. Created comprehensive Google OAuth setup documentation (GOOGLE_OAUTH_SETUP.md)
-- July 7, 2025. Applied consistent styling and theming to Google OAuth buttons across authentication pages
-- July 7, 2025. Implemented comprehensive "Add Stock" functionality on Inventory page for restocking and profit tracking
-- July 7, 2025. Created RestockModal component with quantity and buying price inputs, form validation, and error handling
-- July 7, 2025. Added PackagePlus icon "Add Stock" button to each product card with hover effects and proper accessibility
-- July 7, 2025. Integrated real-time stock updates with immediate inventory list refresh after restocking operations
-- July 7, 2025. Built graceful fallback system for cost_price field - works with quantities now, supports profit tracking once column is added
-- July 7, 2025. Created comprehensive documentation and SQL scripts for adding cost_price column to Supabase products table
-- July 7, 2025. Enhanced inventory management workflow with professional modal design and user-friendly success feedback
-- July 7, 2025. Updated authentication page cards to use fully white backgrounds instead of blue/gray gradient headers for consistent design
 ```
 
 ## User Preferences

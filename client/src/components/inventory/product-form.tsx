@@ -28,10 +28,9 @@ interface ProductFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   product?: Product;
-  onSuccess?: () => void;
 }
 
-export function ProductForm({ open, onOpenChange, product, onSuccess }: ProductFormProps) {
+export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [unknownQuantity, setUnknownQuantity] = useState(false);
@@ -42,7 +41,6 @@ export function ProductForm({ open, onOpenChange, product, onSuccess }: ProductF
       sku: "",
       description: "",
       price: "0",
-      costPrice: "0",
       stock: 0,
       category: "",
       lowStockThreshold: 10,
@@ -60,7 +58,6 @@ export function ProductForm({ open, onOpenChange, product, onSuccess }: ProductF
         sku: product.sku || "",
         description: product.description || "",
         price: product.price || "0",
-        costPrice: (product.cost_price || 0).toString(),
         stock: hasUnknownQuantity ? 0 : (product.stock || 0),
         category: product.category || "",
         lowStockThreshold: product.lowStockThreshold || 10,
@@ -74,7 +71,6 @@ export function ProductForm({ open, onOpenChange, product, onSuccess }: ProductF
         sku: "",
         description: "",
         price: "0",
-        costPrice: "0",
         stock: 0,
         category: "",
         lowStockThreshold: 10,
@@ -98,7 +94,8 @@ export function ProductForm({ open, onOpenChange, product, onSuccess }: ProductF
       }
     },
     onSuccess: () => {
-      if (onSuccess) onSuccess();
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/dashboard/metrics"] });
       toast({ title: "Product created successfully", variant: "default" });
       onOpenChange(false);
       form.reset();
@@ -127,7 +124,8 @@ export function ProductForm({ open, onOpenChange, product, onSuccess }: ProductF
       return await updateProduct(product!.id, data);
     },
     onSuccess: () => {
-      if (onSuccess) onSuccess();
+      queryClient.invalidateQueries({ queryKey: ["products"] });
+      queryClient.invalidateQueries({ queryKey: ["/api/dashboard/metrics"] });
       toast({ title: "Product updated successfully" });
       onOpenChange(false);
     },
@@ -257,7 +255,7 @@ export function ProductForm({ open, onOpenChange, product, onSuccess }: ProductF
                   name="price"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel className="text-sm font-medium text-gray-700 dark:text-gray-300">Selling Price (KES) *</FormLabel>
+                      <FormLabel className="text-sm font-medium text-gray-700 dark:text-gray-300">Price (KES) *</FormLabel>
                       <FormControl>
                         <Input 
                           type="number" 
@@ -272,29 +270,6 @@ export function ProductForm({ open, onOpenChange, product, onSuccess }: ProductF
                   )}
                 />
 
-                <FormField
-                  control={form.control}
-                  name="costPrice"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel className="text-sm font-medium text-gray-700 dark:text-gray-300">Cost Price (KES) *</FormLabel>
-                      <FormControl>
-                        <Input 
-                          type="number" 
-                          step="0.01" 
-                          {...field} 
-                          placeholder="0.00"
-                          className="h-10 text-base"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                      <p className="text-xs text-gray-500 dark:text-gray-400">Used for profit calculations</p>
-                    </FormItem>
-                  )}
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-4 mb-4">
                 <FormField
                   control={form.control}
                   name="stock"

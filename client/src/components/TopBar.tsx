@@ -4,7 +4,8 @@ import { useQuery } from '@tanstack/react-query';
 import { formatDistanceToNow } from 'date-fns';
 import { useAuth } from '@/contexts/SupabaseAuth';
 import { OfflineIndicator } from '@/components/offline/OfflineIndicator';
-import NotificationsDropdown from '@/components/notifications/NotificationsDropdown';
+import { NotificationsPanel } from '@/components/notifications/NotificationsPanel';
+import { useNotifications } from '@/hooks/useNotifications';
 import { supabase } from '@/lib/supabase';
 import { 
   Search, 
@@ -38,7 +39,9 @@ export function TopBar({ onToggleSidebar, isSidebarCollapsed }: TopBarProps) {
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [selectedIndex, setSelectedIndex] = useState(-1);
   
-
+  // Notifications functionality
+  const { unreadCount, markAllAsReadOnOpen } = useNotifications();
+  const [isNotificationOpen, setIsNotificationOpen] = useState(false);
   
   // Profile dropdown state
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -55,7 +58,9 @@ export function TopBar({ onToggleSidebar, isSidebarCollapsed }: TopBarProps) {
     setSelectedIndex(-1);
   }, isSearchOpen);
   
-
+  const notificationRef = useOutsideClick<HTMLDivElement>(() => {
+    setIsNotificationOpen(false);
+  }, isNotificationOpen);
   
   const profileRef = useOutsideClick<HTMLDivElement>(() => {
     setIsProfileOpen(false);
@@ -101,7 +106,7 @@ export function TopBar({ onToggleSidebar, isSidebarCollapsed }: TopBarProps) {
     
     return parts.map((part, index) => 
       regex.test(part) ? (
-        <span key={index} className="font-bold text-brand-600 dark:text-brand-400">
+        <span key={index} className="font-bold text-green-600 dark:text-green-400">
           {part}
         </span>
       ) : part
@@ -174,25 +179,9 @@ export function TopBar({ onToggleSidebar, isSidebarCollapsed }: TopBarProps) {
           </button>
         </div>
 
-        {/* Center Section - Search Bar with Slogan Watermark */}
+        {/* Center Section - Search Bar (All Devices) */}
         <div className="flex-1 max-w-md mx-auto relative" ref={searchRef}>
-          {/* Slogan Watermark Background */}
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-0">
-            {/* Light mode slogan watermark */}
-            <img 
-              src="/assets/slogan-light.png" 
-              alt=""
-              className="opacity-5 h-6 w-auto dark:hidden"
-            />
-            {/* Dark mode slogan watermark */}
-            <img 
-              src="/assets/slogan-dark.png" 
-              alt=""
-              className="opacity-[0.03] h-6 w-auto hidden dark:block"
-            />
-          </div>
-          
-          <div className="relative w-full z-10">
+          <div className="relative w-full">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
             <input
               ref={searchInputRef}
@@ -201,7 +190,7 @@ export function TopBar({ onToggleSidebar, isSidebarCollapsed }: TopBarProps) {
               value={query}
               onChange={(e) => handleSearch(e.target.value)}
               onKeyDown={handleKeyDown}
-              className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white/90 dark:bg-[#2A2A2A]/90 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-brand-500 focus:border-transparent transition-all duration-200 backdrop-blur-sm"
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-[#2A2A2A] text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-green-500 focus:border-transparent transition-all duration-200"
               role="combobox"
               aria-expanded={isSearchOpen}
               aria-haspopup="listbox"
@@ -209,7 +198,7 @@ export function TopBar({ onToggleSidebar, isSidebarCollapsed }: TopBarProps) {
             />
             {isLoading && (
               <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-brand-500"></div>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-green-500"></div>
               </div>
             )}
           </div>
@@ -236,8 +225,8 @@ export function TopBar({ onToggleSidebar, isSidebarCollapsed }: TopBarProps) {
                           key={`${result.type}-${result.id}`}
                           id={`search-option-${globalIndex}`}
                           onClick={() => handleSearchSelect(result)}
-                          className={`w-full text-left px-4 py-3 flex items-center hover:bg-brand-50 dark:hover:bg-brand-900/20 cursor-pointer transition-all duration-150 min-h-[44px] ${
-                            isSelected ? 'bg-brand-500 text-white dark:bg-brand-600' : ''
+                          className={`w-full text-left px-4 py-3 flex items-center hover:bg-green-50 dark:hover:bg-green-900/20 cursor-pointer transition-all duration-150 min-h-[44px] ${
+                            isSelected ? 'bg-green-500 text-white dark:bg-green-600' : ''
                           }`}
                           role="option"
                           aria-selected={isSelected}
@@ -286,7 +275,28 @@ export function TopBar({ onToggleSidebar, isSidebarCollapsed }: TopBarProps) {
           <OfflineIndicator />
 
           {/* Notifications */}
-          <NotificationsDropdown />
+          <div className="relative" ref={notificationRef}>
+            <button
+              onClick={async () => {
+                // Auto-mark all notifications as read when opening panel
+                if (!isNotificationOpen && unreadCount > 0) {
+                  await markAllAsReadOnOpen();
+                }
+                setIsNotificationOpen(!isNotificationOpen);
+              }}
+              className="relative w-10 h-10 rounded-lg flex items-center justify-center text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+              aria-label={`Notifications ${unreadCount > 0 ? `(${unreadCount} unread)` : ''}`}
+            >
+              <Bell className="w-5 h-5" />
+              {unreadCount > 0 && (
+                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                  {unreadCount > 9 ? '9+' : unreadCount}
+                </span>
+              )}
+            </button>
+
+
+          </div>
 
           {/* Profile Dropdown */}
           <div className="relative" ref={profileRef}>
@@ -375,7 +385,11 @@ export function TopBar({ onToggleSidebar, isSidebarCollapsed }: TopBarProps) {
         </div>
       )}
 
-
+      {/* Notifications Panel */}
+      <NotificationsPanel 
+        isOpen={isNotificationOpen} 
+        onClose={() => setIsNotificationOpen(false)} 
+      />
     </>
   );
 }

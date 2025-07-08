@@ -27,7 +27,6 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ProductForm } from "@/components/inventory/product-form";
 import { CustomerForm } from "@/components/customers/customer-form";
 
-
 import { getDashboardMetrics, getRecentOrders } from "@/lib/supabase-data";
 
 

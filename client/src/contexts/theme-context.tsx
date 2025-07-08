@@ -1,4 +1,6 @@
 import { createContext, useContext, useEffect, useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
 
 type Theme = 'light' | 'dark';
 
@@ -12,16 +14,33 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<Theme>('light');
-  const [isLoading, setIsLoading] = useState(true);
+  const queryClient = useQueryClient();
 
-  // Get theme from localStorage on mount
-  useEffect(() => {
-    const savedTheme = localStorage.getItem('dukafiti-theme') as Theme | null;
-    const initialTheme = savedTheme || 'light';
-    setThemeState(initialTheme);
-    applyThemeToDocument(initialTheme);
-    setIsLoading(false);
-  }, []);
+  // Fetch user theme preference
+  const { data: themeData, isLoading, error } = useQuery<{ theme: Theme }>({
+    queryKey: ['/api/settings/theme'],
+    retry: false,
+    throwOnError: false,
+    enabled: false, // Disable automatic fetching for now
+  });
+
+  // Update theme mutation
+  const updateThemeMutation = useMutation({
+    mutationFn: async (newTheme: Theme) => {
+      const response = await apiRequest("PUT", "/api/settings/theme", { theme: newTheme });
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/settings/theme'] });
+    },
+  });
+
+  // Update theme and HTML class
+  const setTheme = (newTheme: Theme) => {
+    setThemeState(newTheme);
+    updateThemeMutation.mutate(newTheme);
+    applyThemeToDocument(newTheme);
+  };
 
   // Apply theme to document
   const applyThemeToDocument = (themeToApply: Theme) => {
@@ -33,12 +52,18 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // Update theme with localStorage persistence
-  const setTheme = (newTheme: Theme) => {
-    setThemeState(newTheme);
-    localStorage.setItem('dukafiti-theme', newTheme);
-    applyThemeToDocument(newTheme);
-  };
+  // Initialize theme from server data
+  useEffect(() => {
+    if (themeData?.theme) {
+      setThemeState(themeData.theme);
+      applyThemeToDocument(themeData.theme);
+    }
+  }, [themeData]);
+
+  // Set initial theme on mount (fallback to dark)
+  useEffect(() => {
+    applyThemeToDocument(theme);
+  }, []);
 
   return (
     <ThemeContext.Provider value={{ theme, setTheme, isLoading }}>

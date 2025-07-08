@@ -21,7 +21,6 @@ export const createProduct = async (product: any) => {
       sku: product.sku,
       description: product.description || null,
       price: product.price,
-      cost_price: product.costPrice || (product.price * 0.6), // Default to 60% of selling price
       stock: product.unknownQuantity ? null : product.stock,
       category: product.category || 'General',
       low_stock_threshold: product.unknownQuantity ? null : (product.lowStockThreshold || 10),
@@ -50,24 +49,17 @@ export const createProduct = async (product: any) => {
 };
 
 export const updateProduct = async (id: number, updates: any) => {
-  const updateData: any = {
-    name: updates.name,
-    sku: updates.sku,
-    description: updates.description,
-    price: updates.price,
-    stock: updates.unknownQuantity ? null : updates.stock,
-    category: updates.category,
-    low_stock_threshold: updates.unknownQuantity ? null : updates.lowStockThreshold,
-  };
-  
-  // Include cost_price if provided
-  if (updates.costPrice !== undefined) {
-    updateData.cost_price = updates.costPrice;
-  }
-  
   const { data, error } = await supabase
     .from('products')
-    .update(updateData)
+    .update({
+      name: updates.name,
+      sku: updates.sku,
+      description: updates.description,
+      price: updates.price,
+      stock: updates.unknownQuantity ? null : updates.stock,
+      category: updates.category,
+      low_stock_threshold: updates.unknownQuantity ? null : updates.lowStockThreshold,
+    })
     .eq('id', id)
     .select()
     .single();
@@ -284,7 +276,17 @@ export const recordCustomerRepayment = async (customerId: number, amount: number
       throw paymentError;
     }
     
-    // MVP: Credit reminders are handled daily, not on individual payments
+    // Create customer payment notification
+    try {
+      await createCustomerPaymentNotification(
+        updatedCustomer.name,
+        amount,
+        method
+      );
+    } catch (notificationError) {
+      console.error('Error creating payment notification:', notificationError);
+      // Don't throw - notifications are not critical
+    }
 
     console.log('Repayment recorded successfully:', payment);
     return { customer: updatedCustomer, payment };
@@ -717,7 +719,6 @@ export const createOrderItem = async (orderItem: any) => {
       product_name: orderItem.productName,
       quantity: orderItem.quantity,
       price: orderItem.price,
-      cost_price_at_sale: orderItem.costPriceAtSale || 0,
     }])
     .select()
     .single();
@@ -729,39 +730,25 @@ export const createOrderItem = async (orderItem: any) => {
 // Complete sales transaction
 export const createSale = async (saleData: any) => {
   try {
-    console.log('=== SUPABASE SALE CREATION START ===');
-    console.log('Sale data received:', JSON.stringify(saleData, null, 2));
-    console.log('Supabase client configured:', !!supabase);
+    console.log('Creating sale with data:', saleData);
     
     // Create the order first
-    const orderData = {
-      customer_id: saleData.customerId || null,
-      customer_name: saleData.customerName || 'Walk-in Customer',
-      total: saleData.total,
-      status: 'completed',
-      payment_method: saleData.paymentMethod || 'cash',
-    };
-    
-    console.log('Creating order with data:', orderData);
-    
     const { data: order, error: orderError } = await supabase
       .from('orders')
-      .insert([orderData])
+      .insert([{
+        customer_id: saleData.customerId || null,
+        customer_name: saleData.customerName || 'Walk-in Customer',
+        total: saleData.total,
+        status: 'completed',
+        payment_method: saleData.paymentMethod || 'cash',
+      }])
       .select()
       .single();
     
     if (orderError) {
-      console.error('❌ ERROR creating order:', orderError);
-      console.error('Error details:', {
-        code: orderError.code,
-        message: orderError.message,
-        details: orderError.details,
-        hint: orderError.hint
-      });
+      console.error('Error creating order:', orderError);
       throw orderError;
     }
-    
-    console.log('✅ Order created successfully:', order);
     
     // Create order items
     const orderItems = saleData.items.map((item: any) => ({
@@ -812,22 +799,21 @@ export const createSale = async (saleData: any) => {
       }
     }
     
-    // MVP: Check for low stock and create notifications after sale
+    // Check for low stock and create notifications
     try {
-      const productUpdates = saleData.items
+      const updatedProducts = saleData.items
         .filter((item: any) => item.hasStock && item.newStock !== null)
         .map((item: any) => ({
           id: item.productId,
           name: item.productName,
-          stock: item.newStock,
-          threshold: item.lowStockThreshold || 10
+          stock: item.newStock
         }));
       
-      if (productUpdates.length > 0) {
-        await checkLowStockAfterSale(productUpdates);
+      if (updatedProducts.length > 0) {
+        await checkAndNotifyLowStock(updatedProducts);
       }
     } catch (lowStockError) {
-      console.error('Error checking low stock after sale:', lowStockError);
+      console.error('Error checking low stock:', lowStockError);
       // Don't throw - low stock notifications are not critical for sale completion
     }
     
@@ -1049,32 +1035,24 @@ export const getRecentOrders = async () => {
   }
 };
 
-// Store Profile operations - with fallback to localStorage when Supabase settings table doesn't exist
-// Store profile localStorage key
-const STORE_PROFILE_KEY = 'dukafiti_store_profile_v2';
-
+// Store Profile operations - using localStorage for simplicity since settings table doesn't exist
 export const getStoreProfile = async () => {
   try {
-    console.log('Fetching store profile...');
+    console.log('Fetching store profile from localStorage');
     
-    // For now, use localStorage as primary storage since settings table doesn't exist
-    const localData = localStorage.getItem(STORE_PROFILE_KEY);
-    if (localData) {
-      try {
-        const parsed = JSON.parse(localData);
-        console.log('Retrieved store profile from localStorage:', parsed);
-        return {
-          storeName: parsed.storeName || '',
-          ownerName: parsed.ownerName || '',
-          address: parsed.address || ''
-        };
-      } catch (parseError) {
-        console.error('Error parsing localStorage data:', parseError);
-      }
+    // Get store profile from localStorage since settings table doesn't exist
+    const storedProfile = localStorage.getItem('dukafiti-store-profile');
+    
+    if (storedProfile) {
+      const profile = JSON.parse(storedProfile);
+      return {
+        storeName: profile.storeName || '',
+        ownerName: profile.ownerName || '',
+        address: profile.address || ''
+      };
     }
     
-    // Return empty profile if no data exists
-    console.log('No store profile found, returning defaults');
+    // Return empty defaults if no stored profile
     return {
       storeName: '',
       ownerName: '',
@@ -1082,7 +1060,7 @@ export const getStoreProfile = async () => {
     };
   } catch (error) {
     console.error('Store profile fetch failed:', error);
-    
+    // Return default values instead of throwing
     return {
       storeName: '',
       ownerName: '',
@@ -1099,24 +1077,14 @@ export const updateStoreProfile = async (profileData: {
   try {
     console.log('Updating store profile:', profileData);
     
-    // Save to localStorage as primary storage (since settings table doesn't exist)
-    const profileWithTimestamp = {
-      ...profileData,
-      lastUpdated: new Date().toISOString()
-    };
+    // Save to localStorage since settings table doesn't exist
+    localStorage.setItem('dukafiti-store-profile', JSON.stringify(profileData));
     
-    localStorage.setItem(STORE_PROFILE_KEY, JSON.stringify(profileWithTimestamp));
-    console.log('Store profile saved to localStorage successfully');
-    
-    // Return the saved data
-    return {
-      storeName: profileData.storeName,
-      ownerName: profileData.ownerName,
-      address: profileData.address
-    };
+    console.log('Store profile updated successfully in localStorage');
+    return profileData;
   } catch (error) {
     console.error('Store profile update failed:', error);
-    throw new Error('Failed to save store profile. Please try again.');
+    throw error;
   }
 };
 
@@ -1322,282 +1290,18 @@ export const createLowStockNotification = async (productName: string, currentSto
   });
 };
 
-// ===================
-// MVP NOTIFICATIONS SYSTEM - Only Credit Reminders and Low Stock Alerts
-// ===================
-
-// MVP: Create credit reminder notification
-export const createCreditReminderNotification = async (customerId: string, customerName: string, balance: number) => {
-  try {
-    const { data, error } = await supabase
-      .from('notifications')
-      .insert([{
-        type: 'payment_received',
-        title: 'Payment Reminder',
-        message: `${customerName} owes KES ${balance.toFixed(2)}`,
-        user_id: 1,
-        is_read: false
-      }])
-      .select()
-      .single();
-
-    if (error) {
-      console.error('Error creating credit reminder notification:', error);
-      throw error;
+// Helper function to create customer payment notifications
+export const createCustomerPaymentNotification = async (customerId: number, customerName: string, amount: number, paymentMethod: string) => {
+  return await createNotification({
+    type: 'customer_payment',
+    title: 'Customer Payment',
+    message: `${customerName} made a payment of KES ${amount} via ${paymentMethod}`,
+    payload: {
+      customerId: customerId,
+      customerName: customerName,
+      amount: amount,
+      paymentMethod: paymentMethod,
+      timestamp: new Date().toISOString()
     }
-
-    console.log(`✅ Created payment reminder for ${customerName}: KES ${balance.toFixed(2)}`);
-    return data;
-  } catch (error) {
-    console.error('createCreditReminderNotification error:', error);
-    throw error;
-  }
-};
-
-// MVP: Create low stock alert notification
-export const createLowStockAlertNotification = async (productId: string, productName: string, quantity: number) => {
-  try {
-    const { data, error } = await supabase
-      .from('notifications')
-      .insert([{
-        type: 'low_stock',
-        title: 'Low Stock Alert',
-        message: `${productName} is running low (Current stock: ${quantity})`,
-        user_id: 1,
-        is_read: false
-      }])
-      .select()
-      .single();
-
-    if (error) {
-      console.error('Error creating low stock alert notification:', error);
-      throw error;
-    }
-
-    console.log(`✅ Created low stock notification for ${productName}: ${quantity} units remaining`);
-    return data;
-  } catch (error) {
-    console.error('createLowStockAlertNotification error:', error);
-    throw error;
-  }
-};
-
-// MVP: Check for low stock after sale and create notifications
-export const checkLowStockAfterSale = async (productUpdates: Array<{id: string, name: string, stock: number | null, threshold: number | null}>) => {
-  try {
-    for (const product of productUpdates) {
-      // Skip products with unknown quantity
-      if (product.stock === null || product.threshold === null) continue;
-      
-      // Check if stock is below threshold
-      if (product.stock <= product.threshold) {
-        await createLowStockAlertNotification(product.id, product.name, product.stock);
-      }
-    }
-  } catch (error) {
-    console.error('Error checking low stock after sale:', error);
-  }
-};
-
-// MVP: Daily function to check for overdue credit customers (7+ days)
-export const checkOverdueCreditCustomers = async () => {
-  try {
-    const sevenDaysAgo = new Date();
-    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
-
-    const { data: customers, error } = await supabase
-      .from('customers')
-      .select('id, name, balance, updated_at')
-      .gt('balance', 0)
-      .lt('updated_at', sevenDaysAgo.toISOString());
-
-    if (error) {
-      console.error('Error fetching overdue customers:', error);
-      return;
-    }
-
-    for (const customer of customers || []) {
-      await createCreditReminderNotification(customer.id, customer.name, customer.balance);
-    }
-
-    console.log(`Created credit reminders for ${customers?.length || 0} overdue customers`);
-  } catch (error) {
-    console.error('Error checking overdue credit customers:', error);
-  }
-};
-
-// Profit tracking functions
-export const getProfitData = async (period: 'daily' | 'weekly' | 'monthly') => {
-  try {
-    let startDate: Date;
-    const endDate = new Date();
-    
-    switch (period) {
-      case 'daily':
-        startDate = new Date();
-        startDate.setHours(0, 0, 0, 0);
-        break;
-      case 'weekly':
-        startDate = new Date();
-        startDate.setDate(startDate.getDate() - 7);
-        break;
-      case 'monthly':
-        startDate = new Date();
-        startDate.setMonth(startDate.getMonth() - 1);
-        break;
-    }
-    
-    // Get order items with profit data
-    const { data: orderItems, error } = await supabase
-      .from('order_items')
-      .select(`
-        *,
-        orders!inner(created_at, total)
-      `)
-      .gte('orders.created_at', startDate.toISOString())
-      .lte('orders.created_at', endDate.toISOString());
-    
-    if (error) throw error;
-    
-    // Calculate profit metrics
-    let totalProfit = 0;
-    let totalRevenue = 0;
-    const productProfits: { [key: string]: { profit: number; quantity: number; name: string } } = {};
-    
-    orderItems.forEach(item => {
-      const profit = (item.price - (item.cost_price_at_sale || 0)) * item.quantity;
-      const revenue = item.price * item.quantity;
-      
-      totalProfit += profit;
-      totalRevenue += revenue;
-      
-      if (!productProfits[item.product_id]) {
-        productProfits[item.product_id] = {
-          profit: 0,
-          quantity: 0,
-          name: item.product_name
-        };
-      }
-      
-      productProfits[item.product_id].profit += profit;
-      productProfits[item.product_id].quantity += item.quantity;
-    });
-    
-    const marginPercent = totalRevenue > 0 ? (totalProfit / totalRevenue) * 100 : 0;
-    
-    // Convert to array and sort by profit
-    const byProduct = Object.entries(productProfits)
-      .map(([id, data]) => ({
-        productId: id,
-        productName: data.name,
-        profit: data.profit,
-        quantity: data.quantity,
-        marginPercent: data.profit > 0 ? ((data.profit / (data.profit + (data.profit / 0.4))) * 100) : 0
-      }))
-      .sort((a, b) => b.profit - a.profit);
-    
-    return {
-      totalProfit,
-      marginPercent,
-      byProduct,
-      period
-    };
-  } catch (error) {
-    console.error('Error fetching profit data:', error);
-    throw error;
-  }
-};
-
-// Restocking functions
-export const restockProduct = async (restockData: {
-  productId: number;
-  quantity: number;
-  supplier?: string;
-  note?: string;
-  userId?: number;
-}) => {
-  try {
-    // Get current product data
-    const { data: product, error: productError } = await supabase
-      .from('products')
-      .select('*')
-      .eq('id', restockData.productId)
-      .single();
-    
-    if (productError) throw productError;
-    
-    // Update product stock
-    const newStock = (product.stock || 0) + restockData.quantity;
-    const { data: updatedProduct, error: updateError } = await supabase
-      .from('products')
-      .update({ stock: newStock })
-      .eq('id', restockData.productId)
-      .select()
-      .single();
-    
-    if (updateError) throw updateError;
-    
-    // Record restock history
-    const { error: historyError } = await supabase
-      .from('restock_history')
-      .insert([{
-        product_id: restockData.productId,
-        product_name: product.name,
-        quantity: restockData.quantity,
-        supplier: restockData.supplier || null,
-        note: restockData.note || null,
-        user_id: restockData.userId || null,
-      }]);
-    
-    if (historyError) {
-      console.error('Failed to record restock history:', historyError);
-      // Don't throw, just log the error
-    }
-    
-    return updatedProduct;
-  } catch (error) {
-    console.error('Error restocking product:', error);
-    throw error;
-  }
-};
-
-export const getRestockHistory = async (period?: 'today' | 'week' | 'month') => {
-  try {
-    let query = supabase
-      .from('restock_history')
-      .select('*')
-      .order('created_at', { ascending: false });
-    
-    if (period) {
-      let startDate: Date;
-      const endDate = new Date();
-      
-      switch (period) {
-        case 'today':
-          startDate = new Date();
-          startDate.setHours(0, 0, 0, 0);
-          break;
-        case 'week':
-          startDate = new Date();
-          startDate.setDate(startDate.getDate() - 7);
-          break;
-        case 'month':
-          startDate = new Date();
-          startDate.setMonth(startDate.getMonth() - 1);
-          break;
-      }
-      
-      query = query
-        .gte('created_at', startDate.toISOString())
-        .lte('created_at', endDate.toISOString());
-    }
-    
-    const { data, error } = await query;
-    
-    if (error) throw error;
-    return data;
-  } catch (error) {
-    console.error('Error fetching restock history:', error);
-    throw error;
-  }
+  });
 };
