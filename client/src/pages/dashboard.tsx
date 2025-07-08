@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+
 import { useLocation } from "wouter";
 import { type DashboardMetrics, type Order } from "@shared/schema";
 import { formatCurrency as formatCurrencyUtil } from "@shared/utils";
@@ -27,7 +27,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ProductForm } from "@/components/inventory/product-form";
 import { CustomerForm } from "@/components/customers/customer-form";
 
-import { getDashboardMetrics, getRecentOrders } from "@/lib/supabase-data";
+import { useDashboardMetrics, useRecentOrders } from "@/hooks/useDashboard";
 
 
 
@@ -36,15 +36,8 @@ export default function Dashboard() {
   const [showProductForm, setShowProductForm] = useState(false);
   const [showCustomerForm, setShowCustomerForm] = useState(false);
 
-  const { data: metrics, isLoading: metricsLoading } = useQuery<DashboardMetrics>({
-    queryKey: ["dashboard-metrics"],
-    queryFn: getDashboardMetrics,
-  });
-
-  const { data: recentOrders, isLoading: ordersLoading } = useQuery<Order[]>({
-    queryKey: ["recent-orders"],
-    queryFn: getRecentOrders,
-  });
+  const { data: metrics, isLoading: metricsLoading } = useDashboardMetrics();
+  const { data: recentOrders, isLoading: ordersLoading } = useRecentOrders();
 
   // Quick Actions handlers
   const handleAddProduct = () => {

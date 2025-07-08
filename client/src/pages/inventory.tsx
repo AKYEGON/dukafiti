@@ -1,5 +1,4 @@
 import { useState, useMemo } from "react";
-import { useMutation } from "@tanstack/react-query";
 import { type Product } from "@shared/schema";
 import { ProductForm } from "@/components/inventory/product-form";
 import { Button } from "@/components/ui/button";
@@ -25,8 +24,7 @@ import { Search, Package, Edit, Trash2, Plus } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useNotifications } from "@/hooks/useNotifications";
-import { deleteProduct } from "@/lib/supabase-data";
-import useLiveData from "@/hooks/useLiveData";
+import { useProducts, useDeleteProduct } from "@/hooks/useProducts";
 
 type SortOption = "name-asc" | "name-desc" | "price-asc" | "price-desc";
 
@@ -39,26 +37,9 @@ export default function Inventory() {
   const { toast } = useToast();
   const { createNotification } = useNotifications();
 
-  // Use the new useLiveData hook for real-time products
-  const { items: products, isLoading } = useLiveData<Product>('products');
-
-  const deleteMutation = useMutation({
-    mutationFn: async (id: number) => {
-      await deleteProduct(id);
-    },
-    onSuccess: () => {
-      toast({ title: "Product deleted successfully" });
-      setDeleteProductToDelete(undefined);
-      // No need to invalidate queries - useLiveData will pick up the change automatically
-    },
-    onError: (error: any) => {
-      toast({ 
-        title: "Failed to delete product", 
-        description: error.message || "An error occurred",
-        variant: "destructive" 
-      });
-    },
-  });
+  // Use React Query hooks for reliable data fetching and mutations
+  const { data: products = [], isLoading, error } = useProducts();
+  const deleteMutation = useDeleteProduct();
 
   const filteredAndSortedProducts = useMemo(() => {
     let result = products?.filter(product =>
@@ -171,6 +152,23 @@ export default function Inventory() {
               </Button>
             )}
           </div>
+        ) : error ? (
+          /* Error State */
+          <div className="text-center py-12">
+            <Package className="w-16 h-16 text-red-300 mx-auto mb-4" />
+            <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
+              Failed to load products
+            </h3>
+            <p className="text-gray-500 dark:text-gray-400 mb-6">
+              {error.message || "Something went wrong"}
+            </p>
+            <Button 
+              onClick={() => window.location.reload()}
+              className="bg-green-600 hover:bg-green-700 text-white"
+            >
+              Try Again
+            </Button>
+          </div>
         ) : (
           /* Product Grid - Desktop: 3 columns, Tablet: 2 columns, Mobile: 1 column */
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -252,7 +250,28 @@ export default function Inventory() {
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
-              onClick={() => deleteProductToDelete && deleteMutation.mutate(deleteProductToDelete.id)}
+              onClick={() => {
+                if (deleteProductToDelete) {
+                  deleteMutation.mutate(deleteProductToDelete.id, {
+                    onSuccess: () => {
+                      toast({ title: "Product deleted successfully" });
+                      setDeleteProductToDelete(undefined);
+                      createNotification({
+                        type: 'inventory',
+                        title: 'Product Deleted',
+                        message: `${deleteProductToDelete.name} has been removed from inventory`
+                      });
+                    },
+                    onError: (error: any) => {
+                      toast({
+                        title: "Failed to delete product",
+                        description: error.message || "An error occurred",
+                        variant: "destructive"
+                      });
+                    }
+                  });
+                }
+              }}
               className="bg-red-600 hover:bg-red-700"
               disabled={deleteMutation.isPending}
             >

@@ -1,10 +1,10 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation } from "@tanstack/react-query";
+
 import { useEffect, useState } from "react";
 import { insertProductSchema, type InsertProduct, type Product } from "@shared/schema";
 import { useToast } from "@/hooks/use-toast";
-import { createProduct, updateProduct } from "@/lib/supabase-data";
+import { useAddProduct, useUpdateProduct } from "@/hooks/useProducts";
 import {
   Dialog,
   DialogContent,
@@ -78,50 +78,9 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
     }
   }, [product, form]);
 
-  const createMutation = useMutation({
-    mutationFn: async (data: InsertProduct) => {
-      console.log('Creating product with data:', data);
-      const result = await createProduct(data);
-      console.log('Product created successfully:', result);
-      return result;
-    },
-    onSuccess: () => {
-      toast({ title: "Product created successfully", variant: "default" });
-      onOpenChange(false);
-      form.reset();
-      setUnknownQuantity(false);
-      // No need to invalidate queries - useLiveData will pick up the change automatically
-    },
-    onError: (error: any) => {
-      console.error('Product creation failed:', error);
-      let errorMessage = "Failed to create product";
-      
-      if (error?.message) {
-        errorMessage = error.message;
-      } else if (error?.details) {
-        errorMessage = error.details;
-      } else if (error?.hint) {
-        errorMessage = error.hint;
-      }
-      
-      toast({ title: errorMessage, variant: "destructive" });
-    },
-  });
-
-  const updateMutation = useMutation({
-    mutationFn: async (data: InsertProduct) => {
-      return await updateProduct(product!.id, data);
-    },
-    onSuccess: () => {
-      toast({ title: "Product updated successfully" });
-      onOpenChange(false);
-      // No need to invalidate queries - useLiveData will pick up the change automatically
-    },
-    onError: (error: any) => {
-      const errorMessage = error?.message || "Failed to update product";
-      toast({ title: errorMessage, variant: "destructive" });
-    },
-  });
+  // Use React Query hooks for mutations
+  const addProductMutation = useAddProduct();
+  const updateProductMutation = useUpdateProduct();
 
   const onSubmit = (data: InsertProduct) => {
     // Basic validation
@@ -155,9 +114,42 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
     console.log('Submitting product data:', processedData);
     
     if (product) {
-      updateMutation.mutate(processedData);
+      updateProductMutation.mutate({ id: product.id, updates: processedData }, {
+        onSuccess: () => {
+          toast({ title: "Product updated successfully" });
+          onOpenChange(false);
+        },
+        onError: (error: any) => {
+          toast({ 
+            title: "Failed to update product", 
+            description: error.message || "An error occurred", 
+            variant: "destructive" 
+          });
+        }
+      });
     } else {
-      createMutation.mutate(processedData);
+      addProductMutation.mutate(processedData, {
+        onSuccess: () => {
+          toast({ title: "Product created successfully", variant: "default" });
+          onOpenChange(false);
+          form.reset();
+          setUnknownQuantity(false);
+        },
+        onError: (error: any) => {
+          console.error('Product creation failed:', error);
+          let errorMessage = "Failed to create product";
+          
+          if (error?.message) {
+            errorMessage = error.message;
+          } else if (error?.details) {
+            errorMessage = error.details;
+          } else if (error?.hint) {
+            errorMessage = error.hint;
+          }
+          
+          toast({ title: errorMessage, variant: "destructive" });
+        }
+      });
     }
   };
 
@@ -374,17 +366,17 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
                 type="button"
                 variant="outline"
                 onClick={() => onOpenChange(false)}
-                disabled={createMutation.isPending || updateMutation.isPending}
+                disabled={addProductMutation.isPending || updateProductMutation.isPending}
                 className="h-10 px-6 text-base"
               >
                 Cancel
               </Button>
               <Button
                 type="submit"
-                disabled={createMutation.isPending || updateMutation.isPending}
+                disabled={addProductMutation.isPending || updateProductMutation.isPending}
                 className="h-10 px-6 text-base bg-accent hover:bg-purple-700 text-white font-medium shadow-sm"
               >
-                {createMutation.isPending || updateMutation.isPending
+                {addProductMutation.isPending || updateProductMutation.isPending
                   ? "Saving..."
                   : product
                   ? "Update Product"

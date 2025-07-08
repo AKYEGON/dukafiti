@@ -1,0 +1,164 @@
+Assistant, we’ve been chasing this for 12 hours—Inventory and Customers only update after a Vercel rebuild, while Dashboard works fine. Clearly our hand‑rolled fetch + real‑time approach isn’t firing properly in those pages. Let’s cut through the drift with an **atomic refactor**: replace all data loading + mutations in Inventory and Customers with **React Query**’s proven runtime fetch + cache‑invalidation pattern. Overwrite files as needed:
+
+---
+
+## 1. Install & Configure React Query
+
+```bash
+npm install @tanstack/react-query
+In your app root (main.jsx or App.tsx), wrap:
+
+tsx
+Copy
+Edit
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+
+const queryClient = new QueryClient();
+
+function App() {
+  return (
+    <QueryClientProvider client={queryClient}>
+      {/* your Router & rest of app */}
+    </QueryClientProvider>
+  );
+}
+2. Create a Shared Supabase Query Client
+src/lib/queryClient.ts:
+
+ts
+Copy
+Edit
+import { createClient } from '@supabase/supabase-js';
+export const supabase = createClient(
+  import.meta.env.VITE_SUPABASE_URL!,
+  import.meta.env.VITE_SUPABASE_ANON_KEY!
+);
+3. Define Data Hooks with React Query
+A. Products
+src/hooks/useProducts.ts:
+
+ts
+Copy
+Edit
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '../lib/queryClient';
+
+export function useProducts() {
+  const user = supabase.auth.getUser()?.data.user;
+  return useQuery(['products', user?.id], async () => {
+    const { data, error } = await supabase
+      .from('products')
+      .select('*')
+      .eq('store_id', user.id)
+      .order('created_at', { ascending: false });
+    if (error) throw error;
+    return data!;
+  });
+}
+
+export function useAddProduct() {
+  const qc = useQueryClient();
+  const user = supabase.auth.getUser()?.data.user;
+  return useMutation(
+    async (newProduct: Omit<Product, 'id'>) => {
+      const { data, error } = await supabase
+        .from('products')
+        .insert([{ ...newProduct, store_id: user.id }]);
+      if (error) throw error;
+      return data;
+    },
+    {
+      onSuccess: () => qc.invalidateQueries(['products', user.id]),
+    }
+  );
+}
+B. Customers
+Similarly, src/hooks/useCustomers.ts:
+
+ts
+Copy
+Edit
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '../lib/queryClient';
+
+export function useCustomers() {
+  const user = supabase.auth.getUser()?.data.user;
+  return useQuery(['customers', user?.id], async () => {
+    const { data, error } = await supabase
+      .from('customers')
+      .select('*')
+      .eq('store_id', user.id)
+      .order('created_at', { ascending: false });
+    if (error) throw error;
+    return data!;
+  });
+}
+
+export function useAddCustomer() {
+  const qc = useQueryClient();
+  const user = supabase.auth.getUser()?.data.user;
+  return useMutation(
+    async (newCust: Omit<Customer, 'id'>) => {
+      const { data, error } = await supabase
+        .from('customers')
+        .insert([{ ...newCust, store_id: user.id }]);
+      if (error) throw error;
+      return data;
+    },
+    {
+      onSuccess: () => qc.invalidateQueries(['customers', user.id]),
+    }
+  );
+}
+4. Refactor Pages to Use React Query Hooks
+Inventory.jsx
+tsx
+Copy
+Edit
+import { useProducts, useAddProduct } from '../hooks/useProducts';
+
+export default function Inventory() {
+  const { data: products, isLoading, error } = useProducts();
+  const addProduct = useAddProduct();
+
+  if (isLoading) return <Loading />;
+  if (error) return <Error message={error.message} />;
+
+  return (
+    <div>
+      {products.map(p => <ProductCard key={p.id} product={p} />)}
+      {/* your add product form/modal: onSubmit calls addProduct.mutateAsync(values) */}
+    </div>
+  );
+}
+Customers.jsx
+Same pattern with useCustomers and useAddCustomer.
+
+5. Benefits & QA
+Automatic Refetch: React Query will refetch data on window focus, network reconnect, and after every mutation (via invalidateQueries).
+
+Atomic Mutations: Each add/edit/delete hook invalidates only its query key.
+
+Remove Hand‑Rolled fetches: Delete all your old useEffect and manual fetchData() code.
+
+No Redeploy: UI always shows the latest data as soon as Supabase responds.
+
+QA Checklist
+ Add, edit, delete on Inventory and Customers appears instantly.
+
+ Dashboard continues to work (you may migrate it to use React Query too).
+
+ Open two tabs: one mutates → other refetches on focus.
+
+ No stale arrays or caching—everything driven by React Query.
+
+Please perform this atomic React Query integration via Replit AI Agent so we finally eliminate the “only after redeploy” problem once and for all.```
+
+
+
+
+
+
+
+
+Ask ChatGPT

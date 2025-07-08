@@ -8,7 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { formatCurrency } from "@/lib/utils";
 import { Wallet, Smartphone, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
-import { recordCustomerRepayment } from "@/lib/supabase-data";
+import { useRecordRepayment } from "@/hooks/useCustomers";
 import type { Customer } from "@shared/schema";
 
 interface RecordRepaymentModalProps {
@@ -22,8 +22,8 @@ export function RecordRepaymentModal({ isOpen, onClose, customer, previousPaymen
   const [amount, setAmount] = useState("");
   const [method, setMethod] = useState<"cash" | "mobileMoney">("cash");
   const [note, setNote] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const recordRepaymentMutation = useRecordRepayment();
 
   const resetForm = () => {
     setAmount("");
@@ -55,39 +55,36 @@ export function RecordRepaymentModal({ isOpen, onClose, customer, previousPaymen
       return;
     }
 
-    setIsLoading(true);
-    
-    try {
-      await recordCustomerRepayment(
-        customer.id,
-        paymentAmount,
+    recordRepaymentMutation.mutate(
+      {
+        customerId: customer.id,
+        amount: paymentAmount,
         method,
-        note.trim() || undefined
-      );
-      
-      // No need to invalidate queries - useLiveData will pick up the change automatically
-      
-      toast({
-        title: "Payment Recorded",
-        description: `Repayment of ${formatCurrency(paymentAmount)} recorded successfully`,
-        className: "bg-green-600 text-white",
-      });
-      
-      onClose();
-      resetForm();
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message || "Failed to record payment",
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
+        note: note.trim() || undefined
+      },
+      {
+        onSuccess: () => {
+          toast({
+            title: "Payment Recorded",
+            description: `Repayment of ${formatCurrency(paymentAmount)} recorded successfully`,
+            className: "bg-green-600 text-white",
+          });
+          onClose();
+          resetForm();
+        },
+        onError: (error: any) => {
+          toast({
+            title: "Error",
+            description: error.message || "Failed to record payment",
+            variant: "destructive",
+          });
+        }
+      }
+    );
   };
 
   const handleClose = () => {
-    if (!isLoading) {
+    if (!recordRepaymentMutation.isPending) {
       onClose();
       resetForm();
     }
@@ -113,7 +110,7 @@ export function RecordRepaymentModal({ isOpen, onClose, customer, previousPaymen
                     variant="ghost"
                     size="sm"
                     onClick={handleClose}
-                    disabled={isLoading}
+                    disabled={recordRepaymentMutation.isPending}
                     className="h-8 w-8 p-0"
                     aria-label="Close"
                   >
@@ -227,17 +224,17 @@ export function RecordRepaymentModal({ isOpen, onClose, customer, previousPaymen
                     type="button"
                     variant="outline"
                     onClick={handleClose}
-                    disabled={isLoading}
+                    disabled={recordRepaymentMutation.isPending}
                     className="flex-1 border-gray-300 dark:border-gray-600"
                   >
                     Cancel
                   </Button>
                   <Button
                     type="submit"
-                    disabled={!amount || isLoading}
+                    disabled={!amount || recordRepaymentMutation.isPending}
                     className="flex-1 bg-green-600 hover:bg-green-700 text-white min-h-[48px]"
                   >
-                    {isLoading ? (
+                    {recordRepaymentMutation.isPending ? (
                       <div className="flex items-center gap-2">
                         <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
                         Recording...

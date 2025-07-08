@@ -323,7 +323,7 @@ export default function Sales() {
         customerId = newCustomer.id;
         console.log('New customer saved:', newCustomer);
         
-        // No need to invalidate cache - useLiveData will pick up the change automatically
+        // React Query cache will be invalidated automatically
         
         toast({
           title: "Customer added",
@@ -460,7 +460,7 @@ export default function Sales() {
       setCartItems([]);
       setPaymentMethod('');
       
-      // No need to invalidate queries - useLiveData hooks will pick up changes automatically
+      // React Query cache will be invalidated automatically
       // Dashboard metrics, products, and customers will update in real-time
       
       // Show appropriate toast based on status

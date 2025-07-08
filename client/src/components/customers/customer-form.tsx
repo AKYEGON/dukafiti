@@ -1,4 +1,4 @@
-// useQueryClient no longer needed - useLiveData handles updates automatically
+// React Query hooks handle cache updates automatically
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { createCustomer, updateCustomer } from "@/lib/supabase-data";
+import { useAddCustomer, useUpdateCustomer } from "@/hooks/useCustomers";
 import type { Customer } from "@shared/schema";
 
 const customerFormSchema = z.object({
@@ -27,6 +27,8 @@ interface CustomerFormProps {
 
 export function CustomerForm({ open, onOpenChange, customer }: CustomerFormProps) {
   const { toast } = useToast();
+  const addCustomerMutation = useAddCustomer();
+  const updateCustomerMutation = useUpdateCustomer();
 
   const form = useForm<CustomerFormData>({
     resolver: zodResolver(customerFormSchema),
@@ -54,50 +56,56 @@ export function CustomerForm({ open, onOpenChange, customer }: CustomerFormProps
     }
   }, [customer, form]);
 
-  const [isLoading, setIsLoading] = useState(false);
-
   const onSubmit = async (data: CustomerFormData) => {
-    setIsLoading(true);
     
-    try {
-      if (customer) {
-        // For updates, only send name and phone (don't modify balance)
-        const customerData = {
-          name: data.name,
-          phone: data.phone,
-        };
-        
-        await updateCustomer(customer.id, customerData);
-        toast({
-          title: "Success",
-          description: "Customer updated successfully",
-        });
-      } else {
-        // For new customers, include balance
-        const customerData = {
-          ...data,
-          balance: data.balance && data.balance.trim() !== "" ? parseFloat(data.balance) : 0,
-        };
-        
-        await createCustomer(customerData);
-        toast({
-          title: "Success",
-          description: "Customer created successfully",
-        });
-      }
+    if (customer) {
+      // For updates, only send name and phone (don't modify balance)
+      const customerData = {
+        name: data.name,
+        phone: data.phone,
+      };
       
-      onOpenChange(false);
-      form.reset();
-      // No need to invalidate queries - useLiveData will pick up the change automatically
-    } catch (error: any) {
-      console.error("Form submission error:", error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to save customer",
-        variant: "destructive",
+      updateCustomerMutation.mutate({ id: customer.id, updates: customerData }, {
+        onSuccess: () => {
+          toast({
+            title: "Success",
+            description: "Customer updated successfully",
+          });
+          onOpenChange(false);
+          form.reset();
+        },
+        onError: (error: any) => {
+          toast({
+            title: "Error",
+            description: error.message || "Failed to update customer",
+            variant: "destructive",
+          });
+        }
       });
-    } finally {
-      setIsLoading(false);
+    } else {
+      // For new customers, include balance
+      const customerData = {
+        ...data,
+        balance: data.balance && data.balance.trim() !== "" ? data.balance : "0",
+      };
+      
+      addCustomerMutation.mutate(customerData, {
+        onSuccess: () => {
+          toast({
+            title: "Success",
+            description: "Customer created successfully",
+          });
+          onOpenChange(false);
+          form.reset();
+        },
+        onError: (error: any) => {
+          toast({
+            title: "Error",
+            description: error.message || "Failed to create customer",
+            variant: "destructive",
+          });
+        }
+      });
     }
   };
 
@@ -194,10 +202,10 @@ export function CustomerForm({ open, onOpenChange, customer }: CustomerFormProps
               </Button>
               <Button 
                 type="submit" 
-                disabled={isLoading}
+                disabled={addCustomerMutation.isPending || updateCustomerMutation.isPending}
                 className="bg-green-600 hover:bg-green-700 text-foreground"
               >
-                {isLoading ? "Saving..." : customer ? "Update Customer" : "Add Customer"}
+                {addCustomerMutation.isPending || updateCustomerMutation.isPending ? "Saving..." : customer ? "Update Customer" : "Add Customer"}
               </Button>
             </div>
           </form>
