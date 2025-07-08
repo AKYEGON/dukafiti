@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, useCallback } from "react";
-import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { ShoppingCart, CreditCard, Smartphone, Banknote, Search, ChevronDown, ChevronUp } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -29,7 +29,6 @@ export default function Sales() {
   const [searchLoading, setSearchLoading] = useState(false);
   
   const { toast } = useToast();
-  const queryClient = useQueryClient();
   const { createNotification } = useNotifications();
   const buttonRef = useRef<HTMLButtonElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -324,8 +323,7 @@ export default function Sales() {
         customerId = newCustomer.id;
         console.log('New customer saved:', newCustomer);
         
-        // Invalidate customers cache
-        queryClient.invalidateQueries({ queryKey: ["customers"] });
+        // No need to invalidate cache - useLiveData will pick up the change automatically
         
         toast({
           title: "Customer added",
@@ -462,26 +460,8 @@ export default function Sales() {
       setCartItems([]);
       setPaymentMethod('');
       
-      // Immediately refresh all relevant data if online
-      if (isOnline()) {
-        // Dashboard metrics
-        queryClient.invalidateQueries({ queryKey: ["dashboard-metrics"] });
-        queryClient.invalidateQueries({ queryKey: ["orders-recent"] });
-        
-        // Reports data  
-        queryClient.invalidateQueries({ queryKey: ["reports-summary"] });
-        queryClient.invalidateQueries({ queryKey: ["reports-trend"] });
-        queryClient.invalidateQueries({ queryKey: ["orders"] });
-        
-        // Inventory data
-        queryClient.invalidateQueries({ queryKey: ["products"] });
-        queryClient.invalidateQueries({ queryKey: ["products-frequent"] });
-        
-        // Customer data for credit sales
-        if (result.status === 'pending') {
-          queryClient.invalidateQueries({ queryKey: ["customers"] });
-        }
-      }
+      // No need to invalidate queries - useLiveData hooks will pick up changes automatically
+      // Dashboard metrics, products, and customers will update in real-time
       
       // Show appropriate toast based on status
       const status = result.status;

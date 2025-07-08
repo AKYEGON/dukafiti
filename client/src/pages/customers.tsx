@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { Plus, User, Phone, Search, Filter, CreditCard, Eye, AlertCircle, Trash2, Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,17 +11,14 @@ import { CustomerForm } from "@/components/customers/customer-form";
 import { RecordRepaymentModal } from "@/components/customers/record-repayment-modal";
 import { MobilePageWrapper } from "@/components/layout/mobile-page-wrapper";
 import { motion, AnimatePresence } from "framer-motion";
-import { getCustomers, deleteCustomer } from "@/lib/supabase-data";
+import { deleteCustomer } from "@/lib/supabase-data";
 import { useToast } from "@/hooks/use-toast";
+import useLiveData from "@/hooks/useLiveData";
 import type { Customer } from "@shared/schema";
 
 export default function Customers() {
-  const { data: customers, isLoading } = useQuery<Customer[]>({
-    queryKey: ["customers"],
-    queryFn: getCustomers,
-  });
-
-  const queryClient = useQueryClient();
+  // Use the new useLiveData hook for real-time customers
+  const { items: customers, isLoading } = useLiveData<Customer>('customers');
   const { toast } = useToast();
 
   const [showNewCustomerForm, setShowNewCustomerForm] = useState(false);
@@ -31,7 +28,6 @@ export default function Customers() {
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterType, setFilterType] = useState<"all" | "withDebt" | "noDebt">("all");
-  const [isDeleting, setIsDeleting] = useState(false);
 
   // Filter and search customers
   const filteredCustomers = useMemo(() => {
@@ -72,28 +68,31 @@ export default function Customers() {
     setShowDeleteConfirm(true);
   };
 
-  const confirmDeleteCustomer = async () => {
-    if (!selectedCustomer) return;
-    
-    setIsDeleting(true);
-    try {
-      await deleteCustomer(selectedCustomer.id);
+  const deleteMutation = useMutation({
+    mutationFn: async (id: number) => {
+      await deleteCustomer(id);
+    },
+    onSuccess: () => {
       toast({
         title: "Success",
         description: "Customer deleted successfully",
       });
-      queryClient.invalidateQueries({ queryKey: ["customers"] });
-    } catch (error: any) {
+      setShowDeleteConfirm(false);
+      setSelectedCustomer(null);
+      // No need to invalidate queries - useLiveData will pick up the change automatically
+    },
+    onError: (error: any) => {
       toast({
         title: "Error",
         description: error.message || "Failed to delete customer",
         variant: "destructive",
       });
-    } finally {
-      setIsDeleting(false);
-      setShowDeleteConfirm(false);
-      setSelectedCustomer(null);
-    }
+    },
+  });
+
+  const confirmDeleteCustomer = async () => {
+    if (!selectedCustomer) return;
+    deleteMutation.mutate(selectedCustomer.id);
   };
 
   const handleRecordRepayment = (customer: Customer) => {
@@ -364,16 +363,16 @@ export default function Customers() {
               <Button
                 variant="outline"
                 onClick={() => setShowDeleteConfirm(false)}
-                disabled={isDeleting}
+                disabled={deleteMutation.isPending}
               >
                 Cancel
               </Button>
               <Button
                 variant="destructive"
                 onClick={confirmDeleteCustomer}
-                disabled={isDeleting}
+                disabled={deleteMutation.isPending}
               >
-                {isDeleting ? "Deleting..." : "Delete Customer"}
+                {deleteMutation.isPending ? "Deleting..." : "Delete Customer"}
               </Button>
             </DialogFooter>
           </DialogContent>

@@ -1,10 +1,10 @@
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { insertProductSchema, type InsertProduct, type Product } from "@shared/schema";
-import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { createProduct, updateProduct } from "@/lib/supabase-data";
 import {
   Dialog,
   DialogContent,
@@ -32,7 +32,6 @@ interface ProductFormProps {
 
 export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
   const { toast } = useToast();
-  const queryClient = useQueryClient();
   const [unknownQuantity, setUnknownQuantity] = useState(false);
 
   const form = useForm<InsertProduct>({
@@ -81,25 +80,17 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
 
   const createMutation = useMutation({
     mutationFn: async (data: InsertProduct) => {
-      try {
-        console.log('Creating product with data:', data);
-        // Use direct Supabase function for Vercel deployment
-        const { createProduct } = await import("@/lib/supabase-data");
-        const result = await createProduct(data);
-        console.log('Product created successfully:', result);
-        return result;
-      } catch (error) {
-        console.error('Error in createProduct mutation:', error);
-        throw error;
-      }
+      console.log('Creating product with data:', data);
+      const result = await createProduct(data);
+      console.log('Product created successfully:', result);
+      return result;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["products"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/dashboard/metrics"] });
       toast({ title: "Product created successfully", variant: "default" });
       onOpenChange(false);
       form.reset();
       setUnknownQuantity(false);
+      // No need to invalidate queries - useLiveData will pick up the change automatically
     },
     onError: (error: any) => {
       console.error('Product creation failed:', error);
@@ -119,15 +110,12 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
 
   const updateMutation = useMutation({
     mutationFn: async (data: InsertProduct) => {
-      // Use direct Supabase function for Vercel deployment
-      const { updateProduct } = await import("@/lib/supabase-data");
       return await updateProduct(product!.id, data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["products"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/dashboard/metrics"] });
       toast({ title: "Product updated successfully" });
       onOpenChange(false);
+      // No need to invalidate queries - useLiveData will pick up the change automatically
     },
     onError: (error: any) => {
       const errorMessage = error?.message || "Failed to update product";

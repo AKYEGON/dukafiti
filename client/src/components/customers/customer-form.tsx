@@ -1,4 +1,4 @@
-import { useQueryClient } from "@tanstack/react-query";
+// useQueryClient no longer needed - useLiveData handles updates automatically
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -27,7 +27,6 @@ interface CustomerFormProps {
 
 export function CustomerForm({ open, onOpenChange, customer }: CustomerFormProps) {
   const { toast } = useToast();
-  const queryClient = useQueryClient();
 
   const form = useForm<CustomerFormData>({
     resolver: zodResolver(customerFormSchema),
@@ -87,9 +86,9 @@ export function CustomerForm({ open, onOpenChange, customer }: CustomerFormProps
         });
       }
       
-      queryClient.invalidateQueries({ queryKey: ["customers"] });
       onOpenChange(false);
       form.reset();
+      // No need to invalidate queries - useLiveData will pick up the change automatically
     } catch (error: any) {
       console.error("Form submission error:", error);
       toast({

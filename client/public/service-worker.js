@@ -13,15 +13,8 @@ const urlsToCache = [
 ];
 
 // API routes to cache for offline use
-const apiRoutesToCache = [
-  '/api/products',
-  '/api/customers',
-  '/api/settings',
-  '/api/dashboard/metrics',
-  '/api/orders/recent',
-  '/api/notifications',
-  '/api/notifications/unread-count'
-];
+// API routes are NO LONGER cached - all API requests must be real-time
+const apiRoutesToCache = [];
 
 // Install event - cache all static assets and core API routes
 self.addEventListener('install', (event) => {
@@ -101,9 +94,18 @@ self.addEventListener('fetch', (event) => {
 
   const url = new URL(event.request.url);
   
-  // Handle API requests with network-first, cache-fallback strategy
+  // Handle API requests with NETWORK-ONLY strategy (no caching for real-time data)
   if (url.pathname.startsWith('/api/')) {
-    event.respondWith(handleApiRequest(event.request));
+    event.respondWith(
+      fetch(event.request, { cache: 'no-store' })
+        .catch((error) => {
+          console.error('Service Worker: API request failed:', error);
+          return new Response(JSON.stringify({ error: 'Network unavailable' }), {
+            status: 503,
+            headers: { 'Content-Type': 'application/json' }
+          });
+        })
+    );
     return;
   }
 
@@ -149,54 +151,7 @@ self.addEventListener('fetch', (event) => {
   );
 });
 
-// Enhanced API request handler
-async function handleApiRequest(request) {
-  const url = new URL(request.url);
-  const isReadOperation = request.method === 'GET';
-  
-  if (isReadOperation) {
-    // For GET requests: try network first, then cache
-    try {
-      const networkResponse = await fetch(request);
-      if (networkResponse.ok) {
-        // Cache successful responses
-        const cache = await caches.open(API_CACHE_NAME);
-        cache.put(request, networkResponse.clone());
-        return networkResponse;
-      }
-    } catch (error) {
-      console.log('Service Worker: Network failed for API request, trying cache');
-    }
-    
-    // Fallback to cache
-    const cachedResponse = await caches.match(request);
-    if (cachedResponse) {
-      console.log('Service Worker: Serving API from cache:', url.pathname);
-      // Add cache indicator header
-      const response = cachedResponse.clone();
-      response.headers.set('X-Served-From-Cache', 'true');
-      return response;
-    }
-    
-    // Return offline indicator for failed API requests
-    return new Response(JSON.stringify({ 
-      error: 'Offline', 
-      message: 'This data is not available offline',
-      cached: false 
-    }), {
-      status: 503,
-      headers: { 'Content-Type': 'application/json' }
-    });
-  } else {
-    // For write operations: check if offline and queue
-    if (!navigator.onLine) {
-      return queueOfflineAction(request);
-    }
-    
-    // Otherwise, pass through to network
-    return fetch(request);
-  }
-}
+// API requests are now handled with network-only strategy for real-time data
 
 // Queue offline actions in IndexedDB
 async function queueOfflineAction(request) {

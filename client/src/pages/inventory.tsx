@@ -1,5 +1,5 @@
-import { useState, useMemo, useEffect } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useState, useMemo } from "react";
+import { useMutation } from "@tanstack/react-query";
 import { type Product } from "@shared/schema";
 import { ProductForm } from "@/components/inventory/product-form";
 import { Button } from "@/components/ui/button";
@@ -22,12 +22,11 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Search, Package, Edit, Trash2, Plus } from "lucide-react";
-import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useNotifications } from "@/hooks/useNotifications";
-import { getProducts, updateProduct, deleteProduct, createProduct } from "@/lib/supabase-data";
-import { supabase } from "@/lib/supabase";
+import { deleteProduct } from "@/lib/supabase-data";
+import useLiveData from "@/hooks/useLiveData";
 
 type SortOption = "name-asc" | "name-desc" | "price-asc" | "price-desc";
 
@@ -36,77 +35,28 @@ export default function Inventory() {
   const [sortBy, setSortBy] = useState<SortOption>("name-asc");
   const [showProductForm, setShowProductForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | undefined>();
-  const [deleteProduct, setDeleteProduct] = useState<Product | undefined>();
+  const [deleteProductToDelete, setDeleteProductToDelete] = useState<Product | undefined>();
   const { toast } = useToast();
-  const queryClient = useQueryClient();
   const { createNotification } = useNotifications();
 
-  const { data: products, isLoading } = useQuery<Product[]>({
-    queryKey: ["products"],
-    queryFn: async () => {
-      const { getProducts } = await import("@/lib/supabase-data");
-      return await getProducts();
-    },
-  });
-
-  // Set up real-time subscription for product updates (stock changes from sales)
-  useEffect(() => {
-    console.log('🔗 Setting up real-time product subscription...');
-    
-    const subscription = supabase
-      .channel('products_realtime_inventory')
-      .on('postgres_changes', {
-        event: 'UPDATE',
-        schema: 'public',
-        table: 'products'
-      }, (payload) => {
-        console.log('📦 Product updated via realtime:', payload.new);
-        
-        // Update the products query cache with the new data
-        queryClient.setQueryData<Product[]>(['products'], (oldProducts) => {
-          if (!oldProducts) return oldProducts;
-          
-          const updatedProduct = payload.new as Product;
-          return oldProducts.map(product => 
-            product.id === updatedProduct.id ? updatedProduct : product
-          );
-        });
-        
-        // Also update frequent products cache
-        queryClient.setQueryData<Product[]>(['products-frequent'], (oldProducts) => {
-          if (!oldProducts) return oldProducts;
-          
-          const updatedProduct = payload.new as Product;
-          return oldProducts.map(product => 
-            product.id === updatedProduct.id ? updatedProduct : product
-          );
-        });
-        
-        console.log('✅ Product cache updated with real-time data');
-      })
-      .subscribe((status) => {
-        console.log('📊 Products subscription status:', status);
-      });
-
-    return () => {
-      console.log('🔌 Cleaning up products real-time subscription');
-      supabase.removeChannel(subscription);
-    };
-  }, [queryClient]);
+  // Use the new useLiveData hook for real-time products
+  const { items: products, isLoading } = useLiveData<Product>('products');
 
   const deleteMutation = useMutation({
     mutationFn: async (id: number) => {
-      const { deleteProduct } = await import("@/lib/supabase-data");
       await deleteProduct(id);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["products"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/dashboard/metrics"] });
       toast({ title: "Product deleted successfully" });
-      setDeleteProduct(undefined);
+      setDeleteProductToDelete(undefined);
+      // No need to invalidate queries - useLiveData will pick up the change automatically
     },
-    onError: () => {
-      toast({ title: "Failed to delete product", variant: "destructive" });
+    onError: (error: any) => {
+      toast({ 
+        title: "Failed to delete product", 
+        description: error.message || "An error occurred",
+        variant: "destructive" 
+      });
     },
   });
 
@@ -142,7 +92,7 @@ export default function Inventory() {
   };
 
   const handleDelete = (product: Product) => {
-    setDeleteProduct(product);
+    setDeleteProductToDelete(product);
   };
 
   const handleFormClose = () => {
@@ -291,21 +241,22 @@ export default function Inventory() {
       />
 
       {/* Delete Confirmation Dialog */}
-      <AlertDialog open={!!deleteProduct} onOpenChange={() => setDeleteProduct(undefined)}>
+      <AlertDialog open={!!deleteProductToDelete} onOpenChange={() => setDeleteProductToDelete(undefined)}>
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Product</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete "{deleteProduct?.name}"? This action cannot be undone.
+              Are you sure you want to delete "{deleteProductToDelete?.name}"? This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
-              onClick={() => deleteProduct && deleteMutation.mutate(deleteProduct.id)}
+              onClick={() => deleteProductToDelete && deleteMutation.mutate(deleteProductToDelete.id)}
               className="bg-red-600 hover:bg-red-700"
+              disabled={deleteMutation.isPending}
             >
-              Delete
+              {deleteMutation.isPending ? "Deleting..." : "Delete"}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>

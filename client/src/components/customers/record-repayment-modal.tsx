@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,7 +24,6 @@ export function RecordRepaymentModal({ isOpen, onClose, customer, previousPaymen
   const [note, setNote] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
-  const queryClient = useQueryClient();
 
   const resetForm = () => {
     setAmount("");
@@ -67,7 +65,7 @@ export function RecordRepaymentModal({ isOpen, onClose, customer, previousPaymen
         note.trim() || undefined
       );
       
-      queryClient.invalidateQueries({ queryKey: ["customers"] });
+      // No need to invalidate queries - useLiveData will pick up the change automatically
       
       toast({
         title: "Payment Recorded",
