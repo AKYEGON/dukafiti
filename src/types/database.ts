@@ -4,7 +4,8 @@ export interface Product {
   sku?: string;
   price: number;
   cost_price?: number;
-  stock_quantity: number;
+  quantity: number;
+  threshold: number;
   category?: string;
   description?: string;
   store_id: string;

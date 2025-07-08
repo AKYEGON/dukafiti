@@ -1,0 +1,145 @@
+Assistant, let’s build **Phase 3: Inventory Page** with full CRUD plus an “Add Stock” flow. Use our existing structure (`useLiveData`, `useMutation`, `useAuth`) and Tailwind for styling. Overwrite or create files as follows:
+
+---
+
+## 1. Inventory Page Component
+
+### File: `src/pages/Inventory.tsx`
+
+```tsx
+import { useState } from 'react';
+import useLiveData from '../hooks/useLiveData';
+import useMutation from '../hooks/useMutation';
+import { useAuth } from '../contexts/AuthContext';
+import AddProductModal from '../components/AddProductModal';
+import EditProductModal from '../components/EditProductModal';
+import RestockModal from '../components/RestockModal';
+import ProductCard from '../components/ProductCard';
+
+export default function Inventory() {
+  const { user } = useAuth();
+  const products = useLiveData<Product>('products');
+  const addProduct = useMutation<Product>('products', 'insert');
+  const updateProduct = useMutation<Product>('products', 'update');
+  const deleteProduct = useMutation<Product>('products', 'delete');
+
+  // Modal state
+  const [showAdd, setShowAdd] = useState(false);
+  const [editProd, setEditProd] = useState<Product | null>(null);
+  const [restockProd, setRestockProd] = useState<Product | null>(null);
+
+  return (
+    <div className="p-6">
+      <div className="flex justify-between items-center mb-4">
+        <h1 className="text-2xl font-bold">Inventory</h1>
+        <button
+          className="px-4 py-2 bg-primary text-white rounded hover:bg-primary-dark"
+          onClick={() => setShowAdd(true)}
+        >
+          + Add Product
+        </button>
+      </div>
+
+      {products.length === 0 ? (
+        <p className="text-gray-500">No products yet.</p>
+      ) : (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {products.map(prod => (
+            <ProductCard
+              key={prod.id}
+              product={prod}
+              onEdit={() => setEditProd(prod)}
+              onDelete={() => deleteProduct({ id: prod.id })}
+              onRestock={() => setRestockProd(prod)}
+            />
+          ))}
+        </div>
+      )}
+
+      {showAdd && (
+        <AddProductModal
+          onClose={() => setShowAdd(false)}
+          onSave={async values => {
+            await addProduct(values);
+            setShowAdd(false);
+          }}
+        />
+      )}
+      {editProd && (
+        <EditProductModal
+          product={editProd}
+          onClose={() => setEditProd(null)}
+          onSave={async values => {
+            await updateProduct({ id: editProd.id, ...values });
+            setEditProd(null);
+          }}
+        />
+      )}
+      {restockProd && (
+        <RestockModal
+          product={restockProd}
+          onClose={() => setRestockProd(null)}
+          onSave={async ({ quantity, cost_price }) => {
+            await updateProduct({ 
+              id: restockProd.id, 
+              quantity: restockProd.quantity + quantity, 
+              cost_price 
+            });
+            setRestockProd(null);
+          }}
+        />
+      )}
+    </div>
+  );
+}
+2. Supporting Components
+A. ProductCard.tsx
+Displays name, price, quantity, threshold.
+
+Buttons: Edit, Delete, Add Stock.
+
+B. AddProductModal.tsx & EditProductModal.tsx
+Form fields: name, price, threshold, initial quantity (for Add).
+
+Validate positive numbers, threshold ≤ quantity on Edit.
+
+“Save” button calls passed onSave(values).
+
+C. RestockModal.tsx
+Fields: Quantity to add, Buying Price (cost_price).
+
+Validate quantity > 0, cost_price ≥ 0.
+
+“Restock” calls onSave({ quantity, cost_price }).
+
+3. Testing & QA
+Add Product
+
+Click “+ Add Product”, fill form, Save → new card appears instantly.
+
+Edit Product
+
+Click Edit on a card, change fields, Save → card updates immediately.
+
+Delete Product
+
+Click Delete → card is removed immediately.
+
+Restock
+
+Click Add Stock, fill quantity & cost, Restock → card’s quantity updates.
+
+Cross‑Tab
+
+Open two tabs: add/edit/delete in one → other updates live via subscription.
+
+After implementing these files, verify the Inventory page CRUD works perfectly at runtime—no redeploy required.```
+
+
+
+
+
+
+
+
+Ask ChatGPT

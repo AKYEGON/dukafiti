@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
-import AuthDebug from '../components/AuthDebug';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -109,8 +108,6 @@ export default function LoginPage() {
             </button>
           </div>
         </form>
-        
-        <AuthDebug />
       </div>
     </div>
   );
