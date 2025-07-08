@@ -2,6 +2,7 @@
 
 import localforage from 'localforage';
 import { supabase } from './supabase';
+import { toast } from '@/hooks/use-toast';
 // Note: toast notifications are handled by the OfflineManager component
 
 // Configure localforage
