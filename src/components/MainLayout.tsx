@@ -4,19 +4,9 @@ import Sidebar from './Sidebar';
 import TopBar from './TopBar';
 
 export default function MainLayout() {
-  const { user, loading } = useAuth();
+  const { user } = useAuth();
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">DukaFiti Loading...</p>
-        </div>
-      </div>
-    );
-  }
-
+  // If user becomes null (logged out), redirect to login
   if (!user) {
     return <Navigate to="/login" replace />;
   }

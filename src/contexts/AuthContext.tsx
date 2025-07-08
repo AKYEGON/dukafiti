@@ -25,24 +25,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     let mounted = true;
 
-    // Get initial session with timeout fallback
+    // Get initial session with reasonable timeout for production
     const initAuth = async () => {
       try {
-        // Set a timeout to prevent infinite loading
+        // Add a timeout to prevent hanging in bad network conditions
         const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Auth timeout')), 10000)
+          setTimeout(() => reject(new Error('Auth timeout')), 5000)
         );
         
         const sessionPromise = supabase.auth.getSession();
         
-        const { data: { session } } = await Promise.race([sessionPromise, timeoutPromise]) as any;
+        const result = await Promise.race([sessionPromise, timeoutPromise]);
+        const { data: { session }, error } = result as any;
         
         if (mounted) {
-          setUser(session?.user ?? null);
+          if (error) {
+            console.error('Auth session error:', error);
+            setUser(null);
+          } else {
+            setUser(session?.user ?? null);
+          }
           setLoading(false);
         }
       } catch (error) {
-        console.error('Auth session error:', error);
+        console.error('Auth initialization error:', error);
         if (mounted) {
           setUser(null);
           setLoading(false);
@@ -52,7 +58,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     initAuth();
 
-    // Listen for auth changes
+    // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (mounted) {
         setUser(session?.user ?? null);
