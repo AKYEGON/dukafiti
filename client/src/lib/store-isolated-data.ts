@@ -29,7 +29,7 @@ export const createProduct = async (product: any) => {
     cost_price: product.costPrice || (product.price * 0.6),
     stock: product.unknownQuantity ? null : product.stock,
     category: product.category || 'General',
-    low_stock_threshold: product.unknownQuantity ? null : (product.lowStockThreshold || 10),
+    low_stock_threshold: product.unknownQuantity ? null : (product.low_stock_threshold || 10),
     sales_count: 0,
   };
   
@@ -53,7 +53,7 @@ export const updateProduct = async (id: number, updates: any, storeId: string) =
     price: updates.price,
     stock: updates.unknownQuantity ? null : updates.stock,
     category: updates.category,
-    low_stock_threshold: updates.unknownQuantity ? null : updates.lowStockThreshold,
+    low_stock_threshold: updates.unknownQuantity ? null : updates.low_stock_threshold,
   };
   
   if (updates.costPrice !== undefined) {

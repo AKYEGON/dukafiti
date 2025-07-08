@@ -37,7 +37,7 @@ export function useCRUDMutations() {
         cost_price: productData.cost_price || productData.costPrice || (productData.price * 0.6),
         stock: productData.unknownQuantity ? null : productData.stock,
         category: productData.category || 'General',
-        low_stock_threshold: productData.unknownQuantity ? null : (productData.low_stock_threshold || productData.lowStockThreshold || 10),
+        low_stock_threshold: productData.unknownQuantity ? null : (productData.low_stock_threshold || 10),
         sales_count: 0,
         store_id: userId // Essential for RLS
       };
@@ -90,7 +90,7 @@ export function useCRUDMutations() {
         price: updates.price,
         stock: updates.unknownQuantity ? null : updates.stock,
         category: updates.category,
-        low_stock_threshold: updates.unknownQuantity ? null : updates.lowStockThreshold,
+        low_stock_threshold: updates.unknownQuantity ? null : updates.low_stock_threshold,
         ...(updates.costPrice !== undefined && { cost_price: updates.costPrice })
       };
 

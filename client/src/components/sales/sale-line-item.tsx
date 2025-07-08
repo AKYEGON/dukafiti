@@ -30,7 +30,7 @@ export function SaleLineItemComponent({ item, onQuantityChange, onRemove }: Sale
     }, 150);
   };
 
-  const isLowStock = item.product.stock <= item.product.lowStockThreshold;
+  const isLowStock = item.product.stock <= item.product.low_stock_threshold;
   const isOutOfStock = item.quantity > item.product.stock;
 
   return (

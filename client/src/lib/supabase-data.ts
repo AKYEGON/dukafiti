@@ -46,7 +46,7 @@ export const createProduct = async (product: any) => {
       cost_price: product.costPrice || (product.price * 0.6), // Default to 60% of selling price
       stock: product.unknownQuantity ? null : product.stock,
       category: product.category || 'General',
-      low_stock_threshold: product.unknownQuantity ? null : (product.lowStockThreshold || 10),
+      low_stock_threshold: product.unknownQuantity ? null : (product.low_stock_threshold || 10),
       sales_count: 0,
       store_id: user.id, // Explicit store isolation
     };
@@ -93,7 +93,7 @@ export const updateProduct = async (id: number, updates: any) => {
       price: updates.price,
       stock: updates.unknownQuantity ? null : updates.stock,
       category: updates.category,
-      low_stock_threshold: updates.unknownQuantity ? null : updates.lowStockThreshold,
+      low_stock_threshold: updates.unknownQuantity ? null : updates.low_stock_threshold,
     };
     
     // Include cost_price if provided
@@ -956,7 +956,7 @@ export const createSale = async (saleData: any) => {
           id: item.productId,
           name: item.productName,
           stock: item.newStock,
-          threshold: item.lowStockThreshold || 10
+          threshold: item.low_stock_threshold || 10
         }));
       
       if (productUpdates.length > 0) {

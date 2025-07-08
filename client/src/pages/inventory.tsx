@@ -218,7 +218,7 @@ export default function Inventory() {
           /* Product Grid - Desktop: 3 columns, Tablet: 2 columns, Mobile: 1 column */
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredAndSortedProducts.map((product) => {
-              const isLowStock = product.stock !== null && product.stock <= (product.lowStockThreshold || 10);
+              const isLowStock = product.stock !== null && product.stock <= (product.low_stock_threshold || 10);
               
               return (
                 <div
@@ -268,7 +268,7 @@ export default function Inventory() {
                     {/* Quantity and Threshold on same line */}
                     <div className="text-sm text-gray-500 dark:text-gray-400">
                       {product.stock !== null ? (
-                        <span>Qty: {product.stock} | Min: {product.lowStockThreshold || 10}</span>
+                        <span>Qty: {product.stock} | Min: {product.low_stock_threshold || 10}</span>
                       ) : (
                         <span className="text-amber-600 dark:text-amber-400 font-medium">
                           Unknown quantity
