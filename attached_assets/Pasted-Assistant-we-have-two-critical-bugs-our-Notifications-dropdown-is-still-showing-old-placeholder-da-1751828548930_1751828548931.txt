@@ -1,0 +1,73 @@
+Assistant, we have two critical bugs: our Notifications dropdown is still showing old placeholder data, and the Settings page’s Business Info card isn’t persisting loaded data across reloads. Please do a **deep audit** of both features, remove any hard‑coded or test code, and wire them up correctly end‑to‑end using our Supabase backend. Overwrite files as needed:
+
+---
+
+## 1. Notifications Dropdown Fix
+
+1. **Remove All Static/Test Data**  
+   - Search in `NotificationsDropdown.jsx` (and any imported sub‑components) for any hard‑coded arrays or JSON imports (e.g. `testNotifications`) and delete them.
+
+2. **Use Real Hook & State**  
+   - Import and call our `useNotifications()` hook at the top of `NotificationsDropdown.jsx`:
+     ```js
+     const { list: notifications, markAllRead } = useNotifications();
+     ```
+   - Replace any placeholder mapping with:
+     ```jsx
+     notifications.map(n => (<NotificationItem key={n.id} notification={n} .../>))
+     ```
+
+3. **Verify Hook Implementation**  
+   - In `useNotifications.js`, confirm you:
+     - **Fetch initial** notifications from Supabase on mount.
+     - **Subscribe** to real‑time `INSERT` events on `notifications` and update state.
+     - **Clean up** subscription on unmount.
+   - If any of these are missing or incorrect, add or correct them.
+
+4. **Badge & Auto‑Read**  
+   - Compute `const unread = notifications.filter(n=>!n.is_read).length`.
+   - Show `unread` on the bell badge.
+   - In the dropdown toggle handler, call `await markAllRead()` before opening to clear unread state in both Supabase and local state.
+
+---
+
+## 2. Settings → Business Info Persistence
+
+1. **Initial Load**  
+   - In `SettingsPage.jsx` (or `BusinessInfoCard.jsx`), ensure you call on mount:
+     ```js
+     const { data, error } = await supabase
+       .from('settings')
+       .select('*')
+       .eq('store_id', currentStoreId)
+       .single();
+     setFormValues({ name: data.name, owner: data.owner, location: data.location });
+     ```
+   - If you’re missing this fetch or using a one‑time load only on first render, add or correct it.
+
+2. **Save Handler**  
+   - After `await supabase.from('settings').upsert(...)`, ensure you update local state and **do not** reset form fields.
+   - If you’re redirecting or re‑rendering, pass the new data into the same `setFormValues`.
+
+3. **State & Navigation**  
+   - Prevent unmounting the form component on minor route changes. If you navigate away and back, the mount should trigger the initial fetch again.
+   - Remove any code that clears form state on unmount or on route change—that’s likely wiping your data before the fetch.
+
+4. **Error Logging**  
+   - Add `console.error(error)` after any Supabase call failure to catch silent errors.
+
+---
+
+### QA Checklist
+
+- **Notifications**  
+  - Delete a test notification row in Supabase → dropdown updates to remove it.  
+  - Insert a new notification in Supabase → dropdown prepends it in real time.  
+  - Unread badge shows correct count, and opening the panel clears it in Supabase and UI.
+
+- **Business Info**  
+  - Change Store Name/Owner/Location and click Save → see a success toast.  
+  - Refresh the page or navigate away/back → the updated info still displays in the form.  
+  - No console errors on fetch or save.
+
+Please apply these fixes so both features use live Supabase data properly and behave consistently.```

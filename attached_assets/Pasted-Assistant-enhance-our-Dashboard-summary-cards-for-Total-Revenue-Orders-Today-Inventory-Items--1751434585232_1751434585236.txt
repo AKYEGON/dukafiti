@@ -1,0 +1,58 @@
+Assistant, enhance our **Dashboard** summary cards for Total Revenue, Orders Today, Inventory Items, and Active Customers—so their displayed percentage changes are computed accurately from live historical data. Implement the following:
+
+1. **Data Endpoints & Aggregation**  
+   - Create or update an Express endpoint `/api/metrics/dashboard` that returns:
+     ```js
+     {
+       revenue: {
+         today: Number,
+         yesterday: Number,
+         weekToDate: Number,
+         priorWeekToDate: Number
+       },
+       orders: {
+         today: Number,
+         yesterday: Number
+       },
+       inventory: {
+         totalItems: Number,
+         priorSnapshot: Number    // e.g. total items at same time yesterday
+       },
+       customers: {
+         active: Number,           // customers with sales in last 24h
+         priorActive: Number       // active count in the prior 24h window
+       }
+     }
+     ```
+   - Ensure each metric pulls directly from the database in real time and handles edge cases (zero prior values).
+
+2. **Accurate Percentage Calculation**  
+   - In a utility function, compute percentage change as:
+     ```js
+     function calcPctChange(current, prior) {
+       if (prior === 0 && current === 0) return 0;
+       if (prior === 0) return 100;             // or define “new growth” behavior
+       return ((current - prior) / prior) * 100;
+     }
+     ```
+   - Round results to one decimal place and prefix with “+” or “–”.
+
+3. **Frontend Integration**  
+   - Update the Dashboard component to fetch `/api/metrics/dashboard` on load and on manual sync.
+   - For each card—Revenue, Orders, Inventory Items, Active Customers—display:
+     - The current value (e.g. “KES 12,345”, “27 orders”, “120 items”, “15 customers”).
+     - The percentage change below it, colored:
+       • Green for positive (> 0)  
+       • Gray for zero (0)  
+       • Red for negative (< 0)
+   - If the prior value was zero and current > 0, display “+100%” or “New.”
+
+4. **Edge‑Case Handling & UX**  
+   - In cases where data is missing or an API error occurs, show “—” instead of “NaN%” and a light gray tooltip on hover: “Data unavailable.”  
+   - Ensure the cards update instantly after a manual “Sync Now” and visually indicate refresh (e.g. a spinner on the card icon).
+
+5. **Testing & Validation**  
+   - Write a small suite of unit tests for `calcPctChange()` covering prior=0, current=0, negative, and positive cases.
+   - Provide a QA checklist to verify that each card’s percentage matches manual calculations given sample data.
+
+Please generate all backend route code, aggregation logic, the shared `calcPctChange` utility, unit tests, and the React updates to fetch, calculate, and render these ultra‑accurate percentage changes on the Dashboard cards.```

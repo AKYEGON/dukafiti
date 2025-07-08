@@ -1,0 +1,32 @@
+Assistant, please enhance the **Inventory Add/Edit Product** modal so that dukawalas can record items with “unknown” or open‑ended quantities (e.g., sacks measured by cups). Overwrite the existing modal components and backend logic as follows:
+
+1. **UI: “Unknown Quantity” Toggle**  
+   - In both the **Add Product** and **Edit Product** modals, add a checkbox or toggle labeled **“Unknown Quantity”** below the Quantity input.  
+   - When checked:
+     - Disable (grey out) the Quantity input field.  
+     - Change the placeholder to “Unspecified” and ignore user input.  
+   - When unchecked:
+     - Re-enable the Quantity input as normal (numeric, required).
+
+2. **Data Model & Backend Handling**  
+   - Update the `Product` model to allow `quantity: number | null`.  
+   - In the POST `/api/products` and PUT `/api/products/:id` handlers:
+     - If `unknownQuantity === true`, save `quantity = null`.  
+     - If `unknownQuantity === false`, parse and validate the numeric quantity as before.
+   - In listings and thresholds checks:
+     - Treat `null` as “unknown” and **do not** trigger low‑stock alerts for that SKU.
+
+3. **Form Validation & UX**  
+   - Ensure that if **Unknown Quantity** is checked, the form can still be submitted without a quantity value.  
+   - If unchecked, the Quantity field remains required and validated (> = 0).  
+   - Visually indicate on the product card/list view when quantity is unknown (e.g. show “Qty: —” or “Unknown”).
+
+4. **QA Checklist**  
+   - [ ] Add modal shows “Unknown Quantity” toggle that disables Quantity input.  
+   - [ ] Edit modal retains and toggles existing unknown state correctly.  
+   - [ ] Backend saves `quantity = null` when unknown, number when specified.  
+   - [ ] Inventory list displays “Qty: —” for unknown items.  
+   - [ ] Low‑stock alerts skip products with unknown quantity.  
+   - [ ] No regressions in add/edit flows or other inventory functionality.
+
+Generate the updated React modal components (`AddProductModal.jsx`, `EditProductModal.jsx`), the Express API handlers for create/update products, and the inventory listing tweaks to display unknown quantities correctly.```

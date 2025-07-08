@@ -1,0 +1,31 @@
+Assistant, please apply these two changes across the app—overwrite existing code as needed:
+
+1. **Remove M‑Pesa Messages from Settings**  
+   - In the Settings page, delete the entire “M‑Pesa Messages” or “View Messages” section and any related API routes or components (`/api/messages`, settings toggles, message list UI).  
+   - Remove links, menu items, and imports so no trace of message‑viewing remains.  
+
+2. **Add “Mobile Money” Button & Reporting**  
+   - **Sales Page**:  
+     - Next to the existing payment‑method buttons, add a new button labeled **“Mobile Money”** styled like the others.  
+     - When selected (highlighted green), it sets `paymentType = 'mobileMoney'`.  
+     - In the confirmation modal, display the chosen “Mobile Money” label if selected.  
+     - On confirm, POST to `/api/sales` with `{ items, paymentType: 'mobileMoney' }`—backend should record `paymentType = 'mobileMoney'`, decrement inventory, and set `status='paid'`.  
+
+   - **Backend**:  
+     - Update the Express POST `/api/sales` route to accept `paymentType='mobileMoney'` and handle it identically to Cash (status = paid).  
+     - No external API calls required—just record the sale type in the database.  
+
+   - **Reports Page**:  
+     - In the summary tiles, add **Mobile Money** as its own category in the “Breakdown by payment type” section.  
+     - In the Orders Record table (or in a new tile), display the total number and total value of Mobile Money sales for the selected period.  
+     - In the filters toolbar, ensure that when you fetch `/api/reports/orders?period=…`, the returned data includes `paymentType` so you can tally Mobile Money separately.  
+
+3. **QA Checklist**  
+   - [ ] “M‑Pesa Messages” section is removed from Settings and no errors occur.  
+   - [ ] “Mobile Money” button appears alongside other methods on Sales page.  
+   - [ ] Selecting “Mobile Money” highlights the button and shows in the confirmation modal.  
+   - [ ] Confirming a Mobile Money sale records `paymentType='mobileMoney'` and decrements inventory.  
+   - [ ] Reports breakdown now shows Mobile Money totals correctly for daily/weekly/monthly.  
+   - [ ] No regressions in existing Cash, M‑Pesa, or Credit flows.  
+
+Generate the updated React components, Express routes, and any database schema adjustments needed to support these changes.```

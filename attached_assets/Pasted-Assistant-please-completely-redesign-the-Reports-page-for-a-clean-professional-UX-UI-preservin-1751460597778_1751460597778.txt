@@ -1,0 +1,45 @@
+Assistant, please completely redesign the **Reports** page for a clean, professional UX/UI—preserving existing features and fixing the graph line visibility without adding new functionality. Overwrite `Reports.jsx`, chart config, and styles:
+
+1. **Overall Layout & Responsiveness**  
+   - Wrap everything in a padded container (`p-6 lg:p-12`) with `space-y-8`.  
+   - On desktop, display two columns:  
+     - Left: **Summary & Trend** stacked vertically.  
+     - Right: **Orders Record** table/list.  
+   - On mobile, collapse to single column with the same vertical order.
+
+2. **Summary & Timeframe Controls**  
+   - At top, combine summary cards into a horizontal scroll area: Total Sales, Cash, Mobile Money, Credit. Each card:  
+     - Light mode: `bg-white border border-gray-200 rounded-lg p-4 shadow-sm`  
+     - Dark mode: `dark:bg-[#1F1F1F] dark:border-gray-700`  
+     - Label (`text-sm text-gray-500`), value (`text-xl font-bold`), no percentages.  
+   - Above these cards, place a **Timeframe** dropdown (Today / Week / Month) with `bg-gray-50 dark:bg-gray-800 border rounded px-3 py-2`.
+
+3. **Trend Chart Redesign**  
+   - Enclose the chart in a card with the same styling as summary cards.  
+   - Update the chart’s line color to **emerald** (`#00AA00`) in light mode and **lavender** (`#6B46C1`) in dark mode so it stands out against the background.  
+   - Ensure gridlines use a subtle neutral color (`#E5E7EB` / `#374151`).  
+   - Above the chart, add a **View** dropdown (Daily / Weekly / Monthly) matching the timeframe dropdown styling.
+
+4. **Orders Record Section**  
+   - Use a card container (`bg-white dark:bg-[#1F1F1F] border rounded-lg p-4 shadow-sm`) with header “Orders Record” (`text-lg font-semibold`) and a “View All” link aligned right.  
+   - Table (desktop): `table-auto w-full text-sm` with header row `bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200` and zebra-strip rows. Right‑align Amount column, wrap Products column text gracefully.  
+   - Mobile fallback: list of order cards (`mb-4 p-4 border rounded-lg shadow-none`) showing Order ID, Date, Amount, Status, and product summary in stacked lines.
+
+5. **Graph & Table Contrast & Legibility**  
+   - Increase line stroke width to `3px` for clarity.  
+   - Use `text-neutral-900` / `dark:text-neutral-100` for all labels and titles.  
+   - Ensure dropdowns, buttons, and inputs have focus rings (`focus:ring-2 focus:ring-emerald`).
+
+6. **Loading & Empty State**  
+   - Show skeleton loaders matching card and table shapes with `animate-pulse bg-gray-200 dark:bg-gray-700`.  
+   - If no data, display “No data available for this period.” centered in the card.
+
+7. **QA Checklist**  
+   - [ ] Summary cards render correctly on mobile and desktop.  
+   - [ ] Timeframe and View dropdowns fetch and update data.  
+   - [ ] Trend line is visible and uses the new colors.  
+   - [ ] Orders table/list displays correctly with proper contrast.  
+   - [ ] Loading skeletons and empty states appear appropriately.  
+   - [ ] Dark mode styling applies correctly.
+
+Generate the updated `Reports.jsx`, chart configuration changes (including line color and stroke width), and any Tailwind CSS adjustments needed to implement this refined design.```

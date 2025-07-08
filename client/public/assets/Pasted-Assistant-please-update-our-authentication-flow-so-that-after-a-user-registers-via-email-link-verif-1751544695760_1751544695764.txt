@@ -1,0 +1,48 @@
+Assistant, please update our authentication flow so that after a user registers via email‑link verification, they can thereafter log in with their **email + password**—rather than magic‑link only—and restore the password field on the Login page. Overwrite existing auth code and UI as follows:
+
+---
+
+## 1. Registration Flow Enhancement  
+1. **Sign Up Page** (`SignUp.jsx`):  
+   - Add a **Password** field beneath Email.  
+   - On submit, call Supabase’s `signUp({ email, password })` instead of magic‑link.  
+   - Still send a verification email automatically via Supabase’s built‑in `emailConfirmations`.  
+2. **Callback Page** (`/auth/callback`):  
+   - After the user clicks the verification link, Supabase sets `email_confirmed_at`.  
+   - Redirect them to `/login` with a toast “Email verified—please log in with your password.”
+
+---
+
+## 2. Login Page Restoration  
+1. **Login Page** (`Login.jsx`):  
+   - Restore the **Password** input above the “Send link” button.  
+   - Change the action from magic‑link to:
+     ```js
+     const { error, data } = await supabase.auth.signInWithPassword({ email, password });
+     ```
+   - On success, redirect to `/dashboard`. On failure, show inline error.  
+   - Remove the magic‑link code path entirely.
+
+---
+
+## 3. UI Adjustments  
+- Ensure both forms show Email and Password fields with labels above, styled per our polished form spec.  
+- Replace any “Check your email” messages on Login with normal inline login errors (“Invalid credentials”).
+
+---
+
+## 4. Session & Protected Routes  
+- Keep the same ProtectedRoute and `/api/me` logic—users logging in with password receive a valid session from Supabase.
+
+---
+
+## 5. QA Checklist  
+- [ ] Sign Up form collects Email + Password and registers the user.  
+- [ ] User receives verification email and link.  
+- [ ] Clicking link verifies account and redirects to `/login`.  
+- [ ] Login page shows Email + Password fields.  
+- [ ] Valid credentials log the user in; invalid show error.  
+- [ ] No magic‑link code remains on Login.  
+- [ ] Auth state persists across reloads.
+
+Generate the updated `SignUp.jsx`, `Login.jsx`, the Supabase calls for `signUp` and `signInWithPassword`, and any routing changes needed to support this hybrid flow.```

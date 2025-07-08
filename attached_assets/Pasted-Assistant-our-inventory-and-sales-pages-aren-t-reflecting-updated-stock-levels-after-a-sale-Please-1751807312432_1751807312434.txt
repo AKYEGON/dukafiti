@@ -1,0 +1,60 @@
+Assistant, our inventory and sales pages aren’t reflecting updated stock levels after a sale. Please adjust the logic so that whenever a sale completes, the product quantities are decremented and both pages immediately show the new values—no manual refresh needed. Overwrite or update as follows:
+
+---
+
+## 1. Sale Completion Handler  
+- In `Sales.jsx` (or wherever you handle `submitSale`), after you successfully insert the sale into Supabase, add code to decrement stock:
+  ```js
+  // existing sale insert...
+  const { data: saleData, error: saleError } = await supabase
+    .from('sales')
+    .insert([{ /* sale fields */ }]);
+  if (saleError) throw saleError;
+
+  // new: update product quantities in one batch
+  for (let item of cartItems) {
+    const { data, error } = await supabase
+      .from('products')
+      .update({ quantity: supabase.raw('quantity - ?', [item.qty]) })
+      .eq('id', item.id);
+    if (error) console.error('Stock update failed', error);
+  }
+
+  // then clear cart & refresh UI
+  setCart([]);
+  refreshInventory(); // call your existing fetchInventory()
+Ensure refreshInventory() re‑queries supabase.from('products').select() and updates the Inventory page’s state.
+
+2. Real‑Time Inventory Subscription (Optional but Recommended)
+In your useInventory hook (or in Inventory.jsx), subscribe to Supabase realtime on products table changes:
+
+js
+Copy
+Edit
+useEffect(() => {
+  fetchInventory(); // initial load
+
+  const channel = supabase
+    .from(`products:store_id=eq.${storeId}`)
+    .on('UPDATE', payload => {
+      setProducts(prev => prev.map(p => p.id === payload.new.id ? payload.new : p));
+    })
+    .subscribe();
+
+  return () => { supabase.removeChannel(channel); }
+}, [storeId]);
+This ensures any outside update to a product’s quantity immediately reflects in your Inventory and Sales pages’ product lists and stock badges.
+
+3. Sales Page Stock Display
+In Sales.jsx, whenever a product row is rendered, pull its quantity from the same shared products state used by Inventory—don’t cache stale values locally in the component.
+
+QA Checklist
+ After completing a sale, the Inventory page’s product card shows the reduced stock without a manual reload.
+
+ The Sales page’s product selection dropdown/current stock badge also reflects the new quantity.
+
+ No console errors during the stock decrement or fetch.
+
+ Real‑time subscription (if implemented) updates stock when another user sells an item.
+
+Please implement these stock‑update and real‑time subscription changes so inventory levels stay accurate across the app.```

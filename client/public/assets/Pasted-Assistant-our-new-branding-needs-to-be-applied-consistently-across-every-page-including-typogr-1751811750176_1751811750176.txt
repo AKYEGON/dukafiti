@@ -1,0 +1,82 @@
+Assistant, our new branding needs to be applied **consistently across every page**, including typography, colors, spacing—and the logo import error must be fixed. Please perform the following updates end‑to‑end:
+
+---
+
+## 1. Fix Logo Import  
+- Ensure the logo file (`logo.svg`) is placed in `src/assets/` (or `public/assets/`).  
+- In components (Sidebar, TopBar, Footer), import correctly:
+  ```js
+  import Logo from 'src/assets/logo.svg';
+  // or if in public:
+  <img src="/assets/logo.svg" alt="Brand Logo" />
+Remove any broken paths or typos that cause the error.
+
+2. Global Typography
+In tailwind.config.js extend the theme with your chosen brand font:
+
+js
+Copy
+Edit
+module.exports = {
+  theme: {
+    extend: {
+      fontFamily: {
+        brand: ['YourBrandFont', 'sans-serif'],
+      },
+    },
+  },
+}
+In index.css or global styles, import the font (via @import or link in index.html) and set:
+
+css
+Copy
+Edit
+html { font-family: 'YourBrandFont', sans-serif; }
+Replace any explicit font classes (e.g. font-sans) with font-brand where appropriate.
+
+3. Color & Spacing Harmony
+Update tailwind.config.js colors to your brand palette:
+
+js
+Copy
+Edit
+extend: {
+  colors: {
+    primary: '#<PRIMARY_HEX>',
+    secondary: '#<SECONDARY_HEX>',
+    accent: '#<ACCENT_HEX>',
+    neutral: { 100: '#f7f7f7', 900: '#111' },
+  },
+}
+Audit and replace all uses of legacy colors (e.g. bg-green-500, text-purple-600) with bg-primary, text-secondary, etc.
+
+Standardize spacing scales (use spacing tokens consistently: p-4, m-6, etc.) and ensure consistent card/panel padding.
+
+4. Component Styling
+Buttons: update variants to use bg-primary text-white hover:bg-primary-dark and border-accent outlines.
+
+Cards & Panels: bg-neutral-100 dark:bg-neutral-900 rounded-lg shadow-md p-6.
+
+Links & Icons: text-secondary hover:text-accent.
+
+5. Layout & Flow
+Ensure consistent header and footer across all views.
+
+Standardize page titles (<h1 class="text-3xl font-bold text-primary mb-4">).
+
+Use a consistent max-width container (class="container mx-auto px-4").
+
+6. QA Checklist
+ Logo displays without errors on every page (Sidebar, TopBar, mobile view).
+
+ Global font is applied to headings, body text, and UI components.
+
+ Colors throughout match the new palette with no leftover legacy colors.
+
+ Spacing and shadows are consistent across cards, modals, and panels.
+
+ Buttons, links, and form elements use updated brand styles.
+
+ Dark mode reflects neutral and accent variations properly.
+
+Apply these branding updates across all pages so the app has a unified, professional appearance and the logo error is resolved.``

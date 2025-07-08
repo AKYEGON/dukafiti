@@ -1,0 +1,72 @@
+Assistant, once the ground‑up refactor is complete, I need a **comprehensive, atomic audit** of the entire Dukafiti codebase—every line, hook, query, and policy—so we can uncover any latent errors or edge‑cases and then fix them in precise detail. Please follow this 2‑phase process:
+
+---
+
+## Phase A: Deep Analysis & Validation
+
+1. **TypeScript & Build Check**  
+   - Run `npm run build`. Capture and report any type or build errors.  
+2. **ESLint & Prettier**  
+   - Run `npx eslint "src/**/*.{ts,tsx}" --max‑warnings=0`. List any lint errors.  
+   - Run `npx prettier --check "src/**/*.{ts,tsx,css,js,jsx}"`. List formatting issues.  
+3. **Supabase RLS Audit**  
+   - For each table (`products`, `customers`, `sales`, etc.) fetch its RLS policies via SQL and confirm:
+     - RLS is enabled.  
+     - There’s an admin bypass policy.  
+     - Tenant isolation policies include both `USING` and `WITH CHECK`.  
+4. **Hook Dependency Analysis**  
+   - In every `useEffect`, verify the dependency array exactly matches external variables.  
+   - Report any missing or extraneous dependencies.  
+5. **Real‑Time Subscription Validation**  
+   - Ensure each `useLiveData` hook calls `.subscribe()` and correctly cleans up in the cleanup function.  
+6. **Mutation Coverage**  
+   - Scan all mutation hooks (`useMutation`) and confirm every path supplies `store_id = user.id` and checks for errors.  
+7. **Offline Queue Logic**  
+   - Simulate offline: queue 3 ops, then bring online—verify `syncQueue()` replays and clears them.  
+8. **UI Smoke‑Tests**  
+   - Programmatically navigate to each page (Dashboard, Inventory, Customers, Sales, Reports, Settings) and confirm no console errors, and that the initial data loads.  
+
+Produce a **detailed report** listing:
+
+- Build/type errors  
+- Lint/format violations  
+- RLS policy gaps  
+- Hook dependency issues  
+- Subscription/mutation missing coverage  
+- Offline sync edge cases  
+- Any broken UI flows  
+
+---
+
+## Phase B: Atomic Fixes
+
+For **each** issue identified above:
+
+1. **TypeScript & Build**  
+   - Provide corrected type definitions or imports.  
+2. **ESLint & Formatting**  
+   - Supply exact code changes to satisfy lint rules and Prettier.  
+3. **RLS Policies**  
+   - Give the precise SQL statements to add or fix policies.  
+4. **Hook Dependencies**  
+   - Show the updated `useEffect` signatures with correct arrays.  
+5. **Subscription Cleanup**  
+   - Patch any missing `removeChannel()` or mis‑scoped closures.  
+6. **Mutation Hooks**  
+   - Embed `store_id: user.id` in every insert/upsert; add error checks.  
+7. **Offline Queue Resilience**  
+   - Update `useOfflineQueue` to handle partial failures and retry with back‑off.  
+8. **UI Fixes**  
+   - Correct any broken page load or mutation UI code, removing stale caches.
+
+Return the fully updated files and a short summary of each change.  
+
+Paste this prompt into the Replit AI Agent so that it performs the analysis, reports back with issues, and then applies all fixes in meticulous, atomic detail.```
+
+
+
+
+
+
+
+Ask ChatGPT

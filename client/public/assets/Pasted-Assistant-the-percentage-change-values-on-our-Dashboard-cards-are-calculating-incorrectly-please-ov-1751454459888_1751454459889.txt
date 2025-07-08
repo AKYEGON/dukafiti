@@ -1,0 +1,46 @@
+Assistant, the percentage‐change values on our Dashboard cards are calculating incorrectly—please overwrite the existing Dashboard logic to ensure they’re computed and displayed accurately:
+
+1. **Use Shared Utility**  
+   - Import and use our `calcPctChange(current, prior)` from `utils/formatters.js`.  
+   - Ensure that `current` and `prior` values passed in are coming directly from the live `/api/metrics/dashboard` response (no local caching or stale state).
+
+2. **Fetch Fresh Metrics**  
+   - In `Dashboard.jsx`, on component mount and after any dataUpdate event, call GET `/api/metrics/dashboard` and destructure:
+     ```js
+     const {
+       revenue: { today, yesterday },
+       orders: { today: ordersToday, yesterday: ordersYesterday },
+       inventory: { totalItems, priorSnapshot },
+       customers: { active, priorActive }
+     } = response.data;
+     ```
+   - Store these in state before calculating percentages.
+
+3. **Accurate Percentage Calculation**  
+   - For each metric, compute:
+     ```js
+     const pctRevenue = calcPctChange(today, yesterday);
+     const pctOrders   = calcPctChange(ordersToday, ordersYesterday);
+     const pctInventory= calcPctChange(totalItems, priorSnapshot);
+     const pctCustomers= calcPctChange(active, priorActive);
+     ```
+   - Round to one decimal and prefix “+” or “–”.
+
+4. **Display & Color Logic**  
+   - Update each card to render:
+     - Main value (e.g. `KES 12,345`)  
+     - Subtext: `${pctRevenue}%` (or “New” if prior=0 & current>0, “0%” if both zero)  
+   - Color the pct text: green for >0, gray for 0, red for <0.
+
+5. **Edge‑Case Handling**  
+   - If `prior === 0 && current === 0`, show “0%”.  
+   - If `prior === 0 && current > 0`, show “New” in green.  
+   - If API errors or missing fields, show “—” in neutral gray.
+
+6. **QA Checklist**  
+   - [ ] Revenue % matches manual calculation for sample data.  
+   - [ ] Orders %, Inventory %, Customers % all correct per `calcPctChange`.  
+   - [ ] “New” appears when prior=0/current>0, “0%” when both zero.  
+   - [ ] Colors reflect positive/neutral/negative.  
+
+Please regenerate the updated `Dashboard.jsx` with these data fetches, state updates, percentage calculations, and rendering logic—using our shared formatter utility throughout.```

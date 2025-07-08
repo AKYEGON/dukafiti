@@ -1,0 +1,84 @@
+Assistant, please overwrite our **Home (Dashboard)** page to deliver a sleek, professional user experience informed by best practices in dashboard design. No new features—just refined layout, visuals, accessibility, and performance. Follow this structured plan:
+
+---
+
+## 🎯 1. Audience, Hierarchy & Layout  
+- **Five‑second rule**: ensure users grasp key metrics within 5 seconds :contentReference[oaicite:1]{index=1}.  
+- **F/Z reading pattern**: position the most critical metric at top-left, followed by supporting info :contentReference[oaicite:2]{index=2}.  
+- **Single-column on mobile**, multi-region on desktop:  
+  - **Mobile (`sm:`)**: stack vertically with padding `px-4 py-4`, tight `space-y-6`.  
+  - **Desktop**: use `container mx-auto p-6` and a grid:  
+    ```
+    grid grid-cols-1 lg:grid-cols-1 gap-8
+      ├─ Summary Cards
+      ├─ Quick Actions
+      └─ Recent Orders
+    ```
+  - Maintain consistency between devices :contentReference[oaicite:3]{index=3}.
+
+---
+
+## 2. Summary Cards (Top KPIs)  
+- **Layout**: Four cards in a responsive grid (`grid-cols-2 sm:grid-cols-4`, gap `4`)  
+- **Design**:  
+  - Light: `bg-white border border-gray-200 rounded-lg p-4 shadow-md hover:shadow-lg transition`  
+  - Dark: `dark:bg-[#1F1F1F] dark:border-gray-700`  
+- **Content**:  
+  - Icon in a colored circle (consistent with green/purple theme)  
+  - Metric label (`text-sm uppercase text-gray-500 dark:text-gray-400`)  
+  - Large value (`text-2xl font-bold`)  
+- **Best practices**: big bold numbers, clear grouping, minimal clutter :contentReference[oaicite:4]{index=4}
+
+---
+
+## 3. Quick Actions  
+- Render buttons as **actionable cards**:  
+  - `flex items-center justify-center bg-primaryPurple text-white rounded-lg px-6 py-4 shadow-md hover:shadow-lg transition transform hover:-translate-y-1`  
+  - Uniform size (`min-w-[180px]`)  
+- Maintain consistent spacing and visual hierarchy :contentReference[oaicite:5]{index=5}
+
+---
+
+## 4. Recent Orders  
+- Title row with “Recent Orders” (`text-xl font-semibold`) and optionally “View All” link to a full list.  
+- **Desktop table**:  
+  - `table-auto w-full text-sm bg-white dark:bg-[#1F1F1F] rounded-lg`  
+  - Header: `bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200`  
+  - Rows: zebra shading, amount right-aligned, status badges (`bg-green-100 text-green-800`)  
+- **Mobile cards**: stacked cards with clear spacing (`bg-white dark:bg-[#1F1F1F] p-4 rounded-lg mb-4`)  
+- Include tooltips or hover highlights for clarity :contentReference[oaicite:6]{index=6}
+
+---
+
+## 5. Performance & Feedback  
+- Use **skeleton loaders** while data is fetching: `animate-pulse bg-gray-200 dark:bg-gray-700 rounded`  
+- Keep the UI responsive and efficient—lazy-load lists when many items exist :contentReference[oaicite:7]{index=7}
+
+---
+
+## 6. Color & Accessibility  
+- Stick to your palette of green, purple, and black with WCAG AA contrast (min 4.5:1) :contentReference[oaicite:8]{index=8}  
+- Backgrounds: `bg-white` ↔ `dark:bg-[#1F1F1F]`  
+- Text: `text-neutral-900` ↔ `dark:text-neutral-100`, secondary in gray tones  
+- Buttons/icons colored with primary green/purple  
+- Interactive components must have clear hover/focus states (`focus:ring-2 focus:ring-primaryGreen`)
+
+---
+
+## ✅ QA Checklist  
+- [ ] Dashboard loads key metrics in under 5 seconds and respects F/Z layout pattern  
+- [ ] Summary cards are visually distinct, consistent, and accessible  
+- [ ] Quick actions are intuitive, uniform, and responsive  
+- [ ] Recent orders render as table on desktop, cards on mobile  
+- [ ] Loading states show skeletons; no blank screens during fetch  
+- [ ] All text and interactive elements meet accessibility standards  
+- [ ] Layout scales gracefully between mobile and desktop  
+- [ ] Theme (light/dark) toggles are correctly applied  
+
+---
+
+Please generate:  
+- New `Dashboard.jsx` with updated JSX structure and Tailwind classes  
+- Skeleton loaders, responsive container setup, and improved visual hierarchy  
+- Verify no new data is required—just polishing the presentation  
+- Use citations to support design choices above  

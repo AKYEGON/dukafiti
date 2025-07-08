@@ -1,0 +1,33 @@
+Assistant, please globally rename our app from **DukaSmart** to **DukaFiti** and update the slogan to **“Duka Fiti ni Duka Bora”** everywhere—overwrite all occurrences and update branding assets without altering any other functionality:
+
+1. **Global Search & Replace**  
+   - Replace every `DukaSmart` or “Duka Smart” string (in components, texts, meta tags, titles, and comments) with `DukaFiti`.  
+   - Update any environment variables or config keys referencing `DUKA_SMART` to `DUKAFITI`.
+
+2. **Header & Logo**  
+   - In the `<Header>` or `<TopBar>`, change the displayed name/logo alt text to `DukaFiti`.  
+   - Update the site `<title>` and favicon if needed to reflect “DukaFiti”.
+
+3. **Slogan/Textual Tagline**  
+   - Find all places where the app shows a slogan or subtitle (“Smart POS for Kenyan dukawalas”, etc.) and replace with:  
+     ```
+     Duka Fiti ni Duka Bora
+     ```
+   - Ensure this appears under the logo on the landing page, in the login/register pages, and in the footer.
+
+4. **Branding Assets**  
+   - Replace the logo image import to use the provided `A_logo_in_the_image_features_the_word_"DUKA_FITI"_.png`.  
+   - Update any `import logo from ...` or `<img src="logo.png">` references to the new file and adjust size/styling as needed.
+
+5. **Configuration & SEO**  
+   - In `public/index.html`, update `<meta name="application-name" content="DukaFiti">` and any social-share meta tags.  
+   - In PWA manifest, set `"name"` and `"short_name"` to `DukaFiti`, and update `description` to include the new slogan.
+
+6. **QA Checklist**  
+   - [ ] All instances of “DukaSmart” are replaced with “DukaFiti”.  
+   - [ ] The slogan “Duka Fiti ni Duka Bora” displays consistently on landing, header, login/register, and footer.  
+   - [ ] Logo asset is updated and displays correctly in all navbars and mobile icons.  
+   - [ ] Meta tags, page title, and PWA manifest reflect the new name and slogan.  
+   - [ ] No broken image imports or console errors.
+
+Generate the full search & replace operations, updated component code (Header, Footer, Landing, Login, Register), and any manifest/html edits needed to complete this branding switch.```

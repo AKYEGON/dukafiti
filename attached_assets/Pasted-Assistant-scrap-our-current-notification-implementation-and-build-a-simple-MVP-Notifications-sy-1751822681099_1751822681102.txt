@@ -1,0 +1,164 @@
+Assistant, scrap our current notification implementation and build a **simple MVP Notifications** system that only handles:
+
+1. **Credit Reminders**  
+   - When a customer has an outstanding balance older than 7 days.
+2. **Low Stock Alerts**  
+   - When any product’s quantity ≤ its threshold.
+
+Follow these steps:
+
+---
+
+## A. Database & Trigger Logic
+
+1. **Table**  
+   ```sql
+   CREATE TABLE notifications (
+     id uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+     type text NOT NULL,            -- 'credit' or 'low_stock'
+     entity_id uuid NOT NULL,       -- customer_id or product_id
+     title text NOT NULL,
+     message text NOT NULL,
+     is_read boolean DEFAULT false,
+     created_at timestamptz DEFAULT now()
+   );
+Edge Functions / Server Side
+
+Credit Reminder: a daily cron Edge Function that:
+
+Queries customers where balance > 0 AND last_credit_date <= now() - interval '7 days'
+
+For each, inserts into notifications:
+
+type = 'credit'
+
+entity_id = customer.id
+
+title = 'Payment Reminder'
+
+message = '${customer.name} owes KES ${balance}'
+
+Low Stock Alert: in your product‑update Edge Function or after a sale:
+
+After decrementing stock, if new quantity <= threshold, insert:
+
+type = 'low_stock'
+
+entity_id = product.id
+
+title = 'Low Stock Alert'
+
+message = '${product.name} is low: ${quantity} left'
+
+B. Front‑end React Hook
+Create useNotifications.js:
+
+js
+Copy
+Edit
+import { useState, useEffect } from 'react';
+import { supabase } from './supabaseClient';
+
+export default function useNotifications() {
+  const [list, setList] = useState([]);
+
+  // 1. Initial fetch
+  useEffect(() => {
+    supabase
+      .from('notifications')
+      .select('*')
+      .order('created_at', { ascending: false })
+      .then(({ data }) => setList(data));
+  }, []);
+
+  // 2. Real‑time subscription
+  useEffect(() => {
+    const channel = supabase
+      .from('notifications')
+      .on('INSERT', payload => {
+        setList(prev => [payload.new, ...prev]);
+      })
+      .subscribe();
+    return () => supabase.removeChannel(channel);
+  }, []);
+
+  // 3. Mark all read on panel open
+  const markAllRead = async () => {
+    await supabase
+      .from('notifications')
+      .update({ is_read: true })
+      .eq('is_read', false);
+    setList(prev => prev.map(n => ({ ...n, is_read: true })));
+  };
+
+  return { list, markAllRead };
+}
+C. TopBar Dropdown Component
+In TopBar.jsx, under the bell icon:
+
+jsx
+Copy
+Edit
+import useNotifications from './useNotifications';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+
+export default function NotificationsDropdown() {
+  const { list, markAllRead } = useNotifications();
+  const [open, setOpen] = useState(false);
+  const nav = useNavigate();
+
+  const handleToggle = () => {
+    if (!open) markAllRead();
+    setOpen(!open);
+  };
+
+  return (
+    <div className="relative">
+      <button onClick={handleToggle} aria-label="Notifications">
+        🔔{list.some(n => !n.is_read) && <span className="badge" />}
+      </button>
+      {open && (
+        <div className="absolute right-0 mt-2 w-80 bg-white dark:bg-gray-800 rounded shadow-lg z-50">
+          {list.length === 0 ? (
+            <p className="p-4 text-center text-gray-500">No notifications</p>
+          ) : (
+            list.map(n => (
+              <div
+                key={n.id}
+                className="p-3 border-b last:border-none hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
+                onClick={() => {
+                  if (n.type === 'credit') nav(`/customers/${n.entity_id}`);
+                  else nav(`/inventory?highlight=${n.entity_id}`);
+                  setOpen(false);
+                }}
+              >
+                <div className="font-semibold">
+                  {n.type === 'credit' ? '💳 ' : '⚠️ '}
+                  {n.title}
+                </div>
+                <div className="text-sm text-gray-600 dark:text-gray-400">{n.message}</div>
+                <div className="text-xs text-gray-400">{new Date(n.created_at).toLocaleString()}</div>
+              </div>
+            ))
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+D. QA Checklist
+ Only two notification types appear.
+
+ Real‑time new alerts show instantly under the bell.
+
+ Badge indicator appears if any is_read === false.
+
+ Opening the dropdown marks all as read and clears the badge.
+
+ Clicking “credit” takes you to /customers/:id.
+
+ Clicking “low_stock” takes you to /inventory?highlight=:id.
+
+ Panel UI is clean, scrollable, and responsive.
+

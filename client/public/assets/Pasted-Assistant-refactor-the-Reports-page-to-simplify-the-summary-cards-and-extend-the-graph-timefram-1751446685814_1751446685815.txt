@@ -1,0 +1,41 @@
+Assistant, refactor the **Reports** page to simplify the summary cards and extend the graph timeframes as follows—please overwrite existing code where needed:
+
+1. **Unified Summary Cards & Timeframe Dropdown**  
+   - Replace the separate “Today”, “This Week”, “This Month” card rows with:
+     - Four cards in a row (or responsive grid): **Total Sales**, **Cash Sales**, **Mobile Money**, **Credit Sales**.  
+     - Above these cards, add a single dropdown labeled **Timeframe** with options: “Today”, “This Week”, “This Month”.  
+       • On change, fetch summary data for the selected period from a new endpoint `/api/reports/summary?period=`.  
+   - Each card displays the metric for the chosen period (e.g. “KES 12,345”).  
+   - Use green (#00AA00) accents for numbers and dropdown border, black backgrounds, white text.  
+
+2. **Graph Timeframe Selector**  
+   - For the existing Sales Trend graph, replace hard‑coded daily view with a dropdown selector above the chart: “View: Daily”, “Weekly”, “Monthly”.  
+   - When **Daily** is selected, plot 24 hourly points; **Weekly** plots 7 daily points; **Monthly** plots 30 daily points.  
+   - Fetch data from `/api/reports/trend?period=` with the same period values. Data returns an array of `{ label, value }`.  
+   - Update the chart component to re-render on dropdown change, maintaining axes labels accordingly.
+
+3. **Backend Endpoints**  
+   - **GET** `/api/reports/summary?period={today|weekly|monthly}` returns:
+     ```js
+     {
+       totalSales, cashSales, mobileMoneySales, creditSales
+     }
+     ```
+   - **GET** `/api/reports/trend?period={daily|weekly|monthly}` returns:
+     ```js
+     [{ label: '08:00', value: 1200 }, …] // for daily
+     [{ label: 'Mon', value: 4500 }, …]    // for weekly
+     [{ label: '1', value: 3000 }, …]      // for monthly (day numbers)
+     ```
+
+4. **UI & UX Details**  
+   - Place both dropdowns in a sticky header above the cards/graph.  
+   - Show spinners in cards and chart while loading new data.  
+   - Handle no‑data cases with “No data for this period.”  
+   - Provide a QA checklist at the end.
+
+Generate all necessary React components/updates (including dropdowns, fetch logic, state hooks, and styling), Express route handlers for the two endpoints, and a Markdown QA checklist covering:  
+- Dropdown changes fetch correct data  
+- Cards update accordingly  
+- Chart re-renders on period change  
+- Styling and loading states display correctly.  

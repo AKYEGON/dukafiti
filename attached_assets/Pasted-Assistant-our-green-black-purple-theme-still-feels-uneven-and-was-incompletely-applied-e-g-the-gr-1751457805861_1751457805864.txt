@@ -1,0 +1,91 @@
+Assistant, our green/black/purple theme still feels uneven and was incompletely applied (e.g. the graph card on Reports didn’t update). I’d like you to perform a **thorough, research‑backed color redesign** and then implement it **across every component** with attention to aesthetics, consistency, and accessibility. Please overwrite existing styles and configuration. Your response should:
+
+---
+
+## 1. Research & Color Theory Rationale  
+1. **Color Harmony**  
+   - Use a **triadic palette** built around our base green (`#00AA00`), purple (`#6B46C1`), and a neutral black/gray.  
+   - Select complementary accent shades (e.g. a softer mint green for highlights, a lavender for secondary elements) using a color‑tool‑backed approach (e.g. Adobe Color CC, Coolors).  
+2. **Accessibility & Contrast**  
+   - Verify all text and UI elements meet **WCAG 2.1 AA** for contrast ratios (minimum 4.5:1 for text, 3:1 for UI).  
+   - Define these ratios in a small accessibility table referencing exact hex pairs.  
+3. **Emotional Tone & Branding**  
+   - Explain how the updated greens convey growth/trust, purples convey creativity/professionalism, and blacks provide grounding.  
+   - Show sample mockups or HEX swatches in the documentation.
+
+---
+
+## 2. Tailwind Configuration & Palette Update  
+- In `tailwind.config.js`, define named color tokens with light, DEFAULT, and dark variants for:  
+  ```js
+  emerald: { light: '#50C878', DEFAULT: '#00AA00', dark: '#007F3D' },
+  lavender: { light: '#B497BD', DEFAULT: '#6B46C1', dark: '#54308A' },
+  neutral:  { 50: '#F7F7F7', 100: '#E1E1E1', DEFAULT: '#1F1F1F', 900: '#000000' }
+Enable darkMode: 'class'.
+
+3. Component‑Level Styling Overhaul
+Graph Cards (Reports Page)
+
+Card background: bg-neutral-100 (light) / dark:bg-neutral-900.
+
+Border: border-emerald (light) / dark:border-lavender.
+
+Chart lines/bars: use emerald for primary series, lavender for secondary, and a neutral gray for gridlines.
+
+Axis labels: text-neutral-900 / dark:text-neutral-100.
+
+Summary Cards (Dashboard)
+
+Background: bg-white / dark:bg-neutral-900.
+
+Accent bar or icon: bg-emerald.
+
+Title text: text-neutral-800 / dark:text-neutral-200.
+
+Buttons & Interactive Elements
+
+Primary: bg-emerald hover:bg-emerald-dark text-white.
+
+Secondary: bg-lavender hover:bg-lavender-dark text-white.
+
+Disabled: bg-neutral-300 text-neutral-600.
+
+Forms & Inputs
+
+Borders: border-lavender, focus ring ring-emerald-light.
+
+Placeholder text text-neutral-500 / dark:text-neutral-400.
+
+4. Dark‑Mode Variants
+Use dark: variants to invert backgrounds and switch accent borders appropriately.
+
+Update global CSS to ensure any hard‑coded colors (e.g. graph card) are replaced.
+
+5. Implementation Steps & QA
+Automate Color Tokens: Update Tailwind and refactor any bg-... or text-... usages to use the new tokens.
+
+Graph Library Theming: For charts (Recharts/Chart.js), inject the new palette into the chart’s colors array and configure tooltips/axes.
+
+Global Component Refresh: Overwrite a shared Card component to enforce the new aesthetics.
+
+QA Checklist:
+
+All pages show updated backgrounds, borders, and accents with the refreshed palette.
+
+Graph cards and charts use the new triadic colors correctly.
+
+Text and UI elements meet contrast ratios.
+
+Dark mode flips correctly and remains accessible.
+
+Conduct a brief visual audit listing pages with before/after screenshots.
+
+Please produce:
+
+A short research summary (color tool references, contrast table, emotional rationale).
+
+The full updated tailwind.config.js.
+
+Overwrite code for Card.jsx, chart config for Reports, and a sample of 2–3 core pages (Dashboard, Sales, Reports) to illustrate the new palette applied end‑to‑end.
+
+The QA checklist as Markdown.```

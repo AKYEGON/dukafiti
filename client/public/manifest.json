@@ -1,0 +1,43 @@
+{
+  "name": "DukaFiti - Shop Management",
+  "short_name": "DukaFiti",
+  "description": "Complete offline shop management solution. Duka Fiti ni Duka Bora - Smart POS for Kenyan Dukawalas",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#7c3aed",
+  "theme_color": "#7c3aed",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "/assets/logo-d-black.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "/assets/logo-d-black.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable any"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/assets/logo-d-black.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "DukaFiti mobile dashboard"
+    }
+  ],
+  "categories": ["business", "productivity", "shopping"],
+  "features": [
+    "offline-support",
+    "background-sync",
+    "push-notifications"
+  ],
+  "prefer_related_applications": false,
+  "lang": "en",
+  "dir": "ltr"
+}

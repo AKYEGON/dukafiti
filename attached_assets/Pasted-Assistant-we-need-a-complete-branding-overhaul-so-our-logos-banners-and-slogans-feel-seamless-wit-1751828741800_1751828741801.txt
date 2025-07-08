@@ -1,0 +1,48 @@
+Assistant, we need a complete branding overhaul so our logos, banners, and slogans feel seamless with the UI—no more “patch” look. I’ll upload new asset images; once you have them, please:
+
+---
+
+## 1. Asset Integration  
+- Copy the uploaded images (`banner-hero.png`, `logo-full.png`, `slogan-text.svg`) into `public/assets/`.  
+- Ensure they’re optimized (correct dimensions, transparent backgrounds, compressed).
+
+## 2. Hero & Landing Banner  
+- In the Landing page, replace the existing hero banner with `banner-hero.png`.  
+- Style it to **blend** under the header:  
+  ```html
+  <div class="relative overflow-hidden rounded-lg shadow-lg">
+    <img src="/assets/banner-hero.png" alt="DukaSmart banner" class="w-full h-auto object-cover" />
+    <div class="absolute inset-0 bg-gradient-to-b from-transparent to-black/50"></div>
+    <div class="absolute bottom-8 left-8 text-white font-brand text-4xl">Your slogan here</div>
+  </div>
+3. Logo & Slogan Placement
+Sidebar: replace with logo-full.png set as bg-transparent on a bg-neutral-100 container so it sits naturally.
+
+TopBar (desktop): show slogan-text.svg as a subtle watermark behind the search input, 10% opacity.
+
+TopBar (mobile): use only the icon portion of logo-full.png, sized to 32×32 px, centered in a transparent circle.
+
+4. Component Backgrounds
+Wrap any logo or banner in a matching background container (bg-neutral-100 or dark:bg-neutral-900) so there’s no rectangular “patch.”
+
+Use Tailwind’s rounded-2xl and shadow-sm to give them gentle card‑like integration.
+
+5. Global Theme Adjustments
+In tailwind.config.js, update colors to match the new palette extracted from the uploaded banners/logos (use the eyedropper tool to get HEXs).
+
+Apply the new font-brand to headers and slogans.
+
+Consistently use bg-gradient-to-r from-primary to-secondary on section dividers to tie in the branding gradient.
+
+QA Checklist
+ New banner blends under header with gradient overlay and slogan text.
+
+ Sidebar and TopBar logos display without visible rectangular patches.
+
+ Slogan watermark in TopBar desktop is subtle and non‑intrusive.
+
+ Color palette throughout matches the new assets exactly.
+
+ All branding elements use rounded corners, shadows, and consistent fonts.
+
+Once I upload the images, please apply these branding overhauls across all relevant pages to achieve a cohesive, professional look.``

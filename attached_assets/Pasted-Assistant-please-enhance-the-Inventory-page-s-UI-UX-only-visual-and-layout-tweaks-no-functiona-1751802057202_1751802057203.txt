@@ -1,0 +1,67 @@
+Assistant, please enhance the **Inventory** page’s UI/UX—only visual and layout tweaks, no functional changes—to give it a clean, professional look while preserving existing features. Overwrite or update the Inventory component and its styles as follows:
+
+---
+
+## 1. Layout & Responsiveness  
+- **Desktop:**  
+  - Change the product grid to a **three‑column** layout (`grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6`).  
+  - Add a sticky, semi‑transparent header bar at the top of the page with the title “Inventory” and the search field.  
+- **Mobile/Tablets:**  
+  - Collapse to a **single‑column** list (`grid-cols-1 gap-4`).  
+  - Increase padding around each card for touch friendliness.
+
+---
+
+## 2. Card Redesign  
+- **Background & Elevation:**  
+  - Light: `bg-white rounded-lg shadow-lg hover:shadow-xl transition-shadow`  
+  - Dark: `dark:bg-[#1F1F1F] dark:shadow-[0_4px_12px_rgba(0,0,0,0.5)] hover:dark:shadow-[0_6px_16px_rgba(0,0,0,0.7)]`  
+- **Border & Accent:**  
+  - Add a **colored accent stripe** on the left (`border-l-4 border-primaryGreen`) if stock is above threshold, and `border-l-4 border-red-500` if low stock.  
+- **Content Layout:**  
+  - Product Name: `text-lg font-semibold mb-1`  
+  - Price: `text-base text-gray-700 dark:text-gray-300`  
+  - Quantity & Threshold on the same line: `Qty: X | Min: Y` in `text-sm text-gray-500`.  
+- **Action Buttons:**  
+  - Place “Edit” and “Delete” as two small icon buttons in the top‑right corner of each card (not full‑width).  
+  - Icon buttons: `p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700`.
+
+---
+
+## 3. Search & Sort Bar  
+- Make the search input full‑width in the sticky header: `w-full max-w-md px-4 py-2 border rounded-md focus:ring-2 focus:ring-primaryGreen`.  
+- Add a small **Sort** dropdown next to search (“Sort by Name/Qty/Price”) styled as `ml-4`.
+
+---
+
+## 4. Empty & Loading States  
+- **Loading:** Use skeleton loaders shaped like the new cards (`animate-pulse bg-gray-200 dark:bg-gray-700 rounded-lg h-32`).  
+- **Empty:** Centered message “No products found.” with a large, muted icon and a “Add your first product” button styled in primary green.
+
+---
+
+## 5. Accessibility & Feedback  
+- Ensure each card is keyboard‑focusable (`tabIndex="0"`) with `focus:outline-none focus:ring-2 focus:ring-primaryPurple`.  
+- Use high‑contrast text colors for readability.  
+- Add ARIA labels to the Edit/Delete buttons.
+
+---
+
+### QA Checklist  
+- [ ] Desktop shows 3‑column grid; mobile/tablet shows single column.  
+- [ ] Cards have accent stripes based on stock level, elevated shadows, and smooth hover transitions.  
+- [ ] Sticky header with search + sort stays in view on scroll.  
+- [ ] Edit/Delete icons appear top‑right of cards.  
+- [ ] Loading skeletons and empty-state UI match design.  
+- [ ] Keyboard focus and ARIA labels present.
+
+Apply these visual enhancements only—don’t alter any existing data or business logic.```
+
+
+
+
+
+
+
+
+Ask ChatGPT
