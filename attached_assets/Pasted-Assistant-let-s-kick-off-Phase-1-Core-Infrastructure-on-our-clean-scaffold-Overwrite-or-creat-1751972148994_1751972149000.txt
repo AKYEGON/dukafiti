@@ -1,0 +1,120 @@
+Assistant, let’s kick off **Phase 1: Core Infrastructure** on our clean scaffold. Overwrite or create files as needed:
+
+---
+
+## 1. Supabase Client & Environment
+
+1. **Install** Supabase JS:
+   ```bash
+   npm install @supabase/supabase-js
+Create src/lib/supabase.ts:
+
+ts
+Copy
+Edit
+import { createClient } from '@supabase/supabase-js';
+
+export const supabase = createClient(
+  import.meta.env.VITE_SUPABASE_URL!,
+  import.meta.env.VITE_SUPABASE_ANON_KEY!
+);
+Ensure your .env (or Replit secrets) defines VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.
+
+2. Auth Context
+Create src/contexts/AuthContext.tsx:
+
+tsx
+Copy
+Edit
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { supabase } from '../lib/supabase';
+
+interface AuthContextType {
+  user: User | null;
+}
+
+const AuthContext = createContext<AuthContextType>({ user: null });
+
+export const AuthProvider: React.FC = ({ children }) => {
+  const [user, setUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    const session = supabase.auth.getSession().data.session;
+    setUser(session?.user ?? null);
+
+    const { data: listener } = supabase.auth.onAuthStateChange((_e, session) => {
+      setUser(session?.user ?? null);
+    });
+    return () => listener.subscription.unsubscribe();
+  }, []);
+
+  return <AuthContext.Provider value={{ user }}>{children}</AuthContext.Provider>;
+};
+
+export const useAuth = () => useContext(AuthContext);
+Wrap your app in src/main.tsx (or App.tsx):
+
+tsx
+Copy
+Edit
+import ReactDOM from 'react-dom/client';
+import App from './App';
+import { AuthProvider } from './contexts/AuthContext';
+
+ReactDOM.createRoot(document.getElementById('root')!).render(
+  <AuthProvider>
+    <App />
+  </AuthProvider>
+);
+3. Routing & Layout
+Install React Router:
+
+bash
+Copy
+Edit
+npm install react-router-dom
+Update src/App.tsx:
+
+tsx
+Copy
+Edit
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import MainLayout from './components/MainLayout';
+import LoginPage from './pages/Login';
+import Dashboard from './pages/Dashboard';
+import Inventory from './pages/Inventory';
+import Customers from './pages/Customers';
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/login" element={<LoginPage />} />
+        <Route element={<MainLayout />}>
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/inventory" element={<Inventory />} />
+          <Route path="/customers" element={<Customers />} />
+        </Route>
+      </Routes>
+    </BrowserRouter>
+  );
+}
+Scaffold components/MainLayout.tsx with placeholders for Sidebar and TopBar and an <Outlet /> for child pages.
+
+4. Smoke Test
+Run npm run dev.
+
+Visit /login, /, /inventory, /customers.
+
+Verify each route renders a simple placeholder (e.g. “Login Page”, “Dashboard”, etc.) with no errors.
+
+Once these files are in place and the app builds & runs, mark Phase 1 as done in build-progress.json.```
+
+
+
+
+
+
+
+
+Ask ChatGPT
