@@ -1,117 +1,64 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '../lib/supabase';
 import { useAuth } from '@/contexts/SupabaseAuth';
 import type { Product } from '@shared/schema';
+import { getProducts, createProduct, updateProduct, deleteProduct } from '@/lib/supabase-data';
 
 export function useProducts() {
   const { user } = useAuth();
   
   return useQuery({
-    queryKey: ['products', user?.id],
+    queryKey: ['products'],
     queryFn: async () => {
-      if (!user?.id) throw new Error('No user ID');
-      
-      console.log('🔄 Fetching products via React Query');
-      const { data, error } = await supabase
-        .from('products')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false });
-      
-      if (error) {
-        console.error('❌ Products fetch error:', error);
-        throw error;
-      }
-      
-      console.log('✅ Products fetched via React Query:', data?.length, 'items');
-      return data || [];
+      console.log('📦 Fetching products via React Query');
+      return await getProducts();
     },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    gcTime: 10 * 60 * 1000, // 10 minutes
     enabled: !!user?.id
   });
 }
 
 export function useAddProduct() {
   const queryClient = useQueryClient();
-  const { user } = useAuth();
   
   return useMutation({
-    mutationFn: async (newProduct: Omit<Product, 'id' | 'user_id' | 'created_at' | 'updated_at'>) => {
-      if (!user?.id) throw new Error('No user ID');
-      
-      console.log('➕ Adding product via React Query');
-      const { data, error } = await supabase
-        .from('products')
-        .insert([{ ...newProduct, user_id: user.id }])
-        .select()
-        .single();
-      
-      if (error) {
-        console.error('❌ Add product error:', error);
-        throw error;
-      }
-      
-      console.log('✅ Product added via React Query:', data);
-      return data;
+    mutationFn: async (newProduct: any) => {
+      console.log('➕ Adding product via React Query using createProduct');
+      return await createProduct(newProduct);
     },
     onSuccess: () => {
       console.log('🔄 Invalidating products cache after add');
-      queryClient.invalidateQueries({ queryKey: ['products', user?.id] });
+      queryClient.invalidateQueries({ queryKey: ['products'] });
     },
   });
 }
 
 export function useUpdateProduct() {
   const queryClient = useQueryClient();
-  const { user } = useAuth();
   
   return useMutation({
-    mutationFn: async ({ id, updates }: { id: number; updates: Partial<Product> }) => {
-      console.log('🔄 Updating product via React Query:', id);
-      const { data, error } = await supabase
-        .from('products')
-        .update(updates)
-        .eq('id', id)
-        .select()
-        .single();
-      
-      if (error) {
-        console.error('❌ Update product error:', error);
-        throw error;
-      }
-      
-      console.log('✅ Product updated via React Query:', data);
-      return data;
+    mutationFn: async ({ id, updates }: { id: number; updates: any }) => {
+      console.log('🔄 Updating product via React Query using updateProduct');
+      return await updateProduct(id, updates);
     },
     onSuccess: () => {
       console.log('🔄 Invalidating products cache after update');
-      queryClient.invalidateQueries({ queryKey: ['products', user?.id] });
+      queryClient.invalidateQueries({ queryKey: ['products'] });
     },
   });
 }
 
 export function useDeleteProduct() {
   const queryClient = useQueryClient();
-  const { user } = useAuth();
   
   return useMutation({
     mutationFn: async (id: number) => {
-      console.log('🗑️ Deleting product via React Query:', id);
-      const { error } = await supabase
-        .from('products')
-        .delete()
-        .eq('id', id);
-      
-      if (error) {
-        console.error('❌ Delete product error:', error);
-        throw error;
-      }
-      
-      console.log('✅ Product deleted via React Query');
-      return id;
+      console.log('🗑️ Deleting product via React Query using deleteProduct');
+      return await deleteProduct(id);
     },
     onSuccess: () => {
       console.log('🔄 Invalidating products cache after delete');
-      queryClient.invalidateQueries({ queryKey: ['products', user?.id] });
+      queryClient.invalidateQueries({ queryKey: ['products'] });
     },
   });
 }
