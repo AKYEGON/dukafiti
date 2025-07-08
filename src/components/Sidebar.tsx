@@ -6,7 +6,8 @@ export default function Sidebar() {
   const navItems = [
     { path: '/', label: 'Dashboard' },
     { path: '/inventory', label: 'Inventory' },
-    { path: '/customers', label: 'Customers' }
+    { path: '/customers', label: 'Customers' },
+    { path: '/test', label: 'Test Data Layer' }
   ];
 
   return (

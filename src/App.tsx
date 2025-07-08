@@ -4,6 +4,7 @@ import LoginPage from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Inventory from './pages/Inventory';
 import Customers from './pages/Customers';
+import TestDataLayer from './pages/TestDataLayer';
 
 export default function App() {
   return (
@@ -14,6 +15,7 @@ export default function App() {
           <Route path="/" element={<Dashboard />} />
           <Route path="/inventory" element={<Inventory />} />
           <Route path="/customers" element={<Customers />} />
+          <Route path="/test" element={<TestDataLayer />} />
         </Route>
       </Routes>
     </BrowserRouter>
