@@ -1,5 +1,4 @@
-import { useState, useMemo } from "react";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useState, useMemo, useEffect } from "react";
 import { Plus, User, Phone, Search, Filter, CreditCard, Eye, AlertCircle, Trash2, Edit } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -13,16 +12,17 @@ import { MobilePageWrapper } from "@/components/layout/mobile-page-wrapper";
 import { motion, AnimatePresence } from "framer-motion";
 import { getCustomers, deleteCustomer } from "@/lib/supabase-data";
 import { useToast } from "@/hooks/use-toast";
-import type { Customer } from "@shared/schema";
+import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/contexts/SupabaseAuth";
+import type { Customer } from "@/types/schema";
 
 export default function Customers() {
-  const { data: customers, isLoading } = useQuery<Customer[]>({
-    queryKey: ["customers"],
-    queryFn: getCustomers,
-  });
+  // Real-time data state - mirroring Dashboard pattern
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  const queryClient = useQueryClient();
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const [showNewCustomerForm, setShowNewCustomerForm] = useState(false);
   const [showEditCustomerForm, setShowEditCustomerForm] = useState(false);
@@ -32,6 +32,73 @@ export default function Customers() {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterType, setFilterType] = useState<"all" | "withDebt" | "noDebt">("all");
   const [isDeleting, setIsDeleting] = useState(false);
+
+  // Runtime fetch function - mirroring Dashboard's pattern
+  const fetchCustomers = async () => {
+    if (!user) return;
+    
+    try {
+      setIsLoading(true);
+      console.log('Fetching customers from database...');
+      const { data, error } = await supabase
+        .from('customers')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (error) {
+        console.error('Error fetching customers:', error);
+        toast({
+          title: "Error loading customers",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else {
+        console.log(`Fetched ${data?.length || 0} customers from database`);
+        setCustomers(data || []);
+      }
+    } catch (error) {
+      console.error('Error in fetchCustomers:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Fetch on mount - mirroring Dashboard's useEffect pattern
+  useEffect(() => {
+    if (!user) return;
+    fetchCustomers();
+  }, [user]);
+
+  // Real-time subscription - mirroring Dashboard's pattern
+  useEffect(() => {
+    if (!user) return;
+    
+    console.log('Setting up real-time subscription for customers...');
+    const channel = supabase
+      .channel('customers_changes')
+      .on('postgres_changes', 
+        { event: '*', schema: 'public', table: 'customers' },
+        async (payload) => {
+          console.log('Real-time customers update:', payload);
+          
+          if (payload.eventType === 'INSERT') {
+            setCustomers(prev => [payload.new as Customer, ...prev]);
+          } else if (payload.eventType === 'UPDATE') {
+            setCustomers(prev => prev.map(customer => 
+              customer.id === payload.new.id ? payload.new as Customer : customer
+            ));
+          } else if (payload.eventType === 'DELETE') {
+            setCustomers(prev => prev.filter(customer => customer.id !== payload.old.id));
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      console.log('Cleaning up customers real-time subscription');
+      supabase.removeChannel(channel);
+    };
+  }, [user]);
 
   // Filter and search customers
   const filteredCustomers = useMemo(() => {
@@ -72,18 +139,35 @@ export default function Customers() {
     setShowDeleteConfirm(true);
   };
 
+  // Delete handler - refetch after mutation (mirroring Dashboard pattern)
   const confirmDeleteCustomer = async () => {
     if (!selectedCustomer) return;
     
     setIsDeleting(true);
     try {
-      await deleteCustomer(selectedCustomer.id);
-      toast({
-        title: "Success",
-        description: "Customer deleted successfully",
-      });
-      queryClient.invalidateQueries({ queryKey: ["customers"] });
+      console.log('Deleting customer:', selectedCustomer.id);
+      const { error } = await supabase
+        .from('customers')
+        .delete()
+        .eq('id', selectedCustomer.id);
+      
+      if (error) {
+        console.error('Error deleting customer:', error);
+        toast({
+          title: "Error",
+          description: error.message || "Failed to delete customer",
+          variant: "destructive",
+        });
+      } else {
+        // Refetch customers after successful deletion
+        await fetchCustomers();
+        toast({
+          title: "Success",
+          description: "Customer deleted successfully",
+        });
+      }
     } catch (error: any) {
+      console.error('Error in confirmDeleteCustomer:', error);
       toast({
         title: "Error",
         description: error.message || "Failed to delete customer",
@@ -323,6 +407,7 @@ export default function Customers() {
         <CustomerForm
           open={showNewCustomerForm}
           onOpenChange={setShowNewCustomerForm}
+          onSuccess={fetchCustomers}
         />
 
         {/* Edit Customer Form Modal */}
@@ -330,6 +415,7 @@ export default function Customers() {
           open={showEditCustomerForm}
           onOpenChange={setShowEditCustomerForm}
           customer={selectedCustomer || undefined}
+          onSuccess={fetchCustomers}
         />
 
         {/* Record Repayment Modal */}

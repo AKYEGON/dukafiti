@@ -23,9 +23,10 @@ interface CustomerFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   customer?: Customer;
+  onSuccess?: () => void;
 }
 
-export function CustomerForm({ open, onOpenChange, customer }: CustomerFormProps) {
+export function CustomerForm({ open, onOpenChange, customer, onSuccess }: CustomerFormProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -87,7 +88,7 @@ export function CustomerForm({ open, onOpenChange, customer }: CustomerFormProps
         });
       }
       
-      queryClient.invalidateQueries({ queryKey: ["customers"] });
+      if (onSuccess) onSuccess();
       onOpenChange(false);
       form.reset();
     } catch (error: any) {

@@ -28,9 +28,10 @@ interface ProductFormProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   product?: Product;
+  onSuccess?: () => void;
 }
 
-export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
+export function ProductForm({ open, onOpenChange, product, onSuccess }: ProductFormProps) {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [unknownQuantity, setUnknownQuantity] = useState(false);
@@ -97,8 +98,7 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["products"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/dashboard/metrics"] });
+      if (onSuccess) onSuccess();
       toast({ title: "Product created successfully", variant: "default" });
       onOpenChange(false);
       form.reset();
@@ -127,8 +127,7 @@ export function ProductForm({ open, onOpenChange, product }: ProductFormProps) {
       return await updateProduct(product!.id, data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["products"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/dashboard/metrics"] });
+      if (onSuccess) onSuccess();
       toast({ title: "Product updated successfully" });
       onOpenChange(false);
     },

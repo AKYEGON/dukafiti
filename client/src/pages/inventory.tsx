@@ -1,6 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { type Product } from "@shared/schema";
+import { type Product } from "@/types/schema";
 import { ProductForm } from "@/components/inventory/product-form";
 import { RestockModal } from "@/components/inventory/restock-modal";
 
@@ -24,12 +23,12 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Search, Package, Edit, Trash2, Plus, PackagePlus } from "lucide-react";
-import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
 import useNotifications from "@/hooks/useNotifications";
 import { getProducts, updateProduct, deleteProduct, createProduct } from "@/lib/supabase-data";
 import { supabase } from "@/lib/supabase";
+import { useAuth } from "@/contexts/SupabaseAuth";
 
 type SortOption = "name-asc" | "name-desc" | "price-asc" | "price-desc";
 
@@ -40,84 +39,116 @@ export default function Inventory() {
   const [editingProduct, setEditingProduct] = useState<Product | undefined>();
   const [deleteProduct, setDeleteProduct] = useState<Product | undefined>();
   const [restockProduct, setRestockProduct] = useState<Product | undefined>();
+  
+  // Real-time data state - mirroring Dashboard pattern
+  const [products, setProducts] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   const { toast } = useToast();
-  const queryClient = useQueryClient();
   const { createNotification } = useNotifications();
+  const { user } = useAuth();
 
-  const { data: products, isLoading, refetch } = useQuery<Product[]>({
-    queryKey: ["products"],
-    queryFn: async () => {
-      console.log('Fetching products from database...');
-      const { getProducts } = await import("@/lib/supabase-data");
-      const products = await getProducts();
-      console.log(`Fetched ${products.length} products from database`);
-      return products;
-    },
-    staleTime: 0, // Always consider data stale to ensure fresh data
-    cacheTime: 1000 * 60 * 5, // Keep in cache for 5 minutes
-  });
-
-  // Set up real-time subscription for product updates (stock changes from sales)
-  useEffect(() => {
-    console.log('🔗 Setting up real-time product subscription...');
+  // Runtime fetch function - mirroring Dashboard's pattern
+  const fetchProducts = async () => {
+    if (!user) return;
     
-    const subscription = supabase
-      .channel('products_realtime_inventory')
-      .on('postgres_changes', {
-        event: 'UPDATE',
-        schema: 'public',
-        table: 'products'
-      }, (payload) => {
-        console.log('📦 Product updated via realtime:', payload.new);
-        
-        // Update the products query cache with the new data
-        queryClient.setQueryData<Product[]>(['products'], (oldProducts) => {
-          if (!oldProducts) return oldProducts;
-          
-          const updatedProduct = payload.new as Product;
-          return oldProducts.map(product => 
-            product.id === updatedProduct.id ? updatedProduct : product
-          );
+    try {
+      setIsLoading(true);
+      console.log('Fetching products from database...');
+      const { data, error } = await supabase
+        .from('products')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (error) {
+        console.error('Error fetching products:', error);
+        toast({
+          title: "Error loading products",
+          description: error.message,
+          variant: "destructive",
         });
-        
-        // Also update frequent products cache
-        queryClient.setQueryData<Product[]>(['products-frequent'], (oldProducts) => {
-          if (!oldProducts) return oldProducts;
+      } else {
+        console.log(`Fetched ${data?.length || 0} products from database`);
+        setProducts(data || []);
+      }
+    } catch (error) {
+      console.error('Error in fetchProducts:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Fetch on mount - mirroring Dashboard's useEffect pattern
+  useEffect(() => {
+    if (!user) return;
+    fetchProducts();
+  }, [user]);
+
+  // Real-time subscription - mirroring Dashboard's pattern
+  useEffect(() => {
+    if (!user) return;
+    
+    console.log('Setting up real-time subscription for products...');
+    const channel = supabase
+      .channel('products_changes')
+      .on('postgres_changes', 
+        { event: '*', schema: 'public', table: 'products' },
+        async (payload) => {
+          console.log('Real-time products update:', payload);
           
-          const updatedProduct = payload.new as Product;
-          return oldProducts.map(product => 
-            product.id === updatedProduct.id ? updatedProduct : product
-          );
-        });
-        
-        console.log('✅ Product cache updated with real-time data');
-      })
-      .subscribe((status) => {
-        console.log('📊 Products subscription status:', status);
-      });
+          if (payload.eventType === 'INSERT') {
+            setProducts(prev => [payload.new as Product, ...prev]);
+          } else if (payload.eventType === 'UPDATE') {
+            setProducts(prev => prev.map(product => 
+              product.id === payload.new.id ? payload.new as Product : product
+            ));
+          } else if (payload.eventType === 'DELETE') {
+            setProducts(prev => prev.filter(product => product.id !== payload.old.id));
+          }
+        }
+      )
+      .subscribe();
 
     return () => {
-      console.log('🔌 Cleaning up products real-time subscription');
-      supabase.removeChannel(subscription);
+      console.log('Cleaning up products real-time subscription');
+      supabase.removeChannel(channel);
     };
-  }, [queryClient]);
+  }, [user]);
 
-  const deleteMutation = useMutation({
-    mutationFn: async (id: number) => {
-      const { deleteProduct } = await import("@/lib/supabase-data");
-      await deleteProduct(id);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["products"] });
-      queryClient.invalidateQueries({ queryKey: ["/api/dashboard/metrics"] });
-      toast({ title: "Product deleted successfully" });
-      setDeleteProduct(undefined);
-    },
-    onError: () => {
-      toast({ title: "Failed to delete product", variant: "destructive" });
-    },
-  });
+
+
+  // Delete handler - refetch after mutation (mirroring Dashboard pattern)
+  const handleDeleteConfirm = async () => {
+    if (!deleteProduct) return;
+    
+    try {
+      console.log('Deleting product:', deleteProduct.id);
+      const { error } = await supabase
+        .from('products')
+        .delete()
+        .eq('id', deleteProduct.id);
+      
+      if (error) {
+        console.error('Error deleting product:', error);
+        toast({ 
+          title: "Failed to delete product", 
+          description: error.message,
+          variant: "destructive" 
+        });
+      } else {
+        // Refetch products after successful deletion
+        await fetchProducts();
+        toast({ title: "Product deleted successfully" });
+        setDeleteProduct(undefined);
+      }
+    } catch (error) {
+      console.error('Error in handleDeleteConfirm:', error);
+      toast({ 
+        title: "Failed to delete product", 
+        variant: "destructive" 
+      });
+    }
+  };
 
   const filteredAndSortedProducts = useMemo(() => {
     let result = products?.filter(product =>
@@ -311,6 +342,7 @@ export default function Inventory() {
         open={showProductForm}
         onOpenChange={handleFormClose}
         product={editingProduct}
+        onSuccess={fetchProducts}
       />
 
       {/* Restock Modal */}
@@ -332,7 +364,7 @@ export default function Inventory() {
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
-              onClick={() => deleteProduct && deleteMutation.mutate(deleteProduct.id)}
+              onClick={handleDeleteConfirm}
               className="bg-red-600 hover:bg-red-700"
             >
               Delete
