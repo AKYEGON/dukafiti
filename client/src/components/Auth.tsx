@@ -40,7 +40,9 @@ export default function Auth() {
       <div className="max-w-md w-full mx-4">
         <div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-lg">
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">DukaFiti</h1>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">
+              DukaFiti
+            </h1>
             <p className="text-gray-600 dark:text-gray-400 mt-2">
               {isLogin ? 'Sign in to your account' : 'Create your account'}
             </p>
@@ -76,11 +78,13 @@ export default function Auth() {
             </div>
 
             {message && (
-              <div className={`p-3 rounded-lg text-sm ${
-                message.includes('email') 
-                  ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300'
-                  : 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300'
-              }`}>
+              <div
+                className={`p-3 rounded-lg text-sm ${
+                  message.includes('email')
+                    ? 'bg-blue-100 text-blue-700 dark:bg-blue-900 dark:text-blue-300'
+                    : 'bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-300'
+                }`}
+              >
                 {message}
               </div>
             )}
@@ -102,7 +106,9 @@ export default function Auth() {
               }}
               className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
             >
-              {isLogin ? "Don't have an account? Sign up" : 'Already have an account? Sign in'}
+              {isLogin
+                ? "Don't have an account? Sign up"
+                : 'Already have an account? Sign in'}
             </button>
           </div>
         </div>

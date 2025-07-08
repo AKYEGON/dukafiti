@@ -8,7 +8,7 @@ export default function Inventory() {
   const addProduct = useMutation<Product>('products', 'insert');
   const updateProduct = useMutation<Product>('products', 'update');
   const deleteProduct = useMutation<Product>('products', 'delete');
-  
+
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | null>(null);
   const [formData, setFormData] = useState({
@@ -18,7 +18,7 @@ export default function Inventory() {
     cost_price: '',
     stock_quantity: '',
     category: '',
-    description: ''
+    description: '',
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -27,8 +27,12 @@ export default function Inventory() {
       const productData = {
         ...formData,
         price: parseFloat(formData.price),
-        cost_price: formData.cost_price ? parseFloat(formData.cost_price) : undefined,
-        stock_quantity: formData.stock_quantity ? parseInt(formData.stock_quantity) : undefined,
+        cost_price: formData.cost_price
+          ? parseFloat(formData.cost_price)
+          : undefined,
+        stock_quantity: formData.stock_quantity
+          ? parseInt(formData.stock_quantity)
+          : undefined,
       };
 
       if (editingProduct) {
@@ -36,7 +40,7 @@ export default function Inventory() {
       } else {
         await addProduct.mutate(productData);
       }
-      
+
       resetForm();
     } catch (error) {
       console.error('Failed to save product:', error);
@@ -61,7 +65,7 @@ export default function Inventory() {
       cost_price: '',
       stock_quantity: '',
       category: '',
-      description: ''
+      description: '',
     });
     setShowAddModal(false);
     setEditingProduct(null);
@@ -75,7 +79,7 @@ export default function Inventory() {
       cost_price: product.cost_price?.toString() || '',
       stock_quantity: product.stock_quantity?.toString() || '',
       category: product.category || '',
-      description: product.description || ''
+      description: product.description || '',
     });
     setEditingProduct(product);
   };
@@ -87,7 +91,9 @@ export default function Inventory() {
   return (
     <div className="p-6 space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Inventory</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+          Inventory
+        </h1>
         <button
           onClick={() => setShowAddModal(true)}
           className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg"
@@ -99,9 +105,14 @@ export default function Inventory() {
       {/* Products Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {products.map((product) => (
-          <div key={product.id} className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
+          <div
+            key={product.id}
+            className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow"
+          >
             <div className="flex justify-between items-start mb-4">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{product.name}</h3>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                {product.name}
+              </h3>
               <div className="flex space-x-2">
                 <button
                   onClick={() => openEditModal(product)}
@@ -117,14 +128,20 @@ export default function Inventory() {
                 </button>
               </div>
             </div>
-            
+
             <div className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
               {product.sku && <p>SKU: {product.sku}</p>}
-              <p className="text-lg font-bold text-green-600">KES {product.price.toLocaleString()}</p>
+              <p className="text-lg font-bold text-green-600">
+                KES {product.price.toLocaleString()}
+              </p>
               {product.stock_quantity !== undefined && (
-                <p className={`font-medium ${
-                  product.stock_quantity <= 10 ? 'text-red-600' : 'text-green-600'
-                }`}>
+                <p
+                  className={`font-medium ${
+                    product.stock_quantity <= 10
+                      ? 'text-red-600'
+                      : 'text-green-600'
+                  }`}
+                >
                   Stock: {product.stock_quantity}
                 </p>
               )}
@@ -141,68 +158,82 @@ export default function Inventory() {
             <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-gray-100">
               {editingProduct ? 'Edit Product' : 'Add Product'}
             </h2>
-            
+
             <form onSubmit={handleSubmit} className="space-y-4">
               <input
                 type="text"
                 placeholder="Product Name"
                 value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, name: e.target.value })
+                }
                 className="w-full p-3 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
                 required
               />
-              
+
               <input
                 type="text"
                 placeholder="SKU (optional)"
                 value={formData.sku}
-                onChange={(e) => setFormData({ ...formData, sku: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, sku: e.target.value })
+                }
                 className="w-full p-3 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
               />
-              
+
               <input
                 type="number"
                 step="0.01"
                 placeholder="Price"
                 value={formData.price}
-                onChange={(e) => setFormData({ ...formData, price: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, price: e.target.value })
+                }
                 className="w-full p-3 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
                 required
               />
-              
+
               <input
                 type="number"
                 step="0.01"
                 placeholder="Cost Price (optional)"
                 value={formData.cost_price}
-                onChange={(e) => setFormData({ ...formData, cost_price: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, cost_price: e.target.value })
+                }
                 className="w-full p-3 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
               />
-              
+
               <input
                 type="number"
                 placeholder="Stock Quantity (optional)"
                 value={formData.stock_quantity}
-                onChange={(e) => setFormData({ ...formData, stock_quantity: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, stock_quantity: e.target.value })
+                }
                 className="w-full p-3 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
               />
-              
+
               <input
                 type="text"
                 placeholder="Category (optional)"
                 value={formData.category}
-                onChange={(e) => setFormData({ ...formData, category: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, category: e.target.value })
+                }
                 className="w-full p-3 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
               />
-              
+
               <textarea
                 placeholder="Description (optional)"
                 value={formData.description}
-                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, description: e.target.value })
+                }
                 className="w-full p-3 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
                 rows={3}
               />
-              
+
               <div className="flex space-x-4">
                 <button
                   type="submit"

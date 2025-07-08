@@ -24,10 +24,14 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         {/* Sidebar */}
         <div className="w-64 bg-white dark:bg-gray-800 shadow-lg">
           <div className="p-6">
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">DukaFiti</h1>
-            <p className="text-sm text-gray-600 dark:text-gray-400">Business Management</p>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+              DukaFiti
+            </h1>
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              Business Management
+            </p>
           </div>
-          
+
           <nav className="mt-6">
             {navigation.map((item) => {
               const isActive = location === item.href;
@@ -55,7 +59,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             <div className="px-6 py-4">
               <div className="flex justify-between items-center">
                 <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
-                  {navigation.find(item => item.href === location)?.name || 'DukaFiti'}
+                  {navigation.find((item) => item.href === location)?.name ||
+                    'DukaFiti'}
                 </h2>
                 <div className="flex items-center space-x-4">
                   <span className="text-sm text-gray-600 dark:text-gray-400">
@@ -65,7 +70,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               </div>
             </div>
           </header>
-          
+
           <main>{children}</main>
         </div>
       </div>

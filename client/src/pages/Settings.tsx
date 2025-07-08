@@ -9,7 +9,7 @@ export default function Settings() {
     owner_name: '',
     phone: '',
     address: '',
-    currency: 'KES'
+    currency: 'KES',
   });
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
@@ -34,7 +34,7 @@ export default function Settings() {
           owner_name: data.owner_name || '',
           phone: data.phone || '',
           address: data.address || '',
-          currency: data.currency || 'KES'
+          currency: data.currency || 'KES',
         });
       }
     } catch (error) {
@@ -50,13 +50,11 @@ export default function Settings() {
     setMessage('');
 
     try {
-      const { error } = await supabase
-        .from('settings')
-        .upsert({
-          store_id: user.id,
-          ...settings,
-          updated_at: new Date().toISOString()
-        });
+      const { error } = await supabase.from('settings').upsert({
+        store_id: user.id,
+        ...settings,
+        updated_at: new Date().toISOString(),
+      });
 
       if (error) throw error;
       setMessage('Settings saved successfully!');
@@ -76,12 +74,16 @@ export default function Settings() {
 
   return (
     <div className="p-6 space-y-6">
-      <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Settings</h1>
+      <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+        Settings
+      </h1>
 
       <div className="max-w-md">
         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
-          <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100">Store Information</h2>
-          
+          <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100">
+            Store Information
+          </h2>
+
           <form onSubmit={saveSettings} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -90,7 +92,9 @@ export default function Settings() {
               <input
                 type="text"
                 value={settings.store_name}
-                onChange={(e) => setSettings({ ...settings, store_name: e.target.value })}
+                onChange={(e) =>
+                  setSettings({ ...settings, store_name: e.target.value })
+                }
                 className="w-full p-3 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
                 placeholder="Your Store Name"
               />
@@ -103,7 +107,9 @@ export default function Settings() {
               <input
                 type="text"
                 value={settings.owner_name}
-                onChange={(e) => setSettings({ ...settings, owner_name: e.target.value })}
+                onChange={(e) =>
+                  setSettings({ ...settings, owner_name: e.target.value })
+                }
                 className="w-full p-3 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
                 placeholder="Your Name"
               />
@@ -116,7 +122,9 @@ export default function Settings() {
               <input
                 type="tel"
                 value={settings.phone}
-                onChange={(e) => setSettings({ ...settings, phone: e.target.value })}
+                onChange={(e) =>
+                  setSettings({ ...settings, phone: e.target.value })
+                }
                 className="w-full p-3 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
                 placeholder="Phone Number"
               />
@@ -128,7 +136,9 @@ export default function Settings() {
               </label>
               <textarea
                 value={settings.address}
-                onChange={(e) => setSettings({ ...settings, address: e.target.value })}
+                onChange={(e) =>
+                  setSettings({ ...settings, address: e.target.value })
+                }
                 className="w-full p-3 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
                 placeholder="Store Address"
                 rows={3}
@@ -141,7 +151,9 @@ export default function Settings() {
               </label>
               <select
                 value={settings.currency}
-                onChange={(e) => setSettings({ ...settings, currency: e.target.value })}
+                onChange={(e) =>
+                  setSettings({ ...settings, currency: e.target.value })
+                }
                 className="w-full p-3 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
               >
                 <option value="KES">KES (Kenyan Shilling)</option>
@@ -151,11 +163,13 @@ export default function Settings() {
             </div>
 
             {message && (
-              <div className={`p-3 rounded ${
-                message.includes('successfully') 
-                  ? 'bg-green-100 text-green-700' 
-                  : 'bg-red-100 text-red-700'
-              }`}>
+              <div
+                className={`p-3 rounded ${
+                  message.includes('successfully')
+                    ? 'bg-green-100 text-green-700'
+                    : 'bg-red-100 text-red-700'
+                }`}
+              >
                 {message}
               </div>
             )}
@@ -171,7 +185,9 @@ export default function Settings() {
         </div>
 
         <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
-          <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100">Account</h2>
+          <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100">
+            Account
+          </h2>
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -184,7 +200,7 @@ export default function Settings() {
                 className="w-full p-3 border rounded-lg bg-gray-50 dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
               />
             </div>
-            
+
             <button
               onClick={handleLogout}
               className="w-full bg-red-600 hover:bg-red-700 text-white py-2 rounded-lg"

@@ -44,36 +44,62 @@ export default function useOfflineQueue() {
     };
   }, []);
 
-  const enqueue = useCallback((action: Omit<QueuedAction, 'id' | 'timestamp'>) => {
-    const queuedAction: QueuedAction = {
-      ...action,
-      id: Date.now().toString(),
-      timestamp: Date.now(),
-    };
-    
-    setQueue(prev => [...prev, queuedAction]);
-    return queuedAction.id;
-  }, []);
+  const enqueue = useCallback(
+    (action: Omit<QueuedAction, 'id' | 'timestamp'>) => {
+      const queuedAction: QueuedAction = {
+        ...action,
+        id: Date.now().toString(),
+        timestamp: Date.now(),
+      };
+
+      setQueue((prev) => [...prev, queuedAction]);
+      return queuedAction.id;
+    },
+    []
+  );
 
   const syncQueue = useCallback(async () => {
     if (!isOnline || queue.length === 0 || syncing) return;
 
     setSyncing(true);
-    
-    try {
-      // Process queue items one by one
-      for (const action of queue) {
-        // This would integrate with your mutation system
-        console.log('Syncing action:', action);
-        // Remove from queue after successful sync
-        setQueue(prev => prev.filter(item => item.id !== action.id));
+
+    const failedActions: QueuedAction[] = [];
+
+    for (const action of queue) {
+      try {
+        // Import supabase dynamically to avoid circular deps
+        const { supabase } = await import('../lib/supabase');
+
+        let query;
+        if (action.type === 'insert') {
+          query = supabase.from(action.table).insert([action.payload]);
+        } else if (action.type === 'update') {
+          const { id, ...rest } = action.payload;
+          query = supabase.from(action.table).update(rest).eq('id', id);
+        } else if (action.type === 'delete') {
+          query = supabase.from(action.table).delete().eq('id', action.payload.id);
+        }
+
+        const { error } = await query!;
+        if (error) throw error;
+
+        // Remove successfully synced action
+        setQueue((prev) => prev.filter((item) => item.id !== action.id));
+      } catch (err) {
+        console.error(`Failed to sync action ${action.id}:`, err);
+        failedActions.push(action);
       }
-    } catch (err) {
-      console.error('Sync failed:', err);
-    } finally {
-      setSyncing(false);
     }
-  }, [isOnline, queue, syncing]);
+
+    // Keep failed actions in queue for retry
+    if (failedActions.length > 0) {
+      console.log(
+        `${failedActions.length} actions failed to sync, will retry later`
+      );
+    }
+
+    setSyncing(false);
+  }, [isOnline, queue.length, syncing]);
 
   // Auto-sync when coming back online
   useEffect(() => {

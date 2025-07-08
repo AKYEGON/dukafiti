@@ -2,7 +2,9 @@ import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../contexts/AuthContext';
 
-export default function useLiveData<T extends { id: string; store_id?: string }>(table: string) {
+export default function useLiveData<
+  T extends { id: string; store_id?: string },
+>(table: string) {
   const { user } = useAuth();
   const [items, setItems] = useState<T[]>([]);
   const [loading, setLoading] = useState(true);

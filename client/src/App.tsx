@@ -1,13 +1,13 @@
-import { Route, Router } from "wouter";
-import { AuthProvider, useAuth } from "./contexts/AuthContext";
-import Layout from "./components/Layout";
-import Auth from "./components/Auth";
-import Dashboard from "./pages/Dashboard";
-import Sales from "./pages/Sales";
-import Inventory from "./pages/Inventory";
-import Customers from "./pages/Customers";
-import Reports from "./pages/Reports";
-import Settings from "./pages/Settings";
+import { Route, Router } from 'wouter';
+import { AuthProvider, useAuth } from './contexts/AuthContext';
+import Layout from './components/Layout';
+import Auth from './components/Auth';
+import Dashboard from './pages/Dashboard';
+import Sales from './pages/Sales';
+import Inventory from './pages/Inventory';
+import Customers from './pages/Customers';
+import Reports from './pages/Reports';
+import Settings from './pages/Settings';
 
 function AppContent() {
   const { user, loading } = useAuth();
@@ -37,9 +37,7 @@ function AppContent() {
         <Route path="/customers" component={Customers} />
         <Route path="/reports" component={Reports} />
         <Route path="/settings" component={Settings} />
-        <Route>
-          {() => <Dashboard />}
-        </Route>
+        <Route>{() => <Dashboard />}</Route>
       </Router>
     </Layout>
   );

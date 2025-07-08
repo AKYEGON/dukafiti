@@ -8,7 +8,7 @@ export default function Customers() {
   const addCustomer = useMutation<Customer>('customers', 'insert');
   const updateCustomer = useMutation<Customer>('customers', 'update');
   const deleteCustomer = useMutation<Customer>('customers', 'delete');
-  
+
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
   const [formData, setFormData] = useState({
@@ -16,7 +16,7 @@ export default function Customers() {
     phone: '',
     email: '',
     address: '',
-    balance: ''
+    balance: '',
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -28,11 +28,14 @@ export default function Customers() {
       };
 
       if (editingCustomer) {
-        await updateCustomer.mutate({ ...customerData, id: editingCustomer.id });
+        await updateCustomer.mutate({
+          ...customerData,
+          id: editingCustomer.id,
+        });
       } else {
         await addCustomer.mutate(customerData);
       }
-      
+
       resetForm();
     } catch (error) {
       console.error('Failed to save customer:', error);
@@ -55,7 +58,7 @@ export default function Customers() {
       phone: '',
       email: '',
       address: '',
-      balance: ''
+      balance: '',
     });
     setShowAddModal(false);
     setEditingCustomer(null);
@@ -67,7 +70,7 @@ export default function Customers() {
       phone: customer.phone || '',
       email: customer.email || '',
       address: customer.address || '',
-      balance: customer.balance.toString()
+      balance: customer.balance.toString(),
     });
     setEditingCustomer(customer);
   };
@@ -79,7 +82,9 @@ export default function Customers() {
   return (
     <div className="p-6 space-y-6">
       <div className="flex justify-between items-center">
-        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Customers</h1>
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+          Customers
+        </h1>
         <button
           onClick={() => setShowAddModal(true)}
           className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg"
@@ -91,9 +96,14 @@ export default function Customers() {
       {/* Customers Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {customers.map((customer) => (
-          <div key={customer.id} className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
+          <div
+            key={customer.id}
+            className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow"
+          >
             <div className="flex justify-between items-start mb-4">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">{customer.name}</h3>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
+                {customer.name}
+              </h3>
               <div className="flex space-x-2">
                 <button
                   onClick={() => openEditModal(customer)}
@@ -109,14 +119,16 @@ export default function Customers() {
                 </button>
               </div>
             </div>
-            
+
             <div className="space-y-2 text-sm text-gray-600 dark:text-gray-400">
               {customer.phone && <p>Phone: {customer.phone}</p>}
               {customer.email && <p>Email: {customer.email}</p>}
               {customer.address && <p>Address: {customer.address}</p>}
-              <p className={`text-lg font-bold ${
-                customer.balance > 0 ? 'text-red-600' : 'text-green-600'
-              }`}>
+              <p
+                className={`text-lg font-bold ${
+                  customer.balance > 0 ? 'text-red-600' : 'text-green-600'
+                }`}
+              >
                 Balance: KES {customer.balance.toLocaleString()}
               </p>
             </div>
@@ -131,50 +143,60 @@ export default function Customers() {
             <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-gray-100">
               {editingCustomer ? 'Edit Customer' : 'Add Customer'}
             </h2>
-            
+
             <form onSubmit={handleSubmit} className="space-y-4">
               <input
                 type="text"
                 placeholder="Customer Name"
                 value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, name: e.target.value })
+                }
                 className="w-full p-3 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
                 required
               />
-              
+
               <input
                 type="tel"
                 placeholder="Phone Number (optional)"
                 value={formData.phone}
-                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, phone: e.target.value })
+                }
                 className="w-full p-3 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
               />
-              
+
               <input
                 type="email"
                 placeholder="Email (optional)"
                 value={formData.email}
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, email: e.target.value })
+                }
                 className="w-full p-3 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
               />
-              
+
               <textarea
                 placeholder="Address (optional)"
                 value={formData.address}
-                onChange={(e) => setFormData({ ...formData, address: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, address: e.target.value })
+                }
                 className="w-full p-3 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
                 rows={2}
               />
-              
+
               <input
                 type="number"
                 step="0.01"
                 placeholder="Credit Balance (optional)"
                 value={formData.balance}
-                onChange={(e) => setFormData({ ...formData, balance: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, balance: e.target.value })
+                }
                 className="w-full p-3 border rounded-lg dark:bg-gray-700 dark:border-gray-600 dark:text-gray-100"
               />
-              
+
               <div className="flex space-x-4">
                 <button
                   type="submit"
