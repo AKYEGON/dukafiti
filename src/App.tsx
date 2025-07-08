@@ -11,7 +11,7 @@ import TestDataLayer from './pages/TestDataLayer';
 export default function App() {
   const { user, loading } = useAuth();
 
-  // Show loading spinner while initializing auth
+  // Show spinner while auth initializes
   if (loading) {
     return <FullScreenSpinner />;
   }

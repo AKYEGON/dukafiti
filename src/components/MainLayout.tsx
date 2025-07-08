@@ -4,12 +4,13 @@ import Sidebar from './Sidebar';
 import TopBar from './TopBar';
 
 export default function MainLayout() {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
 
-  // If user becomes null (logged out), redirect to login
-  if (!user) {
-    return <Navigate to="/login" replace />;
-  }
+  // If auth still loading, show nothing (App handles spinner)
+  if (loading) return null;
+
+  // If logged out, redirect
+  if (!user) return <Navigate to="/login" replace />;
 
   return (
     <div className="flex h-screen bg-gray-100">
