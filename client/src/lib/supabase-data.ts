@@ -770,7 +770,6 @@ export const createSale = async (saleData: any) => {
       product_name: item.productName,
       quantity: item.quantity,
       price: item.price,
-      cost_price_at_sale: item.costPrice || 0, // Capture cost at time of sale
     }));
     
     const { error: itemsError } = await supabase
@@ -907,75 +906,6 @@ export const searchProducts = async (query: string) => {
   return data;
 };
 
-// Recent orders function
-export const getRecentOrders = async () => {
-  try {
-    console.log('Fetching recent orders...');
-    
-    const { data: orders, error } = await supabase
-      .from('orders')
-      .select(`
-        id,
-        customer_name,
-        total,
-        payment_method,
-        status,
-        created_at
-      `)
-      .order('created_at', { ascending: false })
-      .limit(5);
-    
-    if (error) {
-      console.error('Error fetching recent orders:', error);
-      // Return empty array if table doesn't exist
-      if (error.message.includes('relation "orders" does not exist')) {
-        console.warn('Orders table does not exist, returning empty array');
-        return [];
-      }
-      throw error;
-    }
-    
-    // Get order items for each order
-    const ordersWithProducts = await Promise.all((orders || []).map(async (order) => {
-      try {
-        const { data: orderItems } = await supabase
-          .from('order_items')
-          .select('quantity, product_name')
-          .eq('order_id', order.id);
-        
-        return {
-          id: order.id,
-          customerName: order.customer_name || 'Walk-in Customer',
-          total: order.total,
-          status: order.status || 'completed',
-          paymentMethod: order.payment_method,
-          createdAt: order.created_at,
-          products: orderItems?.map(item => ({
-            name: item.product_name,
-            quantity: item.quantity
-          })) || []
-        };
-      } catch (itemError) {
-        console.error('Error fetching order items for order', order.id, itemError);
-        return {
-          id: order.id,
-          customerName: order.customer_name || 'Walk-in Customer',
-          total: order.total,
-          status: order.status || 'completed',
-          paymentMethod: order.payment_method,
-          createdAt: order.created_at,
-          products: []
-        };
-      }
-    }));
-    
-    return ordersWithProducts;
-  } catch (error) {
-    console.error('Error in getRecentOrders:', error);
-    return [];
-  }
-};
-
 // Dashboard metrics functions
 export const getDashboardMetrics = async () => {
   try {
@@ -992,16 +922,12 @@ export const getDashboardMetrics = async () => {
       if (ordersError.message.includes('relation "orders" does not exist')) {
         console.warn('Orders table does not exist, returning empty metrics');
         return {
-          totalRevenue: 0,
-          ordersToday: 0,
-          inventoryItems: 0,
-          lowStockItems: 0,
+          totalRevenue: '0',
+          totalOrders: 0,
+          totalProducts: 0,
           totalCustomers: 0,
-          creditOutstanding: 0,
-          revenueChange: 0,
-          ordersChange: 0,
-          inventoryChange: 0,
-          lowStockChange: 0
+          lowStockItems: 0,
+          activeCustomersCount: 0,
         };
       }
       throw ordersError;
@@ -1046,36 +972,82 @@ export const getDashboardMetrics = async () => {
     }) || [];
 
     return {
-      totalRevenue: totalRevenue,
-      ordersToday: todaysOrders.length,
-      inventoryItems: totalProducts || 0,
-      lowStockItems: lowStockCount,
+      totalRevenue: totalRevenue.toFixed(2),
+      totalOrders,
+      totalProducts: totalProducts || 0,
       totalCustomers: totalCustomers || 0,
-      creditOutstanding: 0, // Calculate if needed
-      revenueChange: 0,
-      ordersChange: 0,
-      inventoryChange: 0,
-      lowStockChange: 0
+      revenueGrowth: "0.0", // Simplified for now
+      ordersGrowth: "0.0", // Simplified for now
+      lowStockCount,
+      activeCustomersCount: totalCustomers || 0
     };
   } catch (error) {
     console.error('Error fetching dashboard metrics:', error);
     // Return default values if there's an error
     return {
-      totalRevenue: 0,
-      ordersToday: 0,
-      inventoryItems: 0,
-      lowStockItems: 0,
+      totalRevenue: "0.00",
+      totalOrders: 0,
+      totalProducts: 0,
       totalCustomers: 0,
-      creditOutstanding: 0,
-      revenueChange: 0,
-      ordersChange: 0,
-      inventoryChange: 0,
-      lowStockChange: 0
+      revenueGrowth: "0.0",
+      ordersGrowth: "0.0",
+      lowStockCount: 0,
+      activeCustomersCount: 0
     };
   }
 };
 
-
+export const getRecentOrders = async () => {
+  try {
+    const { data, error } = await supabase
+      .from('orders')
+      .select(`
+        id,
+        total,
+        status,
+        customer_name,
+        payment_method,
+        created_at,
+        customer_id,
+        reference
+      `)
+      .order('created_at', { ascending: false })
+      .limit(10);
+    
+    if (error) throw error;
+    
+    // Get order items for each order
+    const ordersWithItems = await Promise.all((data || []).map(async (order) => {
+      const { data: orderItems } = await supabase
+        .from('order_items')
+        .select(`
+          quantity,
+          product_name
+        `)
+        .eq('order_id', order.id);
+      
+      return {
+        id: order.id,
+        total: order.total,
+        status: order.status,
+        customerName: order.customer_name || 'N/A',
+        paymentMethod: order.payment_method,
+        createdAt: new Date(order.created_at),
+        customerId: order.customer_id,
+        reference: order.reference,
+        products: orderItems?.map(item => ({
+          name: item.product_name || 'Unknown Product',
+          quantity: item.quantity
+        })) || []
+      };
+    }));
+    
+    return ordersWithItems;
+  } catch (error) {
+    console.error('Error fetching recent orders:', error);
+    return [];
+  }
+};
 
 // Store Profile operations - with fallback to localStorage when Supabase settings table doesn't exist
 // Store profile localStorage key

@@ -3,7 +3,7 @@ import { Trash2, Package, AlertTriangle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { QuantityStepper } from "./quantity-stepper";
-import { type Product } from "@/types/schema";
+import { type Product } from "@shared/schema";
 import { formatCurrency } from "@/lib/utils";
 
 export interface SaleLineItem {

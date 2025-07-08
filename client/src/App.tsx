@@ -10,12 +10,14 @@ import { TopBar } from "@/components/TopBar";
 import { config } from "./lib/config";
 
 import { AuthProvider, useAuth } from "@/contexts/SupabaseAuth";
+import { OfflineProvider } from "@/contexts/OfflineContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
-// Removed WebSocket import - using Supabase-only architecture
+import { useWebSocket } from "@/hooks/use-websocket";
 import { useSupabaseRealtime } from "@/hooks/useSupabaseRealtime";
 import { ThemeProvider } from "@/contexts/theme-context";
+import { OfflineBanner } from "@/components/OfflineBanner";
 import { ErrorBoundary } from "@/components/error-boundary";
-import OfflineManager from "@/components/offline/offline-manager";
+import { InstallButton } from "@/components/offline/InstallButton";
 import { registerServiceWorker } from "@/lib/sw-registration";
 
 import Dashboard from "@/pages/dashboard";
@@ -36,6 +38,9 @@ import Debug from "@/pages/debug";
 import DebugAuth from "@/pages/debug-auth";
 
 function AuthenticatedApp() {
+  // Initialize WebSocket connection for real-time notifications
+  useWebSocket();
+  
   // Initialize Supabase real-time subscriptions
   useSupabaseRealtime();
   
@@ -185,12 +190,14 @@ function App() {
       <QueryClientProvider client={queryClient}>
         <ThemeProvider>
           <AuthProvider>
-            <OfflineManager>
+            <OfflineProvider>
               <TooltipProvider>
                 <Router />
+                <OfflineBanner />
+                <InstallButton />
                 <Toaster />
               </TooltipProvider>
-            </OfflineManager>
+            </OfflineProvider>
           </AuthProvider>
         </ThemeProvider>
       </QueryClientProvider>

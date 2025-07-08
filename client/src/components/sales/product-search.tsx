@@ -4,7 +4,7 @@ import { Search, Package } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { type Product } from "@/types/schema";
+import { type Product } from "@shared/schema";
 import { formatCurrency } from "@/lib/utils";
 
 interface ProductSearchProps {

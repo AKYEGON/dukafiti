@@ -9,7 +9,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { createCustomer, updateCustomer } from "@/lib/supabase-data";
-import type { Customer } from "@/types/schema";
+import type { Customer } from "@shared/schema";
 
 const customerFormSchema = z.object({
   name: z.string().min(1, "Customer name is required"),
