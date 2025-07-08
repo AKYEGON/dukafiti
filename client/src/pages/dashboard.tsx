@@ -1,8 +1,9 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useLocation } from "wouter";
-import { type DashboardMetrics, type Order } from "@/types/schema";
+import useData from "@/hooks/useData";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Table,
   TableBody,
@@ -18,474 +19,399 @@ import {
   Users,
   Plus,
   UserPlus,
-  BarChart3,
+  FileText,
+  RefreshCw,
+  TrendingUp,
+  TrendingDown,
+  AlertTriangle,
 } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
-import { Skeleton } from "@/components/ui/skeleton";
-import { ProductForm } from "@/components/inventory/product-form";
-import { CustomerForm } from "@/components/customers/customer-form";
-import { RefreshButton } from "@/components/ui/refresh-button";
-import { useProductsRuntime, useCustomersRuntime, useOrdersRuntime } from "@/hooks/useRuntimeDataNew";
-import { useQuery } from "@tanstack/react-query";
-import { supabase } from "@/lib/supabase";
-import { useAuth } from "@/contexts/SupabaseAuth";
-import { useOffline } from "@/contexts/OfflineContext";
+import { useToast } from "@/hooks/use-toast";
 
+interface MetricCardProps {
+  title: string;
+  value: string | number;
+  icon: React.ReactNode;
+  trend?: {
+    value: number;
+    isPositive: boolean;
+  };
+}
 
+function MetricCard({ title, value, icon, trend }: MetricCardProps) {
+  return (
+    <div className="bg-card border border-border rounded-lg p-6 hover:shadow-md transition-shadow">
+      <div className="flex items-center justify-between">
+        <div>
+          <p className="text-sm font-medium text-muted-foreground">{title}</p>
+          <p className="text-2xl font-bold">{value}</p>
+          {trend && (
+            <div className={`flex items-center mt-1 text-sm ${
+              trend.isPositive ? "text-green-600" : "text-red-600"
+            }`}>
+              {trend.isPositive ? (
+                <TrendingUp className="h-4 w-4 mr-1" />
+              ) : (
+                <TrendingDown className="h-4 w-4 mr-1" />
+              )}
+              {Math.abs(trend.value)}%
+            </div>
+          )}
+        </div>
+        <div className="h-12 w-12 bg-brand/10 rounded-full flex items-center justify-center">
+          {icon}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function Dashboard() {
-  const [, setLocation] = useLocation();
-  const [showProductForm, setShowProductForm] = useState(false);
-  const [showCustomerForm, setShowCustomerForm] = useState(false);
+  const [, navigate] = useLocation();
+  const { toast } = useToast();
+  
+  // Use instrumented data hooks for real-time updates and comprehensive logging
+  const { items: products, refresh: refreshProducts, debug: productsDebug, isLoading: productsLoading, user } = useData('products');
+  const { items: customers, refresh: refreshCustomers, debug: customersDebug, isLoading: customersLoading } = useData('customers');
+  const { items: orders, refresh: refreshOrders, debug: ordersDebug, isLoading: ordersLoading } = useData('orders');
+  
+  // Local state
+  const [showDebug, setShowDebug] = useState(false);
 
-  const { user } = useAuth();
-  const { isOnline, pendingSyncCount } = useOffline();
-  
-  // Use runtime data hooks for all dashboard data
-  const { products, productsLoading, fetchProducts } = useProductsRuntime();
-  const { customers, customersLoading, fetchCustomers } = useCustomersRuntime();
-  const { orders, ordersLoading, fetchOrders } = useOrdersRuntime();
-  
-  const [isRefreshing, setIsRefreshing] = useState(false);
-  
-  // Manual refresh function
+  // Combine all debug logs
+  const allDebugLogs = [...productsDebug, ...customersDebug, ...ordersDebug];
+
+  // Calculate dashboard metrics in real-time
+  const dashboardMetrics = useMemo(() => {
+    console.log('[Dashboard] Calculating metrics:', { 
+      productsCount: products.length,
+      customersCount: customers.length,
+      ordersCount: orders.length
+    });
+
+    // Calculate total revenue from completed orders
+    const totalRevenue = orders
+      .filter(order => order.status === 'completed')
+      .reduce((sum, order) => sum + parseFloat(order.total_amount || '0'), 0);
+
+    // Count today's orders
+    const today = new Date().toISOString().split('T')[0];
+    const todaysOrders = orders.filter(order => 
+      order.created_at && order.created_at.startsWith(today)
+    ).length;
+
+    // Count low stock items (stock <= 10 and not null)
+    const lowStockItems = products.filter(product => 
+      product.quantity !== null && product.quantity <= 10
+    ).length;
+
+    // Calculate total credit outstanding
+    const totalCredit = customers.reduce((sum, customer) => 
+      sum + parseFloat(customer.balance || '0'), 0
+    );
+
+    return {
+      totalRevenue,
+      ordersToday: todaysOrders,
+      inventoryItems: products.length,
+      totalCustomers: customers.length,
+      lowStockItems,
+      totalCredit
+    };
+  }, [products, customers, orders]);
+
+  // Get recent orders (last 10)
+  const recentOrders = useMemo(() => {
+    return orders
+      .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+      .slice(0, 10);
+  }, [orders]);
+
+  // Manual refresh all data
   const handleRefreshAll = async () => {
-    setIsRefreshing(true);
+    console.log('[Dashboard] Manual refresh all triggered');
+    toast.info('Refreshing all data...');
+    
     try {
       await Promise.all([
-        fetchProducts(),
-        fetchCustomers(),
-        fetchOrders()
+        refreshProducts(),
+        refreshCustomers(), 
+        refreshOrders()
       ]);
-    } finally {
-      setIsRefreshing(false);
+      toast.success('Data refreshed successfully');
+    } catch (error) {
+      console.error('[Dashboard] Refresh failed:', error);
+      toast.error('Failed to refresh data');
     }
   };
 
-  // Enhanced dashboard metrics query with runtime Supabase calls
-  const { data: metrics, isLoading: metricsLoading, refetch: refreshMetrics } = useQuery<DashboardMetrics>({
-    queryKey: ['dashboard-metrics'],
-    queryFn: async () => {
-      console.log('🔄 Fetching dashboard metrics at runtime...');
-      
-      try {
-        // Runtime Supabase calls to get fresh data
-        const [productsData, customersData, ordersData] = await Promise.all([
-          supabase.from('products').select('*'),
-          supabase.from('customers').select('*'),  
-          supabase.from('orders').select('*')
-        ]);
-
-        if (productsData.error) throw productsData.error;
-        if (customersData.error) throw customersData.error;
-        if (ordersData.error) throw ordersData.error;
-
-        const products = productsData.data || [];
-        const customers = customersData.data || [];
-        const orders = ordersData.data || [];
-
-        // Calculate metrics from fresh data
-        const totalRevenue = orders.reduce((sum: number, order: any) => sum + parseFloat(order.total || '0'), 0);
-        const todayOrders = orders.filter((order: any) => {
-          const orderDate = new Date(order.created_at).toDateString();
-          const today = new Date().toDateString();
-          return orderDate === today;
-        }).length;
-
-        const inventoryItems = products.length;
-        const totalCustomers = customers.length;
-
-        return {
-          totalRevenue: totalRevenue.toFixed(2),
-          ordersToday: todayOrders,
-          inventoryItems,
-          totalCustomers,
-        };
-      } catch (error) {
-        console.error('❌ Dashboard metrics fetch failed:', error);
-        throw error;
-      }
-    },
-    staleTime: 0, // Always fetch fresh
-    refetchOnWindowFocus: true,
-  });
-
-  // Recent orders with runtime fetching
-  const { data: recentOrders = [], isLoading: recentOrdersLoading, refetch: refreshRecentOrders } = useQuery<Order[]>({
-    queryKey: ['recent-orders'],
-    queryFn: async () => {
-      console.log('🔄 Fetching recent orders at runtime...');
-      
-      try {
-        const { data, error } = await supabase
-          .from('orders')
-          .select('*')
-          .order('created_at', { ascending: false })
-          .limit(5);
-        
-        if (error) throw error;
-        return data || [];
-      } catch (error) {
-        console.error('❌ Recent orders fetch failed:', error);
-        throw error;
-      }
-    },
-    staleTime: 0, // Always fetch fresh
-    refetchOnWindowFocus: true,
-  });
-
-  // Quick Actions handlers
-  const handleAddProduct = () => {
-    setShowProductForm(true);
+  // Clear debug logs
+  const clearAllDebug = () => {
+    // This would need to be implemented in the individual hooks
+    console.log('[Dashboard] Clear all debug logs requested');
   };
 
-  const handleCreateOrder = () => {
-    setLocation("/sales");
-  };
+  const isLoading = productsLoading || customersLoading || ordersLoading;
 
-  const handleAddCustomer = () => {
-    setShowCustomerForm(true);
-  };
-
-  const handleGenerateReport = () => {
-    setLocation("/reports");
-  };
-
-  const handleViewAllOrders = () => {
-    setLocation("/reports");
-  };
-
-  // Summary Card Component with accessibility and skeleton loading
-  const SummaryCard = ({ 
-    title, 
-    value, 
-    icon: Icon, 
-    isLoading,
-    iconColor = "bg-green-600"
-  }: { 
-    title: string; 
-    value: string; 
-    icon: any; 
-    isLoading: boolean;
-    iconColor?: string;
-  }) => (
-    <div className="bg-white dark:bg-[#1F1F1F] border border-gray-200 dark:border-gray-700 rounded-lg p-4 shadow-md hover:shadow-lg transition-shadow duration-200">
-      <div className="flex items-start justify-between">
-        <div className="flex-1">
-          <p className="text-sm uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-2 font-medium">
-            {title}
-          </p>
-          {isLoading ? (
-            <Skeleton className="h-8 w-24 animate-pulse bg-gray-200 dark:bg-gray-700 rounded" />
-          ) : (
-            <p className="text-2xl font-bold text-neutral-900 dark:text-neutral-100">
-              {value}
-            </p>
-          )}
-        </div>
-        <div className={`${iconColor} p-3 rounded-full`}>
-          <Icon className="h-5 w-5 text-white" />
-        </div>
-      </div>
-    </div>
-  );
-
-  // Quick Action Button Component
-  const QuickActionButton = ({ 
-    onClick, 
-    icon: Icon, 
-    label,
-    ariaLabel
-  }: { 
-    onClick: () => void; 
-    icon: any; 
-    label: string;
-    ariaLabel: string;
-  }) => (
-    <button
-      onClick={onClick}
-      aria-label={ariaLabel}
-      className="flex items-center justify-center bg-accent hover:bg-purple-700 text-white rounded-lg px-6 py-4 shadow-md hover:shadow-lg transition-all duration-200 transform hover:-translate-y-1 min-w-[180px] focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2"
-    >
-      <Icon className="h-5 w-5 mr-3" />
-      <span className="font-medium">{label}</span>
-    </button>
-  );
-
-  // Loading State Component
-  const DashboardSkeleton = () => (
-    <div className="container mx-auto p-6">
-      <div className="grid grid-cols-1 gap-8">
-        {/* Summary Cards Skeleton */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          {[...Array(4)].map((_, i) => (
-            <div key={i} className="bg-white dark:bg-[#1F1F1F] border border-gray-200 dark:border-gray-700 rounded-lg p-4">
-              <Skeleton className="h-4 w-3/4 mb-3 animate-pulse bg-gray-200 dark:bg-gray-700 rounded" />
-              <Skeleton className="h-8 w-1/2 animate-pulse bg-gray-200 dark:bg-gray-700 rounded" />
-            </div>
-          ))}
-        </div>
-        
-        {/* Quick Actions Skeleton */}
-        <div className="flex flex-wrap gap-4">
-          {[...Array(4)].map((_, i) => (
-            <Skeleton key={i} className="h-16 w-48 rounded-lg animate-pulse bg-gray-200 dark:bg-gray-700" />
-          ))}
-        </div>
-        
-        {/* Recent Orders Skeleton */}
-        <div className="bg-white dark:bg-[#1F1F1F] border border-gray-200 dark:border-gray-700 rounded-lg p-6">
-          <Skeleton className="h-6 w-48 mb-4 animate-pulse bg-gray-200 dark:bg-gray-700 rounded" />
-          <div className="space-y-3">
-            {[...Array(4)].map((_, i) => (
-              <Skeleton key={i} className="h-12 w-full animate-pulse bg-gray-200 dark:bg-gray-700 rounded" />
+  if (isLoading && products.length === 0 && customers.length === 0 && orders.length === 0) {
+    return (
+      <div className="min-h-screen bg-background p-6">
+        <div className="container mx-auto">
+          <Skeleton className="h-12 w-64 mb-6" />
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            {Array.from({ length: 4 }).map((_, i) => (
+              <Skeleton key={i} className="h-32 w-full rounded-lg" />
             ))}
           </div>
-        </div>
-      </div>
-    </div>
-  );
-
-  if (metricsLoading) {
-    return <DashboardSkeleton />;
-  }
-
-
-
-  return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* Header with refresh button */}
-      <div className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
-        <div className="container mx-auto px-4 sm:px-6 md:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Dashboard</h1>
-              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                Business overview and key metrics
-                {(metricsLoading || recentOrdersLoading || pendingSyncCount > 0) && (
-                  <span className="ml-2 text-orange-600 dark:text-orange-400">• Updating...</span>
-                )}
-                {!isOnline && (
-                  <span className="ml-2 text-red-600 dark:text-red-400">• Offline</span>
-                )}
-                {pendingSyncCount > 0 && (
-                  <span className="ml-2 text-blue-600 dark:text-blue-400">• {pendingSyncCount} pending</span>
-                )}
-              </p>
-            </div>
-            <RefreshButton
-              onRefresh={handleRefreshAll}
-              isLoading={isRefreshing || metricsLoading || recentOrdersLoading}
-              size="sm"
-              variant="outline"
-              showLabel={true}
-              label="Refresh All"
-            />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <Skeleton className="h-64 w-full rounded-lg" />
+            <Skeleton className="h-64 w-full rounded-lg" />
           </div>
         </div>
       </div>
+    );
+  }
 
-      {/* Responsive Container */}
-      <div className="container mx-auto px-4 sm:px-6 md:px-8 py-4 sm:py-6">
-        <div className="grid grid-cols-1 gap-4 sm:gap-6 md:gap-8">
-          {/* Summary Cards - Mobile: 2 cols, Tablet: 3 cols, Desktop: 4 cols */}
-          <section className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 sm:gap-6" role="region" aria-label="Key performance indicators">
-            <SummaryCard
-              title="Total Revenue"
-              value={formatCurrency(metrics?.totalRevenue || "0")}
-              icon={DollarSign}
-              isLoading={metricsLoading}
-              iconColor="bg-green-600"
-            />
-            <SummaryCard
-              title="Total Orders"
-              value={(metrics?.totalOrders || 0).toString()}
-              icon={ShoppingCart}
-              isLoading={metricsLoading}
-              iconColor="bg-blue-600"
-            />
-            <SummaryCard
-              title="Inventory Items"
-              value={(metrics?.totalProducts || 0).toString()}
-              icon={Package}
-              isLoading={metricsLoading}
-              iconColor="bg-accent"
-            />
-            <SummaryCard
-              title="Active Customers"
-              value={(metrics?.totalCustomers || 0).toString()}
-              icon={Users}
-              isLoading={metricsLoading}
-              iconColor="bg-orange-600"
-            />
-          </section>
+  return (
+    <div className="min-h-screen bg-background">
+      <div className="container mx-auto px-4 py-6">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
+          <div>
+            <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
+            <p className="text-muted-foreground">
+              Welcome back! Here's what's happening with your store.
+              {isLoading && <span className="text-orange-500"> • Updating...</span>}
+            </p>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <Button
+              onClick={() => setShowDebug(!showDebug)}
+              variant="outline"
+              size="sm"
+              className="text-xs"
+            >
+              {showDebug ? 'Hide' : 'Show'} Debug
+            </Button>
+            
+            <Button
+              onClick={handleRefreshAll}
+              variant="outline"
+              size="sm"
+              disabled={isLoading}
+            >
+              <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+              Refresh All
+            </Button>
+          </div>
+        </div>
 
-          {/* Quick Actions - Mobile: 1 col, Tablet: 2 per row, Desktop: flex wrap */}
-          <section className="grid grid-cols-1 sm:grid-cols-2 lg:flex lg:flex-wrap gap-4" role="region" aria-label="Quick actions">
-            <QuickActionButton
-              onClick={handleAddProduct}
-              icon={Plus}
-              label="Add Product"
-              ariaLabel="Add a new product to inventory"
-            />
-            <QuickActionButton
-              onClick={handleCreateOrder}
-              icon={ShoppingCart}
-              label="Create Order"
-              ariaLabel="Create a new sales order"
-            />
-            <QuickActionButton
-              onClick={handleAddCustomer}
-              icon={UserPlus}
-              label="Add Customer"
-              ariaLabel="Add a new customer"
-            />
-            <QuickActionButton
-              onClick={handleGenerateReport}
-              icon={BarChart3}
-              label="Generate Report"
-              ariaLabel="Generate business reports"
-            />
-          </section>
+        {/* Debug Panel */}
+        {showDebug && (
+          <div className="mb-8 p-4 bg-muted rounded-lg">
+            <div className="flex items-center justify-between mb-2">
+              <h3 className="text-sm font-semibold">Debug Logs (All Data Sources)</h3>
+              <Button onClick={clearAllDebug} variant="outline" size="sm">
+                Clear
+              </Button>
+            </div>
+            <pre className="text-xs text-muted-foreground whitespace-pre-wrap max-h-40 overflow-y-auto">
+              {allDebugLogs.length === 0 ? 'No debug logs yet...' : allDebugLogs.join('\n')}
+            </pre>
+          </div>
+        )}
+
+        {/* Summary Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+          <MetricCard
+            title="Total Revenue"
+            value={formatCurrency(dashboardMetrics.totalRevenue)}
+            icon={<DollarSign className="h-6 w-6 text-brand" />}
+          />
+          
+          <MetricCard
+            title="Orders Today"
+            value={dashboardMetrics.ordersToday}
+            icon={<ShoppingCart className="h-6 w-6 text-brand" />}
+          />
+          
+          <MetricCard
+            title="Inventory Items"
+            value={dashboardMetrics.inventoryItems}
+            icon={<Package className="h-6 w-6 text-brand" />}
+          />
+          
+          <MetricCard
+            title="Total Customers"
+            value={dashboardMetrics.totalCustomers}
+            icon={<Users className="h-6 w-6 text-brand" />}
+          />
+        </div>
+
+        {/* Secondary Metrics */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          <div className="bg-card border border-border rounded-lg p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Low Stock Items</p>
+                <p className="text-2xl font-bold">{dashboardMetrics.lowStockItems}</p>
+                <p className="text-sm text-muted-foreground">Items with stock ≤ 10</p>
+              </div>
+              <div className="h-12 w-12 bg-orange-100 rounded-full flex items-center justify-center">
+                <AlertTriangle className="h-6 w-6 text-orange-600" />
+              </div>
+            </div>
+          </div>
+          
+          <div className="bg-card border border-border rounded-lg p-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-muted-foreground">Total Credit Outstanding</p>
+                <p className="text-2xl font-bold">{formatCurrency(dashboardMetrics.totalCredit)}</p>
+                <p className="text-sm text-muted-foreground">Amount owed by customers</p>
+              </div>
+              <div className="h-12 w-12 bg-red-100 rounded-full flex items-center justify-center">
+                <DollarSign className="h-6 w-6 text-red-600" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+          {/* Quick Actions */}
+          <div className="bg-card border border-border rounded-lg p-6">
+            <h2 className="text-xl font-semibold mb-4">Quick Actions</h2>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <Button
+                onClick={() => navigate("/sales")}
+                className="h-20 flex flex-col items-center justify-center"
+              >
+                <Plus className="h-6 w-6 mb-2" />
+                New Sale
+              </Button>
+              
+              <Button
+                onClick={() => navigate("/inventory")}
+                variant="outline"
+                className="h-20 flex flex-col items-center justify-center"
+              >
+                <Package className="h-6 w-6 mb-2" />
+                Add Product
+              </Button>
+              
+              <Button
+                onClick={() => navigate("/customers")}
+                variant="outline"
+                className="h-20 flex flex-col items-center justify-center"
+              >
+                <UserPlus className="h-6 w-6 mb-2" />
+                Add Customer
+              </Button>
+              
+              <Button
+                onClick={() => navigate("/reports")}
+                variant="outline"
+                className="h-20 flex flex-col items-center justify-center"
+              >
+                <FileText className="h-6 w-6 mb-2" />
+                View Reports
+              </Button>
+            </div>
+          </div>
 
           {/* Recent Orders */}
-          <section className="bg-white dark:bg-[#1F1F1F] border border-gray-200 dark:border-gray-700 rounded-lg shadow-md" role="region" aria-label="Recent orders">
-            <div className="p-6">
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-semibold text-neutral-900 dark:text-neutral-100">Recent Orders</h2>
-                <button
-                  onClick={handleViewAllOrders}
-                  className="text-green-600 hover:text-green-700 hover:underline focus:outline-none focus:ring-2 focus:ring-green-600 rounded px-2 py-1 text-sm font-medium"
-                >
-                  View All
-                </button>
+          <div className="bg-card border border-border rounded-lg p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-semibold">Recent Orders</h2>
+              <Button 
+                onClick={() => navigate("/reports")}
+                variant="ghost" 
+                size="sm"
+              >
+                View All
+              </Button>
+            </div>
+            
+            {recentOrders.length === 0 ? (
+              <div className="text-center py-8">
+                <ShoppingCart className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                <p className="text-muted-foreground">No orders yet</p>
+                <p className="text-sm text-muted-foreground">Start selling to see orders here</p>
               </div>
+            ) : (
+              <div className="space-y-4">
+                {/* Desktop Table */}
+                <div className="hidden md:block">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Customer</TableHead>
+                        <TableHead>Amount</TableHead>
+                        <TableHead>Payment</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Date</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {recentOrders.map((order) => (
+                        <TableRow key={order.id}>
+                          <TableCell className="font-medium">
+                            {order.customer_name || 'Walk-in Customer'}
+                          </TableCell>
+                          <TableCell>{formatCurrency(parseFloat(order.total_amount || '0'))}</TableCell>
+                          <TableCell>
+                            <Badge variant="outline">
+                              {order.payment_method || 'Unknown'}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <Badge 
+                              variant={order.status === 'completed' ? 'default' : 'secondary'}
+                            >
+                              {order.status || 'pending'}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            {order.created_at ? new Date(order.created_at).toLocaleDateString() : 'Unknown'}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
 
-              {recentOrdersLoading ? (
-                <div className="space-y-3">
-                  {[...Array(4)].map((_, i) => (
-                    <Skeleton key={i} className="h-12 w-full animate-pulse bg-gray-200 dark:bg-gray-700 rounded" />
+                {/* Mobile Cards */}
+                <div className="md:hidden space-y-3">
+                  {recentOrders.map((order) => (
+                    <div key={order.id} className="border rounded-lg p-4">
+                      <div className="flex justify-between items-start mb-2">
+                        <div>
+                          <p className="font-medium">{order.customer_name || 'Walk-in Customer'}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {order.created_at ? new Date(order.created_at).toLocaleDateString() : 'Unknown date'}
+                          </p>
+                        </div>
+                        <Badge 
+                          variant={order.status === 'completed' ? 'default' : 'secondary'}
+                        >
+                          {order.status || 'pending'}
+                        </Badge>
+                      </div>
+                      <div className="flex justify-between items-center">
+                        <span className="font-semibold">{formatCurrency(parseFloat(order.total_amount || '0'))}</span>
+                        <Badge variant="outline">
+                          {order.payment_method || 'Unknown'}
+                        </Badge>
+                      </div>
+                    </div>
                   ))}
                 </div>
-              ) : recentOrders && recentOrders.length > 0 ? (
-                <>
-                  {/* Desktop Table */}
-                  <div className="hidden md:block">
-                    <Table className="table-auto w-full text-sm">
-                      <TableHeader>
-                        <TableRow className="bg-gray-100 dark:bg-gray-800">
-                          <TableHead className="text-gray-700 dark:text-gray-200 font-medium">Products</TableHead>
-                          <TableHead className="text-gray-700 dark:text-gray-200 font-medium">Customer</TableHead>
-                          <TableHead className="text-gray-700 dark:text-gray-200 font-medium text-right">Amount</TableHead>
-                          <TableHead className="text-gray-700 dark:text-gray-200 font-medium">Status</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {recentOrders.map((order, index) => (
-                          <TableRow 
-                            key={order.id} 
-                            className={`${
-                              index % 2 === 0 
-                                ? 'bg-white dark:bg-[#1F1F1F]' 
-                                : 'bg-gray-50 dark:bg-gray-800'
-                            } hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors`}
-                          >
-                            <TableCell className="font-medium text-neutral-900 dark:text-neutral-100">
-                              {order.products && order.products.length > 0 ? (
-                                <span className="text-sm">
-                                  {order.products.slice(0, 2).map((product, idx) => (
-                                    <span key={idx}>
-                                      {product.name} x{product.quantity}
-                                      {idx < Math.min(order.products.length, 2) - 1 ? ', ' : ''}
-                                    </span>
-                                  ))}
-                                  {order.products.length > 2 && (
-                                    <span className="text-gray-500 dark:text-gray-400">
-                                      {' '}+{order.products.length - 2} more
-                                    </span>
-                                  )}
-                                </span>
-                              ) : (
-                                <span className="text-gray-500 dark:text-gray-400 text-sm">No products</span>
-                              )}
-                            </TableCell>
-                            <TableCell className="text-neutral-700 dark:text-neutral-300">{order.customer_name || 'N/A'}</TableCell>
-                            <TableCell className="text-right font-semibold text-neutral-900 dark:text-neutral-100">{formatCurrency(order.total)}</TableCell>
-                            <TableCell>
-                              <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 px-2 py-1 rounded-full text-xs font-medium">
-                                {order.status}
-                              </Badge>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-
-                  {/* Mobile Cards */}
-                  <div className="md:hidden space-y-4">
-                    {recentOrders.map((order) => (
-                      <div key={order.id} className="bg-white dark:bg-[#1F1F1F] border border-gray-200 dark:border-gray-700 p-4 rounded-lg">
-                        <div className="flex justify-between items-start mb-2">
-                          <div className="flex-1">
-                            <div className="font-medium text-neutral-900 dark:text-neutral-100 mb-1">
-                              {order.products && order.products.length > 0 ? (
-                                <span className="text-sm">
-                                  {order.products.slice(0, 2).map((product, idx) => (
-                                    <span key={idx}>
-                                      {product.name} x{product.quantity}
-                                      {idx < Math.min(order.products.length, 2) - 1 ? ', ' : ''}
-                                    </span>
-                                  ))}
-                                  {order.products.length > 2 && (
-                                    <span className="text-gray-500 dark:text-gray-400">
-                                      {' '}+{order.products.length - 2} more
-                                    </span>
-                                  )}
-                                </span>
-                              ) : (
-                                <span className="text-gray-500 dark:text-gray-400 text-sm">No products</span>
-                              )}
-                            </div>
-                            <p className="text-sm text-neutral-700 dark:text-neutral-300">{order.customer_name || 'N/A'}</p>
-                          </div>
-                          <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200 px-2 py-1 rounded-full text-xs font-medium">
-                            {order.status}
-                          </Badge>
-                        </div>
-                        <p className="text-lg font-semibold text-neutral-900 dark:text-neutral-100">{formatCurrency(order.total)}</p>
-                      </div>
-                    ))}
-                  </div>
-                </>
-              ) : (
-                <div className="text-center py-12">
-                  <ShoppingCart className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <p className="text-gray-500 dark:text-gray-400 text-lg">No recent orders</p>
-                </div>
-              )}
-            </div>
-          </section>
-
-          {/* Debug Monitor - Remove after testing */}
-          {process.env.NODE_ENV === 'development' && (
-            <div className="container mx-auto px-4 sm:px-6 md:px-8 py-4">
-              <DashboardMonitor />
-            </div>
-          )}
+              </div>
+            )}
+          </div>
         </div>
       </div>
-
-      {/* Modal Components */}
-      <ProductForm 
-        open={showProductForm} 
-        onOpenChange={setShowProductForm} 
-      />
-      
-      <CustomerForm 
-        open={showCustomerForm} 
-        onOpenChange={setShowCustomerForm} 
-      />
     </div>
   );
 }

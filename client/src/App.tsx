@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { Switch, Route, useLocation } from "wouter";
-import { QueryClientProvider } from "@tanstack/react-query";
-import { queryClient } from "./lib/queryClient";
+// Removed React Query - using pure runtime data fetching
+// import { QueryClientProvider } from "@tanstack/react-query";
+// import { queryClient } from "./lib/queryClient";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Sidebar } from "@/components/layout/sidebar";
@@ -19,7 +20,7 @@ import OfflineManager from "@/components/offline/offline-manager";
 import { registerServiceWorker } from "@/lib/sw-registration";
 
 import Dashboard from "@/pages/dashboard";
-import Inventory from "@/pages/inventory-new";
+import Inventory from "@/pages/inventory";
 import Sales from "@/pages/sales";
 import Customers from "@/pages/customers";
 import Reports from "@/pages/reports";
@@ -180,7 +181,6 @@ function App() {
   
   return (
     <EnhancedErrorBoundary showDetails={true}>
-      <QueryClientProvider client={queryClient}>
         <ThemeProvider>
           <AuthProvider>
             <OfflineProvider>
@@ -193,7 +193,6 @@ function App() {
             </OfflineProvider>
           </AuthProvider>
         </ThemeProvider>
-      </QueryClientProvider>
     </EnhancedErrorBoundary>
   );
 }

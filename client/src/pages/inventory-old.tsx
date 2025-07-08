@@ -1,8 +1,7 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { type Product } from "@/types/schema";
 import { ProductForm } from "@/components/inventory/product-form";
 import { RestockModal } from "@/components/inventory/restock-modal";
-import { RefreshButton } from "@/components/ui/refresh-button";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,69 +22,67 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
-import { Search, Package, Edit, Trash2, Plus, PackagePlus } from "lucide-react";
+import { Search, Package, Edit, Trash2, Plus, PackagePlus, RefreshCw } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useRuntimeData } from "@/hooks/useRuntimeData";
-import { useRuntimeOperations } from "@/hooks/useRuntimeOperations";
+import { useProductsRuntime } from "@/hooks/useRuntimeDataNew";
 
 type SortOption = "name-asc" | "name-desc" | "price-asc" | "price-desc";
 
 export default function Inventory() {
+  const [search, setSearch] = useState("");
+  const [sortBy, setSortBy] = useState<SortOption>("name-asc");
   const [showProductForm, setShowProductForm] = useState(false);
   const [editingProduct, setEditingProduct] = useState<Product | undefined>();
   const [deleteProductState, setDeleteProductState] = useState<Product | undefined>();
   const [restockProduct, setRestockProduct] = useState<Product | undefined>();
-  const [search, setSearch] = useState("");
-  const [sortBy, setSortBy] = useState<SortOption>("name-asc");
 
-  // Use runtime data and operations hooks
+  // Use runtime data hook for instant updates with zero caching
   const {
     products,
-    productsLoading: isLoading,
-    productsError: error,
+    isLoading,
+    error,
     fetchProducts: refresh,
-    isConnected
-  } = useRuntimeData();
+    addProduct: createProduct,
+    updateProduct,
+    deleteProduct
+  } = useProductsRuntime();
+  
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
-  const {
-    deleteProduct,
-    restockProduct: restockProductOperation
-  } = useRuntimeOperations();
+  // Search and sort functions
+  const searchProducts = useCallback((searchTerm: string) => {
+    if (!searchTerm.trim()) return products;
+    const term = searchTerm.toLowerCase();
+    return products.filter(product =>
+      product.name.toLowerCase().includes(term) ||
+      product.sku.toLowerCase().includes(term) ||
+      product.category?.toLowerCase().includes(term)
+    );
+  }, [products]);
 
-  // Search and sort logic
-  const filteredAndSortedProducts = useMemo(() => {
-    if (!products) return [];
-    
-    let filtered = products;
-    
-    // Apply search filter
-    if (search.trim()) {
-      const searchTerm = search.toLowerCase();
-      filtered = products.filter(product => 
-        product.name.toLowerCase().includes(searchTerm) ||
-        (product.sku && product.sku.toLowerCase().includes(searchTerm)) ||
-        (product.category && product.category.toLowerCase().includes(searchTerm))
-      );
-    }
-    
-    // Apply sorting
-    return filtered.sort((a, b) => {
+  const sortProducts = useCallback((sortBy: SortOption, productsToSort: Product[]) => {
+    return [...productsToSort].sort((a, b) => {
       switch (sortBy) {
         case "name-asc":
           return a.name.localeCompare(b.name);
         case "name-desc":
           return b.name.localeCompare(a.name);
         case "price-asc":
-          return parseFloat(a.price) - parseFloat(b.price);
+          return a.price - b.price;
         case "price-desc":
-          return parseFloat(b.price) - parseFloat(a.price);
+          return b.price - a.price;
         default:
           return 0;
       }
     });
-  }, [products, search, sortBy]);
+  }, []);
 
-  // Enhanced handlers with immediate feedback
+  const filteredAndSortedProducts = useMemo(() => {
+    const searched = searchProducts(search);
+    return sortProducts(sortBy, searched);
+  }, [products, search, sortBy, searchProducts, sortProducts]);
+
+  // Enhanced handlers with logging and state management
   const handleEdit = useCallback((product: Product) => {
     console.log('✏️ Editing product:', product.id, product.name);
     setEditingProduct(product);
@@ -103,139 +100,124 @@ export default function Inventory() {
   }, []);
 
   const handleFormClose = useCallback(() => {
+    console.log('✖️ Closing product form');
     setShowProductForm(false);
     setEditingProduct(undefined);
   }, []);
 
   const handleRestockClose = useCallback(() => {
+    console.log('✖️ Closing restock modal');
     setRestockProduct(undefined);
   }, []);
 
-  // Confirm delete with runtime operation
+  // Enhanced refresh with manual loading state
+  const handleRefresh = useCallback(async () => {
+    setIsRefreshing(true);
+    try {
+      await refresh();
+    } finally {
+      setIsRefreshing(false);
+    }
+  }, [refresh]);
+
+  // Confirm delete handler
   const confirmDelete = useCallback(async () => {
     if (deleteProductState) {
-      await deleteProduct(deleteProductState.id);
-      setDeleteProductState(undefined);
+      try {
+        await deleteProduct(deleteProductState.id);
+        setDeleteProductState(undefined);
+      } catch (error) {
+        // Error already handled in hook
+      }
     }
   }, [deleteProductState, deleteProduct]);
 
-  if (isLoading) {
-    return (
-      <div className="h-full flex flex-col space-y-6 p-6">
-        <div className="flex items-center justify-between">
-          <div className="space-y-2">
-            <Skeleton className="h-8 w-[200px]" />
-            <Skeleton className="h-4 w-[300px]" />
-          </div>
-          <Skeleton className="h-10 w-[120px]" />
-        </div>
-
-        <div className="flex flex-col sm:flex-row gap-4">
-          <div className="relative flex-1">
-            <Skeleton className="h-10 w-full" />
-          </div>
-          <Skeleton className="h-10 w-[150px]" />
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {Array.from({ length: 6 }).map((_, i) => (
-            <div key={i} className="bg-white dark:bg-[#1F1F1F] rounded-lg shadow-lg p-6">
-              <Skeleton className="h-6 w-[150px] mb-2" />
-              <Skeleton className="h-4 w-[100px] mb-4" />
-              <Skeleton className="h-4 w-[120px]" />
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="h-full flex items-center justify-center p-6">
-        <div className="text-center space-y-4">
-          <Package className="w-12 h-12 text-gray-400 mx-auto" />
-          <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">
-            Failed to load inventory
-          </h3>
-          <p className="text-gray-500 dark:text-gray-400">{error.message}</p>
-          <Button onClick={refresh}>Try Again</Button>
-        </div>
-      </div>
-    );
-  }
-
   return (
-    <div className="h-full flex flex-col space-y-6 p-2 sm:p-4 lg:p-6">
-      {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-gray-100">
-            Inventory Management
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400 mt-1">
-            Manage your products and stock levels
-            {isLoading && (
-              <span className="ml-2 text-sm text-blue-600 dark:text-blue-400">
-                • Updating...
-              </span>
-            )}
-            {!isConnected && (
-              <span className="ml-2 text-sm text-red-600 dark:text-red-400">
-                • Offline
-              </span>
-            )}
-          </p>
+    <div className="min-h-screen bg-gray-50 dark:bg-[#1F1F1F]">
+      {/* Sticky Header */}
+      <div className="sticky top-0 z-10 bg-white/95 dark:bg-[#1F1F1F]/95 backdrop-blur-sm border-b border-gray-200 dark:border-gray-700 px-6 py-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">
+              Inventory
+            </h1>
+            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+              Manage your product inventory
+              {isLoading && (
+                <span className="ml-2 text-orange-600 dark:text-orange-400">• Loading...</span>
+              )}
+              {isRefreshing && (
+                <span className="ml-2 text-blue-600 dark:text-blue-400">• Updating...</span>
+              )}
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              onClick={handleRefresh}
+              disabled={isRefreshing}
+              size="sm"
+              variant="outline"
+              className="flex items-center gap-2"
+            >
+              <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+              {isRefreshing ? "Refreshing..." : "Refresh"}
+            </Button>
+            <Button 
+              onClick={() => setShowProductForm(true)} 
+              className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white"
+            >
+              <Plus className="w-4 h-4" />
+              Add Product
+            </Button>
+          </div>
         </div>
-        <div className="flex gap-2">
-          <RefreshButton onClick={refresh} />
-          <Button 
-            onClick={() => setShowProductForm(true)}
-            className="bg-green-600 hover:bg-green-700 text-white"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Add Product
-          </Button>
+
+        {/* Search and Sort Bar */}
+        <div className="mt-4 flex flex-col sm:flex-row gap-4">
+          <div className="relative flex-1 max-w-md">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4 z-10" />
+            <Input
+              placeholder="Search by name, SKU, or category..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-10 h-12 w-full border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:border-accent-500 dark:focus:border-purple-400 focus:ring-2 focus:ring-accent-500/20 dark:focus:ring-purple-400/20 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 transition-all duration-200 shadow-sm hover:shadow-md focus:shadow-lg"
+              aria-label="Search products by name, SKU, or category"
+            />
+          </div>
+          <Select value={sortBy} onValueChange={(value: SortOption) => setSortBy(value)}>
+            <SelectTrigger className="w-full sm:w-48 h-12 border-2 border-gray-200 dark:border-gray-600 rounded-xl focus:border-accent-500 dark:focus:border-purple-400 focus:ring-2 focus:ring-accent-500/20 dark:focus:ring-purple-400/20 bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 transition-all duration-200">
+              <SelectValue placeholder="Sort by Name/Qty/Price" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="name-asc">Name (A-Z)</SelectItem>
+              <SelectItem value="name-desc">Name (Z-A)</SelectItem>
+              <SelectItem value="price-asc">Price (Low to High)</SelectItem>
+              <SelectItem value="price-desc">Price (High to Low)</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
-      {/* Search and Sort Controls */}
-      <div className="flex flex-col sm:flex-row gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-          <Input
-            placeholder="Search products by name, SKU, or category..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="pl-10"
-          />
-        </div>
-        <Select value={sortBy} onValueChange={(value: SortOption) => setSortBy(value)}>
-          <SelectTrigger className="w-full sm:w-[180px]">
-            <SelectValue placeholder="Sort by" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="name-asc">Name (A-Z)</SelectItem>
-            <SelectItem value="name-desc">Name (Z-A)</SelectItem>
-            <SelectItem value="price-asc">Price (Low-High)</SelectItem>
-            <SelectItem value="price-desc">Price (High-Low)</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
 
-      {/* Products Grid */}
-      <div className="flex-1 overflow-auto">
-        {filteredAndSortedProducts.length === 0 ? (
+
+      {/* Main Content with Professional Grid Layout */}
+      <div className="px-6 py-6">
+        {isLoading ? (
+          /* Loading Skeleton */
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="animate-pulse bg-gray-200 dark:bg-gray-700 rounded-lg h-32 border-l-4 border-gray-300"></div>
+            ))}
+          </div>
+        ) : filteredAndSortedProducts.length === 0 ? (
+          /* Empty State */
           <div className="text-center py-12">
-            <Package className="w-12 h-12 text-gray-400 mx-auto mb-4" />
+            <Package className="w-16 h-16 text-gray-300 dark:text-gray-600 mx-auto mb-4" />
             <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-2">
-              {search ? "No products found" : "No products yet"}
+              {search ? "No products found" : "No products available"}
             </h3>
             <p className="text-gray-500 dark:text-gray-400 mb-6">
-              {search 
-                ? "Try adjusting your search criteria"
-                : "Start by adding your first product to the inventory"
-              }
+              {search ? "Try adjusting your search terms" : "Add your first product to get started"}
             </p>
             {!search && (
               <Button 
@@ -265,8 +247,7 @@ export default function Inventory() {
                   <div className="absolute top-4 right-4 flex gap-1">
                     <button
                       onClick={() => handleRestock(product)}
-                      disabled={false}
-                      className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 hover:text-blue-600 transition-colors disabled:opacity-50"
+                      className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 hover:text-blue-600 transition-colors"
                       aria-label="Add stock"
                     >
                       <PackagePlus className="w-4 h-4" />
@@ -280,8 +261,7 @@ export default function Inventory() {
                     </button>
                     <button
                       onClick={() => handleDelete(product)}
-                      disabled={false}
-                      className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 hover:text-red-600 transition-colors disabled:opacity-50"
+                      className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 hover:text-red-600 transition-colors"
                       aria-label="Delete product"
                     >
                       <Trash2 className="w-4 h-4" />
@@ -328,7 +308,7 @@ export default function Inventory() {
       <RestockModal
         product={restockProduct || null}
         open={!!restockProduct}
-        onOpenChange={(open) => !open && handleRestockClose()}
+        onOpenChange={(open) => !open && setRestockProduct(undefined)}
       />
 
       {/* Delete Confirmation Dialog */}
@@ -341,12 +321,11 @@ export default function Inventory() {
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={false}>
+            <AlertDialogCancel>
               Cancel
             </AlertDialogCancel>
             <AlertDialogAction
               onClick={confirmDelete}
-              disabled={false}
               className="bg-red-600 hover:bg-red-700"
             >
               Delete
