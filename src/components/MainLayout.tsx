@@ -1,24 +1,19 @@
-import { Outlet, Navigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
+import { ReactNode } from 'react';
 import Sidebar from './Sidebar';
 import TopBar from './TopBar';
 
-export default function MainLayout() {
-  const { user, loading } = useAuth();
+interface MainLayoutProps {
+  children: ReactNode;
+}
 
-  // If auth still loading, show nothing (App handles spinner)
-  if (loading) return null;
-
-  // If logged out, redirect
-  if (!user) return <Navigate to="/login" replace />;
-
+export default function MainLayout({ children }: MainLayoutProps) {
   return (
     <div className="flex h-screen bg-gray-100">
       <Sidebar />
       <div className="flex-1 flex flex-col">
         <TopBar />
         <main className="flex-1 overflow-auto p-6">
-          <Outlet />
+          {children}
         </main>
       </div>
     </div>

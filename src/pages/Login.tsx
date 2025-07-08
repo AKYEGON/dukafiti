@@ -1,35 +1,46 @@
 import { useState } from 'react';
-import { Navigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import { supabase } from '../lib/supabase';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isSignUp, setIsSignUp] = useState(false);
   const [error, setError] = useState('');
-  const { user, loading, signIn, signUp } = useAuth();
-
-  if (user) {
-    return <Navigate to="/dashboard" replace />;
-  }
+  const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setLoading(true);
     
     if (!email || !password) {
       setError('Please fill in all fields');
+      setLoading(false);
       return;
     }
 
     try {
       if (isSignUp) {
-        await signUp(email, password);
+        const { error } = await supabase.auth.signUp({
+          email,
+          password,
+        });
+        if (error) throw error;
+        setError('Check your email for a verification link');
       } else {
-        await signIn(email, password);
+        const { error } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+        if (error) throw error;
+        navigate('/dashboard');
       }
     } catch (err: any) {
       setError(err.message || 'Authentication failed');
+    } finally {
+      setLoading(false);
     }
   };
 

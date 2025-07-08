@@ -1,40 +1,18 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { useAuth } from './contexts/AuthContext';
-import FullScreenSpinner from './components/FullScreenSpinner';
-import MainLayout from './components/MainLayout';
 import Landing from './pages/Landing';
 import LoginPage from './pages/Login';
-import Dashboard from './pages/Dashboard';
-import Inventory from './pages/Inventory';
-import Customers from './pages/Customers';
-import TestDataLayer from './pages/TestDataLayer';
+import ProtectedApp from './components/ProtectedApp';
 
 export default function App() {
-  const { user, loading } = useAuth();
-
   return (
     <BrowserRouter>
       <Routes>
+        {/* Public routes - no auth context needed */}
         <Route path="/" element={<Landing />} />
         <Route path="/login" element={<LoginPage />} />
-        <Route element={<MainLayout />}>
-          <Route 
-            path="/dashboard" 
-            element={loading ? <FullScreenSpinner /> : (user ? <Dashboard /> : <Navigate to="/login" replace />)} 
-          />
-          <Route 
-            path="/inventory" 
-            element={loading ? <FullScreenSpinner /> : (user ? <Inventory /> : <Navigate to="/login" replace />)} 
-          />
-          <Route 
-            path="/customers" 
-            element={loading ? <FullScreenSpinner /> : (user ? <Customers /> : <Navigate to="/login" replace />)} 
-          />
-          <Route 
-            path="/test" 
-            element={loading ? <FullScreenSpinner /> : (user ? <TestDataLayer /> : <Navigate to="/login" replace />)} 
-          />
-        </Route>
+        
+        {/* All other routes go to the protected app */}
+        <Route path="/*" element={<ProtectedApp />} />
       </Routes>
     </BrowserRouter>
   );
