@@ -10,7 +10,7 @@ export default function LoginPage() {
   const { user, loading, signIn, signUp } = useAuth();
 
   if (user) {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/dashboard" replace />;
   }
 
   const handleSubmit = async (e: React.FormEvent) => {

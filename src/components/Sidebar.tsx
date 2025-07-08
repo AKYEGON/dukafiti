@@ -4,7 +4,7 @@ export default function Sidebar() {
   const location = useLocation();
   
   const navItems = [
-    { path: '/', label: 'Dashboard' },
+    { path: '/dashboard', label: 'Dashboard' },
     { path: '/inventory', label: 'Inventory' },
     { path: '/customers', label: 'Customers' },
     { path: '/test', label: 'Test Data Layer' }

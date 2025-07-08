@@ -124,6 +124,7 @@ Changelog:
 - July 8, 2025. Implemented complete authentication flow with proper loading states and error handling
 - July 8, 2025. FIXED INFINITE SPINNER: Simplified auth initialization to prevent hanging on production deployment
 - July 8, 2025. Implemented proper auth flow separation: App handles global loading, MainLayout handles auth protection
+- July 8, 2025. CREATED STATIC LANDING PAGE: Moved dashboard to /dashboard route, root path now shows static landing page eliminating infinite loading
 ```
 
 ## User Preferences
