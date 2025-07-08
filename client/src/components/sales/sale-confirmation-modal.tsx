@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { formatCurrency } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { type SaleLineItem } from "@/components/sales/sale-line-item";
-import { type Customer } from "@shared/schema";
+import { type Customer } from "@/types/schema";
 import { getCustomers } from "@/lib/supabase-data";
 import { createSaleOfflineAware } from "@/lib/offline-api";
 

@@ -11,7 +11,7 @@ import { Wallet, Smartphone, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { recordCustomerRepayment } from "@/lib/supabase-data";
 import { triggerPaymentReceivedNotification } from "@/lib/notification-triggers";
-import type { Customer } from "@shared/schema";
+import type { Customer } from "@/types/schema";
 
 interface RecordRepaymentModalProps {
   isOpen: boolean;

@@ -13,7 +13,7 @@ import { MobilePageWrapper } from "@/components/layout/mobile-page-wrapper";
 import { motion, AnimatePresence } from "framer-motion";
 import { getCustomers, deleteCustomer } from "@/lib/supabase-data";
 import { useToast } from "@/hooks/use-toast";
-import type { Customer } from "@shared/schema";
+import type { Customer } from "@/types/schema";
 
 export default function Customers() {
   const { data: customers, isLoading } = useQuery<Customer[]>({

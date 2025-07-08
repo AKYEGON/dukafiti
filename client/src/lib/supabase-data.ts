@@ -935,7 +935,41 @@ export const getRecentOrders = async () => {
       throw error;
     }
     
-    return orders || [];
+    // Get order items for each order
+    const ordersWithProducts = await Promise.all((orders || []).map(async (order) => {
+      try {
+        const { data: orderItems } = await supabase
+          .from('order_items')
+          .select('quantity, product_name')
+          .eq('order_id', order.id);
+        
+        return {
+          id: order.id,
+          customerName: order.customer_name || 'Walk-in Customer',
+          total: order.total,
+          status: order.status || 'completed',
+          paymentMethod: order.payment_method,
+          createdAt: order.created_at,
+          products: orderItems?.map(item => ({
+            name: item.product_name,
+            quantity: item.quantity
+          })) || []
+        };
+      } catch (itemError) {
+        console.error('Error fetching order items for order', order.id, itemError);
+        return {
+          id: order.id,
+          customerName: order.customer_name || 'Walk-in Customer',
+          total: order.total,
+          status: order.status || 'completed',
+          paymentMethod: order.payment_method,
+          createdAt: order.created_at,
+          products: []
+        };
+      }
+    }));
+    
+    return ordersWithProducts;
   } catch (error) {
     console.error('Error in getRecentOrders:', error);
     return [];
@@ -958,12 +992,16 @@ export const getDashboardMetrics = async () => {
       if (ordersError.message.includes('relation "orders" does not exist')) {
         console.warn('Orders table does not exist, returning empty metrics');
         return {
-          totalRevenue: '0',
-          totalOrders: 0,
-          totalProducts: 0,
-          totalCustomers: 0,
+          totalRevenue: 0,
+          ordersToday: 0,
+          inventoryItems: 0,
           lowStockItems: 0,
-          activeCustomersCount: 0,
+          totalCustomers: 0,
+          creditOutstanding: 0,
+          revenueChange: 0,
+          ordersChange: 0,
+          inventoryChange: 0,
+          lowStockChange: 0
         };
       }
       throw ordersError;
@@ -1008,27 +1046,31 @@ export const getDashboardMetrics = async () => {
     }) || [];
 
     return {
-      totalRevenue: totalRevenue.toFixed(2),
-      totalOrders,
-      totalProducts: totalProducts || 0,
+      totalRevenue: totalRevenue,
+      ordersToday: todaysOrders.length,
+      inventoryItems: totalProducts || 0,
+      lowStockItems: lowStockCount,
       totalCustomers: totalCustomers || 0,
-      revenueGrowth: "0.0", // Simplified for now
-      ordersGrowth: "0.0", // Simplified for now
-      lowStockCount,
-      activeCustomersCount: totalCustomers || 0
+      creditOutstanding: 0, // Calculate if needed
+      revenueChange: 0,
+      ordersChange: 0,
+      inventoryChange: 0,
+      lowStockChange: 0
     };
   } catch (error) {
     console.error('Error fetching dashboard metrics:', error);
     // Return default values if there's an error
     return {
-      totalRevenue: "0.00",
-      totalOrders: 0,
-      totalProducts: 0,
+      totalRevenue: 0,
+      ordersToday: 0,
+      inventoryItems: 0,
+      lowStockItems: 0,
       totalCustomers: 0,
-      revenueGrowth: "0.0",
-      ordersGrowth: "0.0",
-      lowStockCount: 0,
-      activeCustomersCount: 0
+      creditOutstanding: 0,
+      revenueChange: 0,
+      ordersChange: 0,
+      inventoryChange: 0,
+      lowStockChange: 0
     };
   }
 };

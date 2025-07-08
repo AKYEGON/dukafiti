@@ -13,7 +13,7 @@ import {
 } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { Package, WifiOff } from 'lucide-react';
-import { type Product } from '@shared/schema';
+import { type Product } from '@/types/schema';
 import { restockProductOfflineAware } from '@/lib/offline-api';
 
 interface RestockModalProps {

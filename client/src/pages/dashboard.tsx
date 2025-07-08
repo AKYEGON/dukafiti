@@ -1,8 +1,7 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useLocation } from "wouter";
-import { type DashboardMetrics, type Order } from "@shared/schema";
-import { formatCurrency as formatCurrencyUtil } from "@shared/utils";
+import { type DashboardMetrics, type Order } from "@/types/schema";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -172,21 +171,21 @@ export default function Dashboard() {
           <section className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4 sm:gap-6" role="region" aria-label="Key performance indicators">
             <SummaryCard
               title="Total Revenue"
-              value={formatCurrency(metrics?.totalRevenue || "0")}
+              value={formatCurrency(metrics?.totalRevenue || 0)}
               icon={DollarSign}
               isLoading={metricsLoading}
               iconColor="bg-green-600"
             />
             <SummaryCard
-              title="Total Orders"
-              value={(metrics?.totalOrders || 0).toString()}
+              title="Orders Today"
+              value={(metrics?.ordersToday || 0).toString()}
               icon={ShoppingCart}
               isLoading={metricsLoading}
               iconColor="bg-blue-600"
             />
             <SummaryCard
               title="Inventory Items"
-              value={(metrics?.totalProducts || 0).toString()}
+              value={(metrics?.inventoryItems || 0).toString()}
               icon={Package}
               isLoading={metricsLoading}
               iconColor="bg-accent"
