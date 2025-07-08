@@ -1,0 +1,145 @@
+Assistant, we’ve spent 12 hours on this—Inventory and Customers pages still only refresh after a Vercel rebuild, while Dashboard updates correctly at runtime. Let’s perform a **line‑by‑line audit and atomic refactor** so every page shares the same live‑data logic and no data ever waits for a redeploy. Please overwrite or update these files in one go:
+
+---
+
+## 1. Remove All Build‑Time & Cached Data
+
+- Search **entire repo** for any:
+  - `import … from '…/data/*.json'`
+  - `getStaticProps`, `getServerSideProps`, or any SSR/SSG code
+  - Service‑worker caching of API endpoints (in `sw.js`)
+- **Delete** or disable these; data must come from Supabase at runtime only.
+
+---
+
+## 2. Extract a Shared `useLiveData` Hook
+
+Create `src/hooks/useLiveData.ts`:
+
+```ts
+import { useState, useEffect } from 'react';
+import { supabase } from '../supabaseClient';
+
+export default function useLiveData<T>(table: string) {
+  const [items, setItems] = useState<T[]>([]);
+  const user = supabase.auth.getUser()?.data.user;
+
+  // Fetch on mount & whenever user changes
+  useEffect(() => {
+    if (!user) return;
+    (async () => {
+      const { data, error } = await supabase
+        .from<T>(table)
+        .select('*')
+        .eq('store_id', user.id)
+        .order('created_at', { ascending: false });
+      if (error) console.error(`${table} fetch error:`, error);
+      else setItems(data);
+    })();
+  }, [user, table]);
+
+  // Real‑time subscription
+  useEffect(() => {
+    if (!user) return;
+    const channel = supabase
+      .from<T>(`${table}:store_id=eq.${user.id}`)
+      .on('*', payload => {
+        setItems(prev => {
+          switch (payload.eventType) {
+            case 'INSERT':  return [payload.new, ...prev];
+            case 'UPDATE':  return prev.map(i => i.id === payload.new.id ? payload.new : i);
+            case 'DELETE':  return prev.filter(i => i.id !== payload.old.id);
+            default:         return prev;
+          }
+        });
+      })
+      .subscribe();
+    return () => supabase.removeChannel(channel);
+  }, [user, table]);
+
+  return items;
+}
+3. Refactor Pages to Use useLiveData
+Inventory.jsx
+tsx
+Copy
+Edit
+import useLiveData from '../hooks/useLiveData';
+
+export default function Inventory() {
+  const products = useLiveData<Product>('products');
+  return (
+    <div>
+      {products.length === 0
+        ? <EmptyState message="No products." />
+        : products.map(p => <ProductCard key={p.id} product={p} />)
+      }
+    </div>
+  );
+}
+Customers.jsx
+tsx
+Copy
+Edit
+import useLiveData from '../hooks/useLiveData';
+
+export default function Customers() {
+  const customers = useLiveData<Customer>('customers');
+  return (
+    <div>
+      {customers.length === 0
+        ? <EmptyState message="No customers." />
+        : customers.map(c => <CustomerCard key={c.id} customer={c} />)
+      }
+    </div>
+  );
+}
+4. Standardize Mutation Handlers
+In each modal or form handler—for add/update/delete—replace existing logic with this pattern:
+
+ts
+Copy
+Edit
+async function handleSave(record: Partial<T>, mode: 'insert' | 'update') {
+  const user = supabase.auth.getUser().data.user;
+  const payload = { ...record, store_id: user.id };
+  const query = supabase.from<T>(table)[mode]([payload]);
+  const { error } = await (mode === 'update'
+    ? supabase.from<T>(table).update(payload).eq('id', record.id).eq('store_id', user.id)
+    : query);
+  if (error) {
+    console.error(`${table} ${mode} error:`, error);
+    toast.error(error.message);
+  } else {
+    toast.success(`${table} ${mode} successful`);
+    // No manual refetch needed—useLiveData will pick up via realtime
+  }
+}
+Use this same handler in Inventory and Customers forms.
+
+5. Bypass Caching Everywhere
+In any fetch call: fetch(url, { cache: 'no-store' }).
+
+In sw.js, ensure API routes use network‑first or are excluded from caching.
+
+6. QA Checklist
+ Inventory: add/edit/delete a product → changes appear instantly without rebuild.
+
+ Customers: add/edit/delete a customer → changes appear instantly without rebuild.
+
+ Dashboard continues working as before.
+
+ Two tabs: mutation in one → other updates real‑time.
+
+ No console errors or policy violations.
+
+Please apply this atomic refactor so all data‑driven pages share the same live‑data hook, enabling true runtime updates without any redeploy.```
+
+
+
+
+
+
+
+
+Ask ChatGPT
