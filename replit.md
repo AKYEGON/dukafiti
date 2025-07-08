@@ -1,123 +1,102 @@
-# DukaFiti Business Platform
+# DukaFiti - Point of Sale System
 
 ## Overview
 
-DukaFiti is a comprehensive business management platform completely rebuilt from the ground up with atomic, clean architecture. The application provides inventory management, sales tracking, customer management, and business analytics through an intuitive web interface with real-time updates and multi-tenant data isolation.
+DukaFiti is a modern point-of-sale (POS) system built with React and TypeScript. The application focuses on inventory management, sales tracking, and customer management for retail businesses. It uses a modern tech stack with Vite for build tooling, Tailwind CSS for styling, and Drizzle ORM for database operations.
 
 ## System Architecture
 
 ### Frontend Architecture
 - **Framework**: React 18 with TypeScript
 - **Build Tool**: Vite for fast development and optimized builds
-- **Routing**: Wouter for client-side routing
-- **UI Framework**: shadcn/ui components built on Radix UI primitives
-- **Styling**: Tailwind CSS with custom design system
-- **State Management**: TanStack Query (React Query) for server state
+- **UI Library**: Radix UI components with shadcn/ui styling system
+- **Styling**: Tailwind CSS with custom component variants
+- **State Management**: TanStack Query for server state management
 - **Form Handling**: React Hook Form with Zod validation
-- **PWA Features**: Service worker for offline caching, Web App Manifest for installability
 
 ### Backend Architecture
-- **Database**: Supabase (PostgreSQL) with built-in authentication and real-time features
-- **Authentication**: Supabase Auth with email/password authentication
-- **Real-time**: Supabase real-time subscriptions for live updates
-- **API Design**: Direct Supabase client calls from frontend (serverless architecture)
-- **Data Operations**: Supabase JavaScript SDK for all CRUD operations
+- **Database ORM**: Drizzle ORM for type-safe database operations
+- **Authentication**: Supabase for user authentication and authorization
+- **API Layer**: Built to work with Supabase backend services
 
-### Data Storage Solutions
-- **Database**: Supabase PostgreSQL with built-in security and RLS
-- **Authentication**: Supabase Auth with session management
-- **Real-time Features**: Supabase real-time subscriptions
-- **File Storage**: Supabase Storage (available if needed)
-- **Edge Functions**: Supabase Edge Functions for serverless API endpoints
+### Database Schema
+The application uses a relational database with the following key entities:
+- **Products**: Inventory management with SKU, pricing, stock levels, and categories
+- **Customers**: Customer information with balance tracking
+- **Orders**: Sales transactions with payment methods and status tracking
+- **Order Items**: Line items for each sale
+- **Users**: Authentication and user management
 
 ## Key Components
 
-### Database Schema
-The application uses a relational data model with the following core entities:
-- **Products**: Inventory items with SKU, pricing, stock levels, and categories
-- **Customers**: Customer information including contact details
-- **Orders**: Sales transactions linked to customers with status tracking
-- **Order Items**: Line items for each order with product references
-- **Users**: System users with role-based access
+### Product Management
+- Inventory tracking with low stock thresholds
+- SKU-based product identification
+- Category-based organization
+- Sales count tracking for analytics
 
-### API Structure
-RESTful endpoints organized by resource:
-- `/api/products` - Product management (CRUD operations, search)
-- `/api/customers` - Customer management
-- `/api/orders` - Order processing and tracking
-- `/api/dashboard/metrics` - Business analytics and KPIs
+### Customer Management
+- Customer profiles with contact information
+- Balance tracking for credit/debit accounts
+- Order history association
 
-### UI Components
-- **Layout System**: Responsive sidebar navigation with mobile support
-- **Component Library**: Comprehensive set of reusable UI components
-- **Forms**: Validated forms with real-time feedback
-- **Data Tables**: Sortable and searchable data presentation
-- **Charts**: Business metrics visualization (ready for chart integration)
+### Sales Processing
+- Order creation with multiple payment methods
+- Real-time inventory updates
+- Customer assignment (optional for walk-in sales)
+- Order status management
+
+### Analytics & Reporting
+- Sales performance tracking
+- Inventory analytics
+- Customer behavior insights
+- Percentage change calculations for period comparisons
 
 ## Data Flow
 
-1. **Client Requests**: React components make direct Supabase API calls through TanStack Query
-2. **Authentication**: Supabase Auth handles user sessions and security
-3. **Database Operations**: Supabase JavaScript SDK executes queries with built-in security
-4. **Real-time Updates**: Supabase real-time subscriptions provide live data updates
-5. **UI Updates**: React Query manages cache invalidation and optimistic updates
+1. **Product Entry**: Products are added with SKU, pricing, and initial stock
+2. **Sales Process**: Orders are created with customer information and product selections
+3. **Inventory Update**: Stock levels are automatically adjusted after each sale
+4. **Analytics Generation**: Sales data is processed for reporting and insights
+5. **Customer Tracking**: Customer purchase history and balances are maintained
 
 ## External Dependencies
 
 ### Core Dependencies
-- **@supabase/supabase-js**: Supabase JavaScript SDK for database and auth operations
-- **@tanstack/react-query**: Server state management and caching
-- **react-hook-form**: Performant form handling with validation
-- **zod**: Runtime type validation and schema definition
+- **Supabase**: Backend-as-a-Service for authentication and real-time features
+- **Drizzle ORM**: Database operations and schema management
+- **TanStack Query**: Server state management and caching
+- **Radix UI**: Accessible component primitives
+- **Tailwind CSS**: Utility-first styling framework
 
-### UI Dependencies
-- **@radix-ui/***: Accessible, unstyled UI primitives
-- **tailwindcss**: Utility-first CSS framework
-- **lucide-react**: Modern icon library
-- **class-variance-authority**: Type-safe component variants
-
-### Development Dependencies
-- **vite**: Fast build tool with HMR
-- **typescript**: Static type checking
-- **tsx**: TypeScript execution for development
+### Development Tools
+- **Vite**: Build tool and development server
+- **TypeScript**: Type safety and developer experience
+- **Replit Plugins**: Development environment integration
 
 ## Deployment Strategy
 
-### Build Process
-- **Frontend**: Vite builds optimized static assets to `dist/public`
-- **Backend**: esbuild bundles server code to `dist/index.js`
-- **Database**: Drizzle Kit manages schema migrations
+The application supports multiple deployment targets:
 
-### Environment Configuration
-- **Development**: Local development server with HMR and hot reload
-- **Production**: Optimized builds with static asset serving
-- **Database**: Environment-based connection via `DATABASE_URL`
+### Development
+- Local development with Vite dev server on port 5000
+- Hot module replacement for rapid development
 
-### Scripts
-- `npm run dev`: Development server with TypeScript execution
-- `npm run build`: Production build for both frontend and backend
-- `npm run start`: Production server startup
-- `npm run db:push`: Database schema synchronization
+### Production Options
+1. **Vercel**: Optimized for static site deployment with custom build configuration
+2. **Railway**: Containerized deployment using Dockerfile
+3. **General Build**: Standard Vite build for any static hosting
+
+### Build Configurations
+- **Standard Build**: Basic Vite build for most deployments
+- **Vercel Build**: Custom configuration for Vercel platform
+- **Railway Build**: Docker-based deployment with health checks
 
 ## Changelog
 
 ```
 Changelog:
-[Previous entries maintained...]
-- July 8, 2025. COMPREHENSIVE ATOMIC AUDIT COMPLETED: Performed complete codebase analysis and Phase B fixes
-- July 8, 2025. Fixed all code formatting issues with Prettier across 21 files for consistent style
-- July 8, 2025. Created ESLint configuration (eslint.config.js) for ESLint v9+ compatibility with TypeScript and React rules
-- July 8, 2025. Enhanced useOfflineQueue hook with real Supabase integration and proper retry logic with exponential backoff
-- July 8, 2025. Fixed offline sync system to actually execute database operations instead of console logging
-- July 8, 2025. Added comprehensive error handling and loading states to Dashboard component
-- July 8, 2025. Enhanced Sales page with stock validation and automatic inventory updates after sales
-- July 8, 2025. Verified Inventory page has fully functional CRUD operations with proper error handling and loading states
-- July 8, 2025. Confirmed all hook dependencies are correct with proper cleanup in useEffect hooks
-- July 8, 2025. Created comprehensive AUDIT_REPORT.md documenting all issues found and fixes applied
-- July 8, 2025. Verified build process passes with no TypeScript errors (297kB production bundle)
-- July 8, 2025. Established comprehensive testing and validation protocols for all real-time features
-- July 8, 2025. Documented complete multi-tenant security architecture with RLS policies for data isolation
-- July 8, 2025. Created detailed setup instructions (SETUP_INSTRUCTIONS.md) for manual database schema deployment
+- July 08, 2025. Initial setup
 ```
 
 ## User Preferences
@@ -125,3 +104,31 @@ Changelog:
 ```
 Preferred communication style: Simple, everyday language.
 ```
+
+## Technical Decisions
+
+### Database Choice
+- **Problem**: Need for type-safe database operations with good developer experience
+- **Solution**: Drizzle ORM with PostgreSQL schema
+- **Benefits**: Type safety, excellent TypeScript integration, flexible query building
+- **Note**: Currently configured for Drizzle ORM; PostgreSQL can be added later as needed
+
+### UI Framework
+- **Problem**: Need for accessible, customizable components
+- **Solution**: Radix UI with shadcn/ui styling system
+- **Benefits**: Accessibility out of the box, consistent design system, easy customization
+
+### State Management
+- **Problem**: Managing server state and caching
+- **Solution**: TanStack Query for server state, React state for local UI state
+- **Benefits**: Automatic caching, background updates, optimistic updates
+
+### Authentication
+- **Problem**: Need for secure user authentication
+- **Solution**: Supabase authentication service
+- **Benefits**: Built-in security, social logins, session management
+
+### Styling Approach
+- **Problem**: Need for maintainable, responsive styling
+- **Solution**: Tailwind CSS with component variants
+- **Benefits**: Utility-first approach, consistent spacing, responsive design
